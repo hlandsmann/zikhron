@@ -19,7 +19,8 @@ set(EXTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/third_party)
 set(PROJECT_INCLUDES ${PROJECT_SOURCE_DIR}/src)
 include_directories(${EXTERNAL_INCLUDES}
                     ${PROJECT_INCLUDES}
-                    ${EXTERNAL_INCLUDES}/fmt/include)
+
+                    )
 
 
 set(CMAKE_AUTOMOC ON)
@@ -31,10 +32,13 @@ add_library(range_v3 INTERFACE IMPORTED)
 set_target_properties(range_v3 PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${EXTERNAL_INCLUDES}/range-v3/include")
 
+add_subdirectory(${EXTERNAL_INCLUDES}/fmt)
+set_target_properties(fmt PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES "${EXTERNAL_INCLUDES}/fmt/include")
+
 pkg_search_module(ICU_UC REQUIRED icu-uc)
 pkg_search_module(ICU_IO REQUIRED icu-io)
 set(ICU_LIBRARIES "${ICU_UC_LIBRARIES}" "${ICU_IO_LIBRARIES}")
-
 
 set(SOURCE src/Application.cpp
            src/TextCard.cpp
@@ -46,4 +50,4 @@ set(SOURCE src/Application.cpp
            src/gui/HtmlGen.cpp
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
-target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} range_v3 ${LINKER_FLAGS})
+target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} range_v3 fmt::fmt ${LINKER_FLAGS})
