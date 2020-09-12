@@ -1,5 +1,3 @@
-#include "Dictionary.h"
-
 #include <unicode/unistr.h>
 #include <exception>
 #include <fstream>
@@ -9,7 +7,6 @@
 #include <span>
 #include <stack>
 #include <string>
-#include "Cedict.h"
 #include "TextCard.h"
 #include "ZH_Annotator.h"
 #include "ZH_Dictionary.h"
