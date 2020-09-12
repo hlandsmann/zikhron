@@ -1,6 +1,7 @@
 *.o
 *~
 *.swp
+*.pdf
 build/
 compile_commands.json
 tags
