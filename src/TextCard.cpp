@@ -4,7 +4,7 @@
 #include "rapidjosnWrapper.h"
 
 void CardDB::loadFromSingleJson(std::string jsonFileName) {
-    std::ifstream             cardFile(jsonFileName);
+    std::ifstream cardFile(jsonFileName);
     rapidjson::IStreamWrapper isw(cardFile);
 
     rapidjson::Document json;
