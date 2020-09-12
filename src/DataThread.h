@@ -10,7 +10,7 @@ public:
     ptrDictionary(QObject* parent = nullptr) { Q_UNUSED(parent); };
     ptrDictionary(const QSharedPointer<ZH_Dictionary>& qsptr) : _qsptr(qsptr){};
     ptrDictionary(const ptrDictionary& other) : QObject(), _qsptr(other.get()){};
-    QSharedPointer<ZH_Dictionary> get() const { return _qsptr; }
+    auto get() const -> QSharedPointer<ZH_Dictionary> { return _qsptr; }
 
 private:
     QSharedPointer<ZH_Dictionary> _qsptr;

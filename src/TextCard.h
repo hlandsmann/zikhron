@@ -7,7 +7,7 @@
 struct Card {
     virtual ~Card() = default;
 
-    virtual std::vector<icu::UnicodeString> getTextVector() const = 0;
+    virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
 };
 struct DialogueCard : public Card {
     struct DialogueItem {
@@ -16,12 +16,12 @@ struct DialogueCard : public Card {
     };
     std::vector<DialogueItem> dialogue;
 
-    std::vector<icu::UnicodeString> getTextVector() const override;
+    auto getTextVector() const -> std::vector<icu::UnicodeString> override;
 };
 
 struct TextCard : public Card {
-    icu::UnicodeString              text;
-    std::vector<icu::UnicodeString> getTextVector() const override;
+    icu::UnicodeString text;
+    auto getTextVector() const -> std::vector<icu::UnicodeString> override;
 };
 
 struct CardDB {

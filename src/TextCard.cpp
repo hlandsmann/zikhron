@@ -28,15 +28,15 @@ void CardDB::loadFromSingleJson(std::string jsonFileName) {
             cards.push_back(std::move(dialogueCard));
         }
         if (jsonCard.HasMember("text")) {
-            const auto &text     = jsonCard["text"];
-            auto        textCard = std::make_unique<TextCard>();
-            textCard->text       = icu::UnicodeString::fromUTF8(text.GetString());
+            const auto &text = jsonCard["text"];
+            auto textCard = std::make_unique<TextCard>();
+            textCard->text = icu::UnicodeString::fromUTF8(text.GetString());
 
             cards.push_back(std::move(textCard));
         }
     }
 }
-std::vector<icu::UnicodeString> DialogueCard::getTextVector() const {
+auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString> {
     std::vector<icu::UnicodeString> textVector;
     textVector.reserve(dialogue.size());
     std::transform(
@@ -45,4 +45,4 @@ std::vector<icu::UnicodeString> DialogueCard::getTextVector() const {
         });
     return textVector;
 }
-std::vector<icu::UnicodeString> TextCard::getTextVector() const { return {text}; }
+auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString> { return {text}; }
