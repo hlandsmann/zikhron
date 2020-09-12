@@ -43,7 +43,6 @@ set(SOURCE src/Application.cpp
            src/utils/StringU8.cpp
            src/gui/Observer.cpp
            src/gui/HtmlGen.cpp
-
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
 target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} range_v3 ${LINKER_FLAGS})
