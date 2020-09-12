@@ -15,9 +15,11 @@ set(CXX_WARNINGLEVEL "-Wall -Wextra -Wshadow -Wno-class-memaccess")
 set(CMAKE_CXX_FLAGS "-std=c++2a -pedantic -march=native -O2 ${CXX_WARNINGLEVEL}")
 set(LINKER_FLAGS "-Wl,--gc-sections,--relax")
 
-set(EXTERNAL_INCLUDES "${PROJECT_SOURCE_DIR}/third_party")
-set(PROJECT_INCLUDES "${PROJECT_SOURCE_DIR}/src")
-include_directories(${EXTERNAL_INCLUDES} ${PROJECT_INCLUDES})
+set(EXTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/third_party)
+set(PROJECT_INCLUDES ${PROJECT_SOURCE_DIR}/src)
+include_directories(${EXTERNAL_INCLUDES}
+                    ${PROJECT_INCLUDES}
+                    ${EXTERNAL_INCLUDES}/fmt/include)
 
 
 set(CMAKE_AUTOMOC ON)
