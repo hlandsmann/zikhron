@@ -7,3 +7,6 @@ compile_commands.json
 tags
 conversion/
 cards/
+
+.fake
+.ionide
