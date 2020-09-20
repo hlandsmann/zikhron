@@ -78,7 +78,12 @@ bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
     return handled;
 }
 
-void Observer::hoveredTextPosition(int /* pos*/) { /*qDebug("signal pos  %d", pos);*/
+void Observer::hoveredTextPosition(int pos) {
+    paragraph.undoChange();
+    paragraph.changeWordAtPosition(pos, [](markup::Word &word) {
+        word.setBackgroundColor(0x227722);
+    });
+    emit textUpdate(QString::fromStdString(paragraph.get()));
 }
 
 auto Observer::getLongText() const -> utl::StringU8 {
@@ -102,7 +107,6 @@ void Observer::getDictionary(const ptrDictionary &_zh_dict) {
     zh_dict = _zh_dict.get();
     auto maxText = getLongText();
     ZH_Annotator zh_annotater(maxText, zh_dict);
-    markup::Paragraph paragraph;
     std::transform(zh_annotater.Items().begin(),
                    zh_annotater.Items().end(),
                    std::back_inserter(paragraph),
@@ -112,7 +116,5 @@ void Observer::getDictionary(const ptrDictionary &_zh_dict) {
                        return item.text;
                    });
 
-    // std::transform(
-
-    emit textUpdate(QString::fromStdString(paragraph.Get()));
+    emit textUpdate(QString::fromStdString(paragraph.get()));
 }

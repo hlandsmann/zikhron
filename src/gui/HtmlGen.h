@@ -1,5 +1,6 @@
 #pragma once
 #include <utils/StringU8.h>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -13,6 +14,10 @@ class Word {
 public:
     Word(const utl::StringU8& word, uint32_t color, uint32_t backGroundColor);
     Word(const utl::StringU8& word);
+    Word(const Word&) = default;
+    Word(Word&&) = default;
+
+    Word& operator=(const Word&& word);
     operator std::string() const;
 
     void setColor(uint32_t color);
@@ -27,17 +32,27 @@ private:
     std::string styledWord;
 };
 
-
 class Paragraph {
 public:
     using value_type = Word;
 
     Paragraph() = default;
-    auto Get() const -> std::string;
+    auto get() const -> std::string;
     void push_back(const Word& word);
+    void changeWordAtPosition(int pos, const std::function<void(Word&)>& op);
+    void changeWordAtIndex(int index, const std::function<void(Word&)>& op);
+    void undoChange();
 
 private:
+    void resetPosition();
+    struct WordState {
+        int index;
+        Word word;
+    };
+
+    std::stack<WordState> preChanges;
     std::vector<Word> words;
+    std::vector<int> positions;
 };
 }  // namespace markup
 
@@ -46,7 +61,7 @@ inline std::ostream& operator<<(std::ostream& os, const markup::Word& word) {
     return os;
 }
 
-inline std::string operator+(std::string&& str, const markup::Word &word) {
+inline std::string operator+(std::string&& str, const markup::Word& word) {
     return str + std::string(word);
 }
 // inline std::string& operator+=(std::string& str, const markup::Word& word) {

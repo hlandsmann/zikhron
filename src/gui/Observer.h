@@ -2,19 +2,19 @@
 
 #include <TextCard.h>
 #include <unicode/unistr.h>
+#include <utils/StringU8.h>
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QQuickItem>
 #include <QSharedPointer>
-#include <utils/StringU8.h>
 #include "DataThread.h"
+#include "HtmlGen.h"
+
 
 class Observer : public QQuickItem {
     Q_OBJECT
 
 public:
-
-
     Observer() {
         setFiltersChildMouseEvents(true);
         // connect(sender(), &QObject::destroyed, this, &Observer::hoveredTextPosition);
@@ -37,6 +37,7 @@ private:
 
     mutable CardDB cardDB;
 
+    markup::Paragraph paragraph;
     QSharedPointer<ZH_Dictionary> zh_dict;
     std::string annotated;
 };

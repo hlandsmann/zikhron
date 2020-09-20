@@ -34,7 +34,7 @@ ApplicationWindow {
         }
         onTextUpdate: {
             cardText.text = newText
-            console.log(newText)
+            // console.log(newText)
         }
 
         ColumnLayout {
