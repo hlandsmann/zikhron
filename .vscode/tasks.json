@@ -10,7 +10,8 @@
         "echo": true,
         "reveal": "always",
         "focus": true,
-        "panel": "shared"
+        "panel": "shared",
+        "clear": true
     },
     "tasks": [
         {
@@ -19,8 +20,9 @@
             "options": {
                 "cwd": "${workspaceRoot}"
             },
+            "command": "cmake",
             "args": [
-                "cmake -B build -S . -DCMAKE_BUILD_TYPE=Release"
+                "-B build -S . -DCMAKE_BUILD_TYPE=Release"
             ],
             // "group": {
             //     "kind": "build",
