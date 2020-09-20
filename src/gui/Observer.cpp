@@ -1,23 +1,33 @@
 #include <qqmlcontext.h>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
+#include <algorithm>
 #include <iostream>
 
-#include <unicode/unistr.h>
+#include "HtmlGen.h"
 #include "Observer.h"
 #include "TextCard.h"
 #include "ZH_Annotator.h"
 
 namespace {
 
-
-void ReplaceStringInPlace(std::string& subject, const std::string& search,
-                          const std::string& replace) {
+void ReplaceStringInPlace(std::string &subject, const std::string &search, const std::string &replace) {
     size_t pos = 0;
     while ((pos = subject.find(search, pos)) != std::string::npos) {
-         subject.replace(pos, search.length(), replace);
-         pos += replace.length();
+        subject.replace(pos, search.length(), replace);
+        pos += replace.length();
     }
+}
+
+auto loadCardDB() -> CardDB {
+    CardDB cardDB;
+    try {
+        // dic.loadFromJson("/home/harmen/src/zikhron/cedict_u8.json");
+        cardDB.loadFromSingleJson("/home/harmen/src/zikhron/cards/cards_u8.json");
+    } catch (const std::exception &e) { std::cout << e.what() << std::endl; } catch (...) {
+        std::cout << "Unknown Error" << std::endl;
+    }
+    return cardDB;
 }
 
 }  // namespace
@@ -40,7 +50,6 @@ bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
     // case QEvent::TouchUpdate: qDebug() << "touch event"; break;
     case QEvent::KeyPress:
     case QEvent::KeyRelease: {
-
         // QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
         // qDebug("key press %d", keyEvent->key());
     } break;
@@ -54,7 +63,7 @@ bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
         ReplaceStringInPlace(annotated, "#e0e", "#fff");
         emit textUpdate(QString::fromStdString(annotated));
         qDebug() << annotated.c_str() << "\n";
-    }break;
+    } break;
 
     case QEvent::MouseButtonDblClick: {
         // QMouseEvent* mevent = static_cast<QMouseEvent*>(event);
@@ -69,20 +78,12 @@ bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
     return handled;
 }
 
-void Observer::hoveredTextPosition(int/* pos*/) {/*qDebug("signal pos  %d", pos);*/}
-void Observer::getDictionary(const ptrDictionary &_zh_dict) {
-    // qDebug()<< "Dictionary size: " << zh_dict.get()->Simplified().size();
-    zh_dict = _zh_dict.get();
+void Observer::hoveredTextPosition(int /* pos*/) { /*qDebug("signal pos  %d", pos);*/
+}
 
-    CardDB cardDB;
-    try {
-        // dic.loadFromJson("/home/harmen/src/zikhron/cedict_u8.json");
-        cardDB.loadFromSingleJson("/home/harmen/src/zikhron/cards/cards_u8.json");
-    } catch (const std::exception &e) {
-        std::cout << e.what() << std::endl;
-    } catch (...) {
-        std::cout << "Unknown Error" << std::endl;
-    }
+auto Observer::getLongText() const -> utl::StringU8 {
+    if (cardDB.cards.empty())
+        cardDB = loadCardDB();
 
     icu::UnicodeString maxText = "";
     for (const auto &card : cardDB.cards)
@@ -93,14 +94,25 @@ void Observer::getDictionary(const ptrDictionary &_zh_dict) {
             //     maxText = text;
             // decode(dic, text);
         }
-    try {
-        // auto zh_dict = std::make_shared<ZH_Dictionary>("../dictionaries/handedict.u8");
-        // auto zh_dict = std::make_shared<ZH_Dictionary>("../cedict_ts.u8");
-        ZH_Annotator zh_annotater(maxText, zh_dict);
-        annotated = zh_annotater.Annotated();
-        emit textUpdate(QString::fromStdString(annotated));
-    } catch (const std::exception &e) {
-        std::cout << e.what() << "\n";
-    }
-    // emit textUpdate(QString::fromStdString(makeString(maxText)));
+    return maxText;
+}
+
+void Observer::getDictionary(const ptrDictionary &_zh_dict) {
+    // qDebug()<< "Dictionary size: " << zh_dict.get()->Simplified().size();
+    zh_dict = _zh_dict.get();
+    auto maxText = getLongText();
+    ZH_Annotator zh_annotater(maxText, zh_dict);
+    markup::Paragraph paragraph;
+    std::transform(zh_annotater.Items().begin(),
+                   zh_annotater.Items().end(),
+                   std::back_inserter(paragraph),
+                   [](const ZH_Annotator::Item &item) -> markup::Word {
+                       if (not item.dicItem.has_value())
+                           return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
+                       return item.text;
+                   });
+
+    // std::transform(
+
+    emit textUpdate(QString::fromStdString(paragraph.Get()));
 }

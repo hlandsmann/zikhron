@@ -128,12 +128,24 @@ auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -
 }
 }  // namespace
 
+ZH_Annotator::ZH_Annotator(const utl::StringU8& _text, const QSharedPointer<ZH_Dictionary>& _dictionary)
+    : text(_text), dictionary(_dictionary) {
+    annotate();
+}
+
+auto ZH_Annotator::Annotated() const -> const std::string& { return annotated_text; }
+
+auto ZH_Annotator::Items() const -> const std::vector<Item>& { return items; }
+
+auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_Dictionary::Item>>& {
+    return candidates;
+}
+
 void ZH_Annotator::annotate() {
-    cout << text << "\n";
     using utl::StringU8;
 
     const auto keys = dictionary->Simplified();
-    auto candidates = GetCandidates(text, keys, *dictionary);
+    candidates = GetCandidates(text, keys, *dictionary);
     chunks = GetChunks(candidates, keys, *dictionary);
 
     namespace ranges = std::ranges;
@@ -146,12 +158,6 @@ void ZH_Annotator::annotate() {
                                  else
                                      return {};
                              });
-    cout << "\n";
-    std::string result;
-    result += "<span style=\"color:#fff;\">";
-    result += "</span>";
-    result += "&#8288;";
-
     int pos = 0;
 
     for (const auto& comb : min_combis) {
@@ -162,16 +168,11 @@ void ZH_Annotator::annotate() {
         }
         for (const size_t length : comb) {
             const auto& dicItems = candidates[pos];
-            pos += length;
-
             const auto itemIt = ranges::find_if(
                 dicItems, [length](const auto& item) { return length == StringU8(item.key).length(); });
-            // cout << (*itemIt).key << " ";
-            items.push_back((*itemIt).key);
+            items.push_back({.text = (*itemIt).key, .item = *itemIt});
+
+            pos += length;
         }
     }
-    cout << "<";
-    for (const auto& str : items)
-        cout << str;
-    cout << ">\n";
 }
