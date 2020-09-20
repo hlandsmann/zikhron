@@ -76,7 +76,6 @@ void Paragraph::push_back(const Word& word) {
     else
         positions.push_back(positions.back() + words.back().virtualLength);
     words.push_back(word);
-    std::cout << "---------- " << positions.back() << "\n";
 }
 
 void Paragraph::resetPosition() {
@@ -93,10 +92,8 @@ void Paragraph::resetPosition() {
 void Paragraph::changeWordAtPosition(int pos, const std::function<void(Word&)>& op) {
     if (positions.empty())
         return;
-    std::cout << "pos: " << pos << "\n";
 
     auto posIt = std::adjacent_find(positions.begin(), positions.end(), [pos](int posA, int posB) {
-        // std::cout << "_pos: " << _pos << ": pos: " << pos << "\n";
         return posA <= pos && posB > pos;
     });
     if (posIt == positions.end()) {
