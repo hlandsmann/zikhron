@@ -85,7 +85,9 @@
 			"format": "cpp",
 			"coroutine": "cpp",
 			"forward_list": "cpp",
-			"source_location": "cpp"
+			"source_location": "cpp",
+			"*.ipp": "cpp",
+			"*.rh": "cpp"
 		}
 	}
 }
