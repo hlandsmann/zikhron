@@ -11,8 +11,8 @@ ApplicationWindow {
     objectName: "window"
 
     visible: true
-    width: 640
-    height: 480
+    width: 800
+    height: 600
 
 
     color: "#222"
@@ -55,10 +55,10 @@ ApplicationWindow {
                     // "<tr><th>Line3</th> <td> 0 </td> <td> 0 </td> </tr> <tr><th>Line4</th> <td> 1 </td> <td> 0 </td> </tr>"+
                     // "<tr><th>Line5</th> <td> 1 </td> <td> 1 </td> </tr> <tr><th>Line6</th> <td> 1 </td> <td> 1 </td> </tr> </div>"
 
-                font.pointSize: 14
+                font.pointSize: 20
 
                 style: TextAreaStyle {
-                    textColor: "#CCC"
+                    textColor: "#FFF"
                     selectionColor: "steelblue"
                     selectedTextColor: "#eee"
                     backgroundColor: "#222"
