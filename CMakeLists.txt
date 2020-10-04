@@ -45,8 +45,8 @@ set(SOURCE src/Application.cpp
            src/ZH_Annotator.cpp
            src/DataThread.cpp
            src/utils/StringU8.cpp
+           src/utils/Markup.cpp
            src/gui/card/Display.cpp
-           src/gui/HtmlGen.cpp
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
 target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} range_v3 fmt::fmt ${LINKER_FLAGS})

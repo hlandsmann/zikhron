@@ -1,7 +1,7 @@
 #pragma once
 
 #include <TextCard.h>
-#include <gui/HtmlGen.h>
+#include <utils/Markup.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 #include <QGuiApplication>

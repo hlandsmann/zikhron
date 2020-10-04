@@ -7,7 +7,7 @@
 #include "Display.h"
 #include "TextCard.h"
 #include "ZH_Annotator.h"
-#include "gui/HtmlGen.h"
+#include "utils/Markup.h"
 
 namespace {
 
