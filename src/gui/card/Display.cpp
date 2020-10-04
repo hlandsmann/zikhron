@@ -4,10 +4,10 @@
 #include <algorithm>
 #include <iostream>
 
-#include "gui/HtmlGen.h"
 #include "Display.h"
 #include "TextCard.h"
 #include "ZH_Annotator.h"
+#include "gui/HtmlGen.h"
 
 namespace {
 
@@ -24,7 +24,8 @@ auto loadCardDB() -> CardDB {
 
 }  // namespace
 
-bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
+namespace card {
+bool Display::childMouseEventFilter(QQuickItem *, QEvent *event) {
     // if false this will allow the event to continue as normal
     // if true it will stop the event propagating
     bool handled = false;
@@ -70,7 +71,7 @@ bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
     return handled;
 }
 
-void Observer::hoveredTextPosition(int pos) {
+void Display::hoveredTextPosition(int pos) {
     if (lastPos == pos)
         return;
     paragraph.undoChange();
@@ -79,7 +80,7 @@ void Observer::hoveredTextPosition(int pos) {
     lastPos = pos;
 }
 
-auto Observer::getLongText() const -> utl::StringU8 {
+auto Display::getLongText() const -> utl::StringU8 {
     if (cardDB.cards.empty())
         cardDB = loadCardDB();
 
@@ -95,7 +96,7 @@ auto Observer::getLongText() const -> utl::StringU8 {
     return maxText;
 }
 
-void Observer::getDictionary(const ptrDictionary &_zh_dict) {
+void Display::getDictionary(const ptrDictionary &_zh_dict) {
     // qDebug()<< "Dictionary size: " << zh_dict.get()->Simplified().size();
     zh_dict = _zh_dict.get();
     auto maxText = getLongText();
@@ -111,3 +112,5 @@ void Observer::getDictionary(const ptrDictionary &_zh_dict) {
 
     emit textUpdate(QString::fromStdString(paragraph.get()));
 }
+
+}  // namespace card

@@ -3,11 +3,11 @@ import QtQuick.Layouts 1.4
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
 
-import MyObserver 1.0
+import CardDisplay 1.0
 
-MyObserver {
+CardDisplay {
     id: app
-    objectName: "MyObserver"
+    objectName: "CardDisplay"
 
     property string copiedText: ""
     property bool textUpdateReceived: false

@@ -72,13 +72,14 @@ int main(int argc, char* argv[]) {
 
         // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
 
-        qmlRegisterType<Observer>("MyObserver", 1, 0, "MyObserver");
+        qmlRegisterType<card::Display>("CardDisplay", 1, 0, "CardDisplay");
         QQmlApplicationEngine engine;
         engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
         qRegisterMetaType<ptrDictionary>();
-        auto myObserver = engine.rootObjects().first()->findChild<Observer*>("MyObserver");
-        QObject::connect(&dataThread, &DataThread::sendDictionary, myObserver, &Observer::getDictionary);
+        auto cardDisplay = engine.rootObjects().first()->findChild<card::Display*>("CardDisplay");
+        QObject::connect(
+            &dataThread, &DataThread::sendDictionary, cardDisplay, &card::Display::getDictionary);
 
         dataThread.start();
         // QObject::connect(

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <TextCard.h>
+#include <gui/HtmlGen.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 #include <QGuiApplication>
@@ -8,16 +9,15 @@
 #include <QQuickItem>
 #include <QSharedPointer>
 #include "DataThread.h"
-#include <gui/HtmlGen.h>
 
-
-class Observer : public QQuickItem {
+namespace card {
+class Display : public QQuickItem {
     Q_OBJECT
 
 public:
-    Observer() {
+    Display() {
         setFiltersChildMouseEvents(true);
-        // connect(sender(), &QObject::destroyed, this, &Observer::hoveredTextPosition);
+        // connect(sender(), &QObject::destroyed, this, &Display::hoveredTextPosition);
     }
 
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;
@@ -42,3 +42,4 @@ private:
     QSharedPointer<ZH_Dictionary> zh_dict;
     std::string annotated;
 };
+}  // namespace card
