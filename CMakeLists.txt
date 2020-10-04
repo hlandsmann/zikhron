@@ -22,7 +22,6 @@ include_directories(${EXTERNAL_INCLUDES}
 
                     )
 
-
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 REQUIRED Qml Quick Gui QuickControls2)
 qt5_add_resources(qml_QRC src/QML/qml.qrc)
@@ -46,7 +45,7 @@ set(SOURCE src/Application.cpp
            src/ZH_Annotator.cpp
            src/DataThread.cpp
            src/utils/StringU8.cpp
-           src/gui/Observer.cpp
+           src/gui/card/Display.cpp
            src/gui/HtmlGen.cpp
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})

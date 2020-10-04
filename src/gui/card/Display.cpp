@@ -4,8 +4,8 @@
 #include <algorithm>
 #include <iostream>
 
-#include "HtmlGen.h"
-#include "Observer.h"
+#include "gui/HtmlGen.h"
+#include "Display.h"
 #include "TextCard.h"
 #include "ZH_Annotator.h"
 

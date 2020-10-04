@@ -8,7 +8,7 @@
 #include <QQuickItem>
 #include <QSharedPointer>
 #include "DataThread.h"
-#include "HtmlGen.h"
+#include <gui/HtmlGen.h>
 
 
 class Observer : public QQuickItem {

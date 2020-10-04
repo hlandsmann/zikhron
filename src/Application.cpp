@@ -31,7 +31,7 @@
 #include <QSharedPointer>
 
 #include "DataThread.h"
-#include "gui/Observer.h"
+#include "gui/card/Display.h"
 
 // std::string makeString(const icu::UnicodeString& str) {
 //     std::string tempString;
