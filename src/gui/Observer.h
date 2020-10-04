@@ -28,7 +28,7 @@ public slots:
 
 signals:
     void hovered(int x, int y);
-    void clicked();
+    void clicked(int x, int y);
     void textUpdate(QString newText);
     void doubleClicked();
 
@@ -37,6 +37,7 @@ private:
 
     mutable CardDB cardDB;
 
+    int lastPos = -1;
     markup::Paragraph paragraph;
     QSharedPointer<ZH_Dictionary> zh_dict;
     std::string annotated;

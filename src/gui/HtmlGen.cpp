@@ -23,10 +23,7 @@ Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor
     , backGroundColor(_backGroundColor)
     , styledWord(applyStyle(rawWord)) {}
 
-Word::Word(const utl::StringU8& word)
-    : rawWord(joinCharactersNonBreakable(word))
-    , virtualLength(lengthOfWord(word))
-    , styledWord(applyStyle(rawWord)) {}
+Word::Word(const utl::StringU8& word) : Word{.word = word, ._color = 0, ._backGroundColor = 0} {}
 
 Word& Word::operator=(const Word&& word) {
     this->~Word();
@@ -97,7 +94,7 @@ void Paragraph::changeWordAtPosition(int pos, const std::function<void(Word&)>& 
         return posA <= pos && posB > pos;
     });
     if (posIt == positions.end()) {
-        if (pos > positions.back())
+        if (pos > positions.back() || pos < 0)
             return;
         posIt = std::prev(positions.end());
     }

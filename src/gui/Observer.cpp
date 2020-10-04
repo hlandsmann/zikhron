@@ -11,14 +11,6 @@
 
 namespace {
 
-void ReplaceStringInPlace(std::string &subject, const std::string &search, const std::string &replace) {
-    size_t pos = 0;
-    while ((pos = subject.find(search, pos)) != std::string::npos) {
-        subject.replace(pos, search.length(), replace);
-        pos += replace.length();
-    }
-}
-
 auto loadCardDB() -> CardDB {
     CardDB cardDB;
     try {
@@ -41,28 +33,28 @@ bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
     // https://doc.qt.io/qt-5/qevent.html#Type-enum
     QEvent::Type t = event->type();
     switch (t) {
+    case QEvent::HoverLeave: hoveredTextPosition(-1); break;
     case QEvent::HoverMove: {
-        QMouseEvent *e = static_cast<QMouseEvent *>(event);
-        // qDebug() << "hover";
-        emit hovered(e->x(), e->y());
-        break;
-    }
+        const QMouseEvent &e = static_cast<QMouseEvent &>(*event);
+        if (e.x() >= 0 && e.y() >= 5)
+            emit hovered(e.x(), e.y());
+        else
+            hoveredTextPosition(-1);
+    } break;
+    case QEvent::MouseButtonPress: {
+        const QMouseEvent &e = static_cast<QMouseEvent &>(*event);
+        emit clicked(e.x(), e.y());
+    } break;
     // case QEvent::TouchUpdate: qDebug() << "touch event"; break;
     case QEvent::KeyPress:
     case QEvent::KeyRelease: {
-        // QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
-        // qDebug("key press %d", keyEvent->key());
+        QKeyEvent *keyEvent = static_cast<QKeyEvent *>(event);
+        qDebug("key press %d", keyEvent->key());
     } break;
-    case QEvent::MouseButtonPress: {
-        ReplaceStringInPlace(annotated, "#fff", "#e0e");
-        emit textUpdate(QString::fromStdString(annotated));
-        qDebug() << annotated.c_str() << "\n";
-        // qDebug() << "mouse press";
-    } break;
+
     case QEvent::MouseButtonRelease: {
-        ReplaceStringInPlace(annotated, "#e0e", "#fff");
-        emit textUpdate(QString::fromStdString(annotated));
-        qDebug() << annotated.c_str() << "\n";
+        // qDebug() << "mouse release";
+
     } break;
 
     case QEvent::MouseButtonDblClick: {
@@ -79,11 +71,12 @@ bool Observer::childMouseEventFilter(QQuickItem *, QEvent *event) {
 }
 
 void Observer::hoveredTextPosition(int pos) {
+    if (lastPos == pos)
+        return;
     paragraph.undoChange();
-    paragraph.changeWordAtPosition(pos, [](markup::Word &word) {
-        word.setBackgroundColor(0x227722);
-    });
+    paragraph.changeWordAtPosition(pos, [](markup::Word &word) { word.setBackgroundColor(0x227722); });
     emit textUpdate(QString::fromStdString(paragraph.get()));
+    lastPos = pos;
 }
 
 auto Observer::getLongText() const -> utl::StringU8 {
