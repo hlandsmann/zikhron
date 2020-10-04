@@ -66,24 +66,28 @@ int main(int argc, char* argv[]) {
     // } catch (const std::exception& e) {
     //     std::cout << e.what() << "\n";
     // }
-    QGuiApplication app(argc, argv);
-    DataThread      dataThread;
+    try {
+        QGuiApplication app(argc, argv);
+        DataThread dataThread;
 
-    // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
+        // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
 
-    qmlRegisterType<Observer>("MyObserver", 1, 0, "MyObserver");
-    QQmlApplicationEngine engine;
-    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+        qmlRegisterType<Observer>("MyObserver", 1, 0, "MyObserver");
+        QQmlApplicationEngine engine;
+        engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
-    qRegisterMetaType<ptrDictionary>();
-    auto myObserver = engine.rootObjects().first()->findChild<Observer*>("MyObserver");
-    QObject::connect(&dataThread, &DataThread::sendDictionary, myObserver, &Observer::getDictionary);
+        qRegisterMetaType<ptrDictionary>();
+        auto myObserver = engine.rootObjects().first()->findChild<Observer*>("MyObserver");
+        QObject::connect(&dataThread, &DataThread::sendDictionary, myObserver, &Observer::getDictionary);
 
-
-    dataThread.start();
-    // QObject::connect(
-    //     (QObject*)engine.rootContext(), SIGNAL(textChanged(QString)), this, SLOT(someSlot(QString)));
-    return app.exec();
+        dataThread.start();
+        // QObject::connect(
+        //     (QObject*)engine.rootContext(), SIGNAL(textChanged(QString)), this,
+        //     SLOT(someSlot(QString)));
+        return app.exec();
+    } catch (const std::exception& e) {
+        std::cout << "Eception occured: " << e.what() << "\n";
+    } catch (...) { std::cout << "Unknown exception occured \n"; }
 }
 
 // using std::cout;
