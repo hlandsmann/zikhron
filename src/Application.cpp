@@ -76,10 +76,12 @@ int main(int argc, char* argv[]) {
         QQmlApplicationEngine engine;
         engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
-        qRegisterMetaType<ptrDictionary>();
+        qRegisterMetaType<PtrDictionary>();
+        qRegisterMetaType<PtrCard>();
         auto cardDisplay = engine.rootObjects().first()->findChild<card::Display*>("CardDisplay");
         QObject::connect(
             &dataThread, &DataThread::sendDictionary, cardDisplay, &card::Display::getDictionary);
+        QObject::connect(&dataThread, &DataThread::sendCard, cardDisplay, &card::Display::getCard);
 
         dataThread.start();
         // QObject::connect(

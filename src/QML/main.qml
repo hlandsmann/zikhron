@@ -19,12 +19,26 @@ ApplicationWindow {
             Layout.fillHeight: true
 
             Button {
+                id: cardsButton
+                checkable: true
+                checked: true
                 text: "Cards"
-                onClicked: { card.visible = true}
+                onClicked: {
+                    checked = true
+                    textButton.checked = false
+                    card.visible = true
+                }
             }
             Button {
+                id: textButton
+                checkable: true
+                checked: false
                 text: "Browse"
-                onClicked: { card.visible = false }
+                onClicked: {
+                    checked = true
+                    cardsButton.checked = false
+                    card.visible = false
+                }
             }
         }
         Card{

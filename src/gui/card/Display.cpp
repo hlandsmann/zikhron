@@ -9,21 +9,6 @@
 #include "ZH_Annotator.h"
 #include "utils/Markup.h"
 
-namespace {
-
-auto loadCardDB() -> CardDB {
-    CardDB cardDB;
-    try {
-        // dic.loadFromJson("/home/harmen/src/zikhron/cedict_u8.json");
-        cardDB.loadFromSingleJson("/home/harmen/src/zikhron/cards/cards_u8.json");
-    } catch (const std::exception &e) { std::cout << e.what() << std::endl; } catch (...) {
-        std::cout << "Unknown Error" << std::endl;
-    }
-    return cardDB;
-}
-
-}  // namespace
-
 namespace card {
 bool Display::childMouseEventFilter(QQuickItem *, QEvent *event) {
     // if false this will allow the event to continue as normal
@@ -80,26 +65,10 @@ void Display::hoveredTextPosition(int pos) {
     lastPos = pos;
 }
 
-auto Display::getLongText() const -> utl::StringU8 {
-    if (cardDB.cards.empty())
-        cardDB = loadCardDB();
-
-    icu::UnicodeString maxText = "";
-    for (const auto &card : cardDB.cards)
-        for (const auto &text : card->getTextVector()) {
-            if (text.length() > maxText.length())
-                maxText = text;
-            // if (std::abs(30 - text.length()) < std::abs(30 - maxText.length()))
-            //     maxText = text;
-            // decode(dic, text);
-        }
-    return maxText;
-}
-
-void Display::getDictionary(const ptrDictionary &_zh_dict) {
-    // qDebug()<< "Dictionary size: " << zh_dict.get()->Simplified().size();
-    zh_dict = _zh_dict.get();
-    auto maxText = getLongText();
+void Display::useCard() {
+    if (ptrCard == nullptr || zh_dict == nullptr)
+        return;
+    auto maxText = ptrCard->getTextVector().front();
     ZH_Annotator zh_annotater(maxText, zh_dict);
     std::transform(zh_annotater.Items().begin(),
                    zh_annotater.Items().end(),
@@ -111,6 +80,16 @@ void Display::getDictionary(const ptrDictionary &_zh_dict) {
                    });
 
     emit textUpdate(QString::fromStdString(paragraph.get()));
+}
+
+void Display::getDictionary(const PtrDictionary &_zh_dict) {
+    zh_dict = _zh_dict.get();
+    useCard();
+}
+
+void Display::getCard(const PtrCard &_ptrCard) {
+    ptrCard = _ptrCard.get();
+    useCard();
 }
 
 }  // namespace card

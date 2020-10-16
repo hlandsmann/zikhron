@@ -46,3 +46,7 @@ auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString> {
     return textVector;
 }
 auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString> { return {text}; }
+
+auto CardDB::get() const -> const std::vector<CardPtr>&{
+    return cards;
+}

@@ -23,8 +23,8 @@ public:
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;
 public slots:
     void hoveredTextPosition(int pos);
-    void getDictionary(const ptrDictionary &zh_dict);
-    void getDic() { qDebug() << " Dic received "; }
+    void getDictionary(const PtrDictionary &zh_dict);
+    void getCard(const PtrCard &ptrCard);
 
 signals:
     void hovered(int x, int y);
@@ -33,13 +33,13 @@ signals:
     void doubleClicked();
 
 private:
-    auto getLongText() const -> utl::StringU8;
-
-    mutable CardDB cardDB;
+    // auto getLongText() const -> utl::StringU8;
+    void useCard();
 
     int lastPos = -1;
     markup::Paragraph paragraph;
     QSharedPointer<ZH_Dictionary> zh_dict;
+    QSharedPointer<Card> ptrCard;
     std::string annotated;
 };
 }  // namespace card

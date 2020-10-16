@@ -28,16 +28,33 @@ ColumnLayout {
                     checkable: true
                     id: displayButton
                     text: "Display"
+                    onClicked:{
+                        checked = true
+                        annotateButton.checked = false
+                        editButton.checked = false
+                    }
                 }
                 Button{
+                    checked:false
                     checkable: true
                     id: annotateButton
                     text: "Annotate"
+                    onClicked:{
+                        checked = true
+                        displayButton.checked = false
+                        editButton.checked = false
+                    }
                 }
                 Button{
+                    checked:false
                     checkable: true
                     id: editButton
                     text: "Edit"
+                    onClicked:{
+                        checked = true
+                        displayButton.checked = false
+                        annotateButton.checked = false
+                    }
                 }
             }
         }

@@ -1,19 +1,32 @@
 #pragma once
 
+#include <TextCard.h>
 #include <QSharedPointer>
 #include <QThread>
 #include "ZH_Dictionary.h"
 
-class ptrDictionary : public QObject {
+class PtrDictionary : public QObject {
     Q_OBJECT
 public:
-    ptrDictionary(QObject* parent = nullptr) { Q_UNUSED(parent); };
-    ptrDictionary(const QSharedPointer<ZH_Dictionary>& qsptr) : _qsptr(qsptr){};
-    ptrDictionary(const ptrDictionary& other) : QObject(), _qsptr(other.get()){};
+    PtrDictionary(QObject* parent = nullptr) { Q_UNUSED(parent); };
+    PtrDictionary(const QSharedPointer<ZH_Dictionary>& qsptr) : _qsptr(qsptr){};
+    PtrDictionary(const PtrDictionary& other) : QObject(), _qsptr(other.get()){};
     auto get() const -> QSharedPointer<ZH_Dictionary> { return _qsptr; }
 
 private:
     QSharedPointer<ZH_Dictionary> _qsptr;
+};
+
+class PtrCard : public QObject {
+    Q_OBJECT
+public:
+    PtrCard(QObject* parent = nullptr) { Q_UNUSED(parent); };
+    PtrCard(const QSharedPointer<Card>& qsptr) : _card(qsptr){};
+    PtrCard(const PtrCard& other) : QObject(), _card(other.get()){};
+    auto get() const -> QSharedPointer<Card> { return _card; }
+
+private:
+    QSharedPointer<Card> _card;
 };
 
 class DataThread : public QThread {
@@ -22,12 +35,15 @@ public:
     DataThread(QObject* parent = nullptr) { Q_UNUSED(parent); };
     // ~DataThread();
 signals:
-    void sendDictionary(const ptrDictionary& zh_dict);
+    void sendDictionary(const PtrDictionary& zh_dict);
+    void sendCard(const PtrCard& ptrCard);
 
 protected:
     void run() override;
 
 private:
+    CardDB cardDB;
 };
 
-Q_DECLARE_METATYPE(ptrDictionary)
+Q_DECLARE_METATYPE(PtrDictionary)
+Q_DECLARE_METATYPE(PtrCard)
