@@ -63,6 +63,14 @@
         "thread": "cpp",
         "typeinfo": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "qsharedpointer": "cpp",
+        "format": "cpp",
+        "bit": "cpp",
+        "compare": "cpp",
+        "concepts": "cpp",
+        "ranges": "cpp",
+        "span": "cpp",
+        "stop_token": "cpp"
     }
 }
