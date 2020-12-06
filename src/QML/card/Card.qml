@@ -9,6 +9,17 @@ ColumnLayout {
         Layout.alignment: Qt.AlignTop
         Layout.fillWidth: true
         Layout.fillHeight: true
+
+        visible: displayButton.checked
+    }
+    CardEdit{
+        id: cardEdit
+        Layout.alignment: Qt.AlignTop
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+
+        visible: editButton.checked | annotateButton.checked
+
     }
 
     RowLayout{
@@ -61,8 +72,8 @@ ColumnLayout {
 
         Item{
             id: answerOption
-            width: showAnswer.visible ? showAnswer.implicitWidth : difficulty.implicitWidth
-            height: showAnswer.visible ? showAnswer.implicitHeight : difficulty.implicitHeight
+            visible: displayButton.checked
+
             x: Math.max(cardDisplayOption.width + 5,
                         (cardDisplay.width / 2)  -
                                                 ((showAnswer.visible ? showAnswer.width

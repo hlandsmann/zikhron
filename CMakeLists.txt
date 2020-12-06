@@ -9,7 +9,8 @@ include(FindPkgConfig)
 # set(CMAKE_CXX_COMPILER g++)
 # set(CMAKE_C_COMPILER gcc)
 # #set(CMAKE_CXX_COMPILER g++-10.2.0)
-
+# set(CMAKE_CXX_COMPILER clang++)
+# set(CMAKE_C_COMPILER clang)
 
 set(CXX_WARNINGLEVEL "-Wall -Wextra -Wshadow -Wno-class-memaccess")
 set(CMAKE_CXX_FLAGS "-std=c++2a -pedantic -march=native -O2 ${CXX_WARNINGLEVEL}")
@@ -47,6 +48,7 @@ set(SOURCE src/Application.cpp
            src/utils/StringU8.cpp
            src/utils/Markup.cpp
            src/gui/card/Display.cpp
+           src/gui/card/Edit.cpp
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
 target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} range_v3 fmt::fmt ${LINKER_FLAGS})

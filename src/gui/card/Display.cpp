@@ -10,6 +10,11 @@
 #include "utils/Markup.h"
 
 namespace card {
+Display::Display() {
+    setFiltersChildMouseEvents(true);
+    // connect(sender(), &QObject::destroyed, this, &Display::hoveredTextPosition);
+}
+
 bool Display::childMouseEventFilter(QQuickItem *, QEvent *event) {
     // if false this will allow the event to continue as normal
     // if true it will stop the event propagating

@@ -127,12 +127,12 @@ auto parseLine(const std::string_view& line) -> DictionaryItem_raw {
 
     DictionaryItem_raw dicItem = {.traditional    = traditional,
                                   .simplified     = simplified,
-                                  .pronounciation = std::move(transformPronounciation(pron_raw))};
+                                  .pronounciation = transformPronounciation(pron_raw)};
 
     std::string_view meaning, rest = rest_2;
     tie(meaning, rest) = splitOnce(rest, '/');
     while (not meaning.empty()) {
-        dicItem.meanings.push_back(std::move(transformMeaning(meaning)));
+        dicItem.meanings.push_back(transformMeaning(meaning));
         tie(meaning, rest) = splitOnce(rest, '/');
     }
 

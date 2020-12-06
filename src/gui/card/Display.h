@@ -15,10 +15,7 @@ class Display : public QQuickItem {
     Q_OBJECT
 
 public:
-    Display() {
-        setFiltersChildMouseEvents(true);
-        // connect(sender(), &QObject::destroyed, this, &Display::hoveredTextPosition);
-    }
+    Display();
 
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;
 public slots:

@@ -6,7 +6,7 @@ import QtQuick.Controls.Styles 1.4
 import CardDisplay 1.0
 
 CardDisplay {
-    id: app
+    id: cardDisplay
     objectName: "CardDisplay"
 
     property string copiedText: ""
@@ -14,7 +14,7 @@ CardDisplay {
     property int cardTextCursorPos: 0
     onHovered: {
         var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
-        app.hoveredTextPosition(pos)
+        cardDisplay.hoveredTextPosition(pos)
         // console.log(pos)
         // cardText.select(pos, pos+1)
     }
@@ -47,7 +47,7 @@ CardDisplay {
         Layout.alignment: Qt.AlignTop
         width: parent.width
         height: parent.height
-        readOnly: false
+        readOnly: true
 
         textFormat: Text.RichText
         text: ""
@@ -66,9 +66,9 @@ CardDisplay {
             backgroundColor: "#222"
         }
         onTextChanged: {
-            if (app.textUpdateReceived){
+            if (cardDisplay.textUpdateReceived){
                 console.log("TextChanged")
-                app.textUpdateReceived = false
+                cardDisplay.textUpdateReceived = false
             }
             else {
                 console.log("Text editited")
