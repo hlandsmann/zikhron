@@ -8,8 +8,7 @@ namespace {
 auto loadCardDB() -> CardDB {
     CardDB cardDB;
     try {
-        // dic.loadFromJson("/home/harmen/src/zikhron/cedict_u8.json");
-        cardDB.loadFromSingleJson("/home/harmen/src/zikhron/cards/cards_u8.json");
+        cardDB.loadFromDirectory("/home/harmen/src/zikhron/conversion/cards");
     } catch (const std::exception& e) { std::cout << e.what() << std::endl; } catch (...) {
         std::cout << "Unknown Error" << std::endl;
     }

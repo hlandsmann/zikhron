@@ -1,7 +1,6 @@
 #ifndef ZH_DICTIONARY_H
 #define ZH_DICTIONARY_H
 
-#include <functional>
 #include <span>
 #include <string>
 #include <vector>

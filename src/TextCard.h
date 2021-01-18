@@ -33,6 +33,7 @@ public:
     using CardPtr = std::unique_ptr<Card>;
 
     void loadFromSingleJson(std::string jsonFileName);
+    void loadFromDirectory(std::string directoryPath);
 
     auto get() const -> const std::vector<CardPtr>&;
     auto moveOut(int index) -> CardPtr;
