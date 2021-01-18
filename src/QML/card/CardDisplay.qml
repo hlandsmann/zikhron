@@ -14,6 +14,7 @@ CardDisplay {
     property int cardTextCursorPos: 0
     onHovered: {
         var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
+        // var pos = cardText.positionAt(x, y, TextInput.CursorBetweenCharacters)
         cardDisplay.hoveredTextPosition(pos)
         // console.log(pos)
         // cardText.select(pos, pos+1)
@@ -35,9 +36,9 @@ CardDisplay {
     }
 
     onClicked: {
-        cardTextCursorPos = cardText.positionAt(x, y)
+        var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
         // app.hoveredTextPosition(pos)
-        cardText.cursorPosition = cardTextCursorPos
+        cardText.cursorPosition = pos
         console.log("pos: ", pos)
     }
 
