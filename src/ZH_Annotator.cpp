@@ -17,21 +17,30 @@ namespace {
 
 auto GetCandidates(const utl::StringU8& text,
                    const std::span<const ZH_Dictionary::Key>& characterSet,
-                   const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Dictionary::Item>> {
-    std::vector<std::vector<ZH_Dictionary::Item>> candidates;
+                   const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> {
+    std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> candidates;
     candidates.reserve(text.length());
 
     for (size_t indexBegin = 0; indexBegin < text.length(); indexBegin++) {
         const auto span_lower = ZH_Dictionary::Lower_bound(text.substr(indexBegin, 1), characterSet);
         const auto span = ZH_Dictionary::Upper_bound(text.substr(indexBegin, 1), span_lower);
-        std::vector<ZH_Dictionary::Item> Items;
-        for (size_t indexEnd = indexBegin; indexEnd < text.length(); indexEnd++) {
+        std::vector<ZH_Annotator::ZH_dicItemVec> Items;
+        for (size_t indexEnd = indexBegin + 1; indexEnd < text.length(); indexEnd++) {
             const auto key = text.substr(indexBegin, indexEnd - indexBegin);
             const auto found = ZH_Dictionary::Lower_bound(key, span);
             if (found.empty() || found.begin()->key.substr(0, key.length()) != key)
                 break;
-            if (found.front().key == key)
-                Items.push_back(dict.ItemFromPosition(found.front().pos, characterSet));
+            ZH_Annotator::ZH_dicItemVec dicEntries;
+            for (ZH_Dictionary::Key dictionaryKey : found) {
+                cout << "(" << dictionaryKey.key << " : " << key << ")";
+                if (dictionaryKey.key == key)
+                    dicEntries.push_back(dict.ItemFromPosition(dictionaryKey.pos, characterSet));
+                else
+                    break;
+            }
+            cout << "s:" << dicEntries.size() << std::endl;
+            if (!dicEntries.empty())
+                Items.emplace_back(std::move(dicEntries));
         }
         candidates.push_back(std::move(Items));
     }
@@ -39,7 +48,7 @@ auto GetCandidates(const utl::StringU8& text,
     return candidates;
 }
 
-auto GetChunks(const std::vector<std::vector<ZH_Dictionary::Item>>& candidates,
+auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& candidates,
                const std::span<const ZH_Dictionary::Key>& keys,
                const ZH_Dictionary& dict) -> std::vector<std::vector<std::vector<int>>> {
     using namespace ranges;
@@ -51,8 +60,9 @@ auto GetChunks(const std::vector<std::vector<ZH_Dictionary::Item>>& candidates,
 
     const auto characterSet = dict.CharacterSetFromKeySpan(keys);
 
-    auto candidateLength = [&dict, &characterSet](const ZH_Dictionary::Item& item) -> int {
-        return utl::StringU8(item.key).length();
+    auto candidateLength = [&dict, &characterSet](const ZH_Annotator::ZH_dicItemVec& itemVec) -> int {
+        cout << "itemvec_size: " << itemVec.size() << std::endl;
+        return utl::StringU8(itemVec.front().key).length();
     };
     auto c_lengths = candidates |
                      views::transform([&](auto& v) { return v | views::transform(candidateLength); });
@@ -137,7 +147,7 @@ auto ZH_Annotator::Annotated() const -> const std::string& { return annotated_te
 
 auto ZH_Annotator::Items() const -> const std::vector<Item>& { return items; }
 
-auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_Dictionary::Item>>& {
+auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>& {
     return candidates;
 }
 
@@ -146,7 +156,9 @@ void ZH_Annotator::annotate() {
 
     const auto keys = dictionary->Simplified();
     candidates = GetCandidates(text, keys, *dictionary);
+    cout << " chunks------------------------------------ " << std::endl;
     chunks = GetChunks(candidates, keys, *dictionary);
+    cout << " ranges------------------------------------ " << std::endl;
 
     namespace ranges = std::ranges;
     namespace views = std::ranges::views;
@@ -159,7 +171,7 @@ void ZH_Annotator::annotate() {
                                      return {};
                              });
     int pos = 0;
-
+    cout << " ------------------------------------ " << std::endl;
     for (const auto& comb : min_combis) {
         if (comb.empty()) {
             items.push_back(text.at(pos));
@@ -168,9 +180,10 @@ void ZH_Annotator::annotate() {
         }
         for (const size_t length : comb) {
             const auto& dicItems = candidates[pos];
-            const auto itemIt = ranges::find_if(
-                dicItems, [length](const auto& item) { return length == StringU8(item.key).length(); });
-            items.push_back({.text = (*itemIt).key, .item = *itemIt});
+            const auto itemIt = ranges::find_if(dicItems, [length](const auto& itemVec) {
+                return length == StringU8(itemVec.front().key).length();
+            });
+            items.push_back({.text = (*itemIt).front().key, .dicItem = std::move(*itemIt)});
 
             pos += length;
         }

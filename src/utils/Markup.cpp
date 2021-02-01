@@ -1,6 +1,7 @@
 #include "Markup.h"
 #include <fmt/format.h>
 #include <iostream>
+#include <limits>
 #include <numeric>
 
 namespace markup {
@@ -86,23 +87,36 @@ void Paragraph::resetPosition() {
                    });
 }
 
-void Paragraph::changeWordAtPosition(int pos, const std::function<void(Word&)>& op) {
-    if (positions.empty())
-        return;
+auto Paragraph::getWordStartPosition(int pos) const -> int {
+    std::size_t index = getWordIndex(pos);
+    if (index >= positions.size())
+        return -1;
+    return positions[index];
+}
 
+auto Paragraph::getWordIndex(int pos) const -> std::size_t {
     auto posIt = std::adjacent_find(positions.begin(), positions.end(), [pos](int posA, int posB) {
         return posA <= pos && posB > pos;
     });
     if (posIt == positions.end()) {
         if (pos > positions.back() || pos < 0)
-            return;
+            return std::numeric_limits<std::size_t>::max();
         posIt = std::prev(positions.end());
     }
-    int index = std::max<int>(0, std::distance(positions.begin(), posIt));
+    return std::max<int>(0, std::distance(positions.begin(), posIt));
+}
+
+void Paragraph::changeWordAtPosition(int pos, const std::function<void(Word&)>& op) {
+    if (positions.empty())
+        return;
+    int index = getWordIndex(pos);
+
     changeWordAtIndex(index, op);
 }
 
-void Paragraph::changeWordAtIndex(int index, const std::function<void(Word&)>& op) {
+void Paragraph::changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op) {
+    if (index >= words.size())
+        return;
     preChanges.push({.index = index, .word{words[index]}});
     op(words[index]);
 }

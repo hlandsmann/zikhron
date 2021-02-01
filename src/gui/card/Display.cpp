@@ -1,3 +1,4 @@
+#include <fmt/format.h>
 #include <qqmlcontext.h>
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -70,16 +71,63 @@ void Display::hoveredTextPosition(int pos) {
     lastPos = pos;
 }
 
+auto genPopupText(const ZH_Annotator::ZH_dicItemVec &items) -> std::string {
+    return std::accumulate(
+        items.begin(), items.end(), std::string{}, [](std::string &&a, const ZH_Dictionary::Item &b) {
+            return a += fmt::format("<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
+                                    b.key,
+                                    b.pronounciation,
+                                    b.meanings.at(1));
+        });
+}
+
+// "<div><table border='1'><caption><h4>Test stats</h4>"+
+// "</caption><tr bgcolor='#9acd32'><th/><th>Number1</th><th>Number2</th></tr> <tr><th>Line1</th>"+
+// "<td> 0 </td> <td> 1 </td> </tr> <tr><th>Line2</th> <td> 0 </td> <td> 1 </td> </tr>"+
+// "<tr><th>Line3</th> <td> 0 </td> <td> 0 </td> </tr> <tr><th>Line4</th> <td> 1 </td> <td> 0 </td>
+// </tr>"+
+// "<tr><th>Line5</th> <td> 1 </td> <td> 1 </td> </tr> <tr><th>Line6</th> <td> 1 </td> <td> 1 </td> </tr>
+// </div>"
+void Display::clickedTextPosition(int pos) {
+    if (!zh_annotator)
+        return;
+
+    const std::size_t index = paragraph.getWordIndex(pos);
+    if (index >= zh_annotator->Items().size())
+        return;
+
+    const ZH_Annotator::Item &item = zh_annotator->Items().at(index);
+    // const ZH_Annotator::Item &items = zh_annotator->Items().at(index);
+    if (item.dicItemVec.empty())
+        return;
+    // const auto &dicitem = item.dicItem.value();
+    // const std::string dic_entry = fmt::format(
+    //     "{} ({}) - {}", dicitem.key, dicitem.pronounciation, dicitem.meanings.at(1));
+
+    std::string table =
+        std::string("") +
+        "<table>"
+        "<tr><th>Line1</th>" +
+        "<td> 0 </td> <td> 1 </td> </tr> <tr><th>Line2</th> <td> 0 </td> <td> 1 </td> </tr>" +
+        "<tr><th>Line3</th> <td> 0 </td> <td> 0 </td> </tr> <tr><th>Line4</th> <td> 1 </td> <td> 0 "
+        "</td> </tr>" +
+        "<tr><th>Line5</th> <td> 1 </td> <td> 1 </td> </tr> <tr><th>Line6</th> <td> 1 </td> <td> 1 "
+        "</td> </tr> </table>";
+    std::string popupText = genPopupText(item.dicItemVec);
+    emit openPopup(paragraph.getWordStartPosition(pos), QString::fromStdString(popupText));
+}
+
 void Display::useCard() {
     if (ptrCard == nullptr || zh_dict == nullptr)
         return;
     auto maxText = ptrCard->getTextVector().front();
-    ZH_Annotator zh_annotater(maxText, zh_dict);
-    std::transform(zh_annotater.Items().begin(),
-                   zh_annotater.Items().end(),
+
+    zh_annotator = std::make_unique<ZH_Annotator>(maxText, zh_dict);
+    std::transform(zh_annotator->Items().begin(),
+                   zh_annotator->Items().end(),
                    std::back_inserter(paragraph),
                    [](const ZH_Annotator::Item &item) -> markup::Word {
-                       if (not item.dicItem.has_value())
+                       if (not item.dicItemVec.empty())
                            return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
                        return item.text;
                    });

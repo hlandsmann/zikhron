@@ -39,14 +39,17 @@ public:
     Paragraph() = default;
     auto get() const -> std::string;
     void push_back(const Word& word);
+    auto getWordStartPosition(int pos) const -> int;
+    auto getWordIndex(int pos) const -> std::size_t;
+
     void changeWordAtPosition(int pos, const std::function<void(Word&)>& op);
-    void changeWordAtIndex(int index, const std::function<void(Word&)>& op);
+    void changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op);
     void undoChange();
 
 private:
     void resetPosition();
     struct WordState {
-        int index;
+        std::size_t index;
         Word word;
     };
 

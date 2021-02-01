@@ -2,9 +2,9 @@ import QtQuick 2.14
 import QtQuick.Layouts 1.4
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
-
+import QtQuick.Window 2.2
 import CardDisplay 1.0
-
+import QtQuick.Controls 2.15 as QQC2
 CardDisplay {
     id: cardDisplay
     objectName: "CardDisplay"
@@ -37,10 +37,20 @@ CardDisplay {
 
     onClicked: {
         var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
+        cardDisplay.clickedTextPosition(pos)
+
+    }
+    onOpenPopup: {
+        var posRect = cardText.positionToRectangle(pos)
+        popupTextArea.text=popupText
         // app.hoveredTextPosition(pos)
         cardText.cursorPosition = pos
         console.log("pos: ", pos)
+        popup.x = Math.min(posRect.x, cardText.width - popup.width)
+        popup.y = posRect.y + posRect.height
+        popup.open()
     }
+
 
     TextArea
     {
@@ -75,5 +85,27 @@ CardDisplay {
                 console.log("Text editited")
             }
         }
+    QQC2.Popup {
+        id: popup
+        // x: Math.min(x, cardText.width - width)
+        // x: 100
+        //y: 100
+        // width: 200
+        // height: 300
+        modal: false
+        focus: false
+        closePolicy: QQC2.Popup.CloseOnEscape | QQC2.Popup.CloseOnPressOutside
+
+        QQC2.TextArea{
+            id: popupTextArea
+            width: parent.width
+            height: parent.height
+            readOnly: true
+            font.pointSize: 20
+            textFormat: Text.RichText
+
+        }
+
+    }
     }
 }

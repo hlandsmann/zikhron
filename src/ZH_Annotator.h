@@ -12,17 +12,20 @@
 
 class ZH_Annotator {
 public:
+    using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
+
     ZH_Annotator(const utl::StringU8& _text, const QSharedPointer<ZH_Dictionary>& _dictionary);
     auto Annotated() const -> const std::string&;
 
     struct Item {
-        template <class string_t> Item(const string_t& _text) : text(_text), dicItem{} {}
-        Item(const utl::StringU8& _text, const ZH_Dictionary::Item& _dicItem) : text(_text), dicItem(_dicItem){}
+        template <class string_t> Item(const string_t& _text) : text(_text), dicItemVec{} {}
+        Item(const utl::StringU8& _text, const ZH_dicItemVec&& _dicItem)
+            : text(_text), dicItemVec(_dicItem) {}
         utl::StringU8 text;
-        std::optional<const ZH_Dictionary::Item> dicItem;
+        ZH_dicItemVec dicItemVec;
     };
     auto Items() const -> const std::vector<Item>&;
-    auto Candidates() const -> const std::vector<std::vector<ZH_Dictionary::Item>>&;
+    auto Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&;
 
 private:
     void annotate();
@@ -31,6 +34,6 @@ private:
     const QSharedPointer<ZH_Dictionary> dictionary;
     std::vector<Item> items;
     std::vector<std::vector<std::vector<int>>> chunks;
-    std::vector<std::vector<ZH_Dictionary::Item>> candidates;
+    std::vector<std::vector<ZH_dicItemVec>> candidates;
 };
 #endif /* ZH_ANNOTATOR_H */
