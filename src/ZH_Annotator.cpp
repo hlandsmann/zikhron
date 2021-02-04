@@ -32,13 +32,13 @@ auto GetCandidates(const utl::StringU8& text,
                 break;
             ZH_Annotator::ZH_dicItemVec dicEntries;
             for (ZH_Dictionary::Key dictionaryKey : found) {
-                cout << "(" << dictionaryKey.key << " : " << key << ")";
+                // cout << "(" << dictionaryKey.key << " : " << key << ")";
                 if (dictionaryKey.key == key)
                     dicEntries.push_back(dict.ItemFromPosition(dictionaryKey.pos, characterSet));
                 else
                     break;
             }
-            cout << "s:" << dicEntries.size() << std::endl;
+            // cout << "s:" << dicEntries.size() << std::endl;
             if (!dicEntries.empty())
                 Items.emplace_back(std::move(dicEntries));
         }
@@ -61,7 +61,7 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
     const auto characterSet = dict.CharacterSetFromKeySpan(keys);
 
     auto candidateLength = [&dict, &characterSet](const ZH_Annotator::ZH_dicItemVec& itemVec) -> int {
-        cout << "itemvec_size: " << itemVec.size() << std::endl;
+        // cout << "itemvec_size: " << itemVec.size() << std::endl;
         return utl::StringU8(itemVec.front().key).length();
     };
     auto c_lengths = candidates |
@@ -156,9 +156,9 @@ void ZH_Annotator::annotate() {
 
     const auto keys = dictionary->Simplified();
     candidates = GetCandidates(text, keys, *dictionary);
-    cout << " chunks------------------------------------ " << std::endl;
+    // cout << " chunks------------------------------------ " << std::endl;
     chunks = GetChunks(candidates, keys, *dictionary);
-    cout << " ranges------------------------------------ " << std::endl;
+    // cout << " ranges------------------------------------ " << std::endl;
 
     namespace ranges = std::ranges;
     namespace views = std::ranges::views;
@@ -171,7 +171,7 @@ void ZH_Annotator::annotate() {
                                      return {};
                              });
     int pos = 0;
-    cout << " ------------------------------------ " << std::endl;
+    // cout << " ------------------------------------ " << std::endl;
     for (const auto& comb : min_combis) {
         if (comb.empty()) {
             items.push_back(text.at(pos));
