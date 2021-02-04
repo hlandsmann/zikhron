@@ -19,7 +19,7 @@ auto splitOnce(const std::string_view& str, const char delim)
 auto extractSubstr(const std::string_view& str, const char delimBegin, const char delimEnd)
     -> std::pair<std::string_view, std::string_view> {
     std::size_t foundBegin = str.find(delimBegin);
-    std::size_t foundEnd   = str.find(delimEnd);
+    std::size_t foundEnd = str.find(delimEnd);
     if (foundBegin == std::string_view::npos || foundEnd == std::string_view::npos ||
         foundBegin > foundEnd) {
         return {std::string_view(), std::string_view()};
@@ -115,21 +115,23 @@ auto transformMeaning(const std::string_view& meaning_raw) -> std::string {
 struct DictionaryItem_raw {
     std::string_view traditional;
     std::string_view simplified;
-    std::string      pronounciation;
+    std::string pronounciation;
 
     std::vector<std::string> meanings = {};
 };
 
 auto parseLine(const std::string_view& line) -> DictionaryItem_raw {
     const auto& [traditional, rest_0] = splitOnce(line, ' ');
-    const auto& [simplified, rest_1]  = splitOnce(rest_0, ' ');
-    const auto& [pron_raw, rest_2]    = extractSubstr(rest_1, '[', ']');
+    const auto& [simplified, rest_1] = splitOnce(rest_0, ' ');
+    const auto& [pron_raw, rest_2] = extractSubstr(rest_1, '[', ']');
 
-    DictionaryItem_raw dicItem = {.traditional    = traditional,
-                                  .simplified     = simplified,
+    DictionaryItem_raw dicItem = {.traditional = traditional,
+                                  .simplified = simplified,
                                   .pronounciation = transformPronounciation(pron_raw)};
 
-    std::string_view meaning, rest = rest_2;
+    auto [_, rest] = splitOnce(rest_2, '/');
+    std::string_view meaning;
+
     tie(meaning, rest) = splitOnce(rest, '/');
     while (not meaning.empty()) {
         dicItem.meanings.push_back(transformMeaning(meaning));
@@ -236,8 +238,8 @@ auto ZH_Dictionary::ItemFromPosition(size_t pos, CharacterSet characterSet) cons
                                           : position_to_traditional;
     const auto& keys = (characterSet == CharacterSet::Simplified) ? Simplified() : Traditional();
     return {
-        .key            = keys[pos_to_characterSet[pos]].key,
+        .key = keys[pos_to_characterSet[pos]].key,
         .pronounciation = pronounciation.at(pos),
-        .meanings       = meanings.at(pos),
+        .meanings = meanings.at(pos),
     };
 }
