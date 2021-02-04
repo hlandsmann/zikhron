@@ -45,8 +45,8 @@ auto getLongestCard(CardDB& cardDB) -> QSharedPointer<Card> {
 void DataThread::run() {
     if (cardDB.get().empty())
         cardDB = loadCardDB();
-    // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/cedict_ts.u8");
-    auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
+    auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/cedict_ts.u8");
+    // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
     qDebug() << "Created Dictionary";
 
     auto long_card = getLongestCard(cardDB);
