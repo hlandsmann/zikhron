@@ -74,10 +74,14 @@ void Display::hoveredTextPosition(int pos) {
 auto genPopupText(const ZH_Annotator::ZH_dicItemVec &items) -> std::string {
     return std::accumulate(
         items.begin(), items.end(), std::string{}, [](std::string &&a, const ZH_Dictionary::Item &b) {
-            return a += fmt::format("<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
-                                    b.key,
-                                    b.pronounciation,
-                                    b.meanings.at(1));
+            return a += fmt::format(
+                    //    "<tr><td>{}</td><td>{}</td><td><div style=\"width: 100px; word-wrap: "
+                    //    "break-word\">{}</div></td></tr>",
+                       "<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
+                    // "{}{}{}",
+                       b.key,
+                       b.pronounciation,
+                       b.meanings.at(0));
         });
 }
 
@@ -106,15 +110,31 @@ void Display::clickedTextPosition(int pos) {
 
     std::string table =
         std::string("") +
-        "<table>"
+        "<div><table border='1'><caption><h4>Test stats</h4>"
+ "</caption><tr bgcolor='#9acd32'><th/><th>Number1</th><th>Number2</th></tr>"
         "<tr><th>Line1</th>" +
         "<td> 0 </td> <td> 1 </td> </tr> <tr><th>Line2</th> <td> 0 </td> <td> 1 </td> </tr>" +
         "<tr><th>Line3</th> <td> 0 </td> <td> 0 </td> </tr> <tr><th>Line4</th> <td> 1 </td> <td> 0 "
         "</td> </tr>" +
         "<tr><th>Line5</th> <td> 1 </td> <td> 1 </td> </tr> <tr><th>Line6</th> <td> 1 </td> <td> 1 "
         "</td> </tr> </table>";
+std::string table2=
+"<table style=\"width: 100px;\">"
+  "<tr>"
+   " <td>"
+      "<div style=\"word-wrap: break-word;\">"
+       "test test test test test test test test"
+      "</div>"
+   " </td>"
+   " <td><span style=\"display: inline;\">Short word</span></td>"
+ " </tr>"
+"</table>";
     std::string popupText = genPopupText(item.dicItemVec);
+    std::cout << popupText << "\n";
+    std::cout << table2 << "\n";
     emit openPopup(paragraph.getWordStartPosition(pos), QString::fromStdString(popupText));
+        // emit textUpdate(QString::fromStdString(popupText));
+
 }
 
 void Display::useCard() {
