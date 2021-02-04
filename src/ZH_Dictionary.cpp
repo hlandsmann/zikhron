@@ -150,6 +150,8 @@ ZH_Dictionary::ZH_Dictionary(const std::string& filename) {
 
     unsigned position = 0;
     for (std::string line; getline(dictFile, line);) {
+        // ToDo: filter BOM which is created by windows notepad, Bytes: [0xEF, 0xBB, 0xBF] at beginning
+        // of file (case with HanDeDict.u8)
         if (line.empty() || line.at(0) == '#')
             continue;
 
