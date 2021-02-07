@@ -39,12 +39,13 @@ CardDisplay {
     }
     onOpenPopup: {
         var posRect = cardText.positionToRectangle(pos)
-        popupTextArea.text = popupText
+        popupItemChoice.text = popupText
         cardText.cursorPosition = pos
         console.log("pos: ", pos)
-        popup.spanX = posRect.x
-        popup.spanY = posRect.y + posRect.height
-        popup.open()
+        popupItemChoice.spanX = posRect.x
+        popupItemChoice.spanY = posRect.y + posRect.height
+        popupItemChoice.positions = popupPosList
+        popupItemChoice.open()
     }
 
 
@@ -77,40 +78,9 @@ CardDisplay {
                 console.log("Text editited")
             }
         }
-        Popup {
-            id: popup
-            property int spanX
-            property int spanY
-
-            height: popupTextArea.height + 30
-            modal: false
-            focus: false
-            closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
-            width: 500
-            onOpenedChanged: {
-                console.log("popup is now open - ", opened)
-                if(opened) {
-                    popupTextArea.width = popup.width
-                    popup.width  = popupTextArea.paintedWidth + 30
-                    popup.x = Math.min(spanX, cardText.width - popup.width)
-                    popup.y = spanY
-                }
-                else {
-                popup.width = 500
-                popupTextArea.width = 500
-                }
-            }
-
-            TextArea{
-                id: popupTextArea
-                wrapMode: TextArea.WordWrap
-                Layout.alignment: Qt.AlignTopCenter
-                width: paintedWidth
-
-                textFormat: Text.RichText
-                readOnly: true
-                font.pointSize: 20
-            }
+        PopupItemChoice {
+            id: popupItemChoice
         }
+
     }
 }
