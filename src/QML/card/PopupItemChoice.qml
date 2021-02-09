@@ -2,7 +2,6 @@ import QtQuick 2.15
 import QtQuick.Layouts 1.4
 import QtQuick.Controls 2.15
 import QtQuick.Window 2.2
-// import PopupItemChoice 1.0
 
 Popup {
     id: popup
@@ -11,102 +10,67 @@ Popup {
     property int spanY
     property string text
     property bool openOnce: false
-
-    height: popupTextArea.height + 30
-    width:  buttons.width + popupTextArea.width + 30
+    topPadding:5
+    bottomPadding:5
+    leftPadding:10
+    rightPadding:10
+    height: popupTextArea.contentHeight + bottomPadding + topPadding
+    width:  buttons.width + popupTextArea.width + leftPadding + rightPadding
 
     modal: false
     focus: false
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     onOpenedChanged: {
-        console.log("popup is now open - ", opened)
-        console.log(positions)
         if(opened) {
             if (popupTextArea.paintedWidth < popupTextArea.width) {
-                popupTextArea.width = popupTextArea.paintedWidth + 30
-            }
-            // popupTextArea.width = popup.width
-            // popup.width  = popupTextArea.paintedWidth +  buttons.width
+                popupTextArea.width = popupTextArea.paintedWidth
+             }
+            popup.width = buttons.width + popupTextArea.width + popup.leftPadding + popup.rightPadding
+
             popup.x = Math.min(spanX, parent.width - popup.width)
             popup.y = Math.min(spanY, parent.height - popup.height)
             openOnce=true
         }
         else {
-        // popup.width = 500
-        popupTextArea.width = 600
+            popupTextArea.width = 500
+        }
+    }
+
+    Item{
+        id: buttons
+        x:0
+        y:0
+        width: 70
+
+        Repeater { model: popup.positions.length
+            RadioButton { height: 20
+                y: popupTextArea.positionToRectangle(popup.positions[index]).y + 3
+                   + popupTextArea.width - popupTextArea.width // this evaluates to zero but forces update
+                x: 0
+                text : index
+            }
         }
     }
     TextArea{
         id: popupTextArea
-        Layout.alignment: Qt.AlignRight | Qt.AlignTop
-        x: 30
+
+        x: buttons.width
+        y: 0
+        width: 500
+
+        // background: Rectangle {
+        //     id:bg
+        //     border.color:  "#21be2b"
+        // }
+        topPadding:0
+        bottomPadding:0
+        leftPadding:0
+        rightPadding:0
+
         text: popupItemChoice.text
         wrapMode: TextArea.WordWrap
-
-        width: 600
-        // implicitWidth
-        // paintedWidth ? paintedWidth : 500
-
         textFormat: Text.RichText
         readOnly: true
         font.pointSize: 20
-        // MouseArea {
-        //     anchors.fill: popupTextArea
-        //     onClicked: {
-        //         var pos = popupTextArea.positionAt(mouseX, mouseY, TextInput.CursorOnCharacter)
-        //         console.log("popuppos: ", pos, " x: ", mouseX, " y: " , mouseY)
-        //      }
-
-        // }
-        states: [
-            State {
-                name: "wide text"
-                when: popupTextArea.paintedWidth > 500 && openOnce
-                PropertyChanges {
-                    target: popup
-                    openOnce: false
-                }
-                PropertyChanges {
-                    target: popupTextArea
-                    width: 500
-                    // script: console.log("entering first state")
-                    // height: text_field.paintedHeight
-                }
-
-                StateChangeScript {
-                    name: "firstScript"
-                    script: console.log("entering first state---------------------", popupTextArea.width)
-                }
-                // PropertyChanges {
-                //     target: buttons
-                //     buttons.model:  popup.positions.length
-                //    // height: text_field.paintedHeight
-                // }
-            }
-            // ,
-            // State {
-            //     name: "not wide text"
-            //     when: containing_rect.text.length <= 20
-            //     PropertyChanges {
-            //         target: containing_rect
-            //         width: dummy_text.paintedWidth
-            //         height: text_field.paintedHeight
-            //     }
-            // }
-        ]
-    }
-    Item{
-        id: buttons
-        Layout.alignment: Qt.AlignLeft | Qt.AlignTop
-        width: 30
-        // height: 100
-        // height: popupTextArea.height
-        Repeater { model: popup.positions.length
-            RadioButton { width: 20; height: 20
-                y: popupTextArea.positionToRectangle(popup.positions[index]).y + 3
-                   + popupTextArea.width - popupTextArea.width // this evaluates to zero but forces update
-                x: 0
-            }
-        }
     }
 }
