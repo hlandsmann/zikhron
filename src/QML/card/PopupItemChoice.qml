@@ -14,25 +14,25 @@ Popup {
     bottomPadding:5
     leftPadding:10
     rightPadding:10
-    height: popupTextArea.contentHeight + bottomPadding + topPadding
-    width:  buttons.width + popupTextArea.width + leftPadding + rightPadding
+    height: textArea.contentHeight + bottomPadding + topPadding
+    width:  buttons.width + textArea.width + leftPadding + rightPadding
 
     modal: false
     focus: false
     closePolicy: Popup.CloseOnEscape | Popup.CloseOnPressOutside
     onOpenedChanged: {
         if(opened) {
-            if (popupTextArea.paintedWidth < popupTextArea.width) {
-                popupTextArea.width = popupTextArea.paintedWidth
-             }
-            popup.width = buttons.width + popupTextArea.width + popup.leftPadding + popup.rightPadding
+            if (textArea.paintedWidth < textArea.width) {
+                textArea.width = textArea.paintedWidth
+            }
+            popup.width = buttons.width + textArea.width + popup.leftPadding + popup.rightPadding
 
             popup.x = Math.min(spanX, parent.width - popup.width)
             popup.y = Math.min(spanY, parent.height - popup.height)
             openOnce=true
         }
         else {
-            popupTextArea.width = 500
+            textArea.width = 500
         }
     }
 
@@ -44,15 +44,15 @@ Popup {
 
         Repeater { model: popup.positions.length
             RadioButton { height: 20
-                y: popupTextArea.positionToRectangle(popup.positions[index]).y + 3
-                   + popupTextArea.width - popupTextArea.width // this evaluates to zero but forces update
+                y: textArea.positionToRectangle(popup.positions[index]).y + 3
+                   + textArea.width - textArea.width // this evaluates to zero but forces update
                 x: 0
                 text : index
             }
         }
     }
     TextArea{
-        id: popupTextArea
+        id: textArea
 
         x: buttons.width
         y: 0
