@@ -2,6 +2,7 @@ import QtQuick 2.14
 import QtQuick.Layouts 1.4
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
+import Qt.labs.settings 1.0
 
 ColumnLayout {
     CardDisplay{
@@ -12,14 +13,21 @@ ColumnLayout {
 
         visible: displayButton.checked
     }
+    CardAnnotate{
+        id: cardAnnotate
+        Layout.alignment: Qt.AlignTop
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+
+        visible: annotateButton.checked
+    }
     CardEdit{
         id: cardEdit
         Layout.alignment: Qt.AlignTop
         Layout.fillWidth: true
         Layout.fillHeight: true
 
-        visible: editButton.checked | annotateButton.checked
-
+        visible: editButton.checked
     }
 
     RowLayout{
@@ -129,4 +137,13 @@ ColumnLayout {
             }
         }
     }
+
+    Settings {
+        category: "Card"
+        id: settingsCard
+
+        property int cardFontSize: 20
+        property string cardFontColor: "#FFF"
+    }
+
 }

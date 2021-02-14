@@ -2,9 +2,9 @@ import QtQuick 2.14
 import QtQuick.Layouts 1.4
 import QtQuick.Controls 1.4
 import QtQuick.Controls.Styles 1.4
-
+import Qt.labs.settings 1.0
 ApplicationWindow {
-    id: root
+    id: window
     objectName: "window"
 
     visible: true
@@ -12,6 +12,14 @@ ApplicationWindow {
     height: 600
     color: "#222"
 
+    Settings {
+        category: "Window"
+        id: settings
+        property alias x: window.x
+        property alias y: window.y
+        property alias width: window.width
+        property alias height: window.height
+    }
     RowLayout {
         anchors.fill: parent
         ColumnLayout{

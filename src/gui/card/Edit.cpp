@@ -3,11 +3,11 @@
 namespace card {
 Edit::Edit() { setFiltersChildMouseEvents(true); }
 
-void Edit::getDictionary(const PtrDictionary &_zh_dict) {
+void Edit::getDictionary(const PtrDictionary &/*_zh_dict*/) {
     qDebug() << "Edit Dictionary\n";
 }
 
-void Edit::getCard(const PtrCard &_ptrCard) {
+void Edit::getCard(const PtrCard &/*_ptrCard*/) {
     qDebug() << "Edit Card\n";
 }
 

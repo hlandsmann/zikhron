@@ -2,9 +2,10 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file alias="Card.qml">card/Card.qml</file>
+        <file alias="CardAnnotate.qml">card/CardAnnotate.qml</file>
         <file alias="CardDisplay.qml">card/CardDisplay.qml</file>
         <file alias="CardEdit.qml">card/CardEdit.qml</file>
         <file alias="PopupItemChoice.qml">card/PopupItemChoice.qml</file>
-        <file>test_item.qml</file>
+        <!-- <file alias="qtquickcontrols2.conf">cfg/qtquickcontrols2.conf</file> -->
     </qresource>
 </RCC>

@@ -62,8 +62,8 @@ CardDisplay {
         textFormat: Text.RichText
         text: ""
 
-        font.pointSize: 20
-        color:"#FFF"
+        font.pointSize: settingsCard.cardFontSize
+        color:          settingsCard.cardFontColor
         // style: TextAreaStyle {
         //     textColor: "#FFF"
         //     selectionColor: "steelblue"

@@ -18,6 +18,8 @@ auto loadCardDB() -> CardDB {
 auto getLongestCard(CardDB& cardDB) -> QSharedPointer<Card> {
     icu::UnicodeString maxText = "";
     auto ltext = [](const std::vector<icu::UnicodeString>& vec) -> int {
+        if (vec.empty())
+            return 0;
         return std::max_element(vec.begin(),
                                 vec.end(),
                                 [](const auto& t1, const auto& t2) { return t1.length() < t2.length(); })

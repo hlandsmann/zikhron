@@ -31,48 +31,21 @@
 #include <QSharedPointer>
 
 #include "DataThread.h"
+#include "gui/card/Annotate.h"
 #include "gui/card/Display.h"
 #include "gui/card/Edit.h"
 
-// std::string makeString(const icu::UnicodeString& str) {
-//     std::string tempString;
-//     str.toUTF8String(tempString);
-//     return tempString;
-// }
 int main(int argc, char* argv[]) {
-    // CardDB cardDB;
-    // try {
-    //     // dic.loadFromJson("/home/harmen/src/zikhron/cedict_u8.json");
-    //     cardDB.loadFromSingleJson("/home/harmen/src/zikhron/cards/cards_u8.json");
-    // } catch (const std::exception& e) {
-    //     std::cout << e.what() << std::endl;
-    // } catch (...) {
-    //     std::cout << "Unknown Error" << std::endl;
-    // }
-
-    // icu::UnicodeString maxText = "";
-    // for (const auto& card : cardDB.cards)
-    //     for (const auto& text : card->getTextVector()) {
-    //         if (text.length() > maxText.length())
-    //             maxText = text;
-    //         // if (std::abs(30 - text.length()) < std::abs(30 - maxText.length()))
-    //         //     maxText = text;
-    //         // decode(dic, text);
-    //     }
-
-    // try {
-    //     auto zh_dict = std::make_shared<ZH_Dictionary>("../dictionaries/handedict.u8");
-    //     // auto zh_dict = std::make_shared<ZH_Dictionary>("../cedict_ts.u8");
-    //     ZH_Annotator zh_annotater(makeString(maxText), zh_dict);
-    // } catch (const std::exception& e) {
-    //     std::cout << e.what() << "\n";
-    // }
     try {
         QGuiApplication app(argc, argv);
+        app.setOrganizationName("zikhron");
+        // app.setOrganizationDomain("https://github.com/hlandsmann/zikhron");
+        app.setApplicationName("zikhron");
+        QSettings settings;
+        qDebug() << settings.fileName();
         DataThread dataThread;
 
-        // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
-
+        qmlRegisterType<card::Annotate>("CardAnnotate", 1, 0, "CardAnnotate");
         qmlRegisterType<card::Display>("CardDisplay", 1, 0, "CardDisplay");
         qmlRegisterType<card::Edit>("CardEdit", 1, 0, "CardEdit");
         QQmlApplicationEngine engine;
@@ -80,11 +53,15 @@ int main(int argc, char* argv[]) {
 
         qRegisterMetaType<PtrDictionary>();
         qRegisterMetaType<PtrCard>();
+        auto cardAnnotate = engine.rootObjects().first()->findChild<card::Annotate*>("CardAnnotate");
         auto cardDisplay = engine.rootObjects().first()->findChild<card::Display*>("CardDisplay");
         auto cardEdit = engine.rootObjects().first()->findChild<card::Edit*>("CardEdit");
 
         QObject::connect(
+            &dataThread, &DataThread::sendDictionary, cardAnnotate, &card::Annotate::getDictionary);
+        QObject::connect(
             &dataThread, &DataThread::sendDictionary, cardDisplay, &card::Display::getDictionary);
+        QObject::connect(&dataThread, &DataThread::sendCard, cardAnnotate, &card::Annotate::getCard);
         QObject::connect(&dataThread, &DataThread::sendCard, cardDisplay, &card::Display::getCard);
         QObject::connect(&dataThread, &DataThread::sendCard, cardEdit, &card::Edit::getCard);
 
@@ -97,62 +74,3 @@ int main(int argc, char* argv[]) {
         std::cout << "Eception occured: " << e.what() << "\n";
     } catch (...) { std::cout << "Unknown exception occured \n"; }
 }
-
-// using std::cout;
-
-// std::string makeString(const icu::UnicodeString& str) {
-//     std::string tempString;
-//     str.toUTF8String(tempString);
-//     return tempString;
-// }
-
-// int main(int argc, char* argv[]) {
-//     QGuiApplication app(argc, argv);
-//     QCoreApplication::addLibraryPath("./");
-//     QQmlApplicationEngine engine;
-//     engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
-
-//     // C++
-//     // QQuickView view(QUrl::fromLocalFile("qrc:/main.qml"));
-//     QQuickView   view(QUrl(QStringLiteral("qrc:/test_item.qml")));
-//     QVariantList list;
-//     list << 10 << QColor(Qt::green) << "bottles";
-
-//     QVariantMap map;
-//     map.insert("language", "QML");
-//     map.insert("released", QDate(2010, 9, 21));
-
-//     QMetaObject::invokeMethod(view.rootObject(),
-//                               "readValues",
-//                               Q_ARG(QVariant, QVariant::fromValue(list)),
-//                               Q_ARG(QVariant, QVariant::fromValue(map)));
-
-// CardDB cardDB;
-// try {
-//     // dic.loadFromJson("/home/harmen/src/zikhron/cedict_u8.json");
-//     cardDB.loadFromSingleJson("/home/harmen/src/zikhron/cards/cards_u8.json");
-// } catch (const std::exception& e) {
-//     std::cout << e.what() << std::endl;
-// } catch (...) {
-//     std::cout << "Unknown Error" << std::endl;
-// }
-
-// icu::UnicodeString maxText = "";
-// for (const auto& card : cardDB.cards)
-//     for (const auto& text : card->getTextVector()) {
-//         if (text.length() > maxText.length())
-//             maxText = text;
-//         // if (std::abs(30 - text.length()) < std::abs(30 - maxText.length()))
-//         //     maxText = text;
-//         // decode(dic, text);
-//     }
-
-//     // try {
-//     //     auto zh_dict = std::make_shared<ZH_Dictionary>("../dictionaries/handedict.u8");
-//     //     // auto zh_dict = std::make_shared<ZH_Dictionary>("../cedict_ts.u8");
-//     //     ZH_Annotator zh_annotater(makeString(maxText), zh_dict);
-//     // } catch (const std::exception& e) {
-//     //     std::cout << e.what() << "\n";
-//     // }
-//     return app.exec();
-// }

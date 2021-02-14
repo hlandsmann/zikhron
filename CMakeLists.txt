@@ -47,6 +47,7 @@ set(SOURCE src/Application.cpp
            src/DataThread.cpp
            src/utils/StringU8.cpp
            src/utils/Markup.cpp
+           src/gui/card/Annotate.cpp
            src/gui/card/Display.cpp
            src/gui/card/Edit.cpp
            )

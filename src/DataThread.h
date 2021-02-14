@@ -33,7 +33,7 @@ class DataThread : public QThread {
     Q_OBJECT
 public:
     DataThread(QObject* parent = nullptr) { Q_UNUSED(parent); };
-    // ~DataThread();
+    ~DataThread() = default;
 signals:
     void sendDictionary(const PtrDictionary& zh_dict);
     void sendCard(const PtrCard& ptrCard);
