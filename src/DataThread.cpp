@@ -31,7 +31,8 @@ auto getLongestCard(CardDB& cardDB) -> QSharedPointer<Card> {
             std::vector<icu::UnicodeString> vec1 = card1->getTextVector();
             std::vector<icu::UnicodeString> vec2 = card2->getTextVector();
 
-            return ltext(vec1) < ltext(vec2);
+            // return ltext(vec1) < ltext(vec2);
+            return vec1.size() < vec2.size();
         });
 
     if (TextCard* card = dynamic_cast<TextCard*>((*it).get()); card != nullptr)

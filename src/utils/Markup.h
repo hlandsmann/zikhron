@@ -7,7 +7,7 @@
 namespace markup {
 
 class Word {
-    const std::string rawWord;
+    std::string rawWord;
     auto joinCharactersNonBreakable(const utl::StringU8& word) const -> std::string;
     auto lengthOfWord(const utl::StringU8& word) const -> int;
 
@@ -22,11 +22,13 @@ public:
 
     void setColor(uint32_t color);
     void setBackgroundColor(uint32_t backgroundColor);
-
-    const int virtualLength;
+    auto vLength() const -> int { return virtualLength; }
+    auto isMarkup() const -> bool { return markup; }
 
 private:
     auto applyStyle(const std::string& str) const -> std::string;
+    int virtualLength = 0;
+    bool markup = false;
     uint32_t color = 0;
     uint32_t backGroundColor = 0;
     std::string styledWord;

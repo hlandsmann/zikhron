@@ -26,7 +26,7 @@ auto cardFromJsonFile(const std::string &filename) -> std::unique_ptr<Card> {
         if (not dlg.IsArray())
             throw std::runtime_error("Expected an array");
 
-        auto dialogueCard = std::make_unique<DialogueCard>();
+        auto dialogueCard = std::make_unique<DialogueCard>(filename);
         for (const auto &speakerTextPair : dlg.GetArray()) {
             if (not speakerTextPair.MemberCount())
                 continue;
@@ -39,7 +39,7 @@ auto cardFromJsonFile(const std::string &filename) -> std::unique_ptr<Card> {
     }
     if (jsonCard["type"] == "text") {
         const auto &text = jsonCard["content"];
-        auto textCard = std::make_unique<TextCard>();
+        auto textCard = std::make_unique<TextCard>(filename);
         textCard->text = icu::UnicodeString::fromUTF8(text.GetString());
 
         return textCard;

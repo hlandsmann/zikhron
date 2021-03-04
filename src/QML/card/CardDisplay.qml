@@ -11,16 +11,12 @@ CardDisplay {
     property string copiedText: ""
     property bool textUpdateReceived: false
     property int cardTextCursorPos: 0
-    onHovered: {
-        var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
-        // var pos = cardText.positionAt(x, y, TextInput.CursorBetweenCharacters)
-        cardDisplay.hoveredTextPosition(pos)
-    }
-    onDoubleClicked: {
-        cardText.selectWord();
-        window.getSelection();
+    // onHovered: {
+    //     var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
+    //     // var pos = cardText.positionAt(x, y, TextInput.CursorBetweenCharacters)
+    //     cardDisplay.hoveredTextPosition(pos)
+    // }
 
-    }
     onTextUpdate: {
         if( copiedText === newText){
             return
@@ -32,11 +28,11 @@ CardDisplay {
         cardText.cursorPosition = cardTextCursorPos
     }
 
-    onClicked: {
-        var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
-        cardDisplay.clickedTextPosition(pos)
+    // onClicked: {
+    //     var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
+    //     cardDisplay.clickedTextPosition(pos)
 
-    }
+    // }
     onOpenPopup: {
         var posRect = cardText.positionToRectangle(pos)
         popupItemChoice.text = popupText
@@ -47,7 +43,6 @@ CardDisplay {
         popupItemChoice.positions = popupPosList
         popupItemChoice.open()
     }
-
 
     TextArea
     {
@@ -81,6 +76,41 @@ CardDisplay {
         PopupItemChoice {
             id: popupItemChoice
         }
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            function indexInsideRect(x, y, index){
+                var rect = cardText.positionToRectangle(index)
+                var x2 = cardText.positionToRectangle(index+1).x
+                if (rect.x <= x && (x2 >= x || x2<rect.x)
+                    && rect.y <= y && rect.y+rect.height >= y){
+                        return true
+                    }
+                return false
+            }
+            function getTextPosition(x, y){
+                var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
+                for (var i=pos; i<cardText.length; i++) {
+                    if (indexInsideRect(x, y, i)){
+                        return i
+                    }
+                }
+                for (var i=pos-1; i>=0; i--) {
+                    if (indexInsideRect(x, y, i)){
+                        return i
+                    }
+                }
+                return -1
+            }
+            onClicked: {  var pos = getTextPosition(mouse.x, mouse.y)
+                          cardDisplay.clickedTextPosition(pos) }
+            onPositionChanged: {
+                var pos = getTextPosition(mouseX, mouseY)
+                console.log("Posc:", cardText.positionAt(mouseX, mouseY), " : ", pos)
+                cardDisplay.hoveredTextPosition(pos)
+        }
 
     }
+    }
+
 }

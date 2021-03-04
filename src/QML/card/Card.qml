@@ -1,6 +1,6 @@
 import QtQuick 2.14
 import QtQuick.Layouts 1.4
-import QtQuick.Controls 1.4
+import QtQuick.Controls 2.4
 import QtQuick.Controls.Styles 1.4
 import Qt.labs.settings 1.0
 
@@ -110,29 +110,18 @@ ColumnLayout {
                 }
             }
             RowLayout{
+                property var names: ["again", "hard", "good", "easy"]
                 id: difficulty
                 Layout.alignment: Qt.AlignHCenter
                 visible: false
-
-                Button{
-                    id: againButton
-                    text: "again"
-                    onClicked:{ answerOption.toggleVisibility() }
-                }
-                Button{
-                    id: hardButton
-                    text: "hard"
-                    onClicked:{ answerOption.toggleVisibility() }
-                }
-                Button{
-                    id: goodButton
-                    text: "good"
-                    onClicked:{ answerOption.toggleVisibility() }
-                }
-                Button{
-                    id: easyButton
-                    text: "easy"
-                    onClicked:{ answerOption.toggleVisibility() }
+                Repeater {
+                            model: difficulty.names.length
+                            Button{
+                                text: difficulty.names[index]
+                                onClicked:{ answerOption.toggleVisibility()
+                                            console.log("Difficulty:", index)
+                                }
+                            }
                 }
             }
         }
@@ -144,6 +133,7 @@ ColumnLayout {
 
         property int cardFontSize: 20
         property string cardFontColor: "#FFF"
+        property string cardBackgroundColor: "#222"
     }
 
 }

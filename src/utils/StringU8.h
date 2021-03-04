@@ -8,31 +8,54 @@
 namespace icu {
 class UnicodeString;
 }
+
 namespace utl {
-class StringU8 {
+
+template <class T> std::string stringPlusT(std::string&& a, const T& b) { return a += b; }
+
+/* Item representing either a character or a markup formatter */
+class ItemU8 {
 public:
+    ItemU8(const std::string& _str, bool _isMarkup, size_t _virtualLength)
+        : str(_str), markup(_isMarkup), virtualLength(_virtualLength){};
+    ItemU8(const std::string& _str) : str(_str){};
+    operator std::string() const { return str; }
+    auto vLength() const -> size_t { return virtualLength; }
+    auto isMarkup() const -> bool { return markup; }
+
+private:
+    const std::string str;
+    const bool markup = false;
+    const size_t virtualLength = 1;
+};
+
+class StringU8 {
+    std::vector<ItemU8> chars;
+
+public:
+    StringU8() = default;
     StringU8(const std::string&);
-    StringU8(const std::string_view&);
+    // StringU8(const std::string_view&);
     StringU8(const icu::UnicodeString&);
     StringU8(const StringU8&) = default;
     StringU8(StringU8&&) = default;
-    size_t length() const;
-    bool empty() const;
-    std::string_view at(size_t pos) const;
-    std::string_view substr(size_t pos, size_t n) const;
-    std::string_view back() const;
-    std::string_view front() const;
-    void iterate_characters(std::function<void(const std::string_view&)> op,
-                            int first = 0,
-                            int last = std::numeric_limits<int>::max()) const;
+    auto length() const -> size_t;
+    auto empty() const -> bool;
+    auto at(size_t pos) const -> StringU8;
+    auto substr(size_t pos, size_t n) const -> std::string;
+    auto back() const -> ItemU8;
+    auto front() const -> ItemU8;
+    auto cbegin() const { return chars.cbegin(); }
+    auto cend() const { return chars.cend(); }
+    // void push_back(const std::string&);
+    void push_back(const ItemU8&);
+    void append(const std::string&);
+    void append(const icu::UnicodeString&);
+
     operator std::string() const;
 
 private:
-    size_t getAbsoluteStrPosition(size_t pos) const;
-    std::vector<size_t> genCharPos();
-    std::string icustringToString(const icu::UnicodeString& str);
-    const std::string str;
-    std::vector<size_t> charPos;
+    auto icustringToString(const icu::UnicodeString& str) -> std::string;
 };
 
 }  // namespace utl

@@ -22,7 +22,9 @@ bool Display::childMouseEventFilter(QQuickItem *, QEvent *event) {
     // if true it will stop the event propagating
     bool handled = false;
     // Q_PROPERTY(
-
+    //     static int i=0;
+    //     i++;
+    // qDebug() << "Hello: " << i << "\n";
     // https://doc.qt.io/qt-5/qevent.html#Type-enum
     QEvent::Type t = event->type();
     switch (t) {
@@ -55,7 +57,7 @@ bool Display::childMouseEventFilter(QQuickItem *, QEvent *event) {
         // qDebug() << "mouse double click";
         emit doubleClicked();
         // emit textUpdate("<strong>This text is important!</strong>");
-        handled = true;
+        // handled = true;
     } break;
     default: break;
     }
@@ -64,6 +66,7 @@ bool Display::childMouseEventFilter(QQuickItem *, QEvent *event) {
 }
 
 void Display::hoveredTextPosition(int pos) {
+    // qDebug() << "Pos: " << pos << "\n";
     if (lastPos == pos)
         return;
     paragraph.undoChange();
@@ -155,20 +158,44 @@ void Display::clickedTextPosition(int pos) {
 }
 
 void Display::useCard() {
+    namespace ranges = std::ranges;
     if (ptrCard == nullptr || zh_dict == nullptr)
         return;
+    std::cout << "Using card file: \"" << ptrCard->filename << "\"\n";
+    utl::StringU8 text;
     auto maxText = ptrCard->getTextVector().front();
 
-    zh_annotator = std::make_unique<ZH_Annotator>(maxText, zh_dict);
-    std::transform(zh_annotator->Items().begin(),
-                   zh_annotator->Items().end(),
-                   std::back_inserter(paragraph),
-                   [](const ZH_Annotator::Item &item) -> markup::Word {
-                       if (not item.dicItemVec.empty())
-                           return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
-                       return item.text;
-                   });
+    if (DialogueCard *dlgCard = dynamic_cast<DialogueCard *>(ptrCard.get())) {
+        // text.push_markup("<tr>");
+        const std::string tbOpen = "<tr>";
+        const std::string tbClose = "</tr>";
+        const std::string open = "<td style=\"padding:10px 15px 10px 15px;\">";
+        const std::string close = "</td>";
+        for (const auto &dialogue : dlgCard->dialogue) {
+            text.push_back({tbOpen, true, 0});
+            text.push_back({open, true, 1});
+            // text.push_back({open,0});
+            text.append(dialogue.speaker);
+            text.push_back({close, true, 0});
+            text.push_back({open, true, 1});
+            text.append(dialogue.text);
+            text.push_back({close, true, 0});
+            text.push_back({tbClose, true, 0});
+        }
 
+        // text.push_back("</tr>");
+    }
+
+    zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dict);
+    ranges::transform(zh_annotator->Items(),
+                      std::back_inserter(paragraph),
+                      [](const ZH_Annotator::Item &item) -> markup::Word {
+                          std::cout << item.text << " : " << item.text.length() << "\n";
+                          if (not item.dicItemVec.empty())
+                              return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
+                          return item.text;
+                      });
+    qDebug() << QString::fromStdString(paragraph.get());
     emit textUpdate(QString::fromStdString(paragraph.get()));
 }
 

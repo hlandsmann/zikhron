@@ -45,5 +45,11 @@ private:
     QSharedPointer<Card> ptrCard;
     std::string annotated;
     std::unique_ptr<ZH_Annotator> zh_annotator;
+
+    struct AnnotatedBlock {
+        std::unique_ptr<ZH_Annotator> zh_annotator;
+        std::unique_ptr<markup::Paragraph> paragraph;
+
+    };
 };
 }  // namespace card

@@ -5,12 +5,14 @@
 #include <vector>
 
 struct Card {
+    Card(std::string _filename = "") : filename(_filename){};
     virtual ~Card() = default;
 
     virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
+    const std::string filename;
 };
 struct DialogueCard : public Card {
-    DialogueCard() = default;
+    DialogueCard(std::string _filename = "") : Card(_filename){};
     DialogueCard(const DialogueCard&) = default;
     struct DialogueItem {
         icu::UnicodeString speaker;
@@ -22,7 +24,7 @@ struct DialogueCard : public Card {
 };
 
 struct TextCard : public Card {
-    TextCard() = default;
+    TextCard(std::string _filename = "") : Card(_filename){};
     TextCard(const TextCard&) = default;
     icu::UnicodeString text;
     auto getTextVector() const -> std::vector<icu::UnicodeString> override;
@@ -37,6 +39,7 @@ public:
 
     auto get() const -> const std::vector<CardPtr>&;
     auto moveOut(int index) -> CardPtr;
+
 private:
     std::vector<CardPtr> cards;
 };

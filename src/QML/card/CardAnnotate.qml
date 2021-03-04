@@ -37,7 +37,9 @@ CardAnnotate {
         font.pointSize: settingsCard.cardFontSize
         color:          settingsCard.cardFontColor
 
-
+        background: Rectangle {
+            color: settingsCard.cardBackgroundColor
+        }
     }
 
 }
