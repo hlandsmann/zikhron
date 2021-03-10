@@ -135,7 +135,7 @@ auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -
 }
 }  // namespace
 
-ZH_Annotator::ZH_Annotator(const utl::StringU8& _text, const QSharedPointer<ZH_Dictionary>& _dictionary)
+ZH_Annotator::ZH_Annotator(const utl::StringU8& _text, const std::shared_ptr<ZH_Dictionary>& _dictionary)
     : text(_text), dictionary(_dictionary) {
     annotate();
 }

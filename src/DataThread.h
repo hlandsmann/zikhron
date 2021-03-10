@@ -3,6 +3,7 @@
 #include <TextCard.h>
 #include <QSharedPointer>
 #include <QThread>
+#include <utils/Markup.h>
 #include "ZH_Dictionary.h"
 
 class PtrDictionary : public QObject {
@@ -29,14 +30,27 @@ private:
     QSharedPointer<Card> _card;
 };
 
+class PtrParagraph : public QObject {
+    Q_OBJECT
+public:
+    PtrParagraph(QObject* parent = nullptr) { Q_UNUSED(parent); };
+    PtrParagraph(const QSharedPointer<markup::Paragraph>& _paragraph) : paragraph(_paragraph){};
+    PtrParagraph(const PtrParagraph& other) : QObject(), paragraph(other.get()){};
+    auto get() const -> QSharedPointer<markup::Paragraph> { return paragraph; }
+
+private:
+    QSharedPointer<markup::Paragraph> paragraph;
+};
+
 class DataThread : public QThread {
     Q_OBJECT
 public:
     DataThread(QObject* parent = nullptr) { Q_UNUSED(parent); };
     ~DataThread() = default;
 signals:
-    void sendDictionary(const PtrDictionary& zh_dict);
-    void sendCard(const PtrCard& ptrCard);
+    void sendDictionary(const PtrDictionary&);
+    void sendCard(const PtrCard&);
+    void sendParagraph(const PtrParagraph&);
 
 protected:
     void run() override;
@@ -47,3 +61,4 @@ private:
 
 Q_DECLARE_METATYPE(PtrDictionary)
 Q_DECLARE_METATYPE(PtrCard)
+Q_DECLARE_METATYPE(PtrParagraph)

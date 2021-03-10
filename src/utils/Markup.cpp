@@ -3,6 +3,8 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include <algorithm>
+namespace ranges = std::ranges;
 
 namespace markup {
 
@@ -71,6 +73,41 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
     if (not style.empty())
         return fmt::format("<span style=\"{}\">{}</span>", style, str);
     return str;
+}
+
+Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _zh_dictionary)
+    : zh_dictionary(_zh_dictionary) {
+    card = std::unique_ptr<Card>(_card.clone());
+    utl::StringU8 text;
+    if (DialogueCard* dlgCard = dynamic_cast<DialogueCard*>(card.get())) {
+        const std::string tbOpen = "<tr>";
+        const std::string tbClose = "</tr>";
+        const std::string open = "<td style=\"padding:10px 15px 10px 15px;\">";
+        const std::string close = "</td>";
+        for (const auto& dialogue : dlgCard->dialogue) {
+            text.push_back({tbOpen, true, 0});
+            text.push_back({open, true, 1});
+            // text.push_back({open,0});
+            text.append(dialogue.speaker);
+            text.push_back({close, true, 0});
+            text.push_back({open, true, 1});
+            text.append(dialogue.text);
+            text.push_back({close, true, 0});
+            text.push_back({tbClose, true, 0});
+        }
+    }
+    if (TextCard* textCard = dynamic_cast<TextCard*>(card.get())) {
+        text = textCard->text;
+    }
+    zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dictionary);
+    ranges::transform(zh_annotator->Items(),
+                      std::back_inserter(*this),
+                      [](const ZH_Annotator::Item &item) -> markup::Word {
+                          std::cout << item.text << " : " << item.text.length() << "\n";
+                          if (not item.dicItemVec.empty())
+                              return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
+                          return item.text;
+                      });
 }
 
 auto Paragraph::get() const -> std::string {

@@ -1,15 +1,15 @@
 #pragma once
 
 #include <TextCard.h>
-#include <utils/Markup.h>
+#include <ZH_Annotator.h>
+#include <ZH_Dictionary.h>
 #include <unicode/unistr.h>
+#include <utils/Markup.h>
 #include <utils/StringU8.h>
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QQuickItem>
 #include <QSharedPointer>
-#include <ZH_Annotator.h>
-#include <ZH_Dictionary.h>
 #include "DataThread.h"
 
 namespace card {
@@ -22,8 +22,9 @@ public:
 public slots:
     void hoveredTextPosition(int pos);
     void clickedTextPosition(int pos);
-    void getDictionary(const PtrDictionary &zh_dict);
-    void getCard(const PtrCard &ptrCard);
+    void getDictionary(const PtrDictionary &);
+    void getCard(const PtrCard &);
+    void getParagraph(const PtrParagraph &);
 
 signals:
     void hovered(int x, int y);
@@ -40,7 +41,7 @@ private:
     void useCard();
 
     int lastPos = -1;
-    markup::Paragraph paragraph;
+    QSharedPointer<markup::Paragraph> paragraph;
     QSharedPointer<ZH_Dictionary> zh_dict;
     QSharedPointer<Card> ptrCard;
     std::string annotated;
@@ -49,7 +50,6 @@ private:
     struct AnnotatedBlock {
         std::unique_ptr<ZH_Annotator> zh_annotator;
         std::unique_ptr<markup::Paragraph> paragraph;
-
     };
 };
 }  // namespace card

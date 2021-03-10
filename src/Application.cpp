@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
 
         qRegisterMetaType<PtrDictionary>();
         qRegisterMetaType<PtrCard>();
+        qRegisterMetaType<PtrParagraph>();
         auto cardAnnotate = engine.rootObjects().first()->findChild<card::Annotate*>("CardAnnotate");
         auto cardDisplay = engine.rootObjects().first()->findChild<card::Display*>("CardDisplay");
         auto cardEdit = engine.rootObjects().first()->findChild<card::Edit*>("CardEdit");
@@ -64,6 +65,8 @@ int main(int argc, char* argv[]) {
         QObject::connect(&dataThread, &DataThread::sendCard, cardAnnotate, &card::Annotate::getCard);
         QObject::connect(&dataThread, &DataThread::sendCard, cardDisplay, &card::Display::getCard);
         QObject::connect(&dataThread, &DataThread::sendCard, cardEdit, &card::Edit::getCard);
+
+        QObject::connect(&dataThread, &DataThread::sendParagraph, cardDisplay, &card::Display::getParagraph);
 
         dataThread.start();
         // QObject::connect(

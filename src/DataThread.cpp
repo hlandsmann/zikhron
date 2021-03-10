@@ -31,8 +31,8 @@ auto getLongestCard(CardDB& cardDB) -> QSharedPointer<Card> {
             std::vector<icu::UnicodeString> vec1 = card1->getTextVector();
             std::vector<icu::UnicodeString> vec2 = card2->getTextVector();
 
-            // return ltext(vec1) < ltext(vec2);
-            return vec1.size() < vec2.size();
+            return ltext(vec1) < ltext(vec2);
+            // return vec1.size() < vec2.size();
         });
 
     if (TextCard* card = dynamic_cast<TextCard*>((*it).get()); card != nullptr)
@@ -48,13 +48,16 @@ auto getLongestCard(CardDB& cardDB) -> QSharedPointer<Card> {
 void DataThread::run() {
     if (cardDB.get().empty())
         cardDB = loadCardDB();
-    auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/cedict_ts.u8");
+    auto zh_dict = std::make_shared<ZH_Dictionary>("../dictionaries/cedict_ts.u8");
+    auto zh_dict2 = QSharedPointer<ZH_Dictionary>::create("../dictionaries/cedict_ts.u8");
+
     // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
     qDebug() << "Created Dictionary";
 
     auto long_card = getLongestCard(cardDB);
+    auto paragraph = QSharedPointer<markup::Paragraph>::create(*long_card, zh_dict);
 
-    emit sendDictionary(zh_dict);
-
+    emit sendParagraph(paragraph);
+    emit sendDictionary(zh_dict2);
     emit sendCard(long_card);
 }

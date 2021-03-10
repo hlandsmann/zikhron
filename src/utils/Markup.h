@@ -1,8 +1,12 @@
 #pragma once
+#include <TextCard.h>
 #include <utils/StringU8.h>
 #include <stack>
 #include <string>
 #include <vector>
+
+#include <ZH_Dictionary.h>
+#include <ZH_Annotator.h>
 
 namespace markup {
 
@@ -39,6 +43,8 @@ public:
     using value_type = Word;
 
     Paragraph() = default;
+    Paragraph(const Card&, const std::shared_ptr<ZH_Dictionary>&);
+
     auto get() const -> std::string;
     void push_back(const Word& word);
     auto getWordStartPosition(int pos) const -> int;
@@ -54,6 +60,9 @@ private:
         std::size_t index;
         Word word;
     };
+    std::unique_ptr<ZH_Annotator> zh_annotator;
+    std::shared_ptr<ZH_Dictionary> zh_dictionary;
+    std::unique_ptr<Card> card;
 
     std::stack<WordState> preChanges;
     std::vector<Word> words;

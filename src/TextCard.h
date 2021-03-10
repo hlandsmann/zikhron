@@ -6,14 +6,17 @@
 
 struct Card {
     Card(std::string _filename = "") : filename(_filename){};
+    virtual auto clone() const -> Card* = 0;
     virtual ~Card() = default;
 
     virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     const std::string filename;
 };
+
 struct DialogueCard : public Card {
     DialogueCard(std::string _filename = "") : Card(_filename){};
     DialogueCard(const DialogueCard&) = default;
+    auto clone() const -> DialogueCard* override { return new DialogueCard(*this); }
     struct DialogueItem {
         icu::UnicodeString speaker;
         icu::UnicodeString text;
@@ -25,6 +28,7 @@ struct DialogueCard : public Card {
 
 struct TextCard : public Card {
     TextCard(std::string _filename = "") : Card(_filename){};
+    auto clone() const -> TextCard* override { return new TextCard(*this); }
     TextCard(const TextCard&) = default;
     icu::UnicodeString text;
     auto getTextVector() const -> std::vector<icu::UnicodeString> override;

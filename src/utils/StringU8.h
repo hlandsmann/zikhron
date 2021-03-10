@@ -19,14 +19,15 @@ public:
     ItemU8(const std::string& _str, bool _isMarkup, size_t _virtualLength)
         : str(_str), markup(_isMarkup), virtualLength(_virtualLength){};
     ItemU8(const std::string& _str) : str(_str){};
+    ItemU8(const ItemU8&) = default;
     operator std::string() const { return str; }
     auto vLength() const -> size_t { return virtualLength; }
     auto isMarkup() const -> bool { return markup; }
 
 private:
-    const std::string str;
-    const bool markup = false;
-    const size_t virtualLength = 1;
+    std::string str;
+    bool markup = false;
+    size_t virtualLength = 1;
 };
 
 class StringU8 {
@@ -39,6 +40,11 @@ public:
     StringU8(const icu::UnicodeString&);
     StringU8(const StringU8&) = default;
     StringU8(StringU8&&) = default;
+    StringU8& operator=(const utl::StringU8& other) {
+        chars = other.chars;
+        return *this;
+    }
+
     auto length() const -> size_t;
     auto empty() const -> bool;
     auto at(size_t pos) const -> StringU8;

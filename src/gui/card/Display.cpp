@@ -69,9 +69,9 @@ void Display::hoveredTextPosition(int pos) {
     // qDebug() << "Pos: " << pos << "\n";
     if (lastPos == pos)
         return;
-    paragraph.undoChange();
-    paragraph.changeWordAtPosition(pos, [](markup::Word &word) { word.setBackgroundColor(0x227722); });
-    emit textUpdate(QString::fromStdString(paragraph.get()));
+    paragraph->undoChange();
+    paragraph->changeWordAtPosition(pos, [](markup::Word &word) { word.setBackgroundColor(0x227722); });
+    emit textUpdate(QString::fromStdString(paragraph->get()));
     lastPos = pos;
 }
 
@@ -116,7 +116,7 @@ void Display::clickedTextPosition(int pos) {
     if (!zh_annotator)
         return;
 
-    const std::size_t index = paragraph.getWordIndex(pos);
+    const std::size_t index = paragraph->getWordIndex(pos);
     if (index >= zh_annotator->Items().size())
         return;
 
@@ -153,7 +153,7 @@ void Display::clickedTextPosition(int pos) {
     QList<int> popupPosList = genPopupPosList(item.dicItemVec);
     std::cout << popupText << "\n";
     std::cout << table2 << "\n";
-    emit openPopup(paragraph.getWordStartPosition(pos), QString::fromStdString(popupText), popupPosList);
+    emit openPopup(paragraph->getWordStartPosition(pos), QString::fromStdString(popupText), popupPosList);
     // emit textUpdate(QString::fromStdString(popupText));
 }
 
@@ -186,17 +186,23 @@ void Display::useCard() {
         // text.push_back("</tr>");
     }
 
-    zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dict);
-    ranges::transform(zh_annotator->Items(),
-                      std::back_inserter(paragraph),
-                      [](const ZH_Annotator::Item &item) -> markup::Word {
-                          std::cout << item.text << " : " << item.text.length() << "\n";
-                          if (not item.dicItemVec.empty())
-                              return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
-                          return item.text;
-                      });
-    qDebug() << QString::fromStdString(paragraph.get());
-    emit textUpdate(QString::fromStdString(paragraph.get()));
+    // zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dict);
+    // ranges::transform(zh_annotator->Items(),
+    //                   std::back_inserter(paragraph),
+    //                   [](const ZH_Annotator::Item &item) -> markup::Word {
+    //                       std::cout << item.text << " : " << item.text.length() << "\n";
+    //                       if (not item.dicItemVec.empty())
+    //                           return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
+    //                       return item.text;
+    //                   });
+    // qDebug() << QString::fromStdString(paragraph.get());
+    // emit textUpdate(QString::fromStdString(paragraph.get()));
+}
+
+void Display::getParagraph(const PtrParagraph &_paragraph) {
+    paragraph = _paragraph.get();
+    std::cout << "Pargarph got  \n";
+    emit textUpdate(QString::fromStdString(paragraph->get()));
 }
 
 void Display::getDictionary(const PtrDictionary &_zh_dict) {

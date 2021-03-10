@@ -14,7 +14,7 @@ class ZH_Annotator {
 public:
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
 
-    ZH_Annotator(const utl::StringU8& _text, const QSharedPointer<ZH_Dictionary>& _dictionary);
+    ZH_Annotator(const utl::StringU8& _text, const std::shared_ptr<ZH_Dictionary>& _dictionary);
     auto Annotated() const -> const std::string&;
 
     struct Item {
@@ -31,7 +31,7 @@ private:
     void annotate();
     const utl::StringU8 text;
     std::string annotated_text;
-    const QSharedPointer<ZH_Dictionary> dictionary;
+    const std::shared_ptr<ZH_Dictionary> dictionary;
     std::vector<Item> items;
     std::vector<std::vector<std::vector<int>>> chunks;
     std::vector<std::vector<ZH_dicItemVec>> candidates;
