@@ -13,7 +13,7 @@ include(FindPkgConfig)
 # set(CMAKE_C_COMPILER clang)
 
 set(CXX_WARNINGLEVEL "-Wall -Wextra -Wshadow -Wno-class-memaccess")
-set(CMAKE_CXX_FLAGS "-std=c++2a -pedantic -march=native -O2 ${CXX_WARNINGLEVEL}")
+set(CMAKE_CXX_FLAGS "-std=c++20 -pedantic -march=native -O2 ${CXX_WARNINGLEVEL}")
 set(LINKER_FLAGS "-Wl,--gc-sections,--relax")
 
 set(EXTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/third_party)
