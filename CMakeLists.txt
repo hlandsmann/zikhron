@@ -42,6 +42,7 @@ set(ICU_LIBRARIES "${ICU_UC_LIBRARIES}" "${ICU_IO_LIBRARIES}")
 
 set(SOURCE src/Application.cpp
            src/TextCard.cpp
+           src/VocabularySR.cpp
            src/ZH_Dictionary.cpp
            src/ZH_Annotator.cpp
            src/DataThread.cpp
