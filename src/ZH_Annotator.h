@@ -3,9 +3,11 @@
 
 #include <utils/StringU8.h>
 #include <QSharedPointer>
+#include <compare>
 #include <list>
 #include <memory>
 #include <optional>
+#include <set>
 #include <span>
 #include <vector>
 #include "ZH_Dictionary.h"
@@ -21,10 +23,14 @@ public:
         template <class string_t> Item(const string_t& _text) : text(_text), dicItemVec{} {}
         Item(const utl::StringU8& _text, const ZH_dicItemVec&& _dicItem)
             : text(_text), dicItemVec(_dicItem) {}
+
+        auto operator<=>(const Item&) const -> std::weak_ordering;
+
         utl::StringU8 text;
         ZH_dicItemVec dicItemVec;
     };
     auto Items() const -> const std::vector<Item>&;
+    auto UniqueItems() const -> std::set<Item>;
     auto Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&;
 
 private:

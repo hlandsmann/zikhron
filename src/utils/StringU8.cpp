@@ -9,7 +9,19 @@ namespace utl {
 StringU8::StringU8(const icu::UnicodeString& _str) : StringU8(icustringToString(_str)) {}
 StringU8::StringU8(const std::string& str) { append(str); }
 
-auto StringU8::length() const -> size_t {
+StringU8::operator std::string() const { return substr(0, chars.size()); }
+auto StringU8::operator=(const utl::StringU8& other) -> StringU8& {
+    chars = other.chars;
+    return *this;
+}
+
+auto StringU8::operator<=>(const StringU8& other) const -> std::weak_ordering{
+    return chars <=> other.chars;
+}
+
+auto StringU8::length() const -> size_t { return chars.size(); }
+
+auto StringU8::vlength() const -> size_t {
     return std::accumulate(
         chars.cbegin(), chars.cend(), size_t(0), [](const size_t a, const ItemU8& b) -> size_t {
             return a + b.vLength();
@@ -28,8 +40,6 @@ auto StringU8::substr(size_t pos, size_t n) const -> std::string {
 }
 auto StringU8::back() const -> ItemU8 { return chars.back(); }
 auto StringU8::front() const -> ItemU8 { return chars.front(); }
-
-StringU8::operator std::string() const { return substr(0, chars.size()); }
 
 auto StringU8::icustringToString(const icu::UnicodeString& _str) -> std::string {
     std::string tempString;

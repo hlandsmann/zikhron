@@ -17,14 +17,14 @@ auto Word::joinCharactersNonBreakable(const utl::StringU8& word) const -> std::s
     return result;
 }
 
-auto Word::lengthOfWord(const utl::StringU8& word) const -> int { return word.length() * 2 - 1; }
+auto Word::lengthOfWord(const utl::StringU8& word) const -> int { return word.vlength() * 2 - 1; }
 
 Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor) {
     if (1 == 1 && word.front().isMarkup()) {
         markup = true;
         rawWord = word;
         styledWord = word;
-        virtualLength = word.length();
+        virtualLength = word.vlength();
     } else {
         virtualLength = lengthOfWord(word);
         color = _color;
@@ -34,7 +34,7 @@ Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor
     }
 }
 
-Word::Word(const utl::StringU8& word) : Word{.word = word, ._color = 0, ._backGroundColor = 0} {}
+Word::Word(const utl::StringU8& word) : Word{.styledWord = word, .color = 0, .backGroundColor = 0} {}
 
 Word& Word::operator=(const Word&& word) {
     this->~Word();
@@ -75,11 +75,9 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
     return str;
 }
 
-Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _zh_dictionary)
-    : zh_dictionary(_zh_dictionary) {
-    card = std::unique_ptr<Card>(_card.clone());
+utl::StringU8 Paragraph::textFromCard(const Card& card){
     utl::StringU8 text;
-    if (DialogueCard* dlgCard = dynamic_cast<DialogueCard*>(card.get())) {
+    if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
         const std::string tbOpen = "<tr>";
         const std::string tbClose = "</tr>";
         const std::string open = "<td style=\"padding:10px 15px 10px 15px;\">";
@@ -87,7 +85,6 @@ Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _z
         for (const auto& dialogue : dlgCard->dialogue) {
             text.push_back({tbOpen, true, 0});
             text.push_back({open, true, 1});
-            // text.push_back({open,0});
             text.append(dialogue.speaker);
             text.push_back({close, true, 0});
             text.push_back({open, true, 1});
@@ -96,14 +93,24 @@ Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _z
             text.push_back({tbClose, true, 0});
         }
     }
-    if (TextCard* textCard = dynamic_cast<TextCard*>(card.get())) {
+    if (const TextCard* textCard = dynamic_cast<const TextCard*>(&card)) {
         text = textCard->text;
     }
+
+    return text;
+}
+
+Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _zh_dictionary)
+    : zh_dictionary(_zh_dictionary) {
+    auto card = std::unique_ptr<Card>(_card.clone());
+    utl::StringU8 text = textFromCard(*card);
+
+    std::cout << "Text: " << text << "\n";
     zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dictionary);
     ranges::transform(zh_annotator->Items(),
                       std::back_inserter(*this),
                       [](const ZH_Annotator::Item &item) -> markup::Word {
-                          std::cout << item.text << " : " << item.text.length() << "\n";
+                        //   std::cout << item.text << " : " << item.text.length() << "\n";
                           if (not item.dicItemVec.empty())
                               return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
                           return item.text;

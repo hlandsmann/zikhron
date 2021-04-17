@@ -1,4 +1,5 @@
 #pragma once
+#include <compare>
 #include <functional>
 #include <limits>
 #include <string>
@@ -23,6 +24,7 @@ public:
     operator std::string() const { return str; }
     auto vLength() const -> size_t { return virtualLength; }
     auto isMarkup() const -> bool { return markup; }
+    auto operator<=>(const ItemU8& other) const -> std::weak_ordering { return str <=> other.str; };
 
 private:
     std::string str;
@@ -40,12 +42,12 @@ public:
     StringU8(const icu::UnicodeString&);
     StringU8(const StringU8&) = default;
     StringU8(StringU8&&) = default;
-    StringU8& operator=(const utl::StringU8& other) {
-        chars = other.chars;
-        return *this;
-    }
+    auto operator=(const utl::StringU8& other) -> StringU8&;
+    auto operator<=>(const StringU8&) const -> std::weak_ordering;
+    operator std::string() const;
 
     auto length() const -> size_t;
+    auto vlength() const -> size_t;
     auto empty() const -> bool;
     auto at(size_t pos) const -> StringU8;
     auto substr(size_t pos, size_t n) const -> std::string;
@@ -58,14 +60,15 @@ public:
     void append(const std::string&);
     void append(const icu::UnicodeString&);
 
-    operator std::string() const;
-
 private:
     auto icustringToString(const icu::UnicodeString& str) -> std::string;
 };
 
 }  // namespace utl
-
+inline std::ostream& operator<<(std::ostream& os, const utl::ItemU8& itemU8) {
+    os << std::string(itemU8);
+    return os;
+}
 inline std::ostream& operator<<(std::ostream& os, const utl::StringU8& strU8) {
     os << std::string(strU8);
     return os;

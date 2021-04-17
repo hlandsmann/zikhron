@@ -78,7 +78,7 @@ auto transformPronounciation(const std::string_view& pronounciation) -> std::str
             finalResult.push_back(syllable.back());
         }
 
-        tie(syllable, rest) = splitOnce(rest, ' ');
+        std::tie(syllable, rest) = splitOnce(rest, ' ');
         if (not syllable.empty())
             finalResult.push_back(' ');
         startIndex = finalResult.size();
@@ -121,21 +121,22 @@ struct DictionaryItem_raw {
 };
 
 auto parseLine(const std::string_view& line) -> DictionaryItem_raw {
-    const auto& [traditional, rest_0] = splitOnce(line, ' ');
-    const auto& [simplified, rest_1] = splitOnce(rest_0, ' ');
-    const auto& [pron_raw, rest_2] = extractSubstr(rest_1, '[', ']');
+    std::string_view traditional, simplified, pron_raw, rest;
+    std::tie(traditional, rest) = splitOnce(line, ' ');
+    std::tie(simplified, rest) = splitOnce(rest, ' ');
+    std::tie(pron_raw, rest) = extractSubstr(rest, '[', ']');
 
     DictionaryItem_raw dicItem = {.traditional = traditional,
                                   .simplified = simplified,
                                   .pronounciation = transformPronounciation(pron_raw)};
 
-    auto [_, rest] = splitOnce(rest_2, '/');
+    std::tie(std::ignore, rest) = splitOnce(rest, '/');
     std::string_view meaning;
 
-    tie(meaning, rest) = splitOnce(rest, '/');
+    std::tie(meaning, rest) = splitOnce(rest, '/');
     while (not meaning.empty()) {
         dicItem.meanings.push_back(transformMeaning(meaning));
-        tie(meaning, rest) = splitOnce(rest, '/');
+        std::tie(meaning, rest) = splitOnce(rest, '/');
     }
 
     return dicItem;
@@ -215,6 +216,7 @@ auto ZH_Dictionary::Upper_bound(const std::string_view& key, const std::span<con
                                      return key_a < key_b.key.substr(0, key_a.length());
                              })};
 }
+
 auto ZH_Dictionary::CharacterSetFromKeySpan(const std::span<const Key>& keys) const -> CharacterSet {
     auto sameSpan = [](const std::span<const Key>& a, const std::span<const Key>& b) -> bool {
         return (a.begin() == b.begin()) && (a.end() == b.end());
@@ -244,4 +246,12 @@ auto ZH_Dictionary::ItemFromPosition(size_t pos, CharacterSet characterSet) cons
         .pronounciation = pronounciation.at(pos),
         .meanings = meanings.at(pos),
     };
+}
+
+auto ZH_Dictionary::Item::operator<=>(const Item& other) const -> std::weak_ordering {
+    if (const auto cmp = key <=> other.key; cmp != 0)
+        return cmp;
+    if (const auto cmp = pronounciation <=> other.pronounciation; cmp != 0)
+        return cmp;
+    return meanings <=> other.meanings;
 }

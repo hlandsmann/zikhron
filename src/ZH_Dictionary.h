@@ -29,6 +29,7 @@ public:
         const std::string&              key;
         const std::string&              pronounciation;
         const std::vector<std::string>& meanings;
+        auto operator<=>(const Item&) const -> std::weak_ordering;
     };
     auto CharacterSetFromKeySpan(const std::span<const Key>& keys) const -> CharacterSet;
     auto ItemFromPosition(size_t pos, const std::span<const Key>& keys) const -> Item;

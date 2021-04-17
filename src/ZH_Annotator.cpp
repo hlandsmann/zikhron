@@ -135,6 +135,12 @@ auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -
 }
 }  // namespace
 
+auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_ordering {
+    if (auto cmp = text <=> other.text; cmp != 0)
+        return cmp;
+    return dicItemVec <=> other.dicItemVec;
+}
+
 ZH_Annotator::ZH_Annotator(const utl::StringU8& _text, const std::shared_ptr<ZH_Dictionary>& _dictionary)
     : text(_text), dictionary(_dictionary) {
     annotate();
@@ -143,6 +149,17 @@ ZH_Annotator::ZH_Annotator(const utl::StringU8& _text, const std::shared_ptr<ZH_
 auto ZH_Annotator::Annotated() const -> const std::string& { return annotated_text; }
 
 auto ZH_Annotator::Items() const -> const std::vector<Item>& { return items; }
+
+auto ZH_Annotator::UniqueItems() const -> std::set<Item> {
+    std::set<Item> uniqueItems;
+
+    std::copy_if(items.begin(),
+                 items.end(),
+                 std::inserter(uniqueItems, uniqueItems.begin()),
+                 [](const Item& item) { return not item.dicItemVec.empty(); });
+
+    return uniqueItems;
+}
 
 auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>& {
     return candidates;

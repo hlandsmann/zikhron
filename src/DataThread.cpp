@@ -5,6 +5,25 @@
 
 namespace {
 
+/*
+{ "id" : "word",
+  "pron" : ["ni", "hao"],
+  "meaning" : ["first meaning"],
+  "selected" : "false",
+  "cards" : [{"number" : "quantity"}, {"number" : "quantity"}]
+}
+*/
+
+/*
+{ "id" :
+
+}
+*/
+// {id, word {} - {{cardNum, quantity}, {cardNum, quantity}}
+// id : word : {pron, meaning} - {{cardNum, quantity}, {cardNum, quantity}}
+
+// id, {"debug":"word"}, interval, ease, {{cardnum, when-seen},  {cardnum, when-seen}}
+
 auto loadCardDB() -> CardDB {
     CardDB cardDB;
     try {
@@ -55,6 +74,35 @@ void DataThread::run() {
     qDebug() << "Created Dictionary";
 
     auto long_card = getLongestCard(cardDB);
+
+    // utl::StringU8 card_text = markup::Paragraph::textFromCard(*long_card);
+
+    // auto annotator = ZH_Annotator(card_text, zh_dict);
+
+    // for(const auto& item : annotator.UniqueItems())
+    //     std::cout << "Word: " << item.text << "\n";
+    std::set<ZH_Annotator::Item> myDic;
+    for (const auto& card : cardDB.get()) {
+        utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
+        auto annotator = ZH_Annotator(card_text, zh_dict);
+
+        auto unique = annotator.UniqueItems();
+        // for (const auto& item : unique)
+        //     std::cout << "Word: " << item.text << "\n";
+        myDic.merge(unique);
+        std::cout << "size: " << unique.size() << "\n";
+    }
+    std::cout << "Final Size: " << myDic.size() << "\n";
+    std::set<utl::ItemU8> allCharacters;
+
+    for (const auto& dicItem : myDic) {
+        allCharacters.insert(dicItem.text.cbegin(), dicItem.text.cend());
+    }
+    for (const auto& mychar : allCharacters) {
+        std::cout << mychar;
+    }
+    std::cout << "\n";
+    std::cout << "Count of Characters: " << allCharacters.size() << "\n";
     auto paragraph = QSharedPointer<markup::Paragraph>::create(*long_card, zh_dict);
 
     emit sendParagraph(paragraph);

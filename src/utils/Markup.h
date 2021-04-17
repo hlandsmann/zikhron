@@ -41,6 +41,8 @@ private:
 class Paragraph {
 public:
     using value_type = Word;
+    static utl::StringU8 textFromCard(const Card&);
+
 
     Paragraph() = default;
     Paragraph(const Card&, const std::shared_ptr<ZH_Dictionary>&);
@@ -62,7 +64,7 @@ private:
     };
     std::unique_ptr<ZH_Annotator> zh_annotator;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
-    std::unique_ptr<Card> card;
+    // std::unique_ptr<Card> card;
 
     std::stack<WordState> preChanges;
     std::vector<Word> words;

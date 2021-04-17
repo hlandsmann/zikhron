@@ -106,7 +106,7 @@ CardDisplay {
                           cardDisplay.clickedTextPosition(pos) }
             onPositionChanged: {
                 var pos = getTextPosition(mouseX, mouseY)
-                console.log("Posc:", cardText.positionAt(mouseX, mouseY), " : ", pos)
+                // console.log("Posc:", cardText.positionAt(mouseX, mouseY), " : ", pos)
                 cardDisplay.hoveredTextPosition(pos)
         }
 
