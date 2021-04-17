@@ -5,16 +5,17 @@
 #include <vector>
 
 struct Card {
-    Card(std::string _filename = "") : filename(_filename){};
+    Card(std::string _filename, int _id) : filename(_filename), id(_id){};
     virtual auto clone() const -> Card* = 0;
     virtual ~Card() = default;
 
     virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     const std::string filename;
+    const int id;
 };
 
 struct DialogueCard : public Card {
-    DialogueCard(std::string _filename = "") : Card(_filename){};
+    DialogueCard(std::string _filename, int _id) : Card(_filename, _id){};
     DialogueCard(const DialogueCard&) = default;
     auto clone() const -> DialogueCard* override { return new DialogueCard(*this); }
     struct DialogueItem {
@@ -27,7 +28,7 @@ struct DialogueCard : public Card {
 };
 
 struct TextCard : public Card {
-    TextCard(std::string _filename = "") : Card(_filename){};
+    TextCard(std::string _filename, int _id) : Card(_filename, _id){};
     auto clone() const -> TextCard* override { return new TextCard(*this); }
     TextCard(const TextCard&) = default;
     icu::UnicodeString text;

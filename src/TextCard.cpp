@@ -3,12 +3,14 @@
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
+#include <regex>
+#include <set>
 #include "rapidjosnWrapper.h"
 
 #include <iostream>
 
 namespace {
-auto cardFromJsonFile(const std::string &filename) -> std::unique_ptr<Card> {
+auto cardFromJsonFile(const std::string &filename, int cardId) -> std::unique_ptr<Card> {
     std::ifstream cardFile(filename, std::ios::in | std::ios::binary);
     if (!cardFile)
         throw std::runtime_error("Failure to read file");
@@ -26,7 +28,7 @@ auto cardFromJsonFile(const std::string &filename) -> std::unique_ptr<Card> {
         if (not dlg.IsArray())
             throw std::runtime_error("Expected an array");
 
-        auto dialogueCard = std::make_unique<DialogueCard>(filename);
+        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId);
         for (const auto &speakerTextPair : dlg.GetArray()) {
             if (not speakerTextPair.MemberCount())
                 continue;
@@ -39,7 +41,7 @@ auto cardFromJsonFile(const std::string &filename) -> std::unique_ptr<Card> {
     }
     if (jsonCard["type"] == "text") {
         const auto &text = jsonCard["content"];
-        auto textCard = std::make_unique<TextCard>(filename);
+        auto textCard = std::make_unique<TextCard>(filename, cardId);
         textCard->text = icu::UnicodeString::fromUTF8(text.GetString());
 
         return textCard;
@@ -50,10 +52,25 @@ auto cardFromJsonFile(const std::string &filename) -> std::unique_ptr<Card> {
 
 void CardDB::loadFromDirectory(std::string directoryPath) {
     namespace fs = std::filesystem;
+    const std::regex match("(\\d{6})(_dlg|_text)(\\.json)");
+
+    std::set<int> cardIds;
 
     for (const fs::path entry : fs::directory_iterator(directoryPath)) {
+        std::smatch pieces_match;
+        std::string fn = entry.filename().string();
+        if (not std::regex_match(fn, pieces_match, match)) {
+            std::cout << "File \"" << fn << "\" is ignored / not considered as card\n";
+            continue;
+        }
         try {
-            cards.push_back(cardFromJsonFile(entry));
+            int cardId = std::stoi(pieces_match[1]);
+            if (not cardIds.insert(cardId).second) {
+                std::cout << "File " << entry.filename() << " ignored, because number " << cardId
+                          << " is already in use!\n";
+                continue;
+            }
+            cards.push_back(cardFromJsonFile(entry, cardId));
         } catch (std::exception &e) {
             std::cout << e.what() << " - file: " << entry.filename() << std::endl;
         }

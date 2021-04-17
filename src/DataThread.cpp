@@ -59,7 +59,7 @@ auto getLongestCard(CardDB& cardDB) -> QSharedPointer<Card> {
     if (DialogueCard* card = dynamic_cast<DialogueCard*>((*it).get()); card != nullptr)
         return QSharedPointer<DialogueCard>::create(*card);
 
-    return QSharedPointer<TextCard>::create();
+    return nullptr;
 }
 
 }  // namespace
@@ -81,7 +81,7 @@ void DataThread::run() {
 
     // for(const auto& item : annotator.UniqueItems())
     //     std::cout << "Word: " << item.text << "\n";
-    std::set<ZH_Annotator::Item> myDic;
+    /* std::set<ZH_Annotator::Item> myDic;
     for (const auto& card : cardDB.get()) {
         utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
         auto annotator = ZH_Annotator(card_text, zh_dict);
@@ -89,8 +89,9 @@ void DataThread::run() {
         auto unique = annotator.UniqueItems();
         // for (const auto& item : unique)
         //     std::cout << "Word: " << item.text << "\n";
+        std::cout << "size: " << unique.size() << " : ";
         myDic.merge(unique);
-        std::cout << "size: " << unique.size() << "\n";
+        std::cout << unique.size() << "\n";
     }
     std::cout << "Final Size: " << myDic.size() << "\n";
     std::set<utl::ItemU8> allCharacters;
@@ -102,7 +103,7 @@ void DataThread::run() {
         std::cout << mychar;
     }
     std::cout << "\n";
-    std::cout << "Count of Characters: " << allCharacters.size() << "\n";
+    std::cout << "Count of Characters: " << allCharacters.size() << "\n"; */
     auto paragraph = QSharedPointer<markup::Paragraph>::create(*long_card, zh_dict);
 
     emit sendParagraph(paragraph);
