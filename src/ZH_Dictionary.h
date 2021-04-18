@@ -26,10 +26,11 @@ public:
     auto Traditional() const -> std::span<const Key> { return traditional; }
 
     struct Item {
-        const std::string&              key;
-        const std::string&              pronounciation;
-        const std::vector<std::string>& meanings;
+        const std::string              key;
+        const std::string              pronounciation;
+        const std::vector<std::string> meanings;
         auto operator<=>(const Item&) const -> std::weak_ordering;
+        bool operator==(const Item&) const = default;
     };
     auto CharacterSetFromKeySpan(const std::span<const Key>& keys) const -> CharacterSet;
     auto ItemFromPosition(size_t pos, const std::span<const Key>& keys) const -> Item;

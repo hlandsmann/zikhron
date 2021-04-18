@@ -75,6 +75,8 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
             std::cout << e.what() << " - file: " << entry.filename() << std::endl;
         }
     }
+    std::sort(cards.begin(), cards.end(), [](const auto &a, const auto &b) { return a->id < b->id; });
+    // cards.resize(16);
 }
 
 auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString> {

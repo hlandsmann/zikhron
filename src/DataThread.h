@@ -1,10 +1,13 @@
 #pragma once
 
-#include <TextCard.h>
+#include <memory>
 #include <QSharedPointer>
 #include <QThread>
 #include <utils/Markup.h>
 #include "ZH_Dictionary.h"
+
+class VocabularySR;
+class Card;
 
 class PtrDictionary : public QObject {
     Q_OBJECT
@@ -45,8 +48,8 @@ private:
 class DataThread : public QThread {
     Q_OBJECT
 public:
-    DataThread(QObject* parent = nullptr) { Q_UNUSED(parent); };
-    ~DataThread() = default;
+    DataThread(QObject* parent = nullptr);
+    ~DataThread();
 signals:
     void sendDictionary(const PtrDictionary&);
     void sendCard(const PtrCard&);
@@ -56,7 +59,7 @@ protected:
     void run() override;
 
 private:
-    CardDB cardDB;
+    std::unique_ptr<VocabularySR> vocabularySR;
 };
 
 Q_DECLARE_METATYPE(PtrDictionary)

@@ -1,8 +1,11 @@
 #include "DataThread.h"
+#include <VocabularySR.h>
+#include <TextCard.h>
 #include <utils/StringU8.h>
 #include <QDebug>
 #include <iostream>
-
+DataThread::DataThread(QObject* parent) { Q_UNUSED(parent); }
+DataThread::~DataThread() = default;
 namespace {
 
 /*
@@ -65,8 +68,7 @@ auto getLongestCard(CardDB& cardDB) -> QSharedPointer<Card> {
 }  // namespace
 
 void DataThread::run() {
-    if (cardDB.get().empty())
-        cardDB = loadCardDB();
+    CardDB cardDB = loadCardDB();
     auto zh_dict = std::make_shared<ZH_Dictionary>("../dictionaries/cedict_ts.u8");
     auto zh_dict2 = QSharedPointer<ZH_Dictionary>::create("../dictionaries/cedict_ts.u8");
 
@@ -81,31 +83,10 @@ void DataThread::run() {
 
     // for(const auto& item : annotator.UniqueItems())
     //     std::cout << "Word: " << item.text << "\n";
-    /* std::set<ZH_Annotator::Item> myDic;
-    for (const auto& card : cardDB.get()) {
-        utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
-        auto annotator = ZH_Annotator(card_text, zh_dict);
 
-        auto unique = annotator.UniqueItems();
-        // for (const auto& item : unique)
-        //     std::cout << "Word: " << item.text << "\n";
-        std::cout << "size: " << unique.size() << " : ";
-        myDic.merge(unique);
-        std::cout << unique.size() << "\n";
-    }
-    std::cout << "Final Size: " << myDic.size() << "\n";
-    std::set<utl::ItemU8> allCharacters;
-
-    for (const auto& dicItem : myDic) {
-        allCharacters.insert(dicItem.text.cbegin(), dicItem.text.cend());
-    }
-    for (const auto& mychar : allCharacters) {
-        std::cout << mychar;
-    }
-    std::cout << "\n";
-    std::cout << "Count of Characters: " << allCharacters.size() << "\n"; */
     auto paragraph = QSharedPointer<markup::Paragraph>::create(*long_card, zh_dict);
 
+    vocabularySR = std::make_unique<VocabularySR>(std::move(cardDB), zh_dict);
     emit sendParagraph(paragraph);
     emit sendDictionary(zh_dict2);
     emit sendCard(long_card);

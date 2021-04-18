@@ -1,21 +1,33 @@
 #pragma once
 
-#include <TextCard.h>
+#include <ZH_Annotator.h>
 #include <ZH_Dictionary.h>
+#include <utils/StringU8.h>
+#include <map>
 #include <memory>
+#include <set>
 
-struct Vocable {
-    using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
+class CardDB;
+
+struct VocableMeta {
     int id;
-    ZH_dicItemVec dicItemVec;
-
+    std::set<int> cardIds;
 };
 
 class VocabularySR {
+    using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
+
 public:
     VocabularySR(CardDB &&, std::shared_ptr<ZH_Dictionary>);
+    ~VocabularySR();
 
 private:
+    void GenerateFromCards();
+    void InsertVocabulary(const std::set<ZH_Annotator::Item> &cardVocabulary, int cardId);
+    auto GetNextFreeId() -> int;
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
+    std::map<ZH_dicItemVec, VocableMeta> vocables;
+    std::map<int, ZH_dicItemVec> id_vocable;
+    std::set<utl::ItemU8> allCharacters;
 };
