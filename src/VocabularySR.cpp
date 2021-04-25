@@ -3,8 +3,9 @@
 #include <utils/Markup.h>
 #include <utils/StringU8.h>
 #include <algorithm>
-#include <boost/intrusive/set.hpp>
+#include <cmath>
 #include <iostream>
+#include <limits>
 VocabularySR::~VocabularySR() {}
 VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_dictionary)
     : cardDB(std::make_shared<CardDB>(std::move(_cardDB))), zh_dictionary(_zh_dictionary) {
@@ -14,12 +15,12 @@ VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_
 }
 
 void VocabularySR::GenerateFromCards() {
-    const std::vector<CardDB::CardPtr>& cards = cardDB->get();
-    for (const auto& card : cards) {
+    const std::map<uint, CardDB::CardPtr>& cards = cardDB->get();
+    for (const auto& [cardId, card] : cards) {
         utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
         ZH_Annotator annotator = ZH_Annotator(card_text, zh_dictionary);
 
-        InsertVocabulary(annotator.UniqueItems(), card->id);
+        InsertVocabulary(annotator.UniqueItems(), cardId);
     }
     std::cout << "Size: " << vocables.size();
     for (const auto& [voc, vocmeta] : vocables) {
@@ -42,24 +43,63 @@ void VocabularySR::GenerateFromCards() {
     }
     std::cout << "\n";
     std::cout << "Count of Characters: " << allCharacters.size() << "\n";
+    std::cout << "VocableSize: " << vocables.size() << "\n";
+
+    CalculateCardValue();
+    for (const auto& cm : std::span(cardMeta.begin(), std::min(cardMeta.begin() + 32, cardMeta.end()))) {
+        std::cout << "Cm id: " << cm.cardId << " value: " << cm.value << " len: " << cm.vocableIds.size()
+                  << "\n";
+    }
 }
 
-void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, int cardId) {
+void VocabularySR::CalculateCardValue() {
+    for (CardMeta& cm : cardMeta) {
+        float quantity_of_vocable_usage = 0;
+        for (auto vId : cm.vocableIds) {
+            const auto& vocable = id_vocable[vId];
+            const auto& vocableMeta = vocables[vocable];
+            quantity_of_vocable_usage += vocableMeta.cardIds.size();
+        }
+        cm.value = quantity_of_vocable_usage / std::sqrt(static_cast<float>(cm.vocableIds.size()));
+    }
+    std::sort(cardMeta.begin(), cardMeta.end(), [](const auto& a, const auto& b) {
+        return a.value > b.value;
+    });
+}
+
+void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId) {
+    if (cardMeta.size() <= cardId)
+        cardMeta.resize(cardId + 1);
+
     for (auto& item : cardVocabulary) {
         if (auto it = vocables.find(item.dicItemVec); it != vocables.end()) {
             auto& vocable = it->second;
             vocable.cardIds.insert(cardId);
+
+            cardMeta[cardId].vocableIds.insert(it->second.id);
         } else {
-            int nextFreeId = GetNextFreeId();
+            uint nextFreeId = GetNextFreeId();
             vocables[item.dicItemVec] = {.id = nextFreeId, .cardIds = {cardId}};
             id_vocable[nextFreeId] = ZH_dicItemVec{item.dicItemVec};
+
+            cardMeta[cardId].vocableIds.insert(nextFreeId);
         }
     }
+    cardMeta[cardId].cardId = cardId;
 }
 
-auto VocabularySR::GetNextFreeId() -> int {
+auto VocabularySR::GetNextFreeId() -> uint {
     if (not id_vocable.empty())
         return id_vocable.rbegin()->first + 1;
     else
         return 0;
+}
+
+auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>> {
+    if (cardMeta.empty())
+        return {nullptr, {}};
+    uint cardId = cardMeta.front().cardId;
+
+
+    return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()), {}};
 }

@@ -11,6 +11,14 @@ CardDisplay {
     property string copiedText: ""
     property bool textUpdateReceived: false
     property int cardTextCursorPos: 0
+    function displayVocables(show){
+        vocables.visible = show
+    }
+
+    function selectEase(ease){
+        cardDisplay.clickedEase(ease)
+    }
+
     // onHovered: {
     //     var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
     //     // var pos = cardText.positionAt(x, y, TextInput.CursorBetweenCharacters)
@@ -44,14 +52,30 @@ CardDisplay {
         popupItemChoice.open()
     }
 
-    TextArea
-    {
-        id: cardText
-        wrapMode: TextArea.WordWrap
+    ColumnLayout{
 
         Layout.alignment: Qt.AlignTop
         width: parent.width
         height: parent.height
+    // Rectangle {
+    //     color: "green"
+    //     // anchors.fill: parent
+    //     Layout.alignment: Qt.AlignTop
+    //     Layout.preferredWidth: parent.width
+    //     Layout.preferredHeight: parent.height/2
+    //     // width: parent.width
+    //     anchors.margins: 20
+    TextArea
+    {
+        id: cardText
+        wrapMode: TextArea.WordWrap
+        // Layout.alignment: Qt.AlignTop
+        // width: parent.width
+        //height: parent.height
+        Layout.alignment: Qt.AlignTop
+        Layout.preferredWidth: parent.width
+        Layout.preferredHeight: parent.height/2
+
         readOnly: true
 
         textFormat: Text.RichText
@@ -108,9 +132,37 @@ CardDisplay {
                 var pos = getTextPosition(mouseX, mouseY)
                 // console.log("Posc:", cardText.positionAt(mouseX, mouseY), " : ", pos)
                 cardDisplay.hoveredTextPosition(pos)
-        }
+            }
 
+        }
     }
+    // }//rectangle
+    // Rectangle {
+    //     color: "blue"
+    //     // anchors.fill: parent
+    //     Layout.alignment: Qt.AlignBottom
+    //     Layout.preferredWidth: parent.width
+    //     Layout.preferredHeight: parent.height/2
+    //             //  width: parent.width
+//    anchors.margins: 20
+    TextArea {
+        id: vocables
+        visible: false
+        // Layout.alignment: Qt.AlignBottom
+        // width: parent.width
+        //height: parent.height
+        Layout.alignment: Qt.AlignBottom
+        Layout.preferredWidth: parent.width
+        Layout.preferredHeight: parent.height/2
+        readOnly: true
+
+        textFormat: Text.RichText
+        text: "Hello World"
+
+        font.pointSize: 20
+        color:          settingsCard.cardFontColor
     }
+    // } // rectangle
+    } // columnlayout
 
 }

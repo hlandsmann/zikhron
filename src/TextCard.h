@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <map>
 
 struct Card {
     Card(std::string _filename, int _id) : filename(_filename), id(_id){};
@@ -42,9 +43,10 @@ public:
     void loadFromSingleJson(std::string jsonFileName);
     void loadFromDirectory(std::string directoryPath);
 
-    auto get() const -> const std::vector<CardPtr>&;
+    auto get() const -> const std::map<uint, CardPtr>&;
     auto moveOut(int index) -> CardPtr;
 
 private:
-    std::vector<CardPtr> cards;
+    // std::vector<CardPtr> cards;
+    std::map<uint, CardPtr> cards;
 };

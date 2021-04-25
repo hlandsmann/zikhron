@@ -50,16 +50,20 @@ class DataThread : public QThread {
 public:
     DataThread(QObject* parent = nullptr);
     ~DataThread();
+public slots:
+    void getCardEase(uint choice);
 signals:
     void sendDictionary(const PtrDictionary&);
     void sendCard(const PtrCard&);
     void sendParagraph(const PtrParagraph&);
+
 
 protected:
     void run() override;
 
 private:
     std::unique_ptr<VocabularySR> vocabularySR;
+    std::shared_ptr<ZH_Dictionary> zh_dict;
 };
 
 Q_DECLARE_METATYPE(PtrDictionary)

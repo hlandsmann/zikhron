@@ -93,10 +93,12 @@ ColumnLayout {
                 if(showAnswer.visible) {
                     showAnswer.visible = false
                     difficulty.visible = true
+                    cardDisplay.displayVocables(true)
                 }
                 else {
                     showAnswer.visible = true
                     difficulty.visible = false
+                    cardDisplay.displayVocables(false)
                 }
             }
             RowLayout{
@@ -120,6 +122,7 @@ ColumnLayout {
                                 text: difficulty.names[index]
                                 onClicked:{ answerOption.toggleVisibility()
                                             console.log("Difficulty:", index)
+                                            cardDisplay.selectEase(index);
                                 }
                             }
                 }

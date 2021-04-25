@@ -1,9 +1,9 @@
 #include "Markup.h"
 #include <fmt/format.h>
+#include <algorithm>
 #include <iostream>
 #include <limits>
 #include <numeric>
-#include <algorithm>
 namespace ranges = std::ranges;
 
 namespace markup {
@@ -75,7 +75,7 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
     return str;
 }
 
-utl::StringU8 Paragraph::textFromCard(const Card& card){
+utl::StringU8 Paragraph::textFromCard(const Card& card) {
     utl::StringU8 text;
     if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
         const std::string tbOpen = "<tr>";
@@ -109,10 +109,10 @@ Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _z
     zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dictionary);
     ranges::transform(zh_annotator->Items(),
                       std::back_inserter(*this),
-                      [](const ZH_Annotator::Item &item) -> markup::Word {
-                        //   std::cout << item.text << " : " << item.text.length() << "\n";
-                          if (not item.dicItemVec.empty())
-                              return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
+                      [](const ZH_Annotator::Item& item) -> markup::Word {
+                          //   std::cout << item.text << " : " << item.text.length() << "\n";
+                          //   if (not item.dicItemVec.empty())
+                          //       return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
                           return item.text;
                       });
 }
@@ -183,4 +183,15 @@ void Paragraph::undoChange() {
     words[preChange.index] = std::move(preChange.word);
 }
 
+auto Paragraph::wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec {
+    if (!zh_annotator)
+        return {};
+
+    const std::size_t index = getWordIndex(pos);
+    if (index >= zh_annotator->Items().size())
+        return {};
+
+    const ZH_Annotator::Item& item = zh_annotator->Items().at(index);
+    return item.dicItemVec;
+}
 }  // namespace markup

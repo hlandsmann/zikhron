@@ -54,8 +54,6 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
     namespace fs = std::filesystem;
     const std::regex match("(\\d{6})(_dlg|_text)(\\.json)");
 
-    std::set<int> cardIds;
-
     for (const fs::path entry : fs::directory_iterator(directoryPath)) {
         std::smatch pieces_match;
         std::string fn = entry.filename().string();
@@ -65,17 +63,18 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
         }
         try {
             int cardId = std::stoi(pieces_match[1]);
-            if (not cardIds.insert(cardId).second) {
+            if (cards.find(cardId) != cards.end()) {
                 std::cout << "File " << entry.filename() << " ignored, because number " << cardId
                           << " is already in use!\n";
                 continue;
             }
-            cards.push_back(cardFromJsonFile(entry, cardId));
+            // cards.push_back(cardFromJsonFile(entry, cardId));
+            cards[cardId] = cardFromJsonFile(entry, cardId);
         } catch (std::exception &e) {
             std::cout << e.what() << " - file: " << entry.filename() << std::endl;
         }
     }
-    std::sort(cards.begin(), cards.end(), [](const auto &a, const auto &b) { return a->id < b->id; });
+    // std::sort(cards.begin(), cards.end(), [](const auto &a, const auto &b) { return a->id < b->id; });
     // cards.resize(16);
 }
 
@@ -90,4 +89,4 @@ auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString> {
 }
 auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString> { return {text}; }
 
-auto CardDB::get() const -> const std::vector<CardPtr> & { return cards; }
+auto CardDB::get() const -> const std::map<uint, CardPtr> & { return cards; }

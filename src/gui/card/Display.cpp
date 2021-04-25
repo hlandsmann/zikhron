@@ -70,7 +70,12 @@ void Display::hoveredTextPosition(int pos) {
     if (lastPos == pos)
         return;
     paragraph->undoChange();
-    paragraph->changeWordAtPosition(pos, [](markup::Word &word) { word.setBackgroundColor(0x227722); });
+    paragraph->changeWordAtPosition(pos, [&](markup::Word &word) {
+        const auto clickedItem = paragraph->wordFromPosition(pos);
+        if (clickedItem.empty())
+            return;
+        word.setBackgroundColor(0x227722);
+    });
     emit textUpdate(QString::fromStdString(paragraph->get()));
     lastPos = pos;
 }
@@ -113,6 +118,14 @@ auto genPopupPosList(const ZH_Annotator::ZH_dicItemVec &items) -> QList<int> {
 // "<tr><th>Line5</th> <td> 1 </td> <td> 1 </td> </tr> <tr><th>Line6</th> <td> 1 </td> <td> 1 </td> </tr>
 // </div>"
 void Display::clickedTextPosition(int pos) {
+    std::cout << "click pos: " << pos << "\n";
+    const auto clickedItem = paragraph->wordFromPosition(pos);
+    if (clickedItem.empty())
+        return;
+    const auto &word = clickedItem.front();
+    std::cout << word.key << " : "
+              << " : " << word.pronounciation << " : " << word.meanings.front() << "\n";
+
     if (!zh_annotator)
         return;
 
@@ -153,7 +166,9 @@ void Display::clickedTextPosition(int pos) {
     QList<int> popupPosList = genPopupPosList(item.dicItemVec);
     std::cout << popupText << "\n";
     std::cout << table2 << "\n";
-    emit openPopup(paragraph->getWordStartPosition(pos), QString::fromStdString(popupText), popupPosList);
+
+    emit openPopup(
+        paragraph->getWordStartPosition(pos), QString::fromStdString(popupText), popupPosList);
     // emit textUpdate(QString::fromStdString(popupText));
 }
 
@@ -185,7 +200,7 @@ void Display::useCard() {
 
     //     // text.push_back("</tr>");
     // }
-//--------------------------------
+    //--------------------------------
     // zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dict);
     // ranges::transform(zh_annotator->Items(),
     //                   std::back_inserter(paragraph),
@@ -213,6 +228,11 @@ void Display::getDictionary(const PtrDictionary &_zh_dict) {
 void Display::getCard(const PtrCard &_ptrCard) {
     ptrCard = _ptrCard.get();
     useCard();
+}
+
+void Display::clickedEase(int ease) {
+    std::cout << "clicked Ease: " << ease << "\n";
+    emit sendEase(ease);
 }
 
 }  // namespace card

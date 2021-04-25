@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
         QObject::connect(&dataThread, &DataThread::sendCard, cardEdit, &card::Edit::getCard);
 
         QObject::connect(&dataThread, &DataThread::sendParagraph, cardDisplay, &card::Display::getParagraph);
+        QObject::connect(cardDisplay, &card::Display::sendEase, &dataThread, &DataThread::getCardEase);
 
         dataThread.start();
         // QObject::connect(

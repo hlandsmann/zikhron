@@ -55,6 +55,7 @@ public:
     void changeWordAtPosition(int pos, const std::function<void(Word&)>& op);
     void changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op);
     void undoChange();
+    auto wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec;
 
 private:
     void resetPosition();
