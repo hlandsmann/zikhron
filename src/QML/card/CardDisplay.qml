@@ -9,6 +9,7 @@ CardDisplay {
     objectName: "CardDisplay"
 
     property string copiedText: ""
+    property string copiedVocables: ""
     property bool textUpdateReceived: false
     property int cardTextCursorPos: 0
     function displayVocables(show){
@@ -34,6 +35,14 @@ CardDisplay {
         cardText.text = newText
         copiedText = cardText.text
         cardText.cursorPosition = cardTextCursorPos
+    }
+
+    onVocableUpdate: {
+        if( copiedVocables === newVocables){
+            return
+        }
+        vocables.text = newVocables
+        copiedVocables = newVocables
     }
 
     // onClicked: {
@@ -74,7 +83,7 @@ CardDisplay {
         //height: parent.height
         Layout.alignment: Qt.AlignTop
         Layout.preferredWidth: parent.width
-        Layout.preferredHeight: parent.height/2
+        Layout.preferredHeight: cardText.paintedHeight //parent.height/2
 
         readOnly: true
 
@@ -153,7 +162,7 @@ CardDisplay {
         //height: parent.height
         Layout.alignment: Qt.AlignBottom
         Layout.preferredWidth: parent.width
-        Layout.preferredHeight: parent.height/2
+        Layout.preferredHeight: parent.height - cardText.paintedHeight
         readOnly: true
 
         textFormat: Text.RichText

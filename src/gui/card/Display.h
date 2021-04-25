@@ -31,6 +31,7 @@ signals:
     void hovered(int x, int y);
     void clicked(int x, int y);
     void textUpdate(QString newText);
+    void vocableUpdate(QString newVocables);
     void openPopup(int pos, QString popupText, QList<int> popupPosList);
 
     void doubleClicked();

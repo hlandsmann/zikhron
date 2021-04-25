@@ -218,6 +218,7 @@ void Display::getParagraph(const PtrParagraph &_paragraph) {
     paragraph = _paragraph.get();
     // std::cout << "Pargarph got:  \n" << paragraph->get() << "\n";
     emit textUpdate(QString::fromStdString(paragraph->get()));
+    emit vocableUpdate(QString::fromStdString(paragraph->getVocableString()));
 }
 
 void Display::getDictionary(const PtrDictionary &_zh_dict) {

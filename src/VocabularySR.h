@@ -49,6 +49,9 @@ private:
     void InsertVocabulary(const std::set<ZH_Annotator::Item> &cardVocabulary, uint cardId);
     auto GetNextFreeId() -> uint;
 
+    // Get vocables that would need to be learned with this current cardId
+    auto GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item>;
+
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
     std::map<ZH_dicItemVec, VocableMeta> vocables;
@@ -59,5 +62,5 @@ private:
     std::vector<CardMeta> cardMeta;
 
     std::vector<CardSR> cardSR;
-    std::vector<VocableSR> vocableSR;
+    std::map<uint, VocableSR> id_vocableSR;
 };

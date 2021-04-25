@@ -6,6 +6,10 @@
 #include <cmath>
 #include <iostream>
 #include <limits>
+#include <ranges>
+
+namespace ranges = std::ranges;
+
 VocabularySR::~VocabularySR() {}
 VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_dictionary)
     : cardDB(std::make_shared<CardDB>(std::move(_cardDB))), zh_dictionary(_zh_dictionary) {
@@ -49,6 +53,10 @@ void VocabularySR::GenerateFromCards() {
     for (const auto& cm : std::span(cardMeta.begin(), std::min(cardMeta.begin() + 32, cardMeta.end()))) {
         std::cout << "Cm id: " << cm.cardId << " value: " << cm.value << " len: " << cm.vocableIds.size()
                   << "\n";
+        for (uint vid : cm.vocableIds) {
+            std::cout << " - " << id_vocable[vid].front().key;
+        }
+        std::cout << "\n";
     }
 }
 
@@ -100,6 +108,20 @@ auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_
         return {nullptr, {}};
     uint cardId = cardMeta.front().cardId;
 
+    return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()), GetRelevantVocables(cardId)};
+}
 
-    return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()), {}};
+auto VocabularySR::GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item> {
+    std::vector<ZH_Dictionary::Item> relevantVocables;
+    auto cardMetaIt = ranges::find_if(cardMeta, [&](const CardMeta& cm) { return cm.cardId == cardId; });
+    ranges::transform(cardMetaIt->vocableIds | std::views::filter([&](uint vocId) {
+                          return id_vocableSR.find(vocId) == id_vocableSR.end();
+                      }),
+                      std::back_inserter(relevantVocables),
+                      [&](uint vocId) -> ZH_Dictionary::Item { return id_vocable.at(vocId).front(); });
+
+    std::cout << "CardID: " << cardId;
+    std::cout << "size one: " << relevantVocables.size()
+              << " size two: " << cardMeta.at(cardId).vocableIds.size() << "\n";
+    return relevantVocables;
 }

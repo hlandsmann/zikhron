@@ -194,4 +194,26 @@ auto Paragraph::wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicIte
     const ZH_Annotator::Item& item = zh_annotator->Items().at(index);
     return item.dicItemVec;
 }
+
+void Paragraph::setupVocables(std::vector<ZH_Dictionary::Item>&& _vocables) {
+    vocables = std::move(_vocables);
+    vocableString = std::accumulate(vocables.begin(),
+                                    vocables.end(),
+                                    std::string{},
+                                    [](std::string&& a, const ZH_Dictionary::Item& b) {
+                                        return a += fmt::format(  // clang-format off
+                                                    "<tr>"
+                                                        "<td style=\"padding:0 15px 0 15px;\">{}</td>"
+                                                        "<td style=\"padding:0 15px 0 15px;\">{}</td>"
+                                                        "<td>{}</td>"
+                                                    "</tr>",  // clang-format on
+                                                   b.key,
+                                                   b.pronounciation,
+                                                   b.meanings.at(0));
+                                    });
+    std::cout << vocableString << "\n";
+}
+
+auto Paragraph::getVocableString() const -> std::string { return vocableString; }
+
 }  // namespace markup

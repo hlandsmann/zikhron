@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include <ZH_Dictionary.h>
 #include <ZH_Annotator.h>
+#include <ZH_Dictionary.h>
 
 namespace markup {
 
@@ -43,7 +43,6 @@ public:
     using value_type = Word;
     static utl::StringU8 textFromCard(const Card&);
 
-
     Paragraph() = default;
     Paragraph(const Card&, const std::shared_ptr<ZH_Dictionary>&);
 
@@ -56,6 +55,8 @@ public:
     void changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op);
     void undoChange();
     auto wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec;
+    void setupVocables(std::vector<ZH_Dictionary::Item>&&);
+    auto getVocableString() const -> std::string;
 
 private:
     void resetPosition();
@@ -70,6 +71,9 @@ private:
     std::stack<WordState> preChanges;
     std::vector<Word> words;
     std::vector<int> positions;
+
+    std::vector<ZH_Dictionary::Item> vocables;
+    std::string vocableString;
 };
 }  // namespace markup
 

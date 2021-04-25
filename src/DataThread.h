@@ -62,6 +62,8 @@ protected:
     void run() override;
 
 private:
+    void sendNextCard();
+
     std::unique_ptr<VocabularySR> vocabularySR;
     std::shared_ptr<ZH_Dictionary> zh_dict;
 };
