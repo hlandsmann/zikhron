@@ -9,7 +9,7 @@ class ZH_Dictionary {
 public:
     struct Key {
         std::string key;
-        unsigned    pos;
+        unsigned pos;
     };
     ZH_Dictionary(const std::string& filename);
     static auto Lower_bound(const std::string& key, const std::span<const Key>& characterSet)
@@ -26,9 +26,9 @@ public:
     auto Traditional() const -> std::span<const Key> { return traditional; }
 
     struct Item {
-        const std::string              key;
-        const std::string              pronounciation;
-        const std::vector<std::string> meanings;
+        std::string key;
+        std::string pronounciation;
+        std::vector<std::string> meanings;
         auto operator<=>(const Item&) const -> std::weak_ordering;
         bool operator==(const Item&) const = default;
     };
@@ -37,9 +37,9 @@ public:
     auto ItemFromPosition(size_t pos, CharacterSet characterSet) const -> Item;
 
 private:
-    std::vector<Key>                      traditional;
-    std::vector<Key>                      simplified;
-    std::vector<std::string>              pronounciation;
+    std::vector<Key> traditional;
+    std::vector<Key> simplified;
+    std::vector<std::string> pronounciation;
     std::vector<std::vector<std::string>> meanings;
 
     std::vector<unsigned> position_to_simplified;

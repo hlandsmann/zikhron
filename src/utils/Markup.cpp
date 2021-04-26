@@ -1,6 +1,7 @@
 #include "Markup.h"
 #include <fmt/format.h>
 #include <algorithm>
+#include <boost/range/combine.hpp>
 #include <iostream>
 #include <limits>
 #include <numeric>
@@ -74,7 +75,6 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
         return fmt::format("<span style=\"{}\">{}</span>", style, str);
     return str;
 }
-
 utl::StringU8 Paragraph::textFromCard(const Card& card) {
     utl::StringU8 text;
     if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
@@ -197,20 +197,52 @@ auto Paragraph::wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicIte
 
 void Paragraph::setupVocables(std::vector<ZH_Dictionary::Item>&& _vocables) {
     vocables = std::move(_vocables);
-    vocableString = std::accumulate(vocables.begin(),
-                                    vocables.end(),
-                                    std::string{},
-                                    [](std::string&& a, const ZH_Dictionary::Item& b) {
-                                        return a += fmt::format(  // clang-format off
-                                                    "<tr>"
-                                                        "<td style=\"padding:0 15px 0 15px;\">{}</td>"
-                                                        "<td style=\"padding:0 15px 0 15px;\">{}</td>"
-                                                        "<td>{}</td>"
-                                                    "</tr>",  // clang-format on
-                                                   b.key,
-                                                   b.pronounciation,
-                                                   b.meanings.at(0));
-                                    });
+
+    ranges::sort(vocables, [this](const auto& a, const auto& b) {
+        const auto a_it = ranges::find_if(
+            zh_annotator->Items(), [&a](const auto& item) { return std::string(item.text) == a.key; });
+        const auto b_it = ranges::find_if(
+            zh_annotator->Items(), [&b](const auto& item) { return std::string(item.text) == b.key; });
+        return a_it < b_it;
+    });
+
+    const std::array colors = {0xee82ee, 0xff4500, 0x3cb371, 0x00ffff, 0xffff00, 0x7b68ee, 0xdc143c,
+                               0xf08080, 0xbdb76b, 0xd8bfd8, 0x008b8b, 0x00bfff, 0x00fa9a, 0xff00ff,
+                               0xd2691e, 0x32cd32, 0x9400d3, 0xdaa520, 0x556b2f, 0xb03060, 0x483d8b,
+                               0x808080, 0xadff2f, 0x7f007f, 0x1e90ff, 0xff1493, 0x8b0000, 0x0000ff};
+
+    assert(zh_annotator->Items().size() == words.size());
+
+    // clang-format off
+    for (int colorIndex = 0; colorIndex < vocables.size(); colorIndex++) {
+        const ZH_Dictionary::Item& voc = vocables[colorIndex];
+
+        for (boost::tuple<Word&, const ZH_Annotator::Item&> p : boost::combine(words,
+                                                                               zh_annotator->Items())) {
+            if (std::string(p.get<1>().text) == voc.key) {
+                p.get<0>().setColor(colors[colorIndex % colors.size()]);
+                break;
+            }
+        }
+    }  // clang-format on
+
+    vocableString = std::accumulate(
+        vocables.begin(),
+        vocables.end(),
+        std::string{},
+        [&, colorIndex = 0](std::string&& a, const ZH_Dictionary::Item& b) mutable {
+            uint32_t color = colors[colorIndex++ % colors.size()];
+            return a += fmt::format(  // clang-format off
+                    "<tr>>"
+                        "<td style=\"padding:0 15px 0 15px;color:#{c:06x};\">{}</td>"
+                        "<td style=\"padding:0 15px 0 15px;color:#{c:06x};\">{}</td>"
+                        "<td style=\"color:#{c:06x};\">{}</td>"
+                    "</tr>",  // clang-format on
+                       b.key,
+                       b.pronounciation,
+                       b.meanings.at(0),
+                       fmt::arg("c", color));
+        });
     std::cout << vocableString << "\n";
 }
 

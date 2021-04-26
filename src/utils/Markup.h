@@ -7,7 +7,7 @@
 
 #include <ZH_Annotator.h>
 #include <ZH_Dictionary.h>
-
+#include <iostream>
 namespace markup {
 
 class Word {
