@@ -54,7 +54,7 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
     namespace fs = std::filesystem;
     const std::regex match("(\\d{6})(_dlg|_text)(\\.json)");
 
-    for (const fs::path entry : fs::directory_iterator(directoryPath)) {
+    for (const fs::path& entry : fs::directory_iterator(directoryPath)) {
         std::smatch pieces_match;
         std::string fn = entry.filename().string();
         if (not std::regex_match(fn, pieces_match, match)) {

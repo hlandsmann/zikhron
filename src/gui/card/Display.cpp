@@ -75,6 +75,7 @@ void Display::hoveredTextPosition(int pos) {
         if (clickedItem.empty())
             return;
         word.setBackgroundColor(0x227722);
+        word.setColor(0xFFFFFF);
     });
     emit textUpdate(QString::fromStdString(paragraph->get()));
     lastPos = pos;
@@ -233,7 +234,7 @@ void Display::getCard(const PtrCard &_ptrCard) {
 
 void Display::clickedEase(int ease) {
     std::cout << "clicked Ease: " << ease << "\n";
-    emit sendEase(ease);
+    emit sendEase(mapIntToEase(ease));
 }
 
 }  // namespace card

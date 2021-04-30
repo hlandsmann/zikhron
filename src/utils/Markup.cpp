@@ -35,7 +35,7 @@ Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor
     }
 }
 
-Word::Word(const utl::StringU8& word) : Word{.styledWord = word, .color = 0, .backGroundColor = 0} {}
+Word::Word(const utl::StringU8& word) : Word(word, /*color*/ 0, /* background_color*/ 0) {}
 
 Word& Word::operator=(const Word&& word) {
     this->~Word();
@@ -206,15 +206,25 @@ void Paragraph::setupVocables(std::vector<ZH_Dictionary::Item>&& _vocables) {
         return a_it < b_it;
     });
 
-    const std::array colors = {0xee82ee, 0xff4500, 0x3cb371, 0x00ffff, 0xffff00, 0x7b68ee, 0xdc143c,
-                               0xf08080, 0xbdb76b, 0xd8bfd8, 0x008b8b, 0x00bfff, 0x00fa9a, 0xff00ff,
-                               0xd2691e, 0x32cd32, 0x9400d3, 0xdaa520, 0x556b2f, 0xb03060, 0x483d8b,
-                               0x808080, 0xadff2f, 0x7f007f, 0x1e90ff, 0xff1493, 0x8b0000, 0x0000ff};
-
+    // const std::array colors = {0xee82ee, 0xff4500, 0x3cb371, 0x00ffff, 0xffff00, 0x7b68ee, 0xdc143c,
+    //                            0xf08080, 0xbdb76b, 0xd8bfd8, 0x008b8b, 0x00bfff, 0x00fa9a, 0xff00ff,
+    //                            0xd2691e, 0x32cd32, 0x9400d3, 0xdaa520, 0x556b2f, 0xb03060, 0x483d8b,
+    //                            0x808080, 0xadff2f, 0x7f007f, 0x1e90ff, 0xff1493};
+    const std::array colors = {0xe6194B,
+                               0x3cb44b,
+                               0xffe119,
+                               0x4363d8,
+                               0xf58231,
+                               0x911eb4,
+                               0x42d4f4,
+                               0xf032e6,
+                               0xbfef45,
+                               0xfabed4,
+                               0x469990};
     assert(zh_annotator->Items().size() == words.size());
 
     // clang-format off
-    for (int colorIndex = 0; colorIndex < vocables.size(); colorIndex++) {
+    for (uint colorIndex = 0; colorIndex < vocables.size(); colorIndex++) {
         const ZH_Dictionary::Item& voc = vocables[colorIndex];
 
         for (boost::tuple<Word&, const ZH_Annotator::Item&> p : boost::combine(words,

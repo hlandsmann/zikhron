@@ -1,5 +1,4 @@
-#ifndef ZH_DICTIONARY_H
-#define ZH_DICTIONARY_H
+#pragma once
 
 #include <span>
 #include <string>
@@ -45,5 +44,3 @@ private:
     std::vector<unsigned> position_to_simplified;
     std::vector<unsigned> position_to_traditional;
 };
-
-#endif /* ZH_DICTIONARY_H */

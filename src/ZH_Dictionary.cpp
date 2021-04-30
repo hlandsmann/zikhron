@@ -2,11 +2,13 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <ranges>
 #include <stdexcept>
 #include <tuple>
 
-namespace {
+namespace ranges = std::ranges;
 
+namespace {
 auto splitOnce(const std::string_view& str, const char delim)
     -> std::pair<std::string_view, std::string_view> {
     std::size_t found = str.find(delim);
@@ -165,13 +167,10 @@ ZH_Dictionary::ZH_Dictionary(const std::string& filename) {
         position++;
     }
 
-    auto compare = [](const ZH_Dictionary::Key& a, const ZH_Dictionary::Key& b) -> bool {
-        return a.key < b.key;
-    };
-    if (not std::is_sorted(simplified.begin(), simplified.end(), compare))
-        std::sort(simplified.begin(), simplified.end(), compare);
-    if (not std::is_sorted(traditional.begin(), traditional.end(), compare))
-        std::sort(traditional.begin(), traditional.end(), compare);
+    if (not ranges::is_sorted(simplified, std::ranges::less{}, &ZH_Dictionary::Key::key))
+        ranges::sort(simplified, std::ranges::less{}, &ZH_Dictionary::Key::key);
+    if (not ranges::is_sorted(traditional, std::ranges::less{}, &ZH_Dictionary::Key::key))
+        ranges::sort(traditional, std::ranges::less{}, &ZH_Dictionary::Key::key);
 
     position_to_simplified.resize(traditional.size());
     position_to_traditional.resize(traditional.size());
@@ -190,12 +189,7 @@ auto ZH_Dictionary::Lower_bound(const std::string& key, const std::span<const Ke
 
 auto ZH_Dictionary::Lower_bound(const std::string_view& key, const std::span<const Key>& characterSet)
     -> std::span<const Key> {
-    return {std::lower_bound(
-                characterSet.begin(),
-                characterSet.end(),
-                key,
-                [](const Key& key_a, const std::string_view& key_b) { return key_a.key < key_b; }),
-            characterSet.end()};
+    return {ranges::lower_bound(characterSet, key, ranges::less{}, &Key::key), characterSet.end()};
 }
 
 auto ZH_Dictionary::Upper_bound(const std::string& key, const std::span<const Key>& characterSet)
@@ -205,16 +199,7 @@ auto ZH_Dictionary::Upper_bound(const std::string& key, const std::span<const Ke
 
 auto ZH_Dictionary::Upper_bound(const std::string_view& key, const std::span<const Key>& characterSet)
     -> std::span<const Key> {
-    return {characterSet.begin(),
-            std::upper_bound(characterSet.begin(),
-                             characterSet.end(),
-                             key,
-                             [](const std::string_view& key_a, const Key& key_b) {
-                                 if (key_a.length() >= key_b.key.length())
-                                     return key_a < key_b.key;
-                                 else
-                                     return key_a < key_b.key.substr(0, key_a.length());
-                             })};
+    return {characterSet.begin(), ranges::upper_bound(characterSet, key, ranges::greater{}, &Key::key)};
 }
 
 auto ZH_Dictionary::CharacterSetFromKeySpan(const std::span<const Key>& keys) const -> CharacterSet {

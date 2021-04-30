@@ -5,14 +5,12 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
-#include <range/v3/range/conversion.hpp>
-#include <range/v3/view/transform.hpp>
 #include <ranges>
 #include <span>
 #include <string_view>
 
 using std::cout;
-
+namespace ranges = std::ranges;
 namespace {
 
 auto GetCandidates(const utl::StringU8& text,
@@ -50,8 +48,7 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
                const std::span<const ZH_Dictionary::Key>& keys,
                const ZH_Dictionary& dict) -> std::vector<std::vector<std::vector<int>>> {
     using namespace ranges;
-    // namespace ranges = std::ranges;
-    // namespace views = std::ranges::views;
+
     using std::vector;
     vector<vector<int>> chunk;
     vector<vector<vector<int>>> chunks;
@@ -66,7 +63,8 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
 
     int forward = 0;
     for (const auto& c_length : c_lengths) {
-        std::vector v = c_length | ranges::to<std::vector>();
+        std::vector<int> v;
+        ranges::copy(c_length, std::back_inserter(v));
         forward = std::max(forward - 1, v.empty() ? 0 : *std::max_element(v.begin(), v.end()));
         chunk.push_back(std::move(v));
         if (forward <= 1)
@@ -127,7 +125,7 @@ auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -
         const int max = *std::max_element(vec.begin(), vec.end());
 
         return std::accumulate(
-            vec.begin(), vec.end(), 0, [max](int sum, int val) { return sum + (max - val); });
+            vec.begin(), vec.end(), int(0), [max](int sum, int val) { return sum + (max - val); });
     };
     if (a.size() == b.size())
         return meanDiff(a) < meanDiff(b);
@@ -167,6 +165,7 @@ auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicIte
 
 void ZH_Annotator::annotate() {
     using utl::StringU8;
+    namespace ranges = std::ranges;
 
     const auto keys = dictionary->Simplified();
     candidates = GetCandidates(text, keys, *dictionary);
@@ -189,14 +188,13 @@ void ZH_Annotator::annotate() {
             pos++;
             continue;
         }
-        for (const size_t length : comb) {
-            const auto& dicItems = candidates[pos];
-            const auto itemIt = ranges::find_if(dicItems, [length](const auto& itemVec) {
-                return length == StringU8(itemVec.front().key).length();
+        ranges::transform(comb, std::back_inserter(items), [&](const auto& length) {
+            const auto itemIt = ranges::find(candidates[pos], size_t(length), [](const auto& itemVec) {
+                return StringU8(itemVec.front().key).length();
             });
-            items.push_back({.text = (*itemIt).front().key, .dicItem = std::move(*itemIt)});
 
             pos += length;
-        }
+            return Item((*itemIt).front().key, std::move(*itemIt));
+        });
     }
 }

@@ -10,6 +10,7 @@
 #include <QMouseEvent>
 #include <QQuickItem>
 #include <QSharedPointer>
+#include <Ease.h>
 #include "DataThread.h"
 
 namespace card {
@@ -35,7 +36,7 @@ signals:
     void openPopup(int pos, QString popupText, QList<int> popupPosList);
 
     void doubleClicked();
-    void sendEase(int ease);
+    void sendEase(Ease);
 
 private:
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;

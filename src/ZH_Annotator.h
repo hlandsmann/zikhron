@@ -1,5 +1,4 @@
-#ifndef ZH_ANNOTATOR_H
-#define ZH_ANNOTATOR_H
+#pragma once
 
 #include <utils/StringU8.h>
 #include <QSharedPointer>
@@ -42,4 +41,3 @@ private:
     std::vector<std::vector<std::vector<int>>> chunks;
     std::vector<std::vector<ZH_dicItemVec>> candidates;
 };
-#endif /* ZH_ANNOTATOR_H */

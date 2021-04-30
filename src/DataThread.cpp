@@ -33,8 +33,8 @@ void DataThread::run() {
     // emit sendCard(long_card);
 }
 
-void DataThread::getCardEase(uint choice) {
-    std::cout << "Ease with choice: " << choice << "\n";
+void DataThread::getCardEase(Ease ease) {
+    vocabularySR->setEaseLastCard(ease);
     sendNextCard();
 }
 

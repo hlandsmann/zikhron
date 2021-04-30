@@ -4,6 +4,7 @@
 #include <QSharedPointer>
 #include <QThread>
 #include <utils/Markup.h>
+#include <Ease.h>
 #include "ZH_Dictionary.h"
 
 class VocabularySR;
@@ -51,7 +52,7 @@ public:
     DataThread(QObject* parent = nullptr);
     ~DataThread();
 public slots:
-    void getCardEase(uint choice);
+    void getCardEase(Ease ease);
 signals:
     void sendDictionary(const PtrDictionary&);
     void sendCard(const PtrCard&);

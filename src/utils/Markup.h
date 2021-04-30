@@ -1,4 +1,5 @@
 #pragma once
+
 #include <TextCard.h>
 #include <utils/StringU8.h>
 #include <stack>

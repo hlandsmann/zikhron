@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Ease.h>
 #include <ZH_Annotator.h>
 #include <ZH_Dictionary.h>
 #include <utils/StringU8.h>
@@ -25,9 +26,12 @@ struct CardMeta {
 };
 
 struct VocableSR {
-    std::chrono::time_point<std::chrono::system_clock> last_seen{};
+    using day_t = std::chrono::duration<double, std::ratio<60*60*24>>;
+    void advanceByEase(Ease);
+    std::chrono::time_point<std::chrono::steady_clock> last_seen{};
+
     float ease_factor = 0;
-    float interval = 0;
+    day_t interval_day{};
 };
 
 struct CardSR {
@@ -42,12 +46,14 @@ public:
     ~VocabularySR();
 
     auto getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>>;
+    void setEaseLastCard(Ease ease);
 
 private:
     void GenerateFromCards();
     void CalculateCardValue();
     void InsertVocabulary(const std::set<ZH_Annotator::Item> &cardVocabulary, uint cardId);
     auto GetNextFreeId() -> uint;
+    void SaveProgress();
 
     // Get vocables that would need to be learned with this current cardId
     auto GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item>;
@@ -60,7 +66,9 @@ private:
     std::map<uint, ZH_dicItemVec> id_vocable;
     std::set<utl::ItemU8> allCharacters;
     std::vector<CardMeta> cardMeta;
-
+    std::map<uint, CardMeta> id_cardMeta;
     std::vector<CardSR> cardSR;
     std::map<uint, VocableSR> id_vocableSR;
+
+    std::set<uint> ids_activeVocables;
 };
