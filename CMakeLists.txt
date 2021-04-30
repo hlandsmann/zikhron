@@ -28,10 +28,6 @@ find_package(Qt5 REQUIRED Qml Quick Gui QuickControls2)
 qt5_add_resources(qml_QRC src/QML/qml.qrc)
 set(QML_LIBRARIES Qt5::Qml Qt5::Quick Qt5::QuickControls2)
 
-add_library(range_v3 INTERFACE IMPORTED)
-set_target_properties(range_v3 PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${EXTERNAL_INCLUDES}/range-v3/include")
-
 add_subdirectory(${EXTERNAL_INCLUDES}/fmt)
 set_target_properties(fmt PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${EXTERNAL_INCLUDES}/fmt/include")
@@ -53,4 +49,4 @@ set(SOURCE src/Application.cpp
            src/gui/card/Edit.cpp
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
-target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} range_v3 fmt::fmt ${LINKER_FLAGS})
+target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} fmt::fmt ${LINKER_FLAGS})
