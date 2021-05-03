@@ -1,4 +1,5 @@
 #pragma once
+#define RAPIDJSON_HAS_STDSTRING 1
 #include <stdexcept>
 // Override rapidjson assertions to throw exceptions by default
 #ifndef RAPIDJSON_ASSERT
@@ -12,6 +13,7 @@
 #include <rapidjson/istreamwrapper.h>
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
 
 template <typename JsonWrapper> class RapidMembers {
 public:

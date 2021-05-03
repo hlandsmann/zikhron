@@ -253,7 +253,6 @@ void Paragraph::setupVocables(std::vector<ZH_Dictionary::Item>&& _vocables) {
                        b.meanings.at(0),
                        fmt::arg("c", color));
         });
-    std::cout << vocableString << "\n";
 }
 
 auto Paragraph::getVocableString() const -> std::string { return vocableString; }
