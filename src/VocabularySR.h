@@ -7,6 +7,7 @@
 #include <chrono>
 #include <map>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <set>
 #include <tuple>
 
@@ -26,28 +27,41 @@ struct CardMeta {
 };
 
 struct VocableSR {
-    void advanceByEase(Ease);
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_ease_factor = "ease_factor";
     static constexpr std::string_view s_interval_day = "interval_day";
     static constexpr std::string_view s_last_seen = "last_seen";
 
+    uint vocId = 0;
     float ease_factor = 0.f;
     float interval_day = 0.f;
     std::time_t last_seen{};
+
+    void advanceByEase(Ease);
+    auto toJson() const -> nlohmann::json;
+    static auto fromJson(const nlohmann::json&) -> VocableSR;
 };
 
 struct CardSR {
-    std::chrono::time_point<std::chrono::system_clock> last_seen{};
+    static constexpr std::string_view s_id = "id";
+    static constexpr std::string_view s_last_seen = "last_seen";
+
+    uint cardId = 0;
+    std::time_t last_seen{};
+
+    auto toJson() const -> nlohmann::json;
+    static auto fromJson(const nlohmann::json&) -> CardSR;
 };
 
 class VocabularySR {
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
     static constexpr std::string_view s_content = "content";
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
-    static constexpr std::string_view s_path_meta = "/var/tmp/portage/zikhron";
+    static constexpr std::string_view s_fn_metaCardSR = "metaCardSR.json";
+    static constexpr std::string_view s_path_meta = "/home/harmen/zikhron";
+
 public:
-    VocabularySR(CardDB &&, std::shared_ptr<ZH_Dictionary>);
+    VocabularySR(CardDB&&, std::shared_ptr<ZH_Dictionary>);
     ~VocabularySR();
 
     auto getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>>;
@@ -56,11 +70,14 @@ public:
 private:
     void GenerateFromCards();
     void CalculateCardValues();
-    auto CalculateCardValueSingle(uint cardId) -> float;
-    void InsertVocabulary(const std::set<ZH_Annotator::Item> &cardVocabulary, uint cardId);
+    auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
+    auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
+        -> float;
+    void InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId);
     auto GetNextFreeId() -> uint;
     void SaveProgress();
     void LoadProgress();
+    void GenerateToRepeatWorkload();
 
     // Get vocables that would need to be learned with this current cardId
     auto GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item>;
@@ -75,10 +92,27 @@ private:
     /* cardMeta sorted by value */
     std::vector<std::shared_ptr<CardMeta>> cardMeta;
     std::map<uint, std::shared_ptr<CardMeta>> id_cardMeta;
-    std::vector<CardSR> cardSR;
+    std::map<uint, CardSR> id_cardSR;
     std::map<uint, VocableSR> id_vocableSR;
 
+    /* ids of active Vocables for current Card */
     std::set<uint> ids_activeVoc;
+
+    /* ids for to be repeated vocables */
     std::set<uint> ids_repeatTodayVoc;
+    /* ids for vocables the student failed */
     std::set<uint> ids_againVoc;
+};
+
+struct counting_iterator {
+    size_t count;
+    counting_iterator& operator++() {
+        ++count;
+        return *this;
+    }
+
+    struct black_hole {
+        void operator=(uint) {}
+    };
+    black_hole operator*() { return black_hole(); }
 };

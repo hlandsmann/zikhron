@@ -2,10 +2,10 @@ cmake_minimum_required(VERSION 3.5)
 project(zikhron)
 
 include(FindPkgConfig)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # set(CMAKE_SYSTEM_NAME Generic)
 # set(CMAKE_SYSTEM_VERSION 1)
-# set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # set(CMAKE_CXX_COMPILER g++)
 # set(CMAKE_C_COMPILER gcc)
 # #set(CMAKE_CXX_COMPILER g++-10.2.0)
@@ -39,6 +39,7 @@ set(ICU_LIBRARIES "${ICU_UC_LIBRARIES}" "${ICU_IO_LIBRARIES}")
 set(SOURCE src/Application.cpp
            src/TextCard.cpp
            src/VocabularySR.cpp
+           src/VocabularySR_misc.cpp
            src/ZH_Dictionary.cpp
            src/ZH_Annotator.cpp
            src/DataThread.cpp

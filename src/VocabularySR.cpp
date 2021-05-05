@@ -8,20 +8,27 @@
 #include <ctime>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
 #include <nlohmann/json.hpp>
 #include <ranges>
+#include <type_traits>
 namespace ranges = std::ranges;
 
-VocabularySR::~VocabularySR() {}
+VocabularySR::~VocabularySR() {
+    try {
+        SaveProgress();
+    } catch (const std::exception& e) { std::cout << e.what() << "\n"; }
+}
 VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_dictionary)
     : cardDB(std::make_shared<CardDB>(std::move(_cardDB))), zh_dictionary(_zh_dictionary) {
     std::set<ZH_Annotator::Item> myDic;
 
     GenerateFromCards();
     LoadProgress();
+    GenerateToRepeatWorkload();
 }
 
 void VocabularySR::GenerateFromCards() {
@@ -66,43 +73,45 @@ void VocabularySR::GenerateFromCards() {
     }
 }
 
-auto VocabularySR::CalculateCardValueSingle(uint cardId) -> float {
-    struct counting_iterator {
-        size_t count;
-        counting_iterator& operator++() {
-            ++count;
-            return *this;
-        }
-
-        struct black_hole {
-            void operator=(uint) {}
-        };
-        black_hole operator*() { return black_hole(); }
-    };
-
+auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const
+    -> float {
     std::set<uint> cardIdsSharedVoc;
     int count = 0;
 
-    for (uint vocId : id_cardMeta.at(cardId)->vocableIds) {
-        const VocableMeta& vm = id_vocableMeta.at(vocId);
-        ranges::copy(vm.cardIds, std::inserter(cardIdsSharedVoc, cardIdsSharedVoc.begin()));
-    }
+    // for (uint vocId : cm.vocableIds) {
+    //     const VocableMeta& vm = id_vocableMeta.at(vocId);
+    //     ranges::copy(vm.cardIds, std::inserter(cardIdsSharedVoc, cardIdsSharedVoc.begin()));
+    // }
 
-    const auto& setVocIdThis = id_cardMeta.at(cardId)->vocableIds;
-    for (uint cId : cardIdsSharedVoc) {
-        const auto& setVocOther = id_cardMeta.at(cId)->vocableIds;
-        count += pow(std::set_intersection(setVocIdThis.begin(),
-                                           setVocIdThis.end(),
-                                           setVocOther.begin(),
-                                           setVocOther.end(),
-                                           counting_iterator())
-                         .count,
-                     2);
-    }
+    const auto& setVocIdThis = cm.vocableIds;
+    // for (uint cId : cardIdsSharedVoc) {
+    //     const auto& setVocOther = id_cardMeta.at(cId)->vocableIds;
+    count += pow(
+        std::set_intersection(
+            setVocIdThis.begin(), setVocIdThis.end(), good.begin(), good.end(), counting_iterator())
+            .count,
+        2);
+    // }
     if (cardIdsSharedVoc.empty())
         return 1.;
 
     return float(count) / float(setVocIdThis.size());
+}
+
+auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
+                                                  const std::set<uint>& neutral) const -> float {
+    std::set<uint> diff;
+    std::set_difference(cm.vocableIds.begin(),
+                        cm.vocableIds.end(),
+                        neutral.begin(),
+                        neutral.end(),
+                        std::inserter(diff, diff.begin()));
+    int relevance = 0;
+    for (uint vocId : diff) {
+        relevance += id_vocableMeta.at(vocId).cardIds.size();
+    }
+
+    return float(relevance) / pow(abs(float(diff.size() - 2)) + 1, diff.size());
 }
 
 void VocabularySR::CalculateCardValues() {
@@ -113,7 +122,7 @@ void VocabularySR::CalculateCardValues() {
             quantity_of_vocable_usage += vocableMeta.cardIds.size();
         }
         // cm->value = quantity_of_vocable_usage / std::sqrt(static_cast<float>(cm->vocableIds.size()));
-        cm->value = CalculateCardValueSingle(cm->cardId);
+        // cm->value = CalculateCardValueSingle(cm->cardId);
     }
 
     ranges::sort(cardMeta, std::ranges::greater{}, &CardMeta::value);
@@ -154,10 +163,25 @@ auto VocabularySR::GetNextFreeId() -> uint {
 }
 
 auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>> {
-    if (cardMeta.empty())
-        return {nullptr, {}};
-    uint cardId = cardMeta.front()->cardId;
+    std::function<float(const std::shared_ptr<CardMeta>&)> calcValue;
 
+    if (ids_repeatTodayVoc.empty()) {
+        std::set<uint> studiedVocableIds;
+        ranges::copy(id_vocableSR | std::views::keys,
+                     std::inserter(studiedVocableIds, studiedVocableIds.begin()));
+        calcValue = [&, studiedVocableIds](const std::shared_ptr<CardMeta>& cm) -> float {
+            return CalculateCardValueSingleNewVoc(*cm, studiedVocableIds);
+        };
+    } else {
+        calcValue = [&](const std::shared_ptr<CardMeta>& cm) -> float {
+            return CalculateCardValueSingle(*cm, ids_repeatTodayVoc);
+        };
+    }
+
+    const auto& it_cm = ranges::max_element(cardMeta, ranges::less{}, calcValue);
+    if (it_cm == cardMeta.end())
+        return {nullptr, {}};
+    uint cardId = it_cm->get()->cardId;
     return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()), GetRelevantVocables(cardId)};
 }
 
@@ -166,7 +190,9 @@ auto VocabularySR::GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary
     const CardMeta& cm = *(id_cardMeta.at(cardId));
 
     auto vocableActive = [&](uint vocId) -> bool {
-        return id_vocableSR.find(vocId) == id_vocableSR.end();
+        return id_vocableSR.find(vocId) == id_vocableSR.end() ||
+               ids_repeatTodayVoc.find(vocId) != ids_repeatTodayVoc.end() ||
+               ids_againVoc.find(vocId) != ids_againVoc.end();
     };
     ranges::copy_if(cm.vocableIds, std::inserter(activeVocables, activeVocables.begin()), vocableActive);
 
@@ -179,7 +205,7 @@ auto VocabularySR::GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary
     std::cout << "size one: " << relevantVocables.size() << " size two: " << cm.vocableIds.size()
               << "\n";
 
-    ids_activeVocables = std::move(activeVocables);
+    ids_activeVoc = std::move(activeVocables);
     return relevantVocables;
 }
 
@@ -194,41 +220,51 @@ void VocabularySR::setEaseLastCard(Ease ease) {
         }
     }();
 
-    for (uint id : ids_activeVocables) {
-        auto& vocableSR = id_vocableSR[id];
-        vocableSR.ease_factor = std::clamp(vocableSR.ease_factor * easeChange, 1.3f, 2.5f);
-        vocableSR.last_seen = std::time(nullptr);
+    for (uint id : ids_activeVoc) {
+        VocableSR& vocableSR = id_vocableSR[id];
+        vocableSR = {.vocId = id,
+                     .ease_factor = std::clamp(vocableSR.ease_factor * easeChange, 1.3f, 2.5f),
+                     .interval_day = vocableSR.interval_day,
+                     .last_seen = std::time(nullptr)};
 
         vocableSR.advanceByEase(ease);
+
+        if (ease == Ease::again)
+            ids_againVoc.insert(id);
+        ids_repeatTodayVoc.erase(id);
     }
-    try {
-        SaveProgress();
-    } catch (const std::exception& e) { std::cout << e.what() << "\n"; }
+
+    ids_activeVoc.clear();
 }
 
 void VocabularySR::SaveProgress() {
-    namespace fs = std::filesystem;
-    nlohmann::json jsonVocSR = nlohmann::json::object();
-    auto& content = jsonVocSR[std::string(s_content)];
-    content = nlohmann::json::array();
-    ranges::transform(
-        id_vocableSR, std::back_inserter(content), [](std::pair<uint, VocableSR> id_vocSR) {
-            nlohmann::json v;
-            v[std::string(VocableSR::s_id)] = id_vocSR.first;
-            v[std::string(VocableSR::s_ease_factor)] = id_vocSR.second.ease_factor;
-            v[std::string(VocableSR::s_interval_day)] = id_vocSR.second.interval_day;
-            v[std::string(VocableSR::s_last_seen)] = fmt::format(
-                "{}", std::put_time(std::localtime(&id_vocSR.second.last_seen), "%F %T"));
-            return v;
-        });
+    auto saveMetaFile = [](const std::string_view& fn, const nlohmann::json& js) {
+        namespace fs = std::filesystem;
+        fs::path fn_metaFile = fs::path(s_path_meta) / fn;
+        std::ofstream ofs(fn_metaFile);
+        ofs << js.dump(4);
+    };
 
-    fmt::print("json: {}", jsonVocSR.dump(4));
-    fs::create_directory(s_path_meta);
-    fs::path fn_metaVocableSR = fs::path(s_path_meta) / s_fn_metaVocableSR;
-    std::ofstream ofs(fn_metaVocableSR);
-    ofs << jsonVocSR.dump(4);
+    auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
+        nlohmann::json jsonMeta = nlohmann::json::object();
+        auto& content = jsonMeta[std::string(s_content)];
+        content = nlohmann::json::array();
 
-    fmt::print("{}\n", fn_metaVocableSR);
+        ranges::transform(map | std::views::values,
+                          std::back_inserter(content),
+                          std::identity{},
+                          &std::decay_t<decltype(map)>::mapped_type::toJson);
+        return jsonMeta;
+    };
+    std::filesystem::create_directory(s_path_meta);
+
+    // save file for VocableSR --------------------------------------------
+    nlohmann::json jsonVocSR = generateJsonFromMap(id_vocableSR);
+    saveMetaFile(s_fn_metaVocableSR, jsonVocSR);
+
+    // save file for CardSR -----------------------------------------------
+    nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
+    saveMetaFile(s_fn_metaCardSR, jsonCardSR);
 }
 
 void VocabularySR::LoadProgress() {
@@ -239,20 +275,12 @@ void VocabularySR::LoadProgress() {
         std::ifstream ifs(fn_metaVocableSR);
         jsonVocSR = nlohmann::json::parse(ifs);
         auto& content = jsonVocSR.at(std::string(s_content));
-        ranges::transform(
-            content,
-            std::inserter(id_vocableSR, id_vocableSR.begin()),
-            [](const nlohmann::json& v) -> std::pair<uint, VocableSR> {
-                uint id = v.at(std::string(VocableSR::s_id));
-                VocableSR vocSR;
-                vocSR.ease_factor = v.at(std::string(VocableSR::s_ease_factor));
-                vocSR.interval_day = v.at(std::string(VocableSR::s_interval_day));
-                std::tm last_seen;
-                std::stringstream ss(std::string(v.at(std::string(VocableSR::s_last_seen))));
-                ss >> std::get_time(&last_seen, "%Y-%m-%d %H:%M:%S");
-                vocSR.last_seen = std::mktime(&last_seen);
-                return {{id}, {vocSR}};
-            });
+        ranges::transform(content,
+                          std::inserter(id_vocableSR, id_vocableSR.begin()),
+                          [](const nlohmann::json& v) -> std::pair<uint, VocableSR> {
+                              VocableSR vocSR = VocableSR::fromJson(v);
+                              return {{vocSR.vocId}, {vocSR}};
+                          });
 
     } catch (const std::exception& e) {
         fmt::print("VocabularySR load for {} failed! Exception: {}", fn_metaVocableSR, e.what());
@@ -261,10 +289,25 @@ void VocabularySR::LoadProgress() {
     fmt::print("Progress loaded from file {}", fn_metaVocableSR);
 }
 
-void VocableSR::advanceByEase(Ease ease) {
-    if (ease == Ease::again) {
-        interval_day = 10. / (60. * 24.); /* approximately 10 minutes */
-    } else {
-        interval_day = std::max(1.f, interval_day * ease_factor);
+void VocabularySR::GenerateToRepeatWorkload() {
+    std::time_t now = std::time(nullptr);
+    std::tm todayMidnight_tm = *std::localtime(&now);
+    todayMidnight_tm.tm_sec = 0;
+    todayMidnight_tm.tm_min = 0;
+    todayMidnight_tm.tm_hour = 0;
+    todayMidnight_tm.tm_mday += 1;
+    std::time_t todayMidnight = std::mktime(&todayMidnight_tm);
+
+    for (auto& [vocId, vocSR] : id_vocableSR) {
+        std::tm vocActiveTime_tm = *std::localtime(&vocSR.last_seen);
+        vocActiveTime_tm.tm_mday += vocSR.interval_day;
+        std::time_t vocActiveTime = std::mktime(&vocActiveTime_tm);
+
+        if (todayMidnight > vocActiveTime) {
+            fmt::print("active: {}\n", std::put_time(&vocActiveTime_tm, "%F %T"));
+            ids_repeatTodayVoc.insert(vocId);
+        } else {
+            fmt::print("next time: {}\n", std::put_time(&vocActiveTime_tm, "%F %T"));
+        }
     }
 }
