@@ -182,6 +182,7 @@ auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_
     if (it_cm == cardMeta.end())
         return {nullptr, {}};
     uint cardId = it_cm->get()->cardId;
+    id_cardSR[cardId].ViewNow();
     return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()), GetRelevantVocables(cardId)};
 }
 
@@ -222,10 +223,9 @@ void VocabularySR::setEaseLastCard(Ease ease) {
 
     for (uint id : ids_activeVoc) {
         VocableSR& vocableSR = id_vocableSR[id];
-        vocableSR = {.vocId = id,
-                     .ease_factor = std::clamp(vocableSR.ease_factor * easeChange, 1.3f, 2.5f),
-                     .interval_day = vocableSR.interval_day,
-                     .last_seen = std::time(nullptr)};
+        vocableSR = {.easeFactor = std::clamp(vocableSR.easeFactor * easeChange, 1.3f, 2.5f),
+                     .intervalDay = vocableSR.intervalDay,
+                     .lastSeen = std::time(nullptr)};
 
         vocableSR.advanceByEase(ease);
 
@@ -250,10 +250,8 @@ void VocabularySR::SaveProgress() {
         auto& content = jsonMeta[std::string(s_content)];
         content = nlohmann::json::array();
 
-        ranges::transform(map | std::views::values,
-                          std::back_inserter(content),
-                          std::identity{},
-                          &std::decay_t<decltype(map)>::mapped_type::toJson);
+        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
+        ranges::transform(map, std::back_inserter(content), &sr_t::toJson);
         return jsonMeta;
     };
     std::filesystem::create_directory(s_path_meta);
@@ -268,25 +266,32 @@ void VocabularySR::SaveProgress() {
 }
 
 void VocabularySR::LoadProgress() {
-    namespace fs = std::filesystem;
-    fs::path fn_metaVocableSR = fs::path(s_path_meta) / s_fn_metaVocableSR;
-    nlohmann::json jsonVocSR;
-    try {
-        std::ifstream ifs(fn_metaVocableSR);
-        jsonVocSR = nlohmann::json::parse(ifs);
-        auto& content = jsonVocSR.at(std::string(s_content));
-        ranges::transform(content,
-                          std::inserter(id_vocableSR, id_vocableSR.begin()),
-                          [](const nlohmann::json& v) -> std::pair<uint, VocableSR> {
-                              VocableSR vocSR = VocableSR::fromJson(v);
-                              return {{vocSR.vocId}, {vocSR}};
-                          });
+    auto loadJsonFromFile = [](const std::string_view& fn) -> nlohmann::json {
+        namespace fs = std::filesystem;
+        fs::path fn_metaFile = fs::path(s_path_meta) / fn;
+        std::ifstream ifs(fn_metaFile);
+        return nlohmann::json::parse(ifs);
+    };
 
+    auto jsonToMap = [](auto& map, const nlohmann::json& jsonMeta) {
+        const auto& content = jsonMeta.at(std::string(s_content));
+        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
+        ranges::transform(content, std::inserter(map, map.begin()), &sr_t::fromJson);
+    };
+    try {
+        nlohmann::json jsonVocSR = loadJsonFromFile(s_fn_metaVocableSR);
+        jsonToMap(id_vocableSR, jsonVocSR);
+        fmt::print("Vocable SR file {} loaded!\n", s_fn_metaVocableSR);
     } catch (const std::exception& e) {
-        fmt::print("VocabularySR load for {} failed! Exception: {}", fn_metaVocableSR, e.what());
-        return;
+        fmt::print("Vocabulary SR load for {} failed! Exception {}", s_fn_metaVocableSR, e.what());
     }
-    fmt::print("Progress loaded from file {}", fn_metaVocableSR);
+    try {
+        nlohmann::json jsonCardSR = loadJsonFromFile(s_fn_metaCardSR);
+        jsonToMap(id_cardSR, jsonCardSR);
+        fmt::print("Card SR file {} loaded!\n", s_fn_metaCardSR);
+    } catch (const std::exception& e) {
+        fmt::print("Card SR load for {} failed! Exception {}", s_fn_metaCardSR, e.what());
+    }
 }
 
 void VocabularySR::GenerateToRepeatWorkload() {
@@ -299,8 +304,8 @@ void VocabularySR::GenerateToRepeatWorkload() {
     std::time_t todayMidnight = std::mktime(&todayMidnight_tm);
 
     for (auto& [vocId, vocSR] : id_vocableSR) {
-        std::tm vocActiveTime_tm = *std::localtime(&vocSR.last_seen);
-        vocActiveTime_tm.tm_mday += vocSR.interval_day;
+        std::tm vocActiveTime_tm = *std::localtime(&vocSR.lastSeen);
+        vocActiveTime_tm.tm_mday += vocSR.intervalDay;
         std::time_t vocActiveTime = std::mktime(&vocActiveTime_tm);
 
         if (todayMidnight > vocActiveTime) {

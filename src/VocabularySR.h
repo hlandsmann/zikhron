@@ -27,30 +27,33 @@ struct CardMeta {
 };
 
 struct VocableSR {
+    using pair_t = std::pair<uint, VocableSR>;
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_ease_factor = "ease_factor";
     static constexpr std::string_view s_interval_day = "interval_day";
     static constexpr std::string_view s_last_seen = "last_seen";
 
-    uint vocId = 0;
-    float ease_factor = 0.f;
-    float interval_day = 0.f;
-    std::time_t last_seen{};
+    float easeFactor = 0.f;
+    float intervalDay = 0.f;
+    std::time_t lastSeen{};
 
     void advanceByEase(Ease);
-    auto toJson() const -> nlohmann::json;
-    static auto fromJson(const nlohmann::json&) -> VocableSR;
+    static auto toJson(const pair_t&) -> nlohmann::json;
+    static auto fromJson(const nlohmann::json&) -> pair_t;
 };
 
 struct CardSR {
+    using pair_t = std::pair<uint, CardSR>;
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_last_seen = "last_seen";
+    static constexpr std::string_view s_view_count = "view_count";
 
-    uint cardId = 0;
-    std::time_t last_seen{};
+    std::time_t lastSeen{};
+    uint viewCount{};
 
-    auto toJson() const -> nlohmann::json;
-    static auto fromJson(const nlohmann::json&) -> CardSR;
+    void ViewNow();
+    static auto toJson(const pair_t&) -> nlohmann::json;
+    static auto fromJson(const nlohmann::json&) -> pair_t;
 };
 
 class VocabularySR {
