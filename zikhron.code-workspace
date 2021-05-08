@@ -88,7 +88,9 @@
 			"source_location": "cpp",
 			"*.ipp": "cpp",
 			"*.rh": "cpp",
-			"any": "cpp"
+			"any": "cpp",
+			"numbers": "cpp",
+			"semaphore": "cpp"
 		}
 	}
 }
