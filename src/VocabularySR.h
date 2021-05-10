@@ -4,12 +4,8 @@
 #include <ZH_Annotator.h>
 #include <ZH_Dictionary.h>
 #include <utils/StringU8.h>
-#include <chrono>
-#include <map>
-#include <memory>
+#include <iosfwd>
 #include <nlohmann/json_fwd.hpp>
-#include <set>
-#include <tuple>
 
 class CardDB;
 class Card;
@@ -72,7 +68,6 @@ public:
 
 private:
     void GenerateFromCards();
-    void CalculateCardValues();
     auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
     auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
@@ -84,6 +79,8 @@ private:
 
     // Get vocables that would need to be learned with this current cardId
     auto GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item>;
+    auto GetCardRepeatedVoc() -> std::optional<uint>;
+    auto GetCardNewVoc() -> std::optional<uint>;
 
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
@@ -93,8 +90,7 @@ private:
     std::map<uint, ZH_dicItemVec> id_vocable;
     std::set<utl::ItemU8> allCharacters;
     /* cardMeta sorted by value */
-    std::vector<std::shared_ptr<CardMeta>> cardMeta;
-    std::map<uint, std::shared_ptr<CardMeta>> id_cardMeta;
+    std::map<uint, CardMeta> id_cardMeta;
     std::map<uint, CardSR> id_cardSR;
     std::map<uint, VocableSR> id_vocableSR;
 
@@ -108,14 +104,26 @@ private:
 };
 
 struct counting_iterator {
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = int;
+    using difference_type = int;
+    using pointer = int*;
+    using reference = int&;
     size_t count;
+    int ignore;
     counting_iterator& operator++() {
         ++count;
         return *this;
     }
+    counting_iterator operator++(int) {
+        counting_iterator temp = *this;
+        ++*this;
+        return temp;
+    }
+    int& operator*() { return ignore; }
 
     struct black_hole {
         void operator=(uint) {}
     };
-    black_hole operator*() { return black_hole(); }
+    // black_hole operator*() { return black_hole(); }
 };

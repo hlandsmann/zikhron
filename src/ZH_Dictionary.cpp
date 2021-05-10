@@ -199,7 +199,10 @@ auto ZH_Dictionary::Upper_bound(const std::string& key, const std::span<const Ke
 
 auto ZH_Dictionary::Upper_bound(const std::string_view& key, const std::span<const Key>& characterSet)
     -> std::span<const Key> {
-    return {characterSet.begin(), ranges::upper_bound(characterSet, key, ranges::greater{}, &Key::key)};
+    return {characterSet.begin(),
+            ranges::upper_bound(characterSet, key, ranges::less{}, [&key](const Key& k) {
+                return k.key.substr(0, key.length());
+            })};
 }
 
 auto ZH_Dictionary::CharacterSetFromKeySpan(const std::span<const Key>& keys) const -> CharacterSet {

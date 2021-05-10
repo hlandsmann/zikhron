@@ -1,4 +1,6 @@
 #include "ZH_Annotator.h"
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 #include <algorithm>
@@ -18,25 +20,26 @@ auto GetCandidates(const utl::StringU8& text,
                    const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> {
     std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> candidates;
     candidates.reserve(text.length());
-
     for (size_t indexBegin = 0; indexBegin < text.length(); indexBegin++) {
         const auto span_lower = ZH_Dictionary::Lower_bound(text.substr(indexBegin, 1), characterSet);
-        const auto span = ZH_Dictionary::Upper_bound(text.substr(indexBegin, 1), span_lower);
+        const auto span_now = ZH_Dictionary::Upper_bound(text.substr(indexBegin, 1), span_lower);
+
         std::vector<ZH_Annotator::ZH_dicItemVec> Items;
-        for (size_t indexEnd = indexBegin + 1; indexEnd < text.length(); indexEnd++) {
+        for (size_t indexEnd = indexBegin + 1; indexEnd <= text.length(); indexEnd++) {
             const auto key = text.substr(indexBegin, indexEnd - indexBegin);
-            const auto found = ZH_Dictionary::Lower_bound(key, span);
+            const auto found = ZH_Dictionary::Lower_bound(key, span_now);
+
             if (found.empty() || found.begin()->key.substr(0, key.length()) != key)
                 break;
             ZH_Annotator::ZH_dicItemVec dicEntries;
             for (ZH_Dictionary::Key dictionaryKey : found) {
-                if (dictionaryKey.key == key)
+                if (dictionaryKey.key == key) {
                     dicEntries.push_back(dict.ItemFromPosition(dictionaryKey.pos, characterSet));
-                else
+                } else
                     break;
             }
             if (!dicEntries.empty())
-                Items.emplace_back(std::move(dicEntries));
+                Items.push_back(std::move(dicEntries));
         }
         candidates.push_back(std::move(Items));
     }

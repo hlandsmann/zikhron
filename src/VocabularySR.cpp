@@ -10,10 +10,11 @@
 #include <fstream>
 #include <functional>
 #include <iomanip>
-#include <iostream>
-#include <limits>
+#include <map>
 #include <nlohmann/json.hpp>
+#include <optional>
 #include <ranges>
+#include <set>
 #include <type_traits>
 namespace ranges = std::ranges;
 
@@ -61,16 +62,6 @@ void VocabularySR::GenerateFromCards() {
     std::cout << "\n";
     std::cout << "Count of Characters: " << allCharacters.size() << "\n";
     std::cout << "VocableSize: " << zhdic_vocableMeta.size() << "\n";
-
-    CalculateCardValues();
-    for (const auto& cm : std::span(cardMeta.begin(), std::min(cardMeta.begin() + 32, cardMeta.end()))) {
-        std::cout << "Cm id: " << cm->cardId << " value: " << cm->value
-                  << " len: " << cm->vocableIds.size() << "\n";
-        for (uint vid : cm->vocableIds) {
-            std::cout << " - " << id_vocable[vid].front().key;
-        }
-        std::cout << "\n";
-    }
 }
 
 auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const
@@ -88,7 +79,7 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
     //     const auto& setVocOther = id_cardMeta.at(cId)->vocableIds;
     count += pow(
         std::set_intersection(
-            setVocIdThis.begin(), setVocIdThis.end(), good.begin(), good.end(), counting_iterator())
+            setVocIdThis.begin(), setVocIdThis.end(), good.begin(), good.end(), counting_iterator{})
             .count,
         2);
     // }
@@ -114,27 +105,8 @@ auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
     return float(relevance) / pow(abs(float(diff.size() - 2)) + 1, diff.size());
 }
 
-void VocabularySR::CalculateCardValues() {
-    for (std::shared_ptr<CardMeta>& cm : cardMeta) {
-        float quantity_of_vocable_usage = 0;
-        for (auto vId : cm->vocableIds) {
-            const auto& vocableMeta = id_vocableMeta[vId];
-            quantity_of_vocable_usage += vocableMeta.cardIds.size();
-        }
-        // cm->value = quantity_of_vocable_usage / std::sqrt(static_cast<float>(cm->vocableIds.size()));
-        // cm->value = CalculateCardValueSingle(cm->cardId);
-    }
-
-    ranges::sort(cardMeta, std::ranges::greater{}, &CardMeta::value);
-}
-
 void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId) {
-    auto& cardMetaPtr = id_cardMeta[cardId];
-    if (cardMetaPtr == nullptr) {
-        cardMetaPtr = std::make_shared<CardMeta>();
-        cardMeta.push_back(cardMetaPtr);
-    }
-    CardMeta& cm = *cardMetaPtr;
+    CardMeta& cm = id_cardMeta[cardId];
 
     for (auto& item : cardVocabulary) {
         if (auto it = zhdic_vocableMeta.find(item.dicItemVec); it != zhdic_vocableMeta.end()) {
@@ -161,34 +133,96 @@ auto VocabularySR::GetNextFreeId() -> uint {
     else
         return 0;
 }
+auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
+    struct intersect_view {
+        size_t countIntersect{};
+        uint viewCount{};
+    };
+    std::map<uint, intersect_view> candidates;
+    for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
+        std::vector<uint> out;
+        size_t count_union =
+            ranges::set_union(id_vocableSR | std::views::keys, cardMeta.vocableIds, counting_iterator{})
+                .out.count;
+        if (count_union != id_vocableSR.size())
+            continue;
+        size_t count_intersect =
+            ranges::set_intersection(ids_repeatTodayVoc, cardMeta.vocableIds, counting_iterator{}).out.count;
+        if (count_intersect == 0)
+            continue;
 
-auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>> {
-    std::function<float(const std::shared_ptr<CardMeta>&)> calcValue;
+        candidates[id].countIntersect = count_intersect;
+        if (const auto& it = id_cardSR.find(id); it != id_cardSR.end())
+            candidates[id].viewCount = it->second.viewCount;
+    }
+    if (candidates.empty())
+        return {};
+
+    return ranges::min_element(
+               candidates,
+               [](const intersect_view& a, const intersect_view& b) {
+                   if (a.viewCount == b.viewCount)
+                       return a.countIntersect < b.countIntersect;
+                   if (std::abs(int(a.countIntersect) - int(b.countIntersect)) <= 1)
+                       return a.viewCount < b.viewCount;
+                   return a.countIntersect < b.countIntersect;
+               },
+               &decltype(candidates)::value_type::second)
+        ->first;
+}
+
+auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
+    using id_cardMeta_v_t = typename decltype(id_cardMeta)::value_type;
+    std::function<float(id_cardMeta_v_t&)> calcValue;
 
     if (ids_repeatTodayVoc.empty()) {
         std::set<uint> studiedVocableIds;
         ranges::copy(id_vocableSR | std::views::keys,
                      std::inserter(studiedVocableIds, studiedVocableIds.begin()));
-        calcValue = [&, studiedVocableIds](const std::shared_ptr<CardMeta>& cm) -> float {
-            return CalculateCardValueSingleNewVoc(*cm, studiedVocableIds);
+        calcValue = [&, studiedVocableIds](const id_cardMeta_v_t& id_cm) -> float {
+            return CalculateCardValueSingleNewVoc(id_cm.second, studiedVocableIds);
         };
     } else {
-        calcValue = [&](const std::shared_ptr<CardMeta>& cm) -> float {
-            return CalculateCardValueSingle(*cm, ids_repeatTodayVoc);
+        calcValue = [&](const id_cardMeta_v_t& id_cm) -> float {
+            return CalculateCardValueSingle(id_cm.second, ids_repeatTodayVoc);
         };
     }
 
-    const auto& it_cm = ranges::max_element(cardMeta, ranges::less{}, calcValue);
-    if (it_cm == cardMeta.end())
+    const auto& it_id_cm = ranges::max_element(id_cardMeta, ranges::less{}, calcValue);
+    if (it_id_cm == id_cardMeta.end())
+        return {};
+    const CardMeta& cm = it_id_cm->second;
+
+    return cm.cardId;
+}
+auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>> {
+    uint cardId;
+    if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
+        cardId = cardRepeatVoc.value();
+        fmt::print("Get Card with repeated vocables #{}\n", cardId);
+    } else if (auto cardNewVoc = GetCardNewVoc(); cardNewVoc.has_value()) {
+        cardId = cardNewVoc.value();
+        fmt::print("Get new words from Card #{}\n", cardId);
+    } else
         return {nullptr, {}};
-    uint cardId = it_cm->get()->cardId;
+    // auto spanl = zh_dictionary->Lower_bound(std::string("橘子"), zh_dictionary->Simplified());
+    // auto spanu = zh_dictionary->Upper_bound(std::string("橘子"), spanl);
+    //         int mycounter = 0;
+    //     for (const auto& c : spanu) {
+    //         fmt::print("span: {}", c.key);
+    //         if (++mycounter > 10)
+    //             break;
+    //     }
+    //     fmt::print("spanu{}\n",spanu.size());
+
+    // cardId = 712;
     id_cardSR[cardId].ViewNow();
     return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()), GetRelevantVocables(cardId)};
 }
 
 auto VocabularySR::GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item> {
     std::set<uint> activeVocables;
-    const CardMeta& cm = *(id_cardMeta.at(cardId));
+    const CardMeta& cm = id_cardMeta.at(cardId);
 
     auto vocableActive = [&](uint vocId) -> bool {
         return id_vocableSR.find(vocId) == id_vocableSR.end() ||
