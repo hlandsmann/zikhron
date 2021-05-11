@@ -85,19 +85,19 @@ ColumnLayout {
             x: Math.max(cardDisplayOption.width + 5,
                         (cardDisplay.width / 2)  -
                                                 ((showAnswer.visible ? showAnswer.width
-                                                                     : difficulty.width)
+                                                                     : submitButton.width)
                                                  / 2)
                        )
 
             function toggleVisibility() {
                 if(showAnswer.visible) {
                     showAnswer.visible = false
-                    difficulty.visible = true
+                    submitButton.visible = true
                     cardDisplay.displayVocables(true)
                 }
                 else {
                     showAnswer.visible = true
-                    difficulty.visible = false
+                    submitButton.visible = false
                     cardDisplay.displayVocables(false)
                 }
             }
@@ -111,21 +111,14 @@ ColumnLayout {
                     onClicked:{ answerOption.toggleVisibility() }
                 }
             }
-            RowLayout{
-                property var names: ["again", "hard", "good", "easy"]
-                id: difficulty
+            Button{
+                id: submitButton
                 Layout.alignment: Qt.AlignHCenter
                 visible: false
-                Repeater {
-                            model: difficulty.names.length
-                            Button{
-                                text: difficulty.names[index]
-                                onClicked:{ answerOption.toggleVisibility()
-                                            console.log("Difficulty:", index)
-                                            cardDisplay.selectEase(index);
-                                }
-                            }
-                }
+                text: "Submit Choice of Ease"
+                    onClicked:{ answerOption.toggleVisibility()
+                                cardDisplay.selectEase(cardDisplay.easeList);
+                    }
             }
         }
     }

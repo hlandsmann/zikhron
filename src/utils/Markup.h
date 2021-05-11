@@ -2,13 +2,12 @@
 
 #include <TextCard.h>
 #include <utils/StringU8.h>
+#include <iosfwd>
 #include <stack>
-#include <string>
-#include <vector>
 
+#include <Ease.h>
 #include <ZH_Annotator.h>
 #include <ZH_Dictionary.h>
-#include <iostream>
 namespace markup {
 
 class Word {
@@ -56,8 +55,12 @@ public:
     void changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op);
     void undoChange();
     auto wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec;
-    void setupVocables(std::vector<ZH_Dictionary::Item>&&);
+    void setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&&);
     auto getVocableString() const -> std::string;
+    auto getVocablePositions() const -> const std::vector<int>&;
+    auto getRelativeOrderedEaseList(const std::map<uint, Ease>&) const
+        -> std::vector<std::pair<uint, Ease>>;
+    auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<uint, Ease>;
 
 private:
     void resetPosition();
@@ -73,8 +76,9 @@ private:
     std::vector<Word> words;
     std::vector<int> positions;
 
-    std::vector<ZH_Dictionary::Item> vocables;
+    std::vector<std::pair<ZH_Dictionary::Item, uint>> vocables_id;
     std::string vocableString;
+    std::vector<int> vocablePositions;
 };
 }  // namespace markup
 

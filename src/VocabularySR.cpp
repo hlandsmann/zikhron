@@ -10,6 +10,7 @@
 #include <fstream>
 #include <functional>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <optional>
@@ -146,8 +147,9 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
                 .out.count;
         if (count_union != id_vocableSR.size())
             continue;
-        size_t count_intersect =
-            ranges::set_intersection(ids_repeatTodayVoc, cardMeta.vocableIds, counting_iterator{}).out.count;
+        size_t count_intersect = ranges::set_intersection(
+                                     ids_repeatTodayVoc, cardMeta.vocableIds, counting_iterator{})
+                                     .out.count;
         if (count_intersect == 0)
             continue;
 
@@ -155,8 +157,13 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
         if (const auto& it = id_cardSR.find(id); it != id_cardSR.end())
             candidates[id].viewCount = it->second.viewCount;
     }
-    if (candidates.empty())
+    if (candidates.empty()) {
+        for (uint id : ids_repeatTodayVoc) {
+            id_vocableSR.erase(id);
+            fmt::print("Erasing id: {} - key: {}\n", id, id_vocable[id].front().key);
+        }
         return {};
+    }
 
     return ranges::min_element(
                candidates,
@@ -195,7 +202,7 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
 
     return cm.cardId;
 }
-auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>> {
+auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt> {
     uint cardId;
     if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
         cardId = cardRepeatVoc.value();
@@ -204,68 +211,67 @@ auto VocabularySR::getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_
         cardId = cardNewVoc.value();
         fmt::print("Get new words from Card #{}\n", cardId);
     } else
-        return {nullptr, {}};
-    // auto spanl = zh_dictionary->Lower_bound(std::string("橘子"), zh_dictionary->Simplified());
-    // auto spanu = zh_dictionary->Upper_bound(std::string("橘子"), spanl);
-    //         int mycounter = 0;
-    //     for (const auto& c : spanu) {
-    //         fmt::print("span: {}", c.key);
-    //         if (++mycounter > 10)
-    //             break;
-    //     }
-    //     fmt::print("spanu{}\n",spanu.size());
+        return {nullptr, Item_Id_vt{}, Id_Ease_vt{}};
 
-    // cardId = 712;
     id_cardSR[cardId].ViewNow();
-    return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()), GetRelevantVocables(cardId)};
+    return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()),
+            GetRelevantVocables(cardId),
+            GetRelevantEase(cardId)};
 }
 
-auto VocabularySR::GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item> {
+auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
     std::set<uint> activeVocables;
     const CardMeta& cm = id_cardMeta.at(cardId);
 
     auto vocableActive = [&](uint vocId) -> bool {
-        return id_vocableSR.find(vocId) == id_vocableSR.end() ||
-               ids_repeatTodayVoc.find(vocId) != ids_repeatTodayVoc.end() ||
-               ids_againVoc.find(vocId) != ids_againVoc.end();
+        return (not id_vocableSR.contains(vocId)) || ids_repeatTodayVoc.contains(vocId) ||
+               ids_againVoc.contains(vocId);
     };
     ranges::copy_if(cm.vocableIds, std::inserter(activeVocables, activeVocables.begin()), vocableActive);
+    return activeVocables;
+}
 
-    std::vector<ZH_Dictionary::Item> relevantVocables;
-    ranges::transform(activeVocables,
-                      std::back_inserter(relevantVocables),
-                      [&](uint vocId) -> ZH_Dictionary::Item { return id_vocable.at(vocId).front(); });
+auto VocabularySR::GetRelevantVocables(uint cardId) -> Item_Id_vt {
+    std::set<uint> activeVocables = GetActiveVocables(cardId);
 
-    std::cout << "CardID: " << cardId;
-    std::cout << "size one: " << relevantVocables.size() << " size two: " << cm.vocableIds.size()
-              << "\n";
+    Item_Id_vt relevantVocables;
+    ranges::transform(
+        activeVocables, std::back_inserter(relevantVocables), [&](uint vocId) -> Item_Id_vt::value_type {
+            return {id_vocable.at(vocId).front(), vocId};
+        });
 
     ids_activeVoc = std::move(activeVocables);
     return relevantVocables;
 }
 
-void VocabularySR::setEaseLastCard(Ease ease) {
-    using namespace std::literals;
-    float easeChange = [ease]() -> float {
-        switch (ease) {
-        case Ease::easy: return 1.2;
-        case Ease::good: return 1.0;
-        case Ease::hard: return 0.8;
-        default: return 0.;
-        }
-    }();
+auto VocabularySR::GetRelevantEase(uint cardId) -> Id_Ease_vt {
+    std::set<uint> activeVocables = GetActiveVocables(cardId);
+    Id_Ease_vt ease;
+    ranges::transform(
+        activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
+            float easeFactor = id_vocableSR.at(vocId).easeFactor;
+            if (easeFactor <= 1.31)
+                return {vocId, Ease::again};
+            if (easeFactor <= 1.6)
+                return {vocId, Ease::hard};
+            if (easeFactor <= 2.1)
+                return {vocId, Ease::good};
+            return {vocId, Ease::easy};
+        });
+    return ease;
+}
 
-    for (uint id : ids_activeVoc) {
+void VocabularySR::setEaseLastCard(const Id_Ease_vt& id_ease) {
+    for (auto [id, ease] : id_ease) {
         VocableSR& vocableSR = id_vocableSR[id];
-        vocableSR = {.easeFactor = std::clamp(vocableSR.easeFactor * easeChange, 1.3f, 2.5f),
-                     .intervalDay = vocableSR.intervalDay,
-                     .lastSeen = std::time(nullptr)};
 
         vocableSR.advanceByEase(ease);
 
         if (ease == Ease::again)
             ids_againVoc.insert(id);
         ids_repeatTodayVoc.erase(id);
+
+        fmt::print("Ease of {} is {}\n", id_vocable.at(id).front().key, mapEaseToInt(ease));
     }
 
     ids_activeVoc.clear();

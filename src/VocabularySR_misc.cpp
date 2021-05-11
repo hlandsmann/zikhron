@@ -26,12 +26,10 @@ void CardSR::ViewNow() {
 }
 
 auto CardSR::toJson(const pair_t& pair) -> nlohmann::json {
-    nlohmann::json c;
     const CardSR& cardSR = pair.second;
-    c[std::string(s_id)] = pair.first;
-    c[std::string(s_last_seen)] = serialize_time_t(cardSR.lastSeen);
-    c[std::string(s_view_count)] = cardSR.viewCount;
-    return c;
+    return {{std::string(s_id), pair.first},
+            {std::string(s_last_seen), serialize_time_t(cardSR.lastSeen)},
+            {std::string(s_view_count), cardSR.viewCount}};
 }
 
 auto CardSR::fromJson(const nlohmann::json& c) -> pair_t {
@@ -41,10 +39,25 @@ auto CardSR::fromJson(const nlohmann::json& c) -> pair_t {
 }
 
 void VocableSR::advanceByEase(Ease ease) {
+    float easeChange = [ease]() -> float {
+        switch (ease) {
+        case Ease::easy: return 1.2;
+        case Ease::good: return 1.0;
+        case Ease::hard: return 0.8;
+        default: return 0.;
+        }
+    }();
+    easeFactor = std::clamp(easeFactor * easeChange, 1.3f, 2.5f);
+    lastSeen = std::time(nullptr);
+
     if (ease == Ease::again) {
         intervalDay = 0;
     } else {
         intervalDay = std::max(1.f, intervalDay * easeFactor);
+        if (ease == Ease::good)
+            intervalDay += 1 * easeFactor;
+        if (ease == Ease::easy)
+            intervalDay += 2 * easeFactor;
     }
 }
 
@@ -56,11 +69,9 @@ auto VocableSR::fromJson(const nlohmann::json& jsonIn) -> pair_t {
 }
 
 auto VocableSR::toJson(const pair_t& pair) -> nlohmann::json {
-    nlohmann::json v;
     const VocableSR& vocSR = pair.second;
-    v[std::string(VocableSR::s_id)] = pair.first;
-    v[std::string(VocableSR::s_ease_factor)] = vocSR.easeFactor;
-    v[std::string(VocableSR::s_interval_day)] = vocSR.intervalDay;
-    v[std::string(VocableSR::s_last_seen)] = serialize_time_t(vocSR.lastSeen);
-    return v;
+    return {{std::string(VocableSR::s_id), pair.first},
+            {std::string(VocableSR::s_ease_factor), vocSR.easeFactor},
+            {std::string(VocableSR::s_interval_day), vocSR.intervalDay},
+            {std::string(VocableSR::s_last_seen), serialize_time_t(vocSR.lastSeen)}};
 }

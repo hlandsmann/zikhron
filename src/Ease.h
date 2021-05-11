@@ -11,3 +11,13 @@ inline auto mapIntToEase(unsigned int e) -> Ease {
     default: return Ease::easy;
     }
 }
+
+inline auto mapEaseToInt(Ease e) -> int {
+    switch (e) {
+    case Ease::again: return 0;
+    case Ease::hard: return 1;
+    case Ease::good: return 2;
+    case Ease::easy: return 3;
+    default: return 0;
+    }
+}

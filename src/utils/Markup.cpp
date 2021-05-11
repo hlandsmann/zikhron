@@ -195,37 +195,36 @@ auto Paragraph::wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicIte
     return item.dicItemVec;
 }
 
-void Paragraph::setupVocables(std::vector<ZH_Dictionary::Item>&& _vocables) {
-    vocables = std::move(_vocables);
+void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&& _vocables_id) {
+    vocables_id = std::move(_vocables_id);
 
-    ranges::sort(vocables, [this](const auto& a, const auto& b) {
-        const auto a_it = ranges::find_if(
-            zh_annotator->Items(), [&a](const auto& item) { return std::string(item.text) == a.key; });
-        const auto b_it = ranges::find_if(
-            zh_annotator->Items(), [&b](const auto& item) { return std::string(item.text) == b.key; });
-        return a_it < b_it;
+    ranges::sort(vocables_id, std::less{}, [&](const auto& a) {
+        return ranges::find_if(zh_annotator->Items(),
+                               [&a](const auto& item) { return std::string(item.text) == a.first.key; });
     });
 
-    // const std::array colors = {0xee82ee, 0xff4500, 0x3cb371, 0x00ffff, 0xffff00, 0x7b68ee, 0xdc143c,
-    //                            0xf08080, 0xbdb76b, 0xd8bfd8, 0x008b8b, 0x00bfff, 0x00fa9a, 0xff00ff,
-    //                            0xd2691e, 0x32cd32, 0x9400d3, 0xdaa520, 0x556b2f, 0xb03060, 0x483d8b,
-    //                            0x808080, 0xadff2f, 0x7f007f, 0x1e90ff, 0xff1493};
-    const std::array colors = {0xe6194B,
-                               0x3cb44b,
+    // const std::array colors = {0xee82ee, 0xff4500, 0x3cb371, 0x00ffff, 0xffff00, 0x7b68ee,
+    // 0xdc143c,
+    //                            0xf08080, 0xbdb76b, 0xd8bfd8, 0x008b8b, 0x00bfff, 0x00fa9a,
+    //                            0xff00ff, 0xd2691e, 0x32cd32, 0x9400d3, 0xdaa520, 0x556b2f,
+    //                            0xb03060, 0x483d8b, 0x808080, 0xadff2f, 0x7f007f, 0x1e90ff,
+    //                            0xff1493};
+    const std::array colors = {0xfabed4,
                                0xffe119,
+                               0xe6194B,
+                               0x3cb44b,
                                0x4363d8,
                                0xf58231,
                                0x911eb4,
                                0x42d4f4,
                                0xf032e6,
                                0xbfef45,
-                               0xfabed4,
                                0x469990};
     assert(zh_annotator->Items().size() == words.size());
 
     // clang-format off
-    for (uint colorIndex = 0; colorIndex < vocables.size(); colorIndex++) {
-        const ZH_Dictionary::Item& voc = vocables[colorIndex];
+    for (uint colorIndex = 0; colorIndex < vocables_id.size(); colorIndex++) {
+        const ZH_Dictionary::Item& voc = vocables_id[colorIndex].first;
 
         for (boost::tuple<Word&, const ZH_Annotator::Item&> p : boost::combine(words,
                                                                                zh_annotator->Items())) {
@@ -237,10 +236,11 @@ void Paragraph::setupVocables(std::vector<ZH_Dictionary::Item>&& _vocables) {
     }  // clang-format on
 
     vocableString = std::accumulate(
-        vocables.begin(),
-        vocables.end(),
+        vocables_id.begin(),
+        vocables_id.end(),
         std::string{},
-        [&, colorIndex = 0](std::string&& a, const ZH_Dictionary::Item& b) mutable {
+        [&, colorIndex = 0](std::string&& a, const auto& inItem) mutable {
+            const ZH_Dictionary::Item& b = inItem.first;
             uint32_t color = colors[colorIndex++ % colors.size()];
             return a += fmt::format(  // clang-format off
                     "<tr>>"
@@ -253,8 +253,47 @@ void Paragraph::setupVocables(std::vector<ZH_Dictionary::Item>&& _vocables) {
                        b.meanings.at(0),
                        fmt::arg("c", color));
         });
+    vocablePositions.clear();
+    ranges::transform(
+        vocables_id,
+        std::back_inserter(vocablePositions),
+        [n = 1](const ZH_Dictionary::Item& voc) mutable {
+            int temp = n;  // clang-format off
+            n += utl::StringU8(voc.key).length() + 1 +
+                 utl::StringU8(voc.pronounciation).length() + 1 +
+                 utl::StringU8(voc.meanings.at(0)).length() + 1;
+            return temp;  // clang-format on
+        },
+        [](const auto& in) { return in.first; });
 }
 
 auto Paragraph::getVocableString() const -> std::string { return vocableString; }
+auto Paragraph::getVocablePositions() const -> const std::vector<int>& { return vocablePositions; };
+auto Paragraph::getRelativeOrderedEaseList(const std::map<uint, Ease>& ease_in) const
+    -> std::vector<std::pair<uint, Ease>> {
+    std::vector<std::pair<uint, Ease>> ease_out;
+    ranges::transform(
+        vocables_id,
+        std::back_inserter(ease_out),
+        [&ease_in](const auto& id) -> std::pair<uint, Ease> {
+            return {id, ease_in.at(id)};
+        },
+        [](const auto& m) { return m.second; });
+    return ease_out;
+};
+
+auto Paragraph::getRestoredOrderOfEaseList(const std::vector<Ease>& ease_in) const
+    -> std::map<uint, Ease> {
+    assert(ease_in.size() == vocables_id.size());
+
+    std::map<uint, Ease> ease_out;
+    ranges::transform(vocables_id,
+                      ease_in,
+                      std::inserter(ease_out, ease_out.begin()),
+                      [](const auto& voc_id, const auto& ease) -> std::pair<uint, Ease> {
+                          return {voc_id.second, ease};
+                      });
+    return ease_out;
+}
 
 }  // namespace markup

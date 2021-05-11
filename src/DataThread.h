@@ -52,11 +52,11 @@ public:
     DataThread(QObject* parent = nullptr);
     ~DataThread();
 public slots:
-    void getCardEase(Ease ease);
+    void getCardEase(QList<int> ease);
 signals:
     void sendDictionary(const PtrDictionary&);
     void sendCard(const PtrCard&);
-    void sendParagraph(const PtrParagraph&);
+    void sendParagraph(const PtrParagraph&, const QList<int>&);
 
 
 protected:
@@ -67,6 +67,7 @@ private:
 
     std::unique_ptr<VocabularySR> vocabularySR;
     std::shared_ptr<ZH_Dictionary> zh_dict;
+    QSharedPointer<markup::Paragraph> paragraph;
 };
 
 Q_DECLARE_METATYPE(PtrDictionary)

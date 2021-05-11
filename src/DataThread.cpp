@@ -3,7 +3,11 @@
 #include <VocabularySR.h>
 #include <utils/StringU8.h>
 #include <QDebug>
+#include <algorithm>
 #include <iostream>
+#include <ranges>
+
+namespace ranges = std::ranges;
 DataThread::DataThread(QObject* parent) { Q_UNUSED(parent); }
 DataThread::~DataThread() = default;
 namespace {
@@ -33,14 +37,23 @@ void DataThread::run() {
     // emit sendCard(long_card);
 }
 
-void DataThread::getCardEase(Ease ease) {
-    vocabularySR->setEaseLastCard(ease);
+void DataThread::getCardEase(QList<int> ease) {
+    std::vector<Ease> easeWork;
+    ranges::transform(ease, std::back_inserter(easeWork), mapIntToEase);
+    vocabularySR->setEaseLastCard(paragraph->getRestoredOrderOfEaseList(easeWork));
     sendNextCard();
 }
 
 void DataThread::sendNextCard() {
-    auto [current_card, vocables] = vocabularySR->getCard();
-    auto paragraph = QSharedPointer<markup::Paragraph>::create(*current_card, zh_dict);
+    auto [current_card, vocables, ease] = vocabularySR->getCard();
+    paragraph = QSharedPointer<markup::Paragraph>::create(*current_card, zh_dict);
     paragraph->setupVocables(std::move(vocables));
-    emit sendParagraph(paragraph);
+    auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);
+
+    QList<int> vocEaseList;
+    ranges::transform(
+        orderedEase, std::back_inserter(vocEaseList), mapEaseToInt, [](const auto& id_ease) {
+            return id_ease.second;
+        });
+    emit sendParagraph(paragraph, vocEaseList);
 }

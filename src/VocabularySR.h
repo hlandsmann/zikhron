@@ -63,8 +63,10 @@ public:
     VocabularySR(CardDB&&, std::shared_ptr<ZH_Dictionary>);
     ~VocabularySR();
 
-    auto getCard() -> std::pair<std::unique_ptr<Card>, std::vector<ZH_Dictionary::Item>>;
-    void setEaseLastCard(Ease ease);
+    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Item, uint>>;
+    using Id_Ease_vt = std::map<uint, Ease>;
+    auto getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
+    void setEaseLastCard(const Id_Ease_vt&);
 
 private:
     void GenerateFromCards();
@@ -78,7 +80,11 @@ private:
     void GenerateToRepeatWorkload();
 
     // Get vocables that would need to be learned with this current cardId
-    auto GetRelevantVocables(uint cardId) -> std::vector<ZH_Dictionary::Item>;
+    auto GetRelevantVocables(uint cardId) -> Item_Id_vt;
+    auto GetRelevantEase(uint cardId) -> Id_Ease_vt;
+    auto GetActiveVocables(uint cardId) -> std::set<uint>;
+
+    // Calculate which Cards to learn next
     auto GetCardRepeatedVoc() -> std::optional<uint>;
     auto GetCardNewVoc() -> std::optional<uint>;
 

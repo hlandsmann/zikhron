@@ -25,18 +25,18 @@ public slots:
     void clickedTextPosition(int pos);
     void getDictionary(const PtrDictionary &);
     void getCard(const PtrCard &);
-    void getParagraph(const PtrParagraph &);
-    void clickedEase(int ease);
+    void getParagraph(const PtrParagraph &, const QList<int>&);
+    void clickedEase(QList<int>);
 
 signals:
     void hovered(int x, int y);
     void clicked(int x, int y);
     void textUpdate(QString newText);
-    void vocableUpdate(QString newVocables);
+    void vocableUpdate(QString newVocables, QList<int> vocablePosList, QList<int> vocableEaseList);
     void openPopup(int pos, QString popupText, QList<int> popupPosList);
 
     void doubleClicked();
-    void sendEase(Ease);
+    void sendEase(QList<int>);
 
 private:
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;

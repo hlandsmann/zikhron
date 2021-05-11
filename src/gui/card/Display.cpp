@@ -4,6 +4,7 @@
 #include <QQmlApplicationEngine>
 #include <algorithm>
 #include <iostream>
+#include <ranges>
 
 #include <utils/StringU8.h>
 #include "Display.h"
@@ -11,6 +12,7 @@
 #include "ZH_Annotator.h"
 #include "utils/Markup.h"
 
+namespace ranges = std::ranges;
 namespace card {
 Display::Display() {
     setFiltersChildMouseEvents(true);
@@ -215,11 +217,15 @@ void Display::useCard() {
     // emit textUpdate(QString::fromStdString(paragraph.get()));
 }
 
-void Display::getParagraph(const PtrParagraph &_paragraph) {
+void Display::getParagraph(const PtrParagraph &_paragraph, const QList<int> &ease) {
     paragraph = _paragraph.get();
     // std::cout << "Pargarph got:  \n" << paragraph->get() << "\n";
     emit textUpdate(QString::fromStdString(paragraph->get()));
-    emit vocableUpdate(QString::fromStdString(paragraph->getVocableString()));
+    // QList<int> vocPosList = {0, 15};
+    QList<int> vocPosList;
+    ranges::copy(paragraph->getVocablePositions(), std::back_inserter(vocPosList));
+
+    emit vocableUpdate(QString::fromStdString(paragraph->getVocableString()), vocPosList, ease);
 }
 
 void Display::getDictionary(const PtrDictionary &_zh_dict) {
@@ -232,9 +238,12 @@ void Display::getCard(const PtrCard &_ptrCard) {
     useCard();
 }
 
-void Display::clickedEase(int ease) {
-    std::cout << "clicked Ease: " << ease << "\n";
-    emit sendEase(mapIntToEase(ease));
+void Display::clickedEase(QList<int> ease) {
+    // std::cout << "clicked Ease: " << ease << "\n";
+    qDebug() << "clickedEase " << ease;
+    emit sendEase(ease);
+
+    // emit sendEase(mapIntToEase(0));
 }
 
 }  // namespace card
