@@ -210,7 +210,7 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
     for (uint id : toRepeatVoc) {
         ids_againVoc.erase(id);
         ids_repeatTodayVoc.insert(id);
-        fmt::format("Wait time over for {}\n", id_vocable.at(id).front().key);
+        fmt::print("Wait time over for {}\n", id_vocable.at(id).front().key);
     }
 
     uint cardId;

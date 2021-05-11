@@ -48,6 +48,7 @@ CardDisplay {
         copiedVocables = newVocables
         vocPositions = vocablePosList
         easeList = vocableEaseList
+        console.log("Setup ease: ", easeList)
     }
 
     // onClicked: {
