@@ -23,6 +23,7 @@ struct CardMeta {
 };
 
 struct VocableSR {
+    static constexpr int pause_time_minutes = 5;
     using pair_t = std::pair<uint, VocableSR>;
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_ease_factor = "ease_factor";
@@ -34,6 +35,7 @@ struct VocableSR {
     std::time_t lastSeen{};
 
     void advanceByEase(Ease);
+    auto pauseTimeOver() const -> bool;
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
 };

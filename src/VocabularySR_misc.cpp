@@ -61,6 +61,15 @@ void VocableSR::advanceByEase(Ease ease) {
     }
 }
 
+auto VocableSR::pauseTimeOver() const -> bool {
+    std::tm last = *std::localtime(&lastSeen);
+    last.tm_min += pause_time_minutes;
+    std::time_t last_time = std::mktime(&last);
+    std::time_t now_time = std::time(nullptr);
+
+    return last_time < now_time;
+};
+
 auto VocableSR::fromJson(const nlohmann::json& jsonIn) -> pair_t {
     return {jsonIn.at(std::string(VocableSR::s_id)),
             {.easeFactor = jsonIn.at(std::string(VocableSR::s_ease_factor)),

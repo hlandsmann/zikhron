@@ -203,6 +203,16 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
     return cm.cardId;
 }
 auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt> {
+    std::set<uint> toRepeatVoc;
+    ranges::copy_if(ids_againVoc, std::inserter(toRepeatVoc, toRepeatVoc.begin()), [&](uint id) {
+        return id_vocableSR.at(id).pauseTimeOver();
+    });
+    for (uint id : toRepeatVoc) {
+        ids_againVoc.erase(id);
+        ids_repeatTodayVoc.insert(id);
+        fmt::format("Wait time over for {}\n", id_vocable.at(id).front().key);
+    }
+
     uint cardId;
     if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
         cardId = cardRepeatVoc.value();
