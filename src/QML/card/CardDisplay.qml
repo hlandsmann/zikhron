@@ -23,6 +23,11 @@ CardDisplay {
         cardDisplay.clickedEase(ease)
     }
 
+    function rowEaseRefresh() {
+        buttonTable.names = []
+        buttonTable.names = ["again", "hard", "good", "easy"]
+    }
+
     // onHovered: {
     //     var pos = cardText.positionAt(x, y, TextInput.CursorOnCharacter)
     //     // var pos = cardText.positionAt(x, y, TextInput.CursorBetweenCharacters)
@@ -44,11 +49,14 @@ CardDisplay {
         if( copiedVocables === newVocables){
             return
         }
-        vocables.text = newVocables
+        cardDisplay.easeList = []
+        cardDisplay.easeList = vocableEaseList
         copiedVocables = newVocables
+        vocables.text = newVocables
         vocPositions = vocablePosList
-        easeList = vocableEaseList
         console.log("Setup ease: ", easeList)
+
+        rowEaseRefresh()
     }
 
     // onClicked: {
@@ -182,16 +190,17 @@ CardDisplay {
 
         }
         Item {
-            id: test
+            id: buttonTable
+            property var names: []
+
             visible: vocables.visible
             y: vocables.y// + vocables.topPadding
             x: vocables.paintedWidth + vocables.leftPadding + vocables.rightPadding
             Repeater { model: cardDisplay.vocPositions.length
                 RowLayout{
                     property var rect: vocables.positionToRectangle(cardDisplay.vocPositions[index])
-                    property var names: ["again", "hard", "good", "easy"]
                     property int indexVocable : index
-                    id: ease
+                    id: rowEase
                     Layout.alignment: Qt.AlignHCenter
                     visible: vocables.visible
                     y: rect.y
@@ -199,11 +208,11 @@ CardDisplay {
                     height: rect.height
 
                     Repeater {
-                        model: ease.names.length
+                        model: buttonTable.names.length
                         id: line
                         Button{
                             Layout.preferredHeight : rect.height
-                            text: ease.names[index]
+                            text: buttonTable.names[index]
                             checkable: true
                             checked: cardDisplay.easeList[indexVocable] == index
                             onClicked:{

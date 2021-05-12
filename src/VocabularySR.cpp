@@ -259,10 +259,17 @@ auto VocabularySR::GetRelevantEase(uint cardId) -> Id_Ease_vt {
     Id_Ease_vt ease;
     ranges::transform(
         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
-            float easeFactor = id_vocableSR.at(vocId).easeFactor;
-            if (easeFactor <= 1.31)
+            const VocableSR& vocSR = id_vocableSR[vocId];
+            float easeFactor = vocSR.easeFactor;
+            float intervalDay = vocSR.intervalDay;
+            fmt::print("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}\n",
+                       id_vocable.at(vocId).front().key,
+                       easeFactor,
+                       intervalDay,
+                       vocId);
+            if (easeFactor <= 1.31 && intervalDay < 2)
                 return {vocId, Ease::again};
-            if (easeFactor <= 1.6)
+            if (easeFactor <= 1.6 && intervalDay < 5)
                 return {vocId, Ease::hard};
             if (easeFactor <= 2.1)
                 return {vocId, Ease::good};
