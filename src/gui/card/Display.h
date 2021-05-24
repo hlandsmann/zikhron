@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Ease.h>
 #include <TextCard.h>
 #include <ZH_Annotator.h>
 #include <ZH_Dictionary.h>
@@ -10,7 +11,6 @@
 #include <QMouseEvent>
 #include <QQuickItem>
 #include <QSharedPointer>
-#include <Ease.h>
 #include "DataThread.h"
 
 namespace card {
@@ -23,9 +23,7 @@ public:
 public slots:
     void hoveredTextPosition(int pos);
     void clickedTextPosition(int pos);
-    void getDictionary(const PtrDictionary &);
-    void getCard(const PtrCard &);
-    void getParagraph(const PtrParagraph &, const QList<int>&);
+    void getParagraph(const PtrParagraph &, const QList<int> &);
     void clickedEase(QList<int>);
 
 signals:
@@ -41,13 +39,8 @@ signals:
 private:
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;
 
-    // auto getLongText() const -> utl::StringU8;
-    void useCard();
-
     int lastPos = -1;
     QSharedPointer<markup::Paragraph> paragraph;
-    QSharedPointer<ZH_Dictionary> zh_dict;
-    QSharedPointer<Card> ptrCard;
     std::string annotated;
     std::unique_ptr<ZH_Annotator> zh_annotator;
 

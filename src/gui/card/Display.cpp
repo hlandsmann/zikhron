@@ -175,48 +175,6 @@ void Display::clickedTextPosition(int pos) {
     // emit textUpdate(QString::fromStdString(popupText));
 }
 
-void Display::useCard() {
-    // namespace ranges = std::ranges;
-    // if (ptrCard == nullptr || zh_dict == nullptr)
-    //     return;
-    // std::cout << "Using card file: \"" << ptrCard->filename << "\"\n";
-    // utl::StringU8 text;
-    // auto maxText = ptrCard->getTextVector().front();
-
-    // if (DialogueCard *dlgCard = dynamic_cast<DialogueCard *>(ptrCard.get())) {
-    //     // text.push_markup("<tr>");
-    //     const std::string tbOpen = "<tr>";
-    //     const std::string tbClose = "</tr>";
-    //     const std::string open = "<td style=\"padding:10px 15px 10px 15px;\">";
-    //     const std::string close = "</td>";
-    //     for (const auto &dialogue : dlgCard->dialogue) {
-    //         text.push_back({tbOpen, true, 0});
-    //         text.push_back({open, true, 1});
-    //         // text.push_back({open,0});
-    //         text.append(dialogue.speaker);
-    //         text.push_back({close, true, 0});
-    //         text.push_back({open, true, 1});
-    //         text.append(dialogue.text);
-    //         text.push_back({close, true, 0});
-    //         text.push_back({tbClose, true, 0});
-    //     }
-
-    //     // text.push_back("</tr>");
-    // }
-    //--------------------------------
-    // zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dict);
-    // ranges::transform(zh_annotator->Items(),
-    //                   std::back_inserter(paragraph),
-    //                   [](const ZH_Annotator::Item &item) -> markup::Word {
-    //                       std::cout << item.text << " : " << item.text.length() << "\n";
-    //                       if (not item.dicItemVec.empty())
-    //                           return {.word = item.text, .color = 0, .backGroundColor = 0x010101};
-    //                       return item.text;
-    //                   });
-    // qDebug() << QString::fromStdString(paragraph.get());
-    // emit textUpdate(QString::fromStdString(paragraph.get()));
-}
-
 void Display::getParagraph(const PtrParagraph &_paragraph, const QList<int> &ease) {
     paragraph = _paragraph.get();
     // std::cout << "Pargarph got:  \n" << paragraph->get() << "\n";
@@ -226,16 +184,6 @@ void Display::getParagraph(const PtrParagraph &_paragraph, const QList<int> &eas
     ranges::copy(paragraph->getVocablePositions(), std::back_inserter(vocPosList));
 
     emit vocableUpdate(QString::fromStdString(paragraph->getVocableString()), vocPosList, ease);
-}
-
-void Display::getDictionary(const PtrDictionary &_zh_dict) {
-    zh_dict = _zh_dict.get();
-    useCard();
-}
-
-void Display::getCard(const PtrCard &_ptrCard) {
-    ptrCard = _ptrCard.get();
-    useCard();
 }
 
 void Display::clickedEase(QList<int> ease) {

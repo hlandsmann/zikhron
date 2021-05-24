@@ -29,13 +29,19 @@ struct VocableSR {
     static constexpr std::string_view s_ease_factor = "ease_factor";
     static constexpr std::string_view s_interval_day = "interval_day";
     static constexpr std::string_view s_last_seen = "last_seen";
+    static constexpr std::string_view s_indirect_view = "indirect_view";
+    static constexpr std::string_view s_indirect_interval_day = "indirect_interval_day";
 
     float easeFactor = 0.f;
     float intervalDay = 0.f;
     std::time_t lastSeen{};
+    std::time_t indirectView{};
+    uint indirectIntervalDay = 0;
 
     void advanceByEase(Ease);
+    bool advanceIndirectly();
     auto pauseTimeOver() const -> bool;
+    auto isToBeRepeatedToday() const -> bool;
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
 };
@@ -76,7 +82,6 @@ private:
     auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
     void InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId);
-    auto GetNextFreeId() -> uint;
     void SaveProgress();
     void LoadProgress();
     void GenerateToRepeatWorkload();
@@ -88,6 +93,7 @@ private:
 
     // Calculate which Cards to learn next
     auto GetCardRepeatedVoc() -> std::optional<uint>;
+    auto GetCardNewVocStart() -> std::optional<uint>;
     auto GetCardNewVoc() -> std::optional<uint>;
 
     std::shared_ptr<CardDB> cardDB;
@@ -102,13 +108,14 @@ private:
     std::map<uint, CardSR> id_cardSR;
     std::map<uint, VocableSR> id_vocableSR;
 
-    /* ids of active Vocables for current Card */
-    std::set<uint> ids_activeVoc;
-
     /* ids for to be repeated vocables */
     std::set<uint> ids_repeatTodayVoc;
     /* ids for vocables the student failed */
     std::set<uint> ids_againVoc;
+    /* ids for vocables that are to be repeated NOW! - they get moved out of againVoc */
+    std::set<uint> ids_nowVoc;
+
+    uint countOfNewVocablesToday = 0;
 };
 
 struct counting_iterator {

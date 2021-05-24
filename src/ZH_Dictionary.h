@@ -28,6 +28,7 @@ public:
         std::string key;
         std::string pronounciation;
         std::vector<std::string> meanings;
+        unsigned id;
         auto operator<=>(const Item&) const -> std::weak_ordering;
         bool operator==(const Item&) const = default;
     };

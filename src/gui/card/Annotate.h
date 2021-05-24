@@ -24,8 +24,7 @@ public:
     Annotate();
 
 public slots:
-    void getDictionary(const PtrDictionary &zh_dict);
-    void getCard(const PtrCard &ptrCard);
+    void getParagraph(const PtrParagraph &);
 
 signals:
     void textUpdate(QString newText);
@@ -33,11 +32,10 @@ signals:
 private:
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;
     void useCard();
-
-    markup::Paragraph paragraph;
-    QSharedPointer<ZH_Dictionary> zh_dict;
-    QSharedPointer<Card> ptrCard;
-    std::unique_ptr<ZH_Annotator> zh_annotator;
+        QSharedPointer<markup::Paragraph> paragraph;
+    // QSharedPointer<ZH_Dictionary> zh_dict;
+    // QSharedPointer<Card> ptrCard;
+    // std::unique_ptr<ZH_Annotator> zh_annotator;
 };
 
 }  // namespace card

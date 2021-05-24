@@ -3,15 +3,6 @@
 namespace card {
 Annotate::Annotate() { setFiltersChildMouseEvents(true); }
 
-void Annotate::getDictionary(const PtrDictionary &_zh_dict) {
-    zh_dict = _zh_dict.get();
-    useCard();
-}
-void Annotate::getCard(const PtrCard &_ptrCard) {
-    ptrCard = _ptrCard.get();
-    useCard();
-}
-
 auto Annotate::childMouseEventFilter(QQuickItem *, QEvent * /*event*/) -> bool { return false; }
 
 void Annotate::useCard() {
@@ -30,5 +21,17 @@ void Annotate::useCard() {
     //                });
 
     // emit textUpdate(QString::fromStdString(paragraph.get()));
+}
+
+void Annotate::getParagraph(const PtrParagraph &_paragraph) {
+    paragraph = _paragraph.get();
+     emit textUpdate(QString::fromStdString(paragraph->get()));
+   // std::cout << "Pargarph got:  \n" << paragraph->get() << "\n";
+    // emit textUpdate(QString::fromStdString(paragraph->get()));
+    // // QList<int> vocPosList = {0, 15};
+    // QList<int> vocPosList;
+    // ranges::copy(paragraph->getVocablePositions(), std::back_inserter(vocPosList));
+
+    // emit vocableUpdate(QString::fromStdString(paragraph->getVocableString()), vocPosList, ease);
 }
 }  // namespace card

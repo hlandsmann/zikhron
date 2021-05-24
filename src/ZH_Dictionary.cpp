@@ -233,6 +233,7 @@ auto ZH_Dictionary::ItemFromPosition(size_t pos, CharacterSet characterSet) cons
         .key = keys[pos_to_characterSet[pos]].key,
         .pronounciation = pronounciation.at(pos),
         .meanings = meanings.at(pos),
+        .id = unsigned(pos)
     };
 }
 

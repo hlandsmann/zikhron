@@ -98,7 +98,7 @@ CardDisplay {
             Layout.alignment: Qt.AlignTop
             Layout.preferredWidth: parent.width
             Layout.preferredHeight: cardText.paintedHeight //parent.height/2
-
+            bottomPadding: 0
             readOnly: true
 
             textFormat: Text.RichText
@@ -216,12 +216,16 @@ CardDisplay {
                             checkable: true
                             checked: cardDisplay.easeList[indexVocable] == index
                             onClicked:{
-                                        for(var i=0; i<=3; i++)
-                                            line.itemAt(i).checked = false
+                                        for(var i=0; i<buttonTable.names.length; i++){
+                                            if (i != index ) { line.itemAt(i).checked = false }
+                                        }
                                         checked = true
                                         cardDisplay.easeList[indexVocable] = index
                                         console.log("Ease : ", cardDisplay.easeList)
                             }
+                            onDoubleClicked: { checked = true }
+                            onPressed: { checked = true}
+                            onReleased: { checked = true}
                         }
                     }
                 }

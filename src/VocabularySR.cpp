@@ -117,7 +117,7 @@ void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVoca
 
             cm.vocableIds.insert(vocId);
         } else {
-            uint vocId = GetNextFreeId();
+            uint vocId = item.dicItemVec.front().id;
             id_vocableMeta[vocId] = {.cardIds = {cardId}};
             zhdic_vocableMeta[item.dicItemVec] = vocId;
             id_vocable[vocId] = ZH_dicItemVec{item.dicItemVec};
@@ -128,20 +128,15 @@ void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVoca
     cm.cardId = cardId;
 }
 
-auto VocabularySR::GetNextFreeId() -> uint {
-    if (not id_vocable.empty())
-        return id_vocable.rbegin()->first + 1;
-    else
-        return 0;
-}
 auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
     struct intersect_view {
         size_t countIntersect{};
+        size_t countIntersectionNow{};
+
         uint viewCount{};
     };
     std::map<uint, intersect_view> candidates;
     for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
-        std::vector<uint> out;
         size_t count_union =
             ranges::set_union(id_vocableSR | std::views::keys, cardMeta.vocableIds, counting_iterator{})
                 .out.count;
@@ -150,12 +145,16 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
         size_t count_intersect = ranges::set_intersection(
                                      ids_repeatTodayVoc, cardMeta.vocableIds, counting_iterator{})
                                      .out.count;
-        if (count_intersect == 0)
+        size_t count_now =
+            ranges::set_intersection(ids_nowVoc, cardMeta.vocableIds, counting_iterator{}).out.count;
+        if (count_intersect == 0 && count_now == 0)
             continue;
-
-        candidates[id].countIntersect = count_intersect;
+        uint view_count{};
         if (const auto& it = id_cardSR.find(id); it != id_cardSR.end())
-            candidates[id].viewCount = it->second.viewCount;
+            view_count = it->second.viewCount;
+        candidates[id] = {.countIntersect = count_intersect,
+                          .countIntersectionNow = count_now,
+                          .viewCount = view_count};
     }
     if (candidates.empty()) {
         for (uint id : ids_repeatTodayVoc) {
@@ -168,6 +167,8 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
     return ranges::min_element(
                candidates,
                [](const intersect_view& a, const intersect_view& b) {
+                   if (a.countIntersectionNow != b.countIntersectionNow)
+                       return a.countIntersectionNow > b.countIntersectionNow;
                    if (a.viewCount == b.viewCount)
                        return a.countIntersect < b.countIntersect;
                    if (std::abs(int(a.countIntersect) - int(b.countIntersect)) <= 1)
@@ -176,6 +177,66 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
                },
                &decltype(candidates)::value_type::second)
         ->first;
+}
+
+auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
+    if (countOfNewVocablesToday > 42)
+        return {};
+    if (ids_againVoc.size() >= 9) {
+        fmt::print("Vocables that failed are of quantity {}. Therefore no new vocables for now\n", ids_againVoc.size());
+        return {};
+    }
+    struct intersections {
+        size_t countRepeat{};
+        size_t countNew{};
+        size_t valueNewAccumulated{};
+    };
+    std::map<uint, intersections> candidates;
+
+    constexpr int maxNewPerCard = 3;
+    constexpr int maxRepeatPerNewCard = 6;
+
+    for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
+
+        size_t countNew = ranges::set_difference(
+                              cardMeta.vocableIds, id_vocableSR | std::views::keys, counting_iterator{})
+                              .out.count;
+        if (countNew == 0 || countNew > maxNewPerCard)
+            continue;
+        size_t countRepeat = ranges::set_intersection(
+                                 cardMeta.vocableIds, ids_repeatTodayVoc, counting_iterator{})
+                                 .out.count;
+        if (countRepeat > maxRepeatPerNewCard)
+            continue;
+
+        size_t valueNewAccumulated = std::accumulate(cardMeta.vocableIds.begin(),
+                                                     cardMeta.vocableIds.end(),
+                                                     size_t{},
+                                                     [&](const size_t val, const uint vocId) {
+                                                         if (id_vocableSR.contains(vocId))
+                                                             return val;
+                                                         return val +
+                                                                id_vocableMeta.at(vocId).cardIds.size();
+                                                     });
+        candidates[id] = {.countRepeat = countRepeat,
+                          .countNew = countNew,
+                          .valueNewAccumulated = valueNewAccumulated};
+    }
+    if (candidates.empty()) {
+        fmt::print("No candidates found with new words\n");
+        return {};
+    }
+    auto choice = ranges::max_element(
+        candidates, std::less{}, [](const auto& c) { return c.second.valueNewAccumulated; });
+    fmt::print("Got {} candidates for new vocables. Choice value: {}, new words: {}, newToday: {}\n",
+               candidates.size(),
+               choice->second.valueNewAccumulated,
+               choice->second.countNew,
+               countOfNewVocablesToday);
+
+    countOfNewVocablesToday += choice->second.countNew;
+    return choice->first;
+    return {};
 }
 
 auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
@@ -210,11 +271,20 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
     for (uint id : toRepeatVoc) {
         ids_againVoc.erase(id);
         ids_repeatTodayVoc.insert(id);
+        ids_nowVoc.insert(id);
         fmt::print("Wait time over for {}\n", id_vocable.at(id).front().key);
     }
-
+    fmt::print("To Repeat: {}, Again: {}\n", ids_repeatTodayVoc.size(), ids_againVoc.size());
     uint cardId;
-    if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
+    if (not ids_nowVoc.empty()) {
+        auto repeatVocStart = GetCardRepeatedVoc();
+        assert(repeatVocStart.has_value());
+        cardId = repeatVocStart.value();
+        fmt::print("Get Card with words that are to be repeated now id: {}\n", cardId);
+    } else if (auto cardNewVocStart = GetCardNewVocStart(); cardNewVocStart.has_value()) {
+        cardId = cardNewVocStart.value();
+        fmt::print("Get Card with new vocables for starters#{}\n", cardId);
+    } else if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
         cardId = cardRepeatVoc.value();
         fmt::print("Get Card with repeated vocables #{}\n", cardId);
     } else if (auto cardNewVoc = GetCardNewVoc(); cardNewVoc.has_value()) {
@@ -224,6 +294,19 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
         return {nullptr, Item_Id_vt{}, Id_Ease_vt{}};
 
     id_cardSR[cardId].ViewNow();
+    std::vector<std::string> advancedVocables;
+    std::vector<std::string> unchangedVocables;
+    for (uint vocId : id_cardMeta.at(cardId).vocableIds)
+        if (auto it = id_vocableSR.find(vocId); it != id_vocableSR.end()) {
+            if (it->second.advanceIndirectly())
+                advancedVocables.push_back(id_vocable.at(it->first).front().key);
+            else
+                unchangedVocables.push_back(id_vocable.at(it->first).front().key);
+        }
+
+    fmt::print("Advancing indirectly: {}\n", fmt::join(advancedVocables, ", "));
+    fmt::print("Unchanged are: {}\n", fmt::join(unchangedVocables, ", "));
+
     return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()),
             GetRelevantVocables(cardId),
             GetRelevantEase(cardId)};
@@ -249,8 +332,6 @@ auto VocabularySR::GetRelevantVocables(uint cardId) -> Item_Id_vt {
         activeVocables, std::back_inserter(relevantVocables), [&](uint vocId) -> Item_Id_vt::value_type {
             return {id_vocable.at(vocId).front(), vocId};
         });
-
-    ids_activeVoc = std::move(activeVocables);
     return relevantVocables;
 }
 
@@ -283,15 +364,17 @@ void VocabularySR::setEaseLastCard(const Id_Ease_vt& id_ease) {
         VocableSR& vocableSR = id_vocableSR[id];
 
         vocableSR.advanceByEase(ease);
+        ids_nowVoc.erase(id);
 
         if (ease == Ease::again)
             ids_againVoc.insert(id);
+        else
+            ids_againVoc.erase(id);
+
         ids_repeatTodayVoc.erase(id);
 
         fmt::print("Ease of {} is {}\n", id_vocable.at(id).front().key, mapEaseToInt(ease));
     }
-
-    ids_activeVoc.clear();
 }
 
 void VocabularySR::SaveProgress() {
@@ -352,24 +435,10 @@ void VocabularySR::LoadProgress() {
 }
 
 void VocabularySR::GenerateToRepeatWorkload() {
-    std::time_t now = std::time(nullptr);
-    std::tm todayMidnight_tm = *std::localtime(&now);
-    todayMidnight_tm.tm_sec = 0;
-    todayMidnight_tm.tm_min = 0;
-    todayMidnight_tm.tm_hour = 0;
-    todayMidnight_tm.tm_mday += 1;
-    std::time_t todayMidnight = std::mktime(&todayMidnight_tm);
-
-    for (auto& [vocId, vocSR] : id_vocableSR) {
-        std::tm vocActiveTime_tm = *std::localtime(&vocSR.lastSeen);
-        vocActiveTime_tm.tm_mday += vocSR.intervalDay;
-        std::time_t vocActiveTime = std::mktime(&vocActiveTime_tm);
-
-        if (todayMidnight > vocActiveTime) {
-            fmt::print("active: {}\n", std::put_time(&vocActiveTime_tm, "%F %T"));
-            ids_repeatTodayVoc.insert(vocId);
-        } else {
-            fmt::print("next time: {}\n", std::put_time(&vocActiveTime_tm, "%F %T"));
-        }
-    }
+    // for(auto& [vocId, vocSR]: id_vocableSR)
+    ranges::transform(id_vocableSR | std::views::filter([](const auto& pair_id_vocSR) {
+                          return pair_id_vocSR.second.isToBeRepeatedToday();
+                      }),
+                      std::inserter(ids_repeatTodayVoc, ids_repeatTodayVoc.begin()),
+                      [](const auto& p) { return p.first; });
 }
