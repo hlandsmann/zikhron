@@ -158,6 +158,51 @@ auto Paragraph::getWordIndex(int pos) const -> std::size_t {
     return std::max<int>(0, std::distance(positions.begin(), posIt));
 }
 
+void Paragraph::updateAnnotationColoring() {
+    const auto& chunks = zh_annotator->Chunks();
+    const auto& items = zh_annotator->Items();
+    const std::array colors_1 = {0x772222, 0xAA7777};
+    const std::array colors_2 = {0x227722, 0x77AA77};
+    if (words.empty())
+        return;
+    assert(words.size() == items.size());
+
+    annotationChunks.clear();
+
+    size_t size = 0;
+    AnnotationChunk annotationChunk = {};
+    auto chunkIt = chunks.begin();
+    for (const auto& [word, item] : boost::combine(words, items)) {
+        if (word.isMarkup() || item.dicItemVec.empty())
+            continue;
+
+        while (chunkIt != chunks.end() && (chunkIt->empty() || chunkIt->front().empty()))
+            chunkIt++;
+
+        if (chunkIt == chunks.end())
+            break;
+        annotationChunk.words.push_back(word);
+        size += utl::StringU8(item.dicItemVec.front().key).length();
+
+        if (size == chunkIt->size()) {
+            annotationChunk.chunk = *chunkIt;
+            annotationChunks.push_back(std::move(annotationChunk));
+            size = 0;
+
+            chunkIt++;
+        }
+    }
+    int counter = 0;
+
+    for (auto& ac : annotationChunks) {
+        const auto& colors = counter++ % 2 == 0 ? colors_1 : colors_2;
+        int cw = 0;
+        for (auto& word : ac.words) {
+            word.get().setBackgroundColor(colors[cw++ % 2]);
+        }
+    }
+}
+
 void Paragraph::changeWordAtPosition(int pos, const std::function<void(Word&)>& op) {
     if (positions.empty())
         return;
@@ -211,13 +256,13 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
     //                            0xff1493};
     const std::array colors = {0xfabed4,
                                0xffe119,
-                               0xe6194B,
-                               0x3cb44b,
-                               0x4363d8,
-                               0xf58231,
-                               0x911eb4,
+                               0xff294B,
+                               0x3cd44b,
                                0x42d4f4,
+                               0xf58231,
                                0xf032e6,
+                               0x913ec4,
+                               0x4363ff,
                                0xbfef45,
                                0x469990};
     assert(zh_annotator->Items().size() == words.size());

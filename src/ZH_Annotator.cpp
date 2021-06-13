@@ -68,7 +68,7 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
     for (const auto& c_length : c_lengths) {
         std::vector<int> v;
         ranges::copy(c_length, std::back_inserter(v));
-        forward = std::max(forward - 1, v.empty() ? 0 : *std::max_element(v.begin(), v.end()));
+        forward = std::max(forward - 1, v.empty() ? 0 : *ranges::max_element(v));
         chunk.push_back(std::move(v));
         if (forward <= 1)
             chunks.push_back(std::move(chunk));
@@ -165,6 +165,7 @@ auto ZH_Annotator::UniqueItems() const -> std::set<Item> {
 auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>& {
     return candidates;
 }
+auto ZH_Annotator::Chunks() const -> const std::vector<std::vector<std::vector<int>>>& { return chunks; }
 
 void ZH_Annotator::annotate() {
     using utl::StringU8;

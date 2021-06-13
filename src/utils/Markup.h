@@ -4,6 +4,7 @@
 #include <utils/StringU8.h>
 #include <iosfwd>
 #include <stack>
+#include <functional>
 
 #include <Ease.h>
 #include <ZH_Annotator.h>
@@ -51,6 +52,7 @@ public:
     auto getWordStartPosition(int pos) const -> int;
     auto getWordIndex(int pos) const -> std::size_t;
 
+    void updateAnnotationColoring();
     void changeWordAtPosition(int pos, const std::function<void(Word&)>& op);
     void changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op);
     void undoChange();
@@ -68,6 +70,12 @@ private:
         std::size_t index;
         Word word;
     };
+
+    struct AnnotationChunk {
+        std::vector<std::reference_wrapper<Word>> words;
+        std::vector<std::vector<int>> chunk;
+    };
+    std::vector<AnnotationChunk> annotationChunks;
     std::unique_ptr<ZH_Annotator> zh_annotator;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
     // std::unique_ptr<Card> card;

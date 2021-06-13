@@ -132,3 +132,5 @@ auto VocableSR::isToBeRepeatedToday() const -> bool {
 
     return todayMidnight > vocActiveTime;
 }
+
+auto VocableSR::isAgainVocable() const -> bool { return intervalDay == 0; };

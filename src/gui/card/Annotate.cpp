@@ -23,10 +23,11 @@ void Annotate::useCard() {
     // emit textUpdate(QString::fromStdString(paragraph.get()));
 }
 
-void Annotate::getParagraph(const PtrParagraph &_paragraph) {
+void Annotate::getAnnotation(const PtrParagraph &_paragraph) {
     paragraph = _paragraph.get();
-     emit textUpdate(QString::fromStdString(paragraph->get()));
-   // std::cout << "Pargarph got:  \n" << paragraph->get() << "\n";
+    paragraph->updateAnnotationColoring();
+    emit textUpdate(QString::fromStdString(paragraph->get()));
+    // std::cout << "Pargarph got:  \n" << paragraph->get() << "\n";
     // emit textUpdate(QString::fromStdString(paragraph->get()));
     // // QList<int> vocPosList = {0, 15};
     // QList<int> vocPosList;

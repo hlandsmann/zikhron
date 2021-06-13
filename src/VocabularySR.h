@@ -42,6 +42,7 @@ struct VocableSR {
     bool advanceIndirectly();
     auto pauseTimeOver() const -> bool;
     auto isToBeRepeatedToday() const -> bool;
+    auto isAgainVocable() const -> bool;
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
 };
@@ -116,6 +117,7 @@ private:
     std::set<uint> ids_nowVoc;
 
     uint countOfNewVocablesToday = 0;
+    uint activeCardId{};
 };
 
 struct counting_iterator {

@@ -24,7 +24,7 @@ public:
     Annotate();
 
 public slots:
-    void getParagraph(const PtrParagraph &);
+    void getAnnotation(const PtrParagraph &);
 
 signals:
     void textUpdate(QString newText);

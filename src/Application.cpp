@@ -59,11 +59,12 @@ int main(int argc, char* argv[]) {
         auto cardEdit = engine.rootObjects().first()->findChild<card::Edit*>("CardEdit");
 
         QObject::connect(
-            &dataThread, &DataThread::sendParagraph, cardAnnotate, &card::Annotate::getParagraph);
+            &dataThread, &DataThread::sendAnnotation, cardAnnotate, &card::Annotate::getAnnotation);
 
         QObject::connect(&dataThread, &DataThread::sendCard, cardEdit, &card::Edit::getCard);
 
-        QObject::connect(&dataThread, &DataThread::sendParagraph, cardDisplay, &card::Display::getParagraph);
+        QObject::connect(
+            &dataThread, &DataThread::sendParagraph, cardDisplay, &card::Display::getParagraph);
         QObject::connect(cardDisplay, &card::Display::sendEase, &dataThread, &DataThread::getCardEase);
 
         dataThread.start();

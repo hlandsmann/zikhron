@@ -26,7 +26,7 @@ auto loadCardDB() -> CardDB {
 
 void DataThread::run() {
     CardDB cardDB = loadCardDB();
-    zh_dict = std::make_shared<ZH_Dictionary>("../dictionaries/cedict_ts.u8");
+    zh_dict = std::make_shared<ZH_Dictionary>("/home/harmen/src/zikhron/dictionaries/cedict_ts.u8");
     // auto zh_dict2 = QSharedPointer<ZH_Dictionary>::create("../dictionaries/cedict_ts.u8");
     vocabularySR = std::make_unique<VocabularySR>(std::move(cardDB), zh_dict);
 
@@ -56,4 +56,7 @@ void DataThread::sendNextCard() {
             return id_ease.second;
         });
     emit sendParagraph(paragraph, vocEaseList);
+
+    annotation = QSharedPointer<markup::Paragraph>::create(*current_card, zh_dict);
+    emit sendAnnotation(annotation);
 }

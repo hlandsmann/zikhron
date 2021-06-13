@@ -57,6 +57,7 @@ signals:
     void sendDictionary(const PtrDictionary&);
     void sendCard(const PtrCard&);
     void sendParagraph(const PtrParagraph&, const QList<int>&);
+    void sendAnnotation(const PtrParagraph&);
 
 
 protected:
@@ -68,6 +69,7 @@ private:
     std::unique_ptr<VocabularySR> vocabularySR;
     std::shared_ptr<ZH_Dictionary> zh_dict;
     QSharedPointer<markup::Paragraph> paragraph;
+    QSharedPointer<markup::Paragraph> annotation;
 };
 
 Q_DECLARE_METATYPE(PtrDictionary)

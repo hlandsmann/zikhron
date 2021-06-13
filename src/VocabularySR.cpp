@@ -159,31 +159,45 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
     if (candidates.empty()) {
         for (uint id : ids_repeatTodayVoc) {
             id_vocableSR.erase(id);
+
             fmt::print("Erasing id: {} - key: {}\n", id, id_vocable[id].front().key);
         }
+        ids_repeatTodayVoc.clear();
         return {};
     }
 
-    return ranges::min_element(
+    auto preferedQuantity = [](int a, int b) -> bool {
+        const std::array quantity = {4, 3, 5, 2, 6};
+        const auto a_it = ranges::find(quantity, a);
+        const auto b_it = ranges::find(quantity, b);
+        if (a_it != b_it)
+            return a_it > b_it;
+        return a > b;
+    };
+
+    return ranges::max_element(
                candidates,
-               [](const intersect_view& a, const intersect_view& b) {
+               [preferedQuantity](const intersect_view& a, const intersect_view& b) {
                    if (a.countIntersectionNow != b.countIntersectionNow)
-                       return a.countIntersectionNow > b.countIntersectionNow;
-                   if (a.viewCount == b.viewCount)
-                       return a.countIntersect < b.countIntersect;
-                   if (std::abs(int(a.countIntersect) - int(b.countIntersect)) <= 1)
-                       return a.viewCount < b.viewCount;
-                   return a.countIntersect < b.countIntersect;
+                       return a.countIntersectionNow < b.countIntersectionNow;
+                   //    if (a.viewCount == b.viewCount)
+                   if (a.countIntersect != b.countIntersect)
+                       return preferedQuantity(a.countIntersect, b.countIntersect);
+                   //    return a.countIntersect < b.countIntersect;
+                   //    if (std::abs(int(a.countIntersect) - int(b.countIntersect)) <= 1)
+                   return a.viewCount > b.viewCount;
+                   //    return a.countIntersect < b.countIntersect;
                },
                &decltype(candidates)::value_type::second)
         ->first;
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
-    if (countOfNewVocablesToday > 42)
+    if (countOfNewVocablesToday > 60)
         return {};
     if (ids_againVoc.size() >= 9) {
-        fmt::print("Vocables that failed are of quantity {}. Therefore no new vocables for now\n", ids_againVoc.size());
+        fmt::print("Vocables that failed are of quantity {}. Therefore no new vocables for now\n",
+                   ids_againVoc.size());
         return {};
     }
     struct intersections {
@@ -193,7 +207,7 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
     };
     std::map<uint, intersections> candidates;
 
-    constexpr int maxNewPerCard = 3;
+    constexpr int maxNewPerCard = 4;
     constexpr int maxRepeatPerNewCard = 6;
 
     for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
@@ -236,7 +250,6 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
 
     countOfNewVocablesToday += choice->second.countNew;
     return choice->first;
-    return {};
 }
 
 auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
@@ -275,28 +288,27 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
         fmt::print("Wait time over for {}\n", id_vocable.at(id).front().key);
     }
     fmt::print("To Repeat: {}, Again: {}\n", ids_repeatTodayVoc.size(), ids_againVoc.size());
-    uint cardId;
+
     if (not ids_nowVoc.empty()) {
         auto repeatVocStart = GetCardRepeatedVoc();
         assert(repeatVocStart.has_value());
-        cardId = repeatVocStart.value();
-        fmt::print("Get Card with words that are to be repeated now id: {}\n", cardId);
+        activeCardId = repeatVocStart.value();
+        fmt::print("Get Card with words that are to be repeated now id: {}\n", activeCardId);
     } else if (auto cardNewVocStart = GetCardNewVocStart(); cardNewVocStart.has_value()) {
-        cardId = cardNewVocStart.value();
-        fmt::print("Get Card with new vocables for starters#{}\n", cardId);
+        activeCardId = cardNewVocStart.value();
+        fmt::print("Get Card with new vocables for starters#{}\n", activeCardId);
     } else if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
-        cardId = cardRepeatVoc.value();
-        fmt::print("Get Card with repeated vocables #{}\n", cardId);
+        activeCardId = cardRepeatVoc.value();
+        fmt::print("Get Card with repeated vocables #{}\n", activeCardId);
     } else if (auto cardNewVoc = GetCardNewVoc(); cardNewVoc.has_value()) {
-        cardId = cardNewVoc.value();
-        fmt::print("Get new words from Card #{}\n", cardId);
+        activeCardId = cardNewVoc.value();
+        fmt::print("Get new words from Card #{}\n", activeCardId);
     } else
         return {nullptr, Item_Id_vt{}, Id_Ease_vt{}};
 
-    id_cardSR[cardId].ViewNow();
     std::vector<std::string> advancedVocables;
     std::vector<std::string> unchangedVocables;
-    for (uint vocId : id_cardMeta.at(cardId).vocableIds)
+    for (uint vocId : id_cardMeta.at(activeCardId).vocableIds)
         if (auto it = id_vocableSR.find(vocId); it != id_vocableSR.end()) {
             if (it->second.advanceIndirectly())
                 advancedVocables.push_back(id_vocable.at(it->first).front().key);
@@ -307,9 +319,9 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
     fmt::print("Advancing indirectly: {}\n", fmt::join(advancedVocables, ", "));
     fmt::print("Unchanged are: {}\n", fmt::join(unchangedVocables, ", "));
 
-    return {std::unique_ptr<Card>(cardDB->get().at(cardId)->clone()),
-            GetRelevantVocables(cardId),
-            GetRelevantEase(cardId)};
+    return {std::unique_ptr<Card>(cardDB->get().at(activeCardId)->clone()),
+            GetRelevantVocables(activeCardId),
+            GetRelevantEase(activeCardId)};
 }
 
 auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
@@ -375,6 +387,7 @@ void VocabularySR::setEaseLastCard(const Id_Ease_vt& id_ease) {
 
         fmt::print("Ease of {} is {}\n", id_vocable.at(id).front().key, mapEaseToInt(ease));
     }
+    id_cardSR[activeCardId].ViewNow();
 }
 
 void VocabularySR::SaveProgress() {
@@ -432,13 +445,15 @@ void VocabularySR::LoadProgress() {
     } catch (const std::exception& e) {
         fmt::print("Card SR load for {} failed! Exception {}", s_fn_metaCardSR, e.what());
     }
+
+    fmt::print("Vocables studied so far: {}, Cards viewed: {}\n", id_vocableSR.size(), id_cardSR.size());
 }
 
 void VocabularySR::GenerateToRepeatWorkload() {
-    // for(auto& [vocId, vocSR]: id_vocableSR)
-    ranges::transform(id_vocableSR | std::views::filter([](const auto& pair_id_vocSR) {
-                          return pair_id_vocSR.second.isToBeRepeatedToday();
-                      }),
-                      std::inserter(ids_repeatTodayVoc, ids_repeatTodayVoc.begin()),
-                      [](const auto& p) { return p.first; });
+    for (const auto& [id, vocSR] : id_vocableSR) {
+        if (vocSR.isToBeRepeatedToday())
+            ids_repeatTodayVoc.insert(id);
+        if (vocSR.isAgainVocable())
+            ids_againVoc.insert(id);
+    }
 }

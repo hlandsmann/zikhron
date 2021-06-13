@@ -31,6 +31,7 @@ public:
     auto Items() const -> const std::vector<Item>&;
     auto UniqueItems() const -> std::set<Item>;
     auto Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&;
+    auto Chunks() const -> const std::vector<std::vector<std::vector<int>>>&;
 
 private:
     void annotate();
