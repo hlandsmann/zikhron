@@ -9,8 +9,12 @@ CardAnnotate {
     id: cardAnnotate
     objectName: "CardAnnotate"
 
+
     property string copiedText: ""
-    property int cardTextCursorPos: 0
+    SelectableTextArea {
+        id: cardText
+    }
+
     onTextUpdate: {
         if( copiedText === newText){
             return
@@ -18,28 +22,6 @@ CardAnnotate {
 
         cardText.text = newText
         copiedText = cardText.text
-        cardText.cursorPosition = cardTextCursorPos
         console.log("Annotate - text - update")
     }
-
-    TextArea
-    {
-        id: cardText
-        wrapMode: TextArea.WordWrap
-
-        Layout.alignment: Qt.AlignTop
-        width: parent.width
-        height: parent.height
-        readOnly: true
-
-        textFormat: Text.RichText
-        text: ""
-        font.pointSize: settingsCard.cardFontSize
-        color:          settingsCard.cardFontColor
-
-        background: Rectangle {
-            color: settingsCard.cardBackgroundColor
-        }
-    }
-
 }
