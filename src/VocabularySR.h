@@ -103,7 +103,6 @@ private:
     std::map<uint, VocableMeta> id_vocableMeta;
     // vocableId -> vocable (aka. ZH_dicItemVec)
     std::map<uint, ZH_dicItemVec> id_vocable;
-    std::set<utl::ItemU8> allCharacters;
     /* cardMeta sorted by value */
     std::map<uint, CardMeta> id_cardMeta;
     std::map<uint, CardSR> id_cardSR;

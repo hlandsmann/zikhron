@@ -42,6 +42,7 @@ void VocabularySR::GenerateFromCards() {
         InsertVocabulary(annotator.UniqueItems(), cardId);
     }
     fmt::print("Count of vocables: {}\n", zhdic_vocableMeta.size());
+    std::set<std::string> allCharacters;
 
     for (const auto& voc : zhdic_vocableMeta) {
         if (voc.first.empty())
@@ -151,7 +152,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
         return {};
     }
 
-    auto preferedQuantity = [](int a, int b) -> bool {
+    const auto preferedQuantity = [](int a, int b) -> bool {
         const std::array quantity = {4, 3, 5, 2, 6};
         const auto a_it = ranges::find(quantity, a);
         const auto b_it = ranges::find(quantity, b);
