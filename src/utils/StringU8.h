@@ -3,6 +3,7 @@
 #include <compare>
 #include <functional>
 #include <limits>
+#include <span>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -39,6 +40,7 @@ class StringU8 {
 public:
     StringU8() = default;
     StringU8(const std::string&);
+    StringU8(const std::span<const ItemU8>&);
     // StringU8(const std::string_view&);
     StringU8(const icu::UnicodeString&);
     StringU8(const StringU8&) = default;

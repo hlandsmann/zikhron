@@ -75,7 +75,7 @@ CardDisplay {
             function textPositionHovered(pos) {cardDisplay.hoveredTextPosition(pos)}
             Layout.alignment: Qt.AlignTop
             Layout.preferredWidth: parent.width
-            Layout.preferredHeight: cardText.paintedHeight
+            Layout.preferredHeight: cardText.paintedHeight + 29
         }
 
         TextArea {

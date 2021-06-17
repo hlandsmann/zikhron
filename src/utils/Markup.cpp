@@ -5,6 +5,7 @@
 #include <iostream>
 #include <limits>
 #include <numeric>
+#include "Memoizer.h"
 namespace ranges = std::ranges;
 
 namespace markup {
@@ -107,30 +108,19 @@ Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _z
 
     zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dictionary);
     ranges::transform(zh_annotator->Items(),
-                      std::back_inserter(*this),
+                      std::back_inserter(words),
                       [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
+
+    positions.push_back(0);
+    ranges::transform(
+        words, std::back_inserter(positions), [absolutePosition = 0](const Word& word) mutable -> int {
+            absolutePosition += word.vLength();
+            return absolutePosition;
+        });
 }
 
 auto Paragraph::get() const -> std::string {
     return std::accumulate(words.begin(), words.end(), std::string{}, utl::stringPlusT<Word>);
-}
-
-void Paragraph::push_back(const Word& word) {
-    if (positions.empty())
-        positions.push_back(0);
-    else
-        positions.push_back(positions.back() + words.back().vLength());
-    words.push_back(word);
-}
-
-void Paragraph::resetPosition() {
-    std::transform(words.begin(),
-                   words.end(),
-                   std::back_inserter(positions),
-                   [absolutePosition = 0](const Word& word) mutable {
-                       absolutePosition += word.vLength();
-                       return absolutePosition - word.vLength();
-                   });
 }
 
 auto Paragraph::getWordStartPosition(int pos) const -> int {
@@ -155,8 +145,7 @@ auto Paragraph::getWordIndex(int pos) const -> std::size_t {
 void Paragraph::updateAnnotationColoring() {
     const auto& chunks = zh_annotator->Chunks();
     const auto& items = zh_annotator->Items();
-    const std::array colors_1 = {0x772222, 0xAA7777};
-    const std::array colors_2 = {0x227722, 0x77AA77};
+
     if (words.empty())
         return;
     assert(words.size() == items.size());
@@ -165,22 +154,55 @@ void Paragraph::updateAnnotationColoring() {
 
     size_t size = 0;
     AnnotationChunk annotationChunk = {};
+
+    auto lengthOfChunk = utl::Single_memoinize(+[](decltype(chunks.begin()) chunkIt) -> size_t {
+        return std::accumulate(
+            chunkIt->begin(),
+            chunkIt->end(),
+            0,
+            [n = 0](int val, const std::vector<int>& itemSizes) mutable -> int {
+                return val +
+                       std::max(0,
+                                (itemSizes.empty() ? 0 : *ranges::max_element(itemSizes)) - (val - n++));
+            });
+    });
+
+    auto numberOfCombinations = utl::Single_memoinize(+[](decltype(chunks.begin()) chunkIt) -> size_t {
+        return ZH_Annotator::get_combinations(*chunkIt).size();
+    });
+
+    int currentPos = 0;
     auto chunkIt = chunks.begin();
     for (const auto& [word, item] : boost::combine(words, items)) {
-        if (word.isMarkup() || item.dicItemVec.empty())
+        if (word.isMarkup() || item.dicItemVec.empty()) {
+            currentPos += word.vLength();
+            annotationChunk.posBegin = currentPos;
             continue;
-
+        }
         while (chunkIt != chunks.end() && (chunkIt->empty() || chunkIt->front().empty()))
             chunkIt++;
 
         if (chunkIt == chunks.end())
             break;
+
+        currentPos += word.vLength();
+
+        if (numberOfCombinations.evaluate(chunkIt) < 2) {
+            chunkIt++;
+            annotationChunk.posBegin = currentPos;
+            continue;
+        }
+
         annotationChunk.words.push_back(word);
+        std::copy(item.text.cbegin(), item.text.cend(), std::back_inserter(annotationChunk.characters));
         size += item.text.length();
 
-        if (size == chunkIt->size()) {
+        if (size == lengthOfChunk.evaluate(chunkIt)) {
             annotationChunk.chunk = *chunkIt;
+            annotationChunk.posEnd = currentPos;
             annotationChunks.push_back(std::move(annotationChunk));
+            annotationChunk.clear();
+            annotationChunk.posBegin = currentPos;
             size = 0;
 
             chunkIt++;
@@ -189,7 +211,7 @@ void Paragraph::updateAnnotationColoring() {
     int counter = 0;
 
     for (auto& ac : annotationChunks) {
-        const auto& colors = counter++ % 2 == 0 ? colors_1 : colors_2;
+        const auto& colors = counter++ % 2 == 0 ? markingColors_red : markingColors_green;
         int cw = 0;
         for (auto& word : ac.words) {
             word.get().setBackgroundColor(colors[cw++ % 2]);
@@ -197,29 +219,100 @@ void Paragraph::updateAnnotationColoring() {
     }
 }
 
-void Paragraph::changeWordAtPosition(int pos, const std::function<void(Word&)>& op) {
+void Paragraph::highlightWordAtPosition(int pos) {
     if (positions.empty())
         return;
-    int index = getWordIndex(pos);
+    size_t index = getWordIndex(pos);
 
-    changeWordAtIndex(index, op);
-}
-
-void Paragraph::changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op) {
     if (index >= words.size())
         return;
     if (words[index].isMarkup())
         return;
+
     preChanges.push({.index = index, .word{words[index]}});
-    op(words[index]);
+
+    const ZH_Annotator::ZH_dicItemVec clickedItem = wordFromPosition(pos);
+    if (clickedItem.empty())
+        return;
+    Word& word = words[index];
+    word.setBackgroundColor(0x227722);
+    word.setColor(0xFFFFFF);
+}
+
+auto Paragraph::getAnnotationChunkFromPosition(int pos)
+    -> std::optional<std::reference_wrapper<AnnotationChunk>> {
+    auto annoIt = ranges::find_if(annotationChunks, [pos](const AnnotationChunk& annotationChunk) {
+        return annotationChunk.posBegin <= pos && pos < annotationChunk.posEnd;
+    });
+    if (annoIt == annotationChunks.end())
+        return {};
+    return *annoIt;
+}
+
+void Paragraph::highlightAnnotationAtPosition(int pos) {
+    auto annotation = getAnnotationChunkFromPosition(pos);
+    if (not annotation.has_value())
+        return;
+    AnnotationChunk& annotationChunk = annotation.value().get();
+    const auto& colors = markingColors_blue;
+    int cw = 0;
+    for (auto& word : annotationChunk.words) {
+        preChanges.push(
+            {.index = static_cast<size_t>(std::distance(words.data(), &word.get())), .word = word});
+        word.get().setBackgroundColor(colors[cw++ % 2]);
+    }
+}
+
+auto Paragraph::getAnnotationPossibilities(int pos)
+    -> std::tuple<std::vector<std::string>, std::vector<std::string>, int> {
+    auto annotation = getAnnotationChunkFromPosition(pos);
+    if (not annotation.has_value())
+        return {{}, {}, 0};
+    AnnotationChunk& annotationChunk = annotation.value().get();
+
+    std::vector<std::string> marked;
+    std::vector<std::string> unmarked;
+
+    const std::vector<utl::ItemU8>& items = annotationChunk.characters;
+    for (const auto& character : annotationChunk.characters) {
+        fmt::print("{}", std::string(character));
+    }
+    fmt::print("\n");
+    for (const auto& combination : ZH_Annotator::get_combinations(annotationChunk.chunk)) {
+        fmt::print("{}\n", fmt::join(combination, ","));
+        int currentPos = 0;
+        std::string markedCombination;
+        std::string unmarkedCombination;
+        int cw = 0;
+        for (int l : combination) {
+            auto word = Word(utl::StringU8(std::span(items.begin() + currentPos, l)));
+            currentPos += l;
+
+            word.setBackgroundColor(markingColors_red[cw % 2]);
+            markedCombination += std::string(word);
+            word.setBackgroundColor(markingColors_blue[cw % 2]);
+            unmarkedCombination += std::string(word);
+            cw++;
+        }
+        // fmt::print("{} \n", markedCombination);
+        // fmt::print("{} \n", unmarkedCombination);
+
+        // fmt::print("\n");
+        marked.push_back(std::move(markedCombination));
+        unmarked.push_back(std::move(unmarkedCombination));
+    }
+
+    return {marked, unmarked, annotationChunk.posBegin};
 }
 
 void Paragraph::undoChange() {
     if (preChanges.empty())
         return;
-    WordState preChange = preChanges.top();
-    preChanges.pop();
-    words[preChange.index] = std::move(preChange.word);
+    while (not preChanges.empty()) {
+        WordState preChange = preChanges.top();
+        preChanges.pop();
+        words[preChange.index] = std::move(preChange.word);
+    }
 }
 
 auto Paragraph::wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec {

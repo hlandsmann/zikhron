@@ -2,9 +2,9 @@
 
 #include <TextCard.h>
 #include <utils/StringU8.h>
+#include <functional>
 #include <iosfwd>
 #include <stack>
-#include <functional>
 
 #include <Ease.h>
 #include <ZH_Annotator.h>
@@ -40,6 +40,8 @@ private:
 };
 
 class Paragraph {
+    struct AnnotationChunk;
+
 public:
     using value_type = Word;
     static utl::StringU8 textFromCard(const Card&);
@@ -48,13 +50,14 @@ public:
     Paragraph(const Card&, const std::shared_ptr<ZH_Dictionary>&);
 
     auto get() const -> std::string;
-    void push_back(const Word& word);
     auto getWordStartPosition(int pos) const -> int;
     auto getWordIndex(int pos) const -> std::size_t;
 
     void updateAnnotationColoring();
-    void changeWordAtPosition(int pos, const std::function<void(Word&)>& op);
-    void changeWordAtIndex(std::size_t index, const std::function<void(Word&)>& op);
+    void highlightWordAtPosition(int pos);
+    void highlightAnnotationAtPosition(int pos);
+    auto getAnnotationPossibilities(int pos)
+        -> std::tuple<std::vector<std::string>, std::vector<std::string>, int>;
     void undoChange();
     auto wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec;
     void setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&&);
@@ -65,7 +68,9 @@ public:
     auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<uint, Ease>;
 
 private:
-    void resetPosition();
+    auto getAnnotationChunkFromPosition(int pos)
+        -> std::optional<std::reference_wrapper<AnnotationChunk>>;
+
     struct WordState {
         std::size_t index;
         Word word;
@@ -73,12 +78,21 @@ private:
 
     struct AnnotationChunk {
         std::vector<std::reference_wrapper<Word>> words;
+        std::vector<utl::ItemU8> characters;
         std::vector<std::vector<int>> chunk;
+        int posBegin = 0;
+        int posEnd = 0;
+        void clear() {
+            words.clear();
+            characters.clear();
+            chunk.clear();
+            posBegin = 0;
+            posEnd = 0;
+        }
     };
     std::vector<AnnotationChunk> annotationChunks;
     std::unique_ptr<ZH_Annotator> zh_annotator;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
-    // std::unique_ptr<Card> card;
 
     std::stack<WordState> preChanges;
     std::vector<Word> words;
@@ -87,6 +101,11 @@ private:
     std::vector<std::pair<ZH_Dictionary::Item, uint>> vocables_id;
     std::string vocableString;
     std::vector<int> vocablePositions;
+
+    constexpr static std::array markingColors_red = {0x772222, 0xAA7777};
+    constexpr static std::array markingColors_green = {0x227722, 0x77AA77};
+    constexpr static std::array markingColors_blue = {0x222277, 0x7777AA};
+
 };
 }  // namespace markup
 

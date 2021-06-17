@@ -1,4 +1,5 @@
 #include "Annotate.h"
+#include <fmt/format.h>
 
 namespace card {
 Annotate::Annotate() { setFiltersChildMouseEvents(true); }
@@ -22,6 +23,16 @@ void Annotate::useCard() {
 
     // emit textUpdate(QString::fromStdString(paragraph.get()));
 }
+void Annotate::hoveredTextPosition(int pos) {
+    static int lastPos = -1;
+    if (lastPos == pos)
+        return;
+    lastPos = pos;
+    paragraph->undoChange();
+    paragraph->highlightAnnotationAtPosition(pos);
+    emit textUpdate(QString::fromStdString(paragraph->get()));
+}
+void Annotate::clickedTextPosition(int pos) { paragraph->getAnnotationPossibilities(pos); }
 
 void Annotate::getAnnotation(const PtrParagraph &_paragraph) {
     paragraph = _paragraph.get();

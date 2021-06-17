@@ -24,6 +24,8 @@ public:
     Annotate();
 
 public slots:
+    void hoveredTextPosition(int pos);
+    void clickedTextPosition(int pos);
     void getAnnotation(const PtrParagraph &);
 
 signals:
@@ -32,7 +34,7 @@ signals:
 private:
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;
     void useCard();
-        QSharedPointer<markup::Paragraph> paragraph;
+    QSharedPointer<markup::Paragraph> paragraph;
     // QSharedPointer<ZH_Dictionary> zh_dict;
     // QSharedPointer<Card> ptrCard;
     // std::unique_ptr<ZH_Annotator> zh_annotator;

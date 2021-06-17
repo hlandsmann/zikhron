@@ -7,6 +7,7 @@
         <file alias="CardEdit.qml">card/CardEdit.qml</file>
         <file alias="PopupItemChoice.qml">card/PopupItemChoice.qml</file>
         <file alias="SelectableTextArea.qml">card/SelectableTextArea.qml</file>
+        <file alias="AnnotationChoice.qml">card/AnnotationChoice.qml</file>
         <!-- <file alias="qtquickcontrols2.conf">cfg/qtquickcontrols2.conf</file> -->
     </qresource>
 </RCC>

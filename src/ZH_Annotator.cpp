@@ -70,14 +70,32 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
         ranges::copy(c_length, std::back_inserter(v));
         forward = std::max(forward - 1, v.empty() ? 0 : *ranges::max_element(v));
         chunk.push_back(std::move(v));
-        if (forward <= 1)
+        if (forward <= 1) {
             chunks.push_back(std::move(chunk));
+            chunk.clear();
+        }
     }
 
     return chunks;
 }
 
-auto get_combinations(const std::vector<std::vector<int>>& chunk) -> std::vector<std::vector<int>> {
+auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -> bool {
+    auto meanDiff = [](const std::vector<int>& vec) {
+        if (vec.empty())
+            return std::numeric_limits<int>::max();
+        const int max = *std::max_element(vec.begin(), vec.end());
+
+        return std::accumulate(
+            vec.begin(), vec.end(), int(0), [max](int sum, int val) { return sum + (max - val); });
+    };
+    if (a.size() == b.size())
+        return meanDiff(a) < meanDiff(b);
+    return a.size() < b.size();
+}
+}  // namespace
+
+auto ZH_Annotator::get_combinations(const std::vector<std::vector<int>>& chunk)
+    -> std::vector<std::vector<int>> {
     using std::vector;
     vector<vector<int>> combis;
     vector<int> comb;
@@ -120,21 +138,6 @@ auto get_combinations(const std::vector<std::vector<int>>& chunk) -> std::vector
     }
     return combis;
 }
-
-auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -> bool {
-    auto meanDiff = [](const std::vector<int>& vec) {
-        if (vec.empty())
-            return std::numeric_limits<int>::max();
-        const int max = *std::max_element(vec.begin(), vec.end());
-
-        return std::accumulate(
-            vec.begin(), vec.end(), int(0), [max](int sum, int val) { return sum + (max - val); });
-    };
-    if (a.size() == b.size())
-        return meanDiff(a) < meanDiff(b);
-    return a.size() < b.size();
-}
-}  // namespace
 
 auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_ordering {
     if (auto cmp = text <=> other.text; cmp != 0)

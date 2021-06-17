@@ -10,9 +10,9 @@ TextArea
     id: cardText
     wrapMode: TextArea.WordWrap
 
-    Layout.alignment: Qt.AlignTop
-    width: parent.width
-    height: parent.height
+    // // Layout.alignment: Qt.AlignTop
+    // width: parent.width
+    // height: parent.height
     readOnly: true
 
     textFormat: Text.RichText
@@ -26,6 +26,7 @@ TextArea
 
     function textPositionClicked(pos) {}
     function textPositionHovered(pos) {}
+    function xyClicked(x, y) {}
     MouseArea {
         anchors.fill: parent
         hoverEnabled: true
@@ -52,7 +53,10 @@ TextArea
             }
             return -1
         }
-        onClicked: { textPositionClicked(getTextPosition(mouse.x, mouse.y)) }
+        onClicked: { var pos = getTextPosition(mouse.x, mouse.y)
+                     var rect = cardText.positionToRectangle(pos)
+                     textPositionClicked(pos)
+                     xyClicked(rect.x, rect.y) }
         onPositionChanged: { textPositionHovered(getTextPosition(mouseX, mouseY)) }
     }
 }

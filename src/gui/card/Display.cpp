@@ -72,13 +72,7 @@ void Display::hoveredTextPosition(int pos) {
     if (lastPos == pos)
         return;
     paragraph->undoChange();
-    paragraph->changeWordAtPosition(pos, [&](markup::Word &word) {
-        const auto clickedItem = paragraph->wordFromPosition(pos);
-        if (clickedItem.empty())
-            return;
-        word.setBackgroundColor(0x227722);
-        word.setColor(0xFFFFFF);
-    });
+    paragraph->highlightWordAtPosition(pos);
     emit textUpdate(QString::fromStdString(paragraph->get()));
     lastPos = pos;
 }

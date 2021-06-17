@@ -32,6 +32,8 @@ public:
     auto UniqueItems() const -> std::set<Item>;
     auto Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&;
     auto Chunks() const -> const std::vector<std::vector<std::vector<int>>>&;
+    static auto get_combinations(const std::vector<std::vector<int>>& chunk)
+        -> std::vector<std::vector<int>>;
 
 private:
     void annotate();
