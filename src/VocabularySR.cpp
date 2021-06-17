@@ -41,14 +41,7 @@ void VocabularySR::GenerateFromCards() {
 
         InsertVocabulary(annotator.UniqueItems(), cardId);
     }
-    std::cout << "Size: " << zhdic_vocableMeta.size();
-    // for (const auto& [voc, vocmeta] : vocables) {
-    //     std::cout << voc.front().key << " : ";
-    //     std::cout << vocmeta.id << " - ";
-    //     for (const auto& num : vocmeta.cardIds)
-    //         std::cout << num << ", ";
-    //     std::cout << "\n";
-    // }
+    fmt::print("Count of vocables: {}\n", zhdic_vocableMeta.size());
 
     for (const auto& voc : zhdic_vocableMeta) {
         if (voc.first.empty())
@@ -57,12 +50,10 @@ void VocabularySR::GenerateFromCards() {
         const auto word = utl::StringU8(voc.first.front().key);
         allCharacters.insert(word.cbegin(), word.cend());
     }
-    for (const auto& mychar : allCharacters) {
-        std::cout << mychar;
-    }
-    std::cout << "\n";
-    std::cout << "Count of Characters: " << allCharacters.size() << "\n";
-    std::cout << "VocableSize: " << zhdic_vocableMeta.size() << "\n";
+
+    fmt::print("Characters: {}\n", fmt::join(allCharacters, ""));
+    fmt::print("Count of Characters: {}\n", allCharacters.size());
+    fmt::print("VocableSize: {}\n", zhdic_vocableMeta.size());
 }
 
 auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const
@@ -70,20 +61,14 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
     std::set<uint> cardIdsSharedVoc;
     int count = 0;
 
-    // for (uint vocId : cm.vocableIds) {
-    //     const VocableMeta& vm = id_vocableMeta.at(vocId);
-    //     ranges::copy(vm.cardIds, std::inserter(cardIdsSharedVoc, cardIdsSharedVoc.begin()));
-    // }
-
     const auto& setVocIdThis = cm.vocableIds;
-    // for (uint cId : cardIdsSharedVoc) {
-    //     const auto& setVocOther = id_cardMeta.at(cId)->vocableIds;
+
     count += pow(
         std::set_intersection(
             setVocIdThis.begin(), setVocIdThis.end(), good.begin(), good.end(), counting_iterator{})
             .count,
         2);
-    // }
+
     if (cardIdsSharedVoc.empty())
         return 1.;
 
@@ -180,13 +165,11 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
                [preferedQuantity](const intersect_view& a, const intersect_view& b) {
                    if (a.countIntersectionNow != b.countIntersectionNow)
                        return a.countIntersectionNow < b.countIntersectionNow;
-                   //    if (a.viewCount == b.viewCount)
+
                    if (a.countIntersect != b.countIntersect)
                        return preferedQuantity(a.countIntersect, b.countIntersect);
-                   //    return a.countIntersect < b.countIntersect;
-                   //    if (std::abs(int(a.countIntersect) - int(b.countIntersect)) <= 1)
+
                    return a.viewCount > b.viewCount;
-                   //    return a.countIntersect < b.countIntersect;
                },
                &decltype(candidates)::value_type::second)
         ->first;
