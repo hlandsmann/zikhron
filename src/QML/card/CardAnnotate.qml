@@ -16,10 +16,6 @@ CardAnnotate {
         id: cardText
         function textPositionClicked(pos) {cardAnnotate.clickedTextPosition(pos)}
         function textPositionHovered(pos) {cardAnnotate.hoveredTextPosition(pos)}
-        function xyClicked(x, y) { annotationChoice.x = x,
-                                   annotationChoice.y = y,
-                                   annotationChoice.visible = true
-                                   annotationChoice.popup.open() }
 
         Layout.alignment: Qt.AlignTop
         Layout.preferredWidth: parent.width
@@ -36,32 +32,38 @@ CardAnnotate {
         cardText.text = newText
         copiedText = cardText.text
     }
-    // ComboBox {
-    //         // textFormat: Text.RichText
-    // // font.pointSize: settingsCard.cardFontSize
 
-    // model: ["上半场", "下半场", "上半场"]
-    // }
+    onAnnotationPossibilities: {
+        annotationChoice.model.clear()
+        for(var i=0; i<marked.length; i++) {
+            annotationChoice.model.append({"textMarked": marked[i], "textUnmarked": unmarked[i]})
+        }
+        annotationChoice.displayText = unmarked[0]
+        annotationChoice.startHighlighted = 0
+        var rect = cardText.positionToRectangle(pos)
+        annotationChoice.implicitX = rect.x
+        annotationChoice.y = rect.y
+        annotationChoice.visible = true
+        annotationChoice.popup.open()
+    }
 
     AnnotationChoice {
         id: annotationChoice
-        editable: true
+        editable: false
         visible: false
+        model : ListModel {}
+        function menuClosed() { visible = false }
 
-        model: ListModel {
-            id: cbItems
-            ListElement { text: "Banana" }
-            ListElement { text: "Apple" }
-            ListElement { text: "Coconut" }
-        }
         onAccepted: {
             if (find(editText) === -1)
                 model.append({text: editText})
             visible:false
             console.log("Hello world")
         }
-        onCurrentIndexChanged: { console.debug(cbItems.get(currentIndex).text)
+        onCurrentIndexChanged: { /* console.debug(cbItems.get(currentIndex).text) */
                                  console.log("index: ", currentIndex)
+                                 if ( currentIndex != -1)
+                                    cardAnnotate.chosenAnnotation(currentIndex)
                                  annotationChoice.visible = false }
     }
 }

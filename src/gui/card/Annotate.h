@@ -26,15 +26,20 @@ public:
 public slots:
     void hoveredTextPosition(int pos);
     void clickedTextPosition(int pos);
+    void chosenAnnotation(int index);
     void getAnnotation(const PtrParagraph &);
 
 signals:
     void textUpdate(QString newText);
+    void annotationPossibilities(QList<QString> marked, QList<QString> unmarked, int pos);
 
 private:
     auto childMouseEventFilter(QQuickItem *, QEvent *event) -> bool override;
     void useCard();
     QSharedPointer<markup::Paragraph> paragraph;
+
+    std::vector<std::vector<int>> combinations;
+    std::vector<utl::ItemU8> characters;
     // QSharedPointer<ZH_Dictionary> zh_dict;
     // QSharedPointer<Card> ptrCard;
     // std::unique_ptr<ZH_Annotator> zh_annotator;

@@ -56,8 +56,16 @@ public:
     void updateAnnotationColoring();
     void highlightWordAtPosition(int pos);
     void highlightAnnotationAtPosition(int pos);
+
+    struct AnnotationPossibilities {
+        std::vector<std::string> unmarked;
+        std::vector<std::string> marked;
+        int pos{};
+        std::vector<std::vector<int>> combinations;
+        std::vector<utl::ItemU8> characters;
+    };
     auto getAnnotationPossibilities(int pos)
-        -> std::tuple<std::vector<std::string>, std::vector<std::string>, int>;
+        -> AnnotationPossibilities;
     void undoChange();
     auto wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec;
     void setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&&);
@@ -105,7 +113,6 @@ private:
     constexpr static std::array markingColors_red = {0x772222, 0xAA7777};
     constexpr static std::array markingColors_green = {0x227722, 0x77AA77};
     constexpr static std::array markingColors_blue = {0x222277, 0x7777AA};
-
 };
 }  // namespace markup
 

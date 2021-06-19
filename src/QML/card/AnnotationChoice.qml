@@ -3,20 +3,36 @@ import QtQuick.Controls 2.12
 
 ComboBox {
     id: control
-    model: ["First", "Second", "Third"]
+    property var implicitX : 0
+    property var startHighlighted : -1
+    function menuClosed() {}
+    x: (implicitX + width > parent.width ? parent.width - width : implicitX)
+    model: [] //["First", "Second", "Third"]
+    rightPadding: 0
+    leftPadding: 0
+    topPadding: 0
+    bottomPadding: 0
+    spacing: 0
     font.pointSize: settingsCard.cardFontSize
     delegate: ItemDelegate {
         width: control.width
+        topPadding: 0
+        bottomPadding: 0
+        leftPadding: 0
+        rightPadding: 0
+        background: Rectangle {
+            color: highlighted ? settingsWidgets.selectedColor : settingsWidgets.selectableColor
+        }
         contentItem: Text {
-            text: highlighted ? "test" : modelData
-            color: "#21be2b"
+            text: highlighted ? textMarked : textUnmarked
             font: control.font
-            elide: Text.ElideRight
             verticalAlignment: Text.AlignVCenter
             textFormat: Text.RichText
         }
-        highlighted: control.highlightedIndex === index
+        highlighted: startHighlighted > -1 ? control.startHighlighted === index
+                                           : control.highlightedIndex === index
     }
+    onHighlightedIndexChanged: { startHighlighted = -1 }
 
     indicator: Canvas {
         id: canvas
@@ -37,36 +53,33 @@ ComboBox {
             context.lineTo(width, 0);
             context.lineTo(width / 2, height);
             context.closePath();
-            context.fillStyle = control.pressed ? "#17a81a" : "#21be2b";
+            context.fillStyle = control.pressed ? settingsWidgets.selectedColor : "#BBB";
             context.fill();
         }
     }
 
     contentItem: Text {
-        leftPadding: 0
         rightPadding: control.indicator.width + control.spacing
-
+        topPadding: 0
+        bottomPadding: 0
         text: control.displayText
         font: control.font
-
-        color: control.pressed ? "#17a81a" : "#21be2b"
         verticalAlignment: Text.AlignVCenter
-        elide: Text.ElideRight
         textFormat: Text.RichText
+
     }
 
     background: Rectangle {
-        implicitWidth: 120
-        implicitHeight: 40
-        border.color: control.pressed ? "#17a81a" : "#21be2b"
-        border.width: control.visualFocus ? 2 : 1
-        radius: 2
+        border.width: 0
+        radius: 0
+        color: settingsWidgets.selectableColor
+        border.color: settingsCard.cardBackgroundColor
     }
 
     popup: Popup {
-        y: control.height - 1
+        y: control.height
         width: control.width
-        implicitHeight: contentItem.implicitHeight
+        implicitHeight: contentItem.implicitHeight + 2
         padding: 1
 
         contentItem: ListView {
@@ -78,10 +91,16 @@ ComboBox {
             ScrollIndicator.vertical: ScrollIndicator { }
         }
 
+        onOpenedChanged: {
+            if (!opened)
+                control.menuClosed()
+        }
+
+
         background: Rectangle {
-            border.color: "#21be2b"
+            border.width: 0
+            color: settingsWidgets.selectableColor
             radius: 2
         }
     }
-
 }

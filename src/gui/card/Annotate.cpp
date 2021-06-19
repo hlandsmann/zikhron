@@ -1,5 +1,9 @@
 #include "Annotate.h"
 #include <fmt/format.h>
+#include <algorithm>
+#include <ranges>
+
+namespace ranges = std::ranges;
 
 namespace card {
 Annotate::Annotate() { setFiltersChildMouseEvents(true); }
@@ -32,7 +36,31 @@ void Annotate::hoveredTextPosition(int pos) {
     paragraph->highlightAnnotationAtPosition(pos);
     emit textUpdate(QString::fromStdString(paragraph->get()));
 }
-void Annotate::clickedTextPosition(int pos) { paragraph->getAnnotationPossibilities(pos); }
+void Annotate::clickedTextPosition(int pos) {
+    auto [marked, unmarked, newPos, _combinations, _characters] = paragraph->getAnnotationPossibilities(
+        pos);
+
+    if (marked.empty())
+        return;
+
+    combinations = std::move(_combinations);
+    characters = std::move(_characters);
+
+    QList<QString> qtMarked;
+    QList<QString> qtUnmarked;
+    ranges::transform(marked, std::back_inserter(qtMarked), QString::fromStdString);
+    ranges::transform(unmarked, std::back_inserter(qtUnmarked), QString::fromStdString);
+    emit annotationPossibilities(qtMarked, qtUnmarked, newPos);
+}
+
+void Annotate::chosenAnnotation(int index) {
+    assert(index >= 0);
+    assert(static_cast<size_t>(index) < combinations.size());
+
+    fmt::print("Chosen combination [{}] of {}\n",
+               fmt::join(combinations.at(index), ","),
+               fmt::join(characters, ""));
+}
 
 void Annotate::getAnnotation(const PtrParagraph &_paragraph) {
     paragraph = _paragraph.get();

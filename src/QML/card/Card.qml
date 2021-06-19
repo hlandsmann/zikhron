@@ -132,4 +132,11 @@ ColumnLayout {
         property string cardBackgroundColor: "#222"
     }
 
+    Settings {
+        category: "Widgets"
+        id: settingsWidgets
+
+        property string selectableColor: "#333"
+        property string selectedColor: "#555"
+    }
 }

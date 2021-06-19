@@ -1,5 +1,6 @@
 #pragma once
 
+#include <fmt/format.h>
 #include <compare>
 #include <functional>
 #include <limits>
@@ -72,6 +73,13 @@ inline std::ostream& operator<<(std::ostream& os, const utl::ItemU8& itemU8) {
     os << std::string(itemU8);
     return os;
 }
+template <> struct fmt::formatter<utl::ItemU8> {
+    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+    template <typename FormatContext> auto format(const utl::ItemU8& itemU8, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "{}", std::string(itemU8));
+    }
+};
+
 inline std::ostream& operator<<(std::ostream& os, const utl::StringU8& strU8) {
     os << std::string(strU8);
     return os;

@@ -263,23 +263,24 @@ void Paragraph::highlightAnnotationAtPosition(int pos) {
     }
 }
 
-auto Paragraph::getAnnotationPossibilities(int pos)
-    -> std::tuple<std::vector<std::string>, std::vector<std::string>, int> {
+auto Paragraph::getAnnotationPossibilities(int pos) -> AnnotationPossibilities {
     auto annotation = getAnnotationChunkFromPosition(pos);
     if (not annotation.has_value())
-        return {{}, {}, 0};
+        return {};
     AnnotationChunk& annotationChunk = annotation.value().get();
+    const auto& markingColors = std::distance(&(*std::begin(annotationChunks)), &annotationChunk) % 2 ==
+                                        0
+                                    ? markingColors_red
+                                    : markingColors_green;
 
     std::vector<std::string> marked;
     std::vector<std::string> unmarked;
 
     const std::vector<utl::ItemU8>& items = annotationChunk.characters;
-    for (const auto& character : annotationChunk.characters) {
-        fmt::print("{}", std::string(character));
-    }
-    fmt::print("\n");
-    for (const auto& combination : ZH_Annotator::get_combinations(annotationChunk.chunk)) {
-        fmt::print("{}\n", fmt::join(combination, ","));
+
+    const auto combinations = ZH_Annotator::get_combinations(annotationChunk.chunk);
+    for (const auto& combination : combinations) {
+        // fmt::print("{}\n", fmt::join(combination, ","));
         int currentPos = 0;
         std::string markedCombination;
         std::string unmarkedCombination;
@@ -287,22 +288,19 @@ auto Paragraph::getAnnotationPossibilities(int pos)
         for (int l : combination) {
             auto word = Word(utl::StringU8(std::span(items.begin() + currentPos, l)));
             currentPos += l;
-
-            word.setBackgroundColor(markingColors_red[cw % 2]);
+            word.setColor(0x00FFFFFF);
+            word.setBackgroundColor(markingColors[cw % 2]);
             markedCombination += std::string(word);
             word.setBackgroundColor(markingColors_blue[cw % 2]);
             unmarkedCombination += std::string(word);
             cw++;
         }
-        // fmt::print("{} \n", markedCombination);
-        // fmt::print("{} \n", unmarkedCombination);
 
-        // fmt::print("\n");
         marked.push_back(std::move(markedCombination));
         unmarked.push_back(std::move(unmarkedCombination));
     }
 
-    return {marked, unmarked, annotationChunk.posBegin};
+    return {unmarked, marked, annotationChunk.posBegin, combinations, annotationChunk.characters};
 }
 
 void Paragraph::undoChange() {
