@@ -168,6 +168,7 @@ auto ZH_Annotator::UniqueItems() const -> std::set<Item> {
 auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>& {
     return candidates;
 }
+
 auto ZH_Annotator::Chunks() const -> const std::vector<std::vector<std::vector<int>>>& { return chunks; }
 
 void ZH_Annotator::annotate() {

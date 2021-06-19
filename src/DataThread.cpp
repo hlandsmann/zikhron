@@ -32,7 +32,8 @@ void DataThread::run() {
 
     // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
     qDebug() << "Created Dictionary";
-    sendNextCard();
+    auto cardInformation = vocabularySR->getCard();
+    sendActiveCard(std::move(cardInformation));
     // emit sendDictionary(zh_dict2);
     // emit sendCard(long_card);
 }
@@ -41,11 +42,23 @@ void DataThread::getCardEase(QList<int> ease) {
     std::vector<Ease> easeWork;
     ranges::transform(ease, std::back_inserter(easeWork), mapIntToEase);
     vocabularySR->setEaseLastCard(paragraph->getRestoredOrderOfEaseList(easeWork));
-    sendNextCard();
+
+    auto cardInformation = vocabularySR->getCard();
+    sendActiveCard(std::move(cardInformation));
 }
 
-void DataThread::sendNextCard() {
-    auto [current_card, vocables, ease] = vocabularySR->getCard();
+void DataThread::cardAnnotationChoice(QList<int> qtCombination, QList<QString> qtCharacters) {
+    std::vector<int> combination;
+    std::vector<utl::ItemU8> characters;
+    ranges::copy(qtCombination, std::back_inserter(combination));
+    ranges::transform(qtCharacters, std::back_inserter(characters), &QString::toStdString);
+
+    auto cardInformation = vocabularySR->addAnnotation(combination, characters);
+    sendActiveCard(std::move(cardInformation));
+}
+
+void DataThread::sendActiveCard(CardInformation&& cardInformation) {
+    auto [current_card, vocables, ease] = std::move(cardInformation);
     paragraph = QSharedPointer<markup::Paragraph>::create(*current_card, zh_dict);
     paragraph->setupVocables(std::move(vocables));
     auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);

@@ -74,7 +74,10 @@ public:
 
     using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Item, uint>>;
     using Id_Ease_vt = std::map<uint, Ease>;
-    auto getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
+    using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
+    auto getCard() -> CardInformation;
+    auto addAnnotation(const std::vector<int>& combination, const std::vector<utl::ItemU8>& characters)
+        -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt&);
 
 private:

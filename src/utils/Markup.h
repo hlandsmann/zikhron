@@ -124,7 +124,3 @@ inline std::ostream& operator<<(std::ostream& os, const markup::Word& word) {
 inline std::string operator+(std::string&& str, const markup::Word& word) {
     return str + std::string(word);
 }
-// inline std::string& operator+=(std::string& str, const markup::Word& word) {
-//     str += std::string(word);
-//     return str;
-// }

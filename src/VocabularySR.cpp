@@ -308,6 +308,13 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
             GetRelevantEase(activeCardId)};
 }
 
+auto VocabularySR::addAnnotation(const std::vector<int>& combination,
+                                 const std::vector<utl::ItemU8>& characters) -> CardInformation {
+    return {std::unique_ptr<Card>(cardDB->get().at(activeCardId)->clone()),
+            GetRelevantVocables(activeCardId),
+            GetRelevantEase(activeCardId)};
+}
+
 auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
     std::set<uint> activeVocables;
     const CardMeta& cm = id_cardMeta.at(cardId);

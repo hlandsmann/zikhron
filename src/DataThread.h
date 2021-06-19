@@ -53,6 +53,7 @@ public:
     ~DataThread();
 public slots:
     void getCardEase(QList<int> ease);
+    void cardAnnotationChoice(QList<int> qtCombination, QList<QString> qtCharacters);
 signals:
     void sendDictionary(const PtrDictionary&);
     void sendCard(const PtrCard&);
@@ -64,8 +65,11 @@ protected:
     void run() override;
 
 private:
-    void sendNextCard();
+    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Item, uint>>;
+    using Id_Ease_vt = std::map<uint, Ease>;
+    using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
 
+    void sendActiveCard(CardInformation&&);
     std::unique_ptr<VocabularySR> vocabularySR;
     std::shared_ptr<ZH_Dictionary> zh_dict;
     QSharedPointer<markup::Paragraph> paragraph;

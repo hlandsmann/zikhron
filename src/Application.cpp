@@ -66,6 +66,10 @@ int main(int argc, char* argv[]) {
         QObject::connect(
             &dataThread, &DataThread::sendParagraph, cardDisplay, &card::Display::getParagraph);
         QObject::connect(cardDisplay, &card::Display::sendEase, &dataThread, &DataThread::getCardEase);
+        QObject::connect(cardAnnotate,
+                         &card::Annotate::cardAnnotationChoice,
+                         &dataThread,
+                         &DataThread::cardAnnotationChoice);
 
         dataThread.start();
         // QObject::connect(
