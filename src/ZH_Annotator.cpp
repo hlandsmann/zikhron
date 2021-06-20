@@ -4,6 +4,7 @@
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 #include <algorithm>
+#include <gsl/gsl_util>
 #include <iostream>
 #include <limits>
 #include <numeric>
@@ -181,14 +182,26 @@ void ZH_Annotator::annotate() {
 
     namespace ranges = std::ranges;
     namespace views = std::ranges::views;
-    const auto& min_combis = chunks | views::transform([](const auto& chunk) -> std::vector<int> {
-                                 const auto combs = get_combinations(chunk);
-                                 if (not combs.empty())
-                                     return *std::min_element(
-                                         combs.begin(), combs.end(), compare_combination);
-                                 else
-                                     return {};
-                             });
+    auto min_combis =
+        chunks | views::transform([this, pos = 0](const auto& chunk) mutable -> std::vector<int> {
+            const auto combs = get_combinations(chunk);
+            if (combs.empty()) {
+                pos++;
+                return {};
+            }
+
+            int combinationLength = std::accumulate(combs.front().begin(), combs.front().end(), 0);
+            auto finally = gsl::final_action([&pos, combinationLength]() { pos += combinationLength; });
+            if (combinationLength > 1) {
+                const auto& possibleChoice = std::vector<utl::ItemU8>(
+                    text.cbegin() + pos, text.cbegin() + pos + combinationLength);
+                const auto& choiceIt = ranges::find(
+                    choices, possibleChoice, &AnnotationChoice::characterSequence);
+                if (choiceIt != choices.end())
+                    return choiceIt->combination;
+            }
+            return *std::min_element(combs.begin(), combs.end(), compare_combination);
+        });
     int pos = 0;
     for (const auto& comb : min_combis) {
         if (comb.empty()) {
@@ -196,6 +209,7 @@ void ZH_Annotator::annotate() {
             pos++;
             continue;
         }
+
         ranges::transform(comb, std::back_inserter(items), [&](const auto& length) {
             const auto itemIt = ranges::find(candidates[pos], size_t(length), [](const auto& itemVec) {
                 return StringU8(itemVec.front().key).length();
@@ -205,4 +219,13 @@ void ZH_Annotator::annotate() {
             return Item((*itemIt).front().key, std::move(*itemIt));
         });
     }
+}
+
+void ZH_Annotator::setAnnotationChoices(const std::vector<AnnotationChoice>& _choices) {
+    choices = _choices;
+}
+
+void ZH_Annotator::reannotate() {
+    items.clear();
+    annotate();
 }

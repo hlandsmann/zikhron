@@ -53,7 +53,7 @@ public:
     ~DataThread();
 public slots:
     void getCardEase(QList<int> ease);
-    void cardAnnotationChoice(QList<int> qtCombination, QList<QString> qtCharacters);
+    void cardAnnotationChoice(QList<int> qtCombination, QList<QString> qtCharacterSequence);
 signals:
     void sendDictionary(const PtrDictionary&);
     void sendCard(const PtrCard&);

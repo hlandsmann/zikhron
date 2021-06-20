@@ -1,9 +1,11 @@
 #pragma once
 #include <unicode/unistr.h>
+#include <map>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
-#include <map>
+#include <ZH_Annotator.h>
 
 struct Card {
     Card(std::string _filename, int _id) : filename(_filename), id(_id){};
@@ -13,6 +15,7 @@ struct Card {
     virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     const std::string filename;
     const int id;
+    std::optional<ZH_Annotator> zh_annotator;
 };
 
 struct DialogueCard : public Card {
@@ -44,7 +47,6 @@ public:
     void loadFromDirectory(std::string directoryPath);
 
     auto get() const -> const std::map<uint, CardPtr>&;
-    auto moveOut(int index) -> CardPtr;
 
 private:
     // std::vector<CardPtr> cards;

@@ -27,15 +27,12 @@ auto loadCardDB() -> CardDB {
 void DataThread::run() {
     CardDB cardDB = loadCardDB();
     zh_dict = std::make_shared<ZH_Dictionary>("/home/harmen/src/zikhron/dictionaries/cedict_ts.u8");
-    // auto zh_dict2 = QSharedPointer<ZH_Dictionary>::create("../dictionaries/cedict_ts.u8");
     vocabularySR = std::make_unique<VocabularySR>(std::move(cardDB), zh_dict);
 
-    // auto zh_dict = QSharedPointer<ZH_Dictionary>::create("../dictionaries/handedict.u8");
     qDebug() << "Created Dictionary";
     auto cardInformation = vocabularySR->getCard();
     sendActiveCard(std::move(cardInformation));
-    // emit sendDictionary(zh_dict2);
-    // emit sendCard(long_card);
+
 }
 
 void DataThread::getCardEase(QList<int> ease) {
@@ -47,19 +44,20 @@ void DataThread::getCardEase(QList<int> ease) {
     sendActiveCard(std::move(cardInformation));
 }
 
-void DataThread::cardAnnotationChoice(QList<int> qtCombination, QList<QString> qtCharacters) {
+void DataThread::cardAnnotationChoice(QList<int> qtCombination, QList<QString> qtCharacterSequence) {
     std::vector<int> combination;
-    std::vector<utl::ItemU8> characters;
+    std::vector<utl::ItemU8> characterSequence;
     ranges::copy(qtCombination, std::back_inserter(combination));
-    ranges::transform(qtCharacters, std::back_inserter(characters), &QString::toStdString);
+    ranges::transform(qtCharacterSequence, std::back_inserter(characterSequence), &QString::toStdString);
 
-    auto cardInformation = vocabularySR->addAnnotation(combination, characters);
+    auto cardInformation = vocabularySR->addAnnotation(combination, characterSequence);
     sendActiveCard(std::move(cardInformation));
 }
 
 void DataThread::sendActiveCard(CardInformation&& cardInformation) {
     auto [current_card, vocables, ease] = std::move(cardInformation);
-    paragraph = QSharedPointer<markup::Paragraph>::create(*current_card, zh_dict);
+    auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
+    paragraph = QSharedPointer<markup::Paragraph>::create(std::move(current_card));
     paragraph->setupVocables(std::move(vocables));
     auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);
 
@@ -69,7 +67,6 @@ void DataThread::sendActiveCard(CardInformation&& cardInformation) {
             return id_ease.second;
         });
     emit sendParagraph(paragraph, vocEaseList);
-
-    annotation = QSharedPointer<markup::Paragraph>::create(*current_card, zh_dict);
+    annotation = QSharedPointer<markup::Paragraph>::create(std::move(current_card_clone));
     emit sendAnnotation(annotation);
 }

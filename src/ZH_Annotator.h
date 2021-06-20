@@ -35,6 +35,13 @@ public:
     static auto get_combinations(const std::vector<std::vector<int>>& chunk)
         -> std::vector<std::vector<int>>;
 
+    struct AnnotationChoice {
+        std::vector<int> combination;
+        std::vector<utl::ItemU8> characterSequence;
+    };
+    void setAnnotationChoices(const std::vector<AnnotationChoice>& choices);
+    void reannotate();
+
 private:
     void annotate();
     const utl::StringU8 text;
@@ -43,4 +50,5 @@ private:
     std::vector<Item> items;
     std::vector<std::vector<std::vector<int>>> chunks;
     std::vector<std::vector<ZH_dicItemVec>> candidates;
+    std::vector<AnnotationChoice> choices;
 };

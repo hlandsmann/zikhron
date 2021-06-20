@@ -76,7 +76,8 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
         return fmt::format("<span style=\"{}\">{}</span>", style, str);
     return str;
 }
-utl::StringU8 Paragraph::textFromCard(const Card& card) {
+
+auto Paragraph::textFromCard(const Card& card) -> utl::StringU8 {
     utl::StringU8 text;
     if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
         const std::string tbOpen = "<tr>";
@@ -101,13 +102,12 @@ utl::StringU8 Paragraph::textFromCard(const Card& card) {
     return text;
 }
 
-Paragraph::Paragraph(const Card& _card, const std::shared_ptr<ZH_Dictionary>& _zh_dictionary)
-    : zh_dictionary(_zh_dictionary) {
-    auto card = std::unique_ptr<Card>(_card.clone());
+Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
     utl::StringU8 text = textFromCard(*card);
 
-    zh_annotator = std::make_unique<ZH_Annotator>(text, zh_dictionary);
-    ranges::transform(zh_annotator->Items(),
+    assert(card->zh_annotator.has_value());
+    const ZH_Annotator& zh_annotator = card->zh_annotator.value();
+    ranges::transform(zh_annotator.Items(),
                       std::back_inserter(words),
                       [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
 
@@ -143,8 +143,11 @@ auto Paragraph::getWordIndex(int pos) const -> std::size_t {
 }
 
 void Paragraph::updateAnnotationColoring() {
-    const auto& chunks = zh_annotator->Chunks();
-    const auto& items = zh_annotator->Items();
+    assert(card->zh_annotator.has_value());
+
+    const auto& zh_annotator = card->zh_annotator.value();
+    const auto& chunks = zh_annotator.Chunks();
+    const auto& items = zh_annotator.Items();
 
     if (words.empty())
         return;
@@ -314,22 +317,24 @@ void Paragraph::undoChange() {
 }
 
 auto Paragraph::wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec {
-    if (!zh_annotator)
-        return {};
+    assert(card->zh_annotator.has_value());
+    const auto& zh_annotator = card->zh_annotator.value();
 
     const std::size_t index = getWordIndex(pos);
-    if (index >= zh_annotator->Items().size())
+    if (index >= zh_annotator.Items().size())
         return {};
 
-    const ZH_Annotator::Item& item = zh_annotator->Items().at(index);
+    const ZH_Annotator::Item& item = zh_annotator.Items().at(index);
     return item.dicItemVec;
 }
 
 void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&& _vocables_id) {
     vocables_id = std::move(_vocables_id);
+    assert(card->zh_annotator.has_value());
+    const auto& zh_annotator = card->zh_annotator.value();
 
     ranges::sort(vocables_id, std::less{}, [&](const auto& a) {
-        return ranges::find_if(zh_annotator->Items(),
+        return ranges::find_if(zh_annotator.Items(),
                                [&a](const auto& item) { return std::string(item.text) == a.first.key; });
     });
 
@@ -337,9 +342,9 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
     const std::array colors = {0xfabed4, 0xffe119, 0xff294B, 0x3cd44b, 0x42d4f4, 0xf58231,
                                0xf032e6, 0x913ec4, 0x4363ff, 0xbfef45, 0x469990};
     // clang-format on
-    assert(zh_annotator->Items().size() == words.size());
+    assert(zh_annotator.Items().size() == words.size());
 
-    const auto& items = zh_annotator->Items();
+    const auto& items = zh_annotator.Items();
     for (uint colorIndex = 0; colorIndex < vocables_id.size(); colorIndex++) {
         const ZH_Dictionary::Item& voc = vocables_id[colorIndex].first;
 

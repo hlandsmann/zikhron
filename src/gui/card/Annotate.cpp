@@ -17,14 +17,14 @@ void Annotate::hoveredTextPosition(int pos) {
 }
 
 void Annotate::clickedTextPosition(int pos) {
-    auto [marked, unmarked, newPos, _combinations, _characters] = paragraph->getAnnotationPossibilities(
+    auto [marked, unmarked, newPos, _combinations, _characterSequence] = paragraph->getAnnotationPossibilities(
         pos);
 
     if (marked.empty())
         return;
 
     combinations = std::move(_combinations);
-    characters = std::move(_characters);
+    characterSequence = std::move(_characterSequence);
 
     QList<QString> qtMarked;
     QList<QString> qtUnmarked;
@@ -39,13 +39,13 @@ void Annotate::chosenAnnotation(int index) {
 
     fmt::print("Chosen combination [{}] of {}\n",
                fmt::join(combinations.at(index), ","),
-               fmt::join(characters, ""));
+               fmt::join(characterSequence, ""));
     QList<int> qtCombination;
-    QList<QString> qtCharacters;
+    QList<QString> qtCharacterSequence;
 
     ranges::copy(combinations.at(index), std::back_inserter(qtCombination));
-    ranges::transform(characters, std::back_inserter(qtCharacters), QString::fromStdString);
-    emit cardAnnotationChoice(qtCombination, qtCharacters);
+    ranges::transform(characterSequence, std::back_inserter(qtCharacterSequence), QString::fromStdString);
+    emit cardAnnotationChoice(qtCombination, qtCharacterSequence);
 }
 
 void Annotate::getAnnotation(const PtrParagraph &_paragraph) {

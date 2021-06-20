@@ -24,12 +24,12 @@ public slots:
 signals:
     void textUpdate(QString newText);
     void annotationPossibilities(QList<QString> marked, QList<QString> unmarked, int pos);
-    void cardAnnotationChoice(QList<int> combination, QList<QString> characters);
+    void cardAnnotationChoice(QList<int> combination, QList<QString> characterSequence);
 private:
     QSharedPointer<markup::Paragraph> paragraph;
 
     std::vector<std::vector<int>> combinations;
-    std::vector<utl::ItemU8> characters;
+    std::vector<utl::ItemU8> characterSequence;
 };
 
 }  // namespace card

@@ -44,10 +44,10 @@ class Paragraph {
 
 public:
     using value_type = Word;
-    static utl::StringU8 textFromCard(const Card&);
+    static auto textFromCard(const Card&) -> utl::StringU8;
 
-    Paragraph() = default;
-    Paragraph(const Card&, const std::shared_ptr<ZH_Dictionary>&);
+//Paragraph() = default;
+    Paragraph(std::unique_ptr<Card> card);
 
     auto get() const -> std::string;
     auto getWordStartPosition(int pos) const -> int;
@@ -64,8 +64,7 @@ public:
         std::vector<std::vector<int>> combinations;
         std::vector<utl::ItemU8> characters;
     };
-    auto getAnnotationPossibilities(int pos)
-        -> AnnotationPossibilities;
+    auto getAnnotationPossibilities(int pos) -> AnnotationPossibilities;
     void undoChange();
     auto wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec;
     void setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&&);
@@ -78,6 +77,8 @@ public:
 private:
     auto getAnnotationChunkFromPosition(int pos)
         -> std::optional<std::reference_wrapper<AnnotationChunk>>;
+
+    std::unique_ptr<Card> card;
 
     struct WordState {
         std::size_t index;
@@ -99,8 +100,6 @@ private:
         }
     };
     std::vector<AnnotationChunk> annotationChunks;
-    std::unique_ptr<ZH_Annotator> zh_annotator;
-    std::shared_ptr<ZH_Dictionary> zh_dictionary;
 
     std::stack<WordState> preChanges;
     std::vector<Word> words;

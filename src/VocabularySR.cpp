@@ -37,9 +37,9 @@ void VocabularySR::GenerateFromCards() {
     const std::map<uint, CardDB::CardPtr>& cards = cardDB->get();
     for (const auto& [cardId, card] : cards) {
         utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
-        ZH_Annotator annotator = ZH_Annotator(card_text, zh_dictionary);
+        card->zh_annotator.emplace(card_text, zh_dictionary);
 
-        InsertVocabulary(annotator.UniqueItems(), cardId);
+        InsertVocabulary(card->zh_annotator.value().UniqueItems(), cardId);
     }
     fmt::print("Count of vocables: {}\n", zhdic_vocableMeta.size());
     std::set<std::string> allCharacters;
@@ -309,8 +309,15 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
 }
 
 auto VocabularySR::addAnnotation(const std::vector<int>& combination,
-                                 const std::vector<utl::ItemU8>& characters) -> CardInformation {
-    return {std::unique_ptr<Card>(cardDB->get().at(activeCardId)->clone()),
+                                 const std::vector<utl::ItemU8>& characterSequence) -> CardInformation {
+    ZH_Annotator::AnnotationChoice choice = {.combination = combination,
+                                             .characterSequence = characterSequence};
+
+    const auto& card = cardDB->get().at(activeCardId);
+    card->zh_annotator.value().setAnnotationChoices({choice});
+    card->zh_annotator.value().reannotate();
+
+    return {std::unique_ptr<Card>(card->clone()),
             GetRelevantVocables(activeCardId),
             GetRelevantEase(activeCardId)};
 }
