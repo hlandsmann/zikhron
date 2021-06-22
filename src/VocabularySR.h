@@ -66,6 +66,7 @@ class VocabularySR {
     static constexpr std::string_view s_content = "content";
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
     static constexpr std::string_view s_fn_metaCardSR = "metaCardSR.json";
+    static constexpr std::string_view s_fn_annotationChoices = "annotationChoices.json";
     static constexpr std::string_view s_path_meta = "/home/harmen/zikhron";
 
 public:
@@ -86,8 +87,12 @@ private:
     auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
     void InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId);
+    static void SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js);
     void SaveProgress();
+    void SaveAnnotationChoices();
+    static auto LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json;
     void LoadProgress();
+    void LoadAnnotationChoices();
     void GenerateToRepeatWorkload();
 
     // Get vocables that would need to be learned with this current cardId
@@ -120,6 +125,10 @@ private:
 
     uint countOfNewVocablesToday = 0;
     uint activeCardId{};
+
+    using CharacterSequence = std::vector<utl::ItemU8>;
+    using Combination = std::vector<int>;
+    std::map<CharacterSequence, Combination> annotationChoices;
 };
 
 struct counting_iterator {

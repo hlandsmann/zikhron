@@ -146,8 +146,10 @@ auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_order
     return dicItemVec <=> other.dicItemVec;
 }
 
-ZH_Annotator::ZH_Annotator(const utl::StringU8& _text, const std::shared_ptr<ZH_Dictionary>& _dictionary)
-    : text(_text), dictionary(_dictionary) {
+ZH_Annotator::ZH_Annotator(const utl::StringU8& _text,
+                           const std::shared_ptr<ZH_Dictionary>& _dictionary,
+                           const std::map<CharacterSequence, Combination>& _choices)
+    : text(_text), dictionary(_dictionary), choices(_choices) {
     annotate();
 }
 
@@ -195,10 +197,9 @@ void ZH_Annotator::annotate() {
             if (combinationLength > 1) {
                 const auto& possibleChoice = std::vector<utl::ItemU8>(
                     text.cbegin() + pos, text.cbegin() + pos + combinationLength);
-                const auto& choiceIt = ranges::find(
-                    choices, possibleChoice, &AnnotationChoice::characterSequence);
+                const auto& choiceIt = choices.find(possibleChoice);
                 if (choiceIt != choices.end())
-                    return choiceIt->combination;
+                    return choiceIt->second;
             }
             return *std::min_element(combs.begin(), combs.end(), compare_combination);
         });
@@ -221,7 +222,7 @@ void ZH_Annotator::annotate() {
     }
 }
 
-void ZH_Annotator::setAnnotationChoices(const std::vector<AnnotationChoice>& _choices) {
+void ZH_Annotator::setAnnotationChoices(const std::map<CharacterSequence, Combination>& _choices) {
     choices = _choices;
 }
 

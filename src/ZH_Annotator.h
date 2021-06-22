@@ -12,10 +12,15 @@
 #include "ZH_Dictionary.h"
 
 class ZH_Annotator {
+    using CharacterSequence = std::vector<utl::ItemU8>;
+    using Combination = std::vector<int>;
+
 public:
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
 
-    ZH_Annotator(const utl::StringU8& _text, const std::shared_ptr<ZH_Dictionary>& _dictionary);
+    ZH_Annotator(const utl::StringU8& _text,
+                 const std::shared_ptr<ZH_Dictionary>& _dictionary,
+                 const std::map<CharacterSequence, Combination>& _choices = {});
     auto Annotated() const -> const std::string&;
 
     struct Item {
@@ -35,11 +40,7 @@ public:
     static auto get_combinations(const std::vector<std::vector<int>>& chunk)
         -> std::vector<std::vector<int>>;
 
-    struct AnnotationChoice {
-        std::vector<int> combination;
-        std::vector<utl::ItemU8> characterSequence;
-    };
-    void setAnnotationChoices(const std::vector<AnnotationChoice>& choices);
+    void setAnnotationChoices(const std::map<CharacterSequence, Combination>& choices);
     void reannotate();
 
 private:
@@ -50,5 +51,6 @@ private:
     std::vector<Item> items;
     std::vector<std::vector<std::vector<int>>> chunks;
     std::vector<std::vector<ZH_dicItemVec>> candidates;
-    std::vector<AnnotationChoice> choices;
+
+    std::map<CharacterSequence, Combination> choices;
 };

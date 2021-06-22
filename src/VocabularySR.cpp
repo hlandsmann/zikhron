@@ -4,6 +4,7 @@
 #include <utils/Markup.h>
 #include <utils/StringU8.h>
 #include <algorithm>
+#include <chrono>
 #include <cmath>
 #include <ctime>
 #include <filesystem>
@@ -17,27 +18,44 @@
 #include <ranges>
 #include <set>
 #include <type_traits>
+
 namespace ranges = std::ranges;
 
 VocabularySR::~VocabularySR() {
     try {
         SaveProgress();
+        SaveAnnotationChoices();
     } catch (const std::exception& e) { std::cout << e.what() << "\n"; }
 }
 VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_dictionary)
     : cardDB(std::make_shared<CardDB>(std::move(_cardDB))), zh_dictionary(_zh_dictionary) {
     std::set<ZH_Annotator::Item> myDic;
 
+    LoadAnnotationChoices();
+    auto start = std::chrono::high_resolution_clock::now();
     GenerateFromCards();
+    auto gfc = std::chrono::high_resolution_clock::now();
     LoadProgress();
+    auto lp = std::chrono::high_resolution_clock::now();
     GenerateToRepeatWorkload();
+    auto gtr = std::chrono::high_resolution_clock::now();
+    namespace chrono = std::chrono;
+    using microseconds = std::chrono::microseconds;
+    fmt::print("Time for GenerateFromCards: {} \n",
+               chrono::duration_cast<microseconds>(gfc - start).count());
+    fmt::print("Time for LoadProgress: {} \n", chrono::duration_cast<microseconds>(lp - gfc).count());
+    fmt::print("Time for GenerateToRepeatWorkload: {} \n",
+               chrono::duration_cast<microseconds>(gtr - lp).count());
+    fmt::print("Time totally elapsed: {} \n", chrono::duration_cast<microseconds>(gtr - start).count());
 }
 
 void VocabularySR::GenerateFromCards() {
     const std::map<uint, CardDB::CardPtr>& cards = cardDB->get();
+
     for (const auto& [cardId, card] : cards) {
         utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
-        card->zh_annotator.emplace(card_text, zh_dictionary);
+
+        card->zh_annotator.emplace(card_text, zh_dictionary, annotationChoices);
 
         InsertVocabulary(card->zh_annotator.value().UniqueItems(), cardId);
     }
@@ -310,11 +328,18 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
 
 auto VocabularySR::addAnnotation(const std::vector<int>& combination,
                                  const std::vector<utl::ItemU8>& characterSequence) -> CardInformation {
-    ZH_Annotator::AnnotationChoice choice = {.combination = combination,
-                                             .characterSequence = characterSequence};
+    annotationChoices[characterSequence] = combination;
+
+    // std::vector<ZH_Annotator::AnnotationChoice> choices;
+    // ranges::transform(
+    //     annotationChoices,
+    //     std::back_inserter(choices),
+    //     [](const std::pair<CharacterSequence, Combination>& in) -> ZH_Annotator::AnnotationChoice {
+    //         return {.characterSequence = in.first, .combination = in.second};
+    //     });
 
     const auto& card = cardDB->get().at(activeCardId);
-    card->zh_annotator.value().setAnnotationChoices({choice});
+    card->zh_annotator.value().setAnnotationChoices(annotationChoices);
     card->zh_annotator.value().reannotate();
 
     return {std::unique_ptr<Card>(card->clone()),
@@ -388,14 +413,14 @@ void VocabularySR::setEaseLastCard(const Id_Ease_vt& id_ease) {
     id_cardSR[activeCardId].ViewNow();
 }
 
-void VocabularySR::SaveProgress() {
-    auto saveMetaFile = [](const std::string_view& fn, const nlohmann::json& js) {
-        namespace fs = std::filesystem;
-        fs::path fn_metaFile = fs::path(s_path_meta) / fn;
-        std::ofstream ofs(fn_metaFile);
-        ofs << js.dump(4);
-    };
+void VocabularySR::SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js) {
+    namespace fs = std::filesystem;
+    fs::path fn_metaFile = fs::path(s_path_meta) / fn;
+    std::ofstream ofs(fn_metaFile);
+    ofs << js.dump(4);
+}
 
+void VocabularySR::SaveProgress() {
     auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
         nlohmann::json jsonMeta = nlohmann::json::object();
         auto& content = jsonMeta[std::string(s_content)];
@@ -407,37 +432,55 @@ void VocabularySR::SaveProgress() {
     };
     std::filesystem::create_directory(s_path_meta);
 
-    // save file for VocableSR --------------------------------------------
-    nlohmann::json jsonVocSR = generateJsonFromMap(id_vocableSR);
-    saveMetaFile(s_fn_metaVocableSR, jsonVocSR);
+    try {
+        // save file for VocableSR --------------------------------------------
+        nlohmann::json jsonVocSR = generateJsonFromMap(id_vocableSR);
+        SaveJsonToFile(s_fn_metaVocableSR, jsonVocSR);
 
-    // save file for CardSR -----------------------------------------------
-    nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
-    saveMetaFile(s_fn_metaCardSR, jsonCardSR);
+        // save file for CardSR -----------------------------------------------
+        nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
+        SaveJsonToFile(s_fn_metaCardSR, jsonCardSR);
+    } catch (const std::exception& e) {
+        fmt::print("Saving of meta files failed. Error: {}\n", e.what());
+    }
+}
+
+void VocabularySR::SaveAnnotationChoices() {
+    try {
+        nlohmann::json array = nlohmann::json::array();
+        ranges::transform(annotationChoices,
+                          std::back_inserter(array),
+                          [](const std::pair<CharacterSequence, Combination>& choice) -> nlohmann::json {
+                              return {{"char_seq", choice.first}, {"combination", choice.second}};
+                          });
+        SaveJsonToFile(s_fn_annotationChoices, array);
+    } catch (const std::exception& e) {
+        fmt::print("Saving Annotation Choices failed with Error: {}\n", e.what());
+    }
+}
+
+auto VocabularySR::LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json {
+    namespace fs = std::filesystem;
+    fs::path fn_metaFile = fs::path(s_path_meta) / fn;
+    std::ifstream ifs(fn_metaFile);
+    return nlohmann::json::parse(ifs);
 }
 
 void VocabularySR::LoadProgress() {
-    auto loadJsonFromFile = [](const std::string_view& fn) -> nlohmann::json {
-        namespace fs = std::filesystem;
-        fs::path fn_metaFile = fs::path(s_path_meta) / fn;
-        std::ifstream ifs(fn_metaFile);
-        return nlohmann::json::parse(ifs);
-    };
-
     auto jsonToMap = [](auto& map, const nlohmann::json& jsonMeta) {
         const auto& content = jsonMeta.at(std::string(s_content));
         using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
         ranges::transform(content, std::inserter(map, map.begin()), &sr_t::fromJson);
     };
     try {
-        nlohmann::json jsonVocSR = loadJsonFromFile(s_fn_metaVocableSR);
+        nlohmann::json jsonVocSR = LoadJsonFromFile(s_fn_metaVocableSR);
         jsonToMap(id_vocableSR, jsonVocSR);
         fmt::print("Vocable SR file {} loaded!\n", s_fn_metaVocableSR);
     } catch (const std::exception& e) {
         fmt::print("Vocabulary SR load for {} failed! Exception {}", s_fn_metaVocableSR, e.what());
     }
     try {
-        nlohmann::json jsonCardSR = loadJsonFromFile(s_fn_metaCardSR);
+        nlohmann::json jsonCardSR = LoadJsonFromFile(s_fn_metaCardSR);
         jsonToMap(id_cardSR, jsonCardSR);
         fmt::print("Card SR file {} loaded!\n", s_fn_metaCardSR);
     } catch (const std::exception& e) {
@@ -445,6 +488,31 @@ void VocabularySR::LoadProgress() {
     }
 
     fmt::print("Vocables studied so far: {}, Cards viewed: {}\n", id_vocableSR.size(), id_cardSR.size());
+}
+
+void VocabularySR::LoadAnnotationChoices() {
+    try {
+        nlohmann::json choicesJson = LoadJsonFromFile(s_fn_annotationChoices);
+        ranges::transform(choicesJson,
+                          std::inserter(annotationChoices, annotationChoices.begin()),
+                          [](const nlohmann::json& choice) -> std::pair<CharacterSequence, Combination> {
+                              nlohmann::json char_seqJson = choice["char_seq"];
+                              nlohmann::json combinationJson = choice["combination"];
+                              CharacterSequence char_seq;
+                              Combination combination;
+                              ranges::transform(char_seqJson,
+                                                std::back_inserter(char_seq),
+                                                [](const nlohmann::json& character) -> utl::ItemU8 {
+                                                    return {std::string(character)};
+                                                });
+                              ranges::transform(combinationJson,
+                                                std::back_inserter(combination),
+                                                [](const nlohmann::json& c) -> int { return c; });
+                              return {char_seq, combination};
+                          });
+    } catch (const std::exception& e) {
+        fmt::print("Load of AnnotationChoice file failed, Error: {}\n", e.what());
+    }
 }
 
 void VocabularySR::GenerateToRepeatWorkload() {
