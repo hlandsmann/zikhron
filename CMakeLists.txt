@@ -50,4 +50,4 @@ set(SOURCE src/Application.cpp
            src/gui/card/Edit.cpp
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
-target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} fmt::fmt  gsl ${LINKER_FLAGS})
+target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} fmt::fmt  gsl tcmalloc profiler ${LINKER_FLAGS})
