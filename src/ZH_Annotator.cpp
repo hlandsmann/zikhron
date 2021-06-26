@@ -222,11 +222,15 @@ void ZH_Annotator::annotate() {
     }
 }
 
-void ZH_Annotator::setAnnotationChoices(const std::map<CharacterSequence, Combination>& _choices) {
+void ZH_Annotator::SetAnnotationChoices(const std::map<CharacterSequence, Combination>& _choices) {
     choices = _choices;
 }
 
-void ZH_Annotator::reannotate() {
+void ZH_Annotator::Reannotate() {
     items.clear();
     annotate();
+}
+
+auto ZH_Annotator::ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool {
+    return not ranges::search(std::span(text.cbegin(), text.cend()), charSeq).empty();
 }

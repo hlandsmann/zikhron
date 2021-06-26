@@ -26,6 +26,8 @@ CardDisplay {
     function rowEaseRefresh() {
         buttonTable.names = []
         buttonTable.names = ["again", "hard", "good", "easy"]
+        buttonTable.vocPositions = []
+        buttonTable.vocPositions = cardDisplay.vocPositions
     }
 
     onTextUpdate: {
@@ -93,16 +95,22 @@ CardDisplay {
 
             font.pointSize: 20
             color:          settingsCard.cardFontColor
-
+            onPaintedWidthChanged: {
+                rowEaseRefresh()
+            }
+            onPaintedHeightChanged: {
+                rowEaseRefresh()
+            }
         }
         Item {
             id: buttonTable
             property var names: []
+            property var vocPositions: []
 
             visible: vocables.visible
             y: vocables.y
             x: vocables.paintedWidth + vocables.leftPadding + vocables.rightPadding
-            Repeater { model: cardDisplay.vocPositions.length
+            Repeater { model: buttonTable.vocPositions.length
                 RowLayout{
                     property var rect: vocables.positionToRectangle(cardDisplay.vocPositions[index])
                     property int indexVocable : index

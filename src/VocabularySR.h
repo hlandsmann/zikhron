@@ -87,6 +87,7 @@ private:
     auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
     void InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId);
+    void EraseVocabulary(uint cardId);
     static void SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js);
     void SaveProgress();
     void SaveAnnotationChoices();
@@ -94,6 +95,7 @@ private:
     void LoadProgress();
     void LoadAnnotationChoices();
     void GenerateToRepeatWorkload();
+    void CleanUpVocables();
 
     // Get vocables that would need to be learned with this current cardId
     auto GetRelevantVocables(uint cardId) -> Item_Id_vt;
@@ -125,6 +127,7 @@ private:
 
     uint countOfNewVocablesToday = 0;
     uint activeCardId{};
+    bool getCardNeedsCleanup = false;
 
     using CharacterSequence = std::vector<utl::ItemU8>;
     using Combination = std::vector<int>;

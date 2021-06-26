@@ -40,8 +40,9 @@ public:
     static auto get_combinations(const std::vector<std::vector<int>>& chunk)
         -> std::vector<std::vector<int>>;
 
-    void setAnnotationChoices(const std::map<CharacterSequence, Combination>& choices);
-    void reannotate();
+    void SetAnnotationChoices(const std::map<CharacterSequence, Combination>& choices);
+    void Reannotate();
+    auto ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool;
 
 private:
     void annotate();

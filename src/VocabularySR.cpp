@@ -47,6 +47,36 @@ VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_
     fmt::print("Time for GenerateToRepeatWorkload: {} \n",
                chrono::duration_cast<microseconds>(gtr - lp).count());
     fmt::print("Time totally elapsed: {} \n", chrono::duration_cast<microseconds>(gtr - start).count());
+
+    CleanUpVocables();
+}
+
+void VocabularySR::CleanUpVocables() {
+    std::set<uint> badVocableIds;
+    std::set<uint> activeVocableIds;
+
+    auto seenCards = id_cardMeta | std::views::filter([this](std::pair<uint, CardMeta> id_cm) {
+                         return ranges::set_difference(id_cm.second.vocableIds,
+                                                       id_vocableSR | std::views::keys,
+                                                       counting_iterator{})
+                                    .out.count == 0;
+                     });
+
+    for (const auto& [id, card] : seenCards) {
+        activeVocableIds.insert(card.vocableIds.begin(), card.vocableIds.end());
+    }
+    ranges::set_difference(id_vocableSR | std::views::keys,
+                           activeVocableIds,
+                           std::inserter(badVocableIds, badVocableIds.begin()));
+    for (uint id : badVocableIds) {
+        fmt::print("Erasing id: {} - key: {}\n",
+                   id,
+                   id_vocable.find(id) != id_vocable.end() ? id_vocable[id].front().key : "");
+        id_vocableSR.erase(id);
+        ids_repeatTodayVoc.erase(id);
+        ids_againVoc.erase(id);
+        ids_nowVoc.erase(id);
+    }
 }
 
 void VocabularySR::GenerateFromCards() {
@@ -130,6 +160,15 @@ void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVoca
         }
     }
     cm.cardId = cardId;
+}
+
+void VocabularySR::EraseVocabulary(uint cardId) {
+    CardMeta& cm = id_cardMeta.at(cardId);
+    for (uint vocId : cm.vocableIds) {
+        auto& vocable = id_vocableMeta.at(vocId);
+        vocable.cardIds.erase(cardId);
+    }
+    cm.vocableIds.clear();
 }
 
 auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
@@ -279,6 +318,12 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
     return cm.cardId;
 }
 auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt> {
+    if (getCardNeedsCleanup) {
+        getCardNeedsCleanup = false;
+        fmt::print("Cleaning up vocables .......\n");
+        CleanUpVocables();
+    }
+
     std::set<uint> toRepeatVoc;
     ranges::copy_if(ids_againVoc, std::inserter(toRepeatVoc, toRepeatVoc.begin()), [&](uint id) {
         return id_vocableSR.at(id).pauseTimeOver();
@@ -330,18 +375,24 @@ auto VocabularySR::addAnnotation(const std::vector<int>& combination,
                                  const std::vector<utl::ItemU8>& characterSequence) -> CardInformation {
     annotationChoices[characterSequence] = combination;
 
-    // std::vector<ZH_Annotator::AnnotationChoice> choices;
-    // ranges::transform(
-    //     annotationChoices,
-    //     std::back_inserter(choices),
-    //     [](const std::pair<CharacterSequence, Combination>& in) -> ZH_Annotator::AnnotationChoice {
-    //         return {.characterSequence = in.first, .combination = in.second};
-    //     });
+    std::set<uint> cardsWithCharSeq;
+
+    for (const auto& [id, cardPtr] : cardDB->get()) {
+        if (cardPtr->zh_annotator.value().ContainsCharacterSequence(characterSequence))
+            cardsWithCharSeq.insert(id);
+    }
+    fmt::print("relevant cardIds: {}\n", fmt::join(cardsWithCharSeq, ","));
+
+    for (uint cardId : cardsWithCharSeq) {
+        auto& cardPtr = cardDB->get().at(cardId);
+        cardPtr->zh_annotator.value().SetAnnotationChoices(annotationChoices);
+        cardPtr->zh_annotator.value().Reannotate();
+        EraseVocabulary(cardId);
+        InsertVocabulary(cardPtr->zh_annotator.value().UniqueItems(), cardId);
+    }
+    getCardNeedsCleanup = true;
 
     const auto& card = cardDB->get().at(activeCardId);
-    card->zh_annotator.value().setAnnotationChoices(annotationChoices);
-    card->zh_annotator.value().reannotate();
-
     return {std::unique_ptr<Card>(card->clone()),
             GetRelevantVocables(activeCardId),
             GetRelevantEase(activeCardId)};
