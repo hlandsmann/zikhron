@@ -88,7 +88,6 @@ CardDisplay {
             Layout.preferredWidth: parent.width / 2
             Layout.preferredHeight: parent.height - cardText.paintedHeight
             readOnly: true
-
             textFormat: Text.RichText
             text: "Hello World"
             wrapMode: TextArea.WordWrap

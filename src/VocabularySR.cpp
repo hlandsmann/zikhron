@@ -27,6 +27,7 @@ VocabularySR::~VocabularySR() {
         SaveAnnotationChoices();
     } catch (const std::exception& e) { std::cout << e.what() << "\n"; }
 }
+
 VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_dictionary)
     : cardDB(std::make_shared<CardDB>(std::move(_cardDB))), zh_dictionary(_zh_dictionary) {
     std::set<ZH_Annotator::Item> myDic;
@@ -112,11 +113,7 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
 
     const auto& setVocIdThis = cm.vocableIds;
 
-    count += pow(
-        std::set_intersection(
-            setVocIdThis.begin(), setVocIdThis.end(), good.begin(), good.end(), counting_iterator{})
-            .count,
-        2);
+    count += pow(ranges::set_intersection(setVocIdThis, good, counting_iterator{}).out.count, 2);
 
     if (cardIdsSharedVoc.empty())
         return 1.;
@@ -127,11 +124,7 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
 auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
                                                   const std::set<uint>& neutral) const -> float {
     std::set<uint> diff;
-    std::set_difference(cm.vocableIds.begin(),
-                        cm.vocableIds.end(),
-                        neutral.begin(),
-                        neutral.end(),
-                        std::inserter(diff, diff.begin()));
+    ranges::set_difference(cm.vocableIds, neutral, std::inserter(diff, diff.begin()));
     int relevance = 0;
     for (uint vocId : diff) {
         relevance += id_vocableMeta.at(vocId).cardIds.size();
@@ -249,7 +242,7 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
     std::map<uint, intersections> candidates;
 
     constexpr int maxNewPerCard = 4;
-    constexpr int maxRepeatPerNewCard = 6;
+    constexpr int maxRepeatPerNewCard = 2;
 
     for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
 

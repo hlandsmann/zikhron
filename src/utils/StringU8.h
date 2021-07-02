@@ -28,9 +28,7 @@ public:
     auto vLength() const -> size_t { return virtualLength; }
     auto isMarkup() const -> bool { return markup; }
     auto operator<=>(const ItemU8& other) const -> std::weak_ordering { return str <=> other.str; };
-
-    // ToDo: doing something wrong with the spaceship operator - problems with ranges::find
-    auto operator==(const ItemU8& other) const -> bool { return str == other.str; }
+    auto operator==(const ItemU8& other) const -> bool = default;
 
 private:
     std::string str;

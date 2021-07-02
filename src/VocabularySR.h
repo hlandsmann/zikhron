@@ -6,6 +6,7 @@
 #include <utils/StringU8.h>
 #include <iosfwd>
 #include <nlohmann/json_fwd.hpp>
+#include <thread>
 
 class CardDB;
 class Card;
@@ -59,6 +60,16 @@ struct CardSR {
     void ViewNow();
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
+};
+
+class VocabluarySR_TreeWalker {
+public:
+    VocabluarySR_TreeWalker();
+    ~VocabluarySR_TreeWalker();
+
+private:
+    std::thread worker;
+    bool running = true;
 };
 
 class VocabularySR {
@@ -132,6 +143,7 @@ private:
     using CharacterSequence = std::vector<utl::ItemU8>;
     using Combination = std::vector<int>;
     std::map<CharacterSequence, Combination> annotationChoices;
+    VocabluarySR_TreeWalker treeWalker;
 };
 
 struct counting_iterator {

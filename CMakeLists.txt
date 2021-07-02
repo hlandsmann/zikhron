@@ -13,7 +13,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # set(CMAKE_C_COMPILER clang)
 
 set(CXX_WARNINGLEVEL "-Wall -Wextra -Wshadow -Wno-class-memaccess")
-set(CMAKE_CXX_FLAGS "-std=c++20 -pedantic -march=native -O2 -g3 ${CXX_WARNINGLEVEL}")
+set(CMAKE_CXX_FLAGS "-std=c++20 -pthread -pedantic -march=native -O2 -g3 ${CXX_WARNINGLEVEL}")
 set(LINKER_FLAGS "-Wl,--gc-sections,--relax")
 
 set(EXTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/third_party)
@@ -40,6 +40,7 @@ set(SOURCE src/Application.cpp
            src/TextCard.cpp
            src/VocabularySR.cpp
            src/VocabularySR_misc.cpp
+           src/VocabularySR_TreeWalker.cpp
            src/ZH_Dictionary.cpp
            src/ZH_Annotator.cpp
            src/DataThread.cpp
@@ -50,4 +51,4 @@ set(SOURCE src/Application.cpp
            src/gui/card/Edit.cpp
            )
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
-target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} fmt::fmt  gsl tcmalloc profiler ${LINKER_FLAGS})
+target_link_libraries(${PROJECT_NAME} ${ICU_LIBRARIES} ${QML_LIBRARIES} fmt::fmt  gsl tcmalloc profiler pthread ${LINKER_FLAGS})
