@@ -68,8 +68,7 @@ public:
     ~VocabluarySR_TreeWalker();
 
 private:
-    std::thread worker;
-    bool running = true;
+    std::jthread worker;
 };
 
 class VocabularySR {
