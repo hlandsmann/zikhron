@@ -64,11 +64,23 @@ struct CardSR {
 
 class VocabluarySR_TreeWalker {
 public:
-    VocabluarySR_TreeWalker();
-    ~VocabluarySR_TreeWalker();
+    VocabluarySR_TreeWalker(const std::map<uint, VocableSR>&,
+                            const std::map<uint, CardMeta>&,
+                            const std::map<uint, VocableMeta>&);
+    ~VocabluarySR_TreeWalker() = default;
 
 private:
+    struct Group {
+        std::map<uint, VocableMeta> id_vocMeta{};
+        std::map<uint, CardMeta> id_cardMeta{};
+    };
+    auto SplitGroup(const Group& group) -> std::vector<Group>;
+    void ProcessGroup(Group& group);
     std::jthread worker;
+
+    std::map<uint, VocableSR> id_vocableSR;
+    std::map<uint, CardMeta> id_cardMeta;
+    std::map<uint, VocableMeta> id_vocableMeta;
 };
 
 class VocabularySR {
@@ -142,7 +154,7 @@ private:
     using CharacterSequence = std::vector<utl::ItemU8>;
     using Combination = std::vector<int>;
     std::map<CharacterSequence, Combination> annotationChoices;
-    VocabluarySR_TreeWalker treeWalker;
+    std::unique_ptr<VocabluarySR_TreeWalker> treeWalker;
 };
 
 struct counting_iterator {

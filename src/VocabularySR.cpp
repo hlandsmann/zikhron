@@ -50,6 +50,7 @@ VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_
     fmt::print("Time totally elapsed: {} \n", chrono::duration_cast<microseconds>(gtr - start).count());
 
     CleanUpVocables();
+    treeWalker = std::make_unique<VocabluarySR_TreeWalker>(id_vocableSR, id_cardMeta, id_vocableMeta);
 }
 
 void VocabularySR::CleanUpVocables() {
