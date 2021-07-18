@@ -4,6 +4,7 @@
 #include <ZH_Annotator.h>
 #include <ZH_Dictionary.h>
 #include <utils/StringU8.h>
+#include <cppcoro/generator.hpp>
 #include <iosfwd>
 #include <nlohmann/json_fwd.hpp>
 #include <thread>
@@ -76,6 +77,9 @@ private:
     };
     auto SplitGroup(const Group& group) -> std::vector<Group>;
     void ProcessGroup(Group& group);
+    auto OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId)
+        -> cppcoro::generator<uint>;
+    auto CardsBestSize(const std::map<uint, CardMeta>& id_cm) -> cppcoro::generator<uint>;
     std::jthread worker;
 
     std::map<uint, VocableSR> id_vocableSR;
@@ -179,5 +183,4 @@ struct counting_iterator {
     struct black_hole {
         void operator=(uint) {}
     };
-    // black_hole operator*() { return black_hole(); }
 };
