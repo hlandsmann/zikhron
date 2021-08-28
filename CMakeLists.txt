@@ -1,43 +1,22 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.19)
 project(zikhron)
-
-include(FindPkgConfig)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# set(CMAKE_SYSTEM_NAME Generic)
-# set(CMAKE_SYSTEM_VERSION 1)
-# set(CMAKE_CXX_COMPILER g++)
-# set(CMAKE_C_COMPILER gcc)
-# #set(CMAKE_CXX_COMPILER g++-10.2.0)
-# set(CMAKE_CXX_COMPILER clang++)
-# set(CMAKE_C_COMPILER clang)
-
-set(CXX_WARNINGLEVEL "-Wall -Wextra -Wshadow -Wno-class-memaccess")
-set(CMAKE_CXX_FLAGS "-std=c++20 -pthread -pedantic -march=native -O2 -g3 ${CXX_WARNINGLEVEL}")
-set(LINKER_FLAGS "-Wl,--gc-sections,--relax")
-
-set(EXTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/third_party)
-set(PROJECT_INCLUDES ${PROJECT_SOURCE_DIR}/src)
-include_directories(${EXTERNAL_INCLUDES}
-                    ${PROJECT_INCLUDES}
-
-                    )
+include(FindPkgConfig)
 
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 REQUIRED Qml Quick Gui QuickControls2)
 qt5_add_resources(qml_QRC src/QML/qml.qrc)
 set(QML_LIBRARIES Qt5::Qml Qt5::Quick Qt5::QuickControls2)
 
-add_subdirectory(third_party/cppcoro)
-
-add_subdirectory(${EXTERNAL_INCLUDES}/fmt)
-set_target_properties(fmt PROPERTIES
-    INTERFACE_INCLUDE_DIRECTORIES "${EXTERNAL_INCLUDES}/fmt/include")
+add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/cppcoro)
+add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/fmt)
 
 pkg_search_module(ICU_UC REQUIRED icu-uc)
 pkg_search_module(ICU_IO REQUIRED icu-io)
 set(ICU_LIBRARIES "${ICU_UC_LIBRARIES}" "${ICU_IO_LIBRARIES}")
 
+set(PROJECT_INCLUDES ${PROJECT_SOURCE_DIR}/src)
 set(SOURCE src/Application.cpp
            src/TextCard.cpp
            src/VocabularySR.cpp
@@ -51,13 +30,17 @@ set(SOURCE src/Application.cpp
            src/gui/card/Annotate.cpp
            src/gui/card/Display.cpp
            src/gui/card/Edit.cpp
-           )
+)
 add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
 target_link_libraries(${PROJECT_NAME}
-    ${ICU_LIBRARIES}
-    ${QML_LIBRARIES}
-    fmt::fmt
-    gsl tcmalloc profiler
-    pthread
-    cppcoro
-    ${LINKER_FLAGS})
+                      PRIVATE
+                        ${ICU_LIBRARIES}
+                        ${QML_LIBRARIES}
+                        fmt::fmt
+                        gsl tcmalloc profiler
+                        pthread
+                        cppcoro
+)
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
+target_link_options(${PROJECT_NAME} PRIVATE LINKER:--gc-sections,--relax)
+target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})

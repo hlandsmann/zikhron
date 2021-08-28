@@ -20,7 +20,7 @@
             "options": {
                 "cwd": "${workspaceRoot}"
             },
-            "command": "cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug",
+            "command": "cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug --preset=default",
         },
         {
             "label": "make",
