@@ -95,6 +95,10 @@ bool VocableSR::advanceIndirectly() {
     return advanceIntervalDay;
 }
 
+auto VocableSR::urgency() const -> float {
+    return (easeFactor * intervalDay) + float(indirectIntervalDay);
+}
+
 auto VocableSR::pauseTimeOver() const -> bool {
     std::tm last = *std::localtime(&lastSeen);
     last.tm_min += pause_time_minutes;

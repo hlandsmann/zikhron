@@ -42,6 +42,7 @@ struct VocableSR {
 
     void advanceByEase(Ease);
     bool advanceIndirectly();
+    auto urgency() const -> float;
     auto pauseTimeOver() const -> bool;
     auto isToBeRepeatedToday() const -> bool;
     auto isAgainVocable() const -> bool;
@@ -78,8 +79,12 @@ private:
     auto SplitGroup(const Group& group) -> std::vector<Group>;
     void ProcessGroup(Group& group);
     auto OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId)
-        -> cppcoro::generator<uint>;
-    auto CardsBestSize(const std::map<uint, CardMeta>& id_cm) -> cppcoro::generator<uint>;
+        -> std::set<uint>;
+
+    using IdCardMeta_vec = std::vector<std::pair<uint, CardMeta>>;
+    auto CardsBestSize(const std::map<uint, CardMeta>& id_cm) -> IdCardMeta_vec;
+    auto RefinedCards(const IdCardMeta_vec&) -> IdCardMeta_vec;
+
     std::jthread worker;
 
     std::map<uint, VocableSR> id_vocableSR;

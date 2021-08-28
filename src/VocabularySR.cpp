@@ -3,6 +3,7 @@
 #include <fmt/ostream.h>
 #include <utils/Markup.h>
 #include <utils/StringU8.h>
+#include <utils/min_element_val.h>
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -167,7 +168,7 @@ void VocabularySR::EraseVocabulary(uint cardId) {
 
 auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
     struct intersect_view {
-        size_t countIntersect{};
+        std::set<uint> intersectToday{};
         size_t countIntersectionNow{};
 
         uint viewCount{};
@@ -179,17 +180,18 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
                 .out.count;
         if (count_union != id_vocableSR.size())
             continue;
-        size_t count_intersect = ranges::set_intersection(
-                                     ids_repeatTodayVoc, cardMeta.vocableIds, counting_iterator{})
-                                     .out.count;
+        std::set<uint> intersectToday;
+        ranges::set_intersection(ids_repeatTodayVoc,
+                                 cardMeta.vocableIds,
+                                 std::inserter(intersectToday, intersectToday.begin()));
         size_t count_now =
             ranges::set_intersection(ids_nowVoc, cardMeta.vocableIds, counting_iterator{}).out.count;
-        if (count_intersect == 0 && count_now == 0)
+        if (intersectToday.empty() && count_now == 0)
             continue;
         uint view_count{};
         if (const auto& it = id_cardSR.find(id); it != id_cardSR.end())
             view_count = it->second.viewCount;
-        candidates[id] = {.countIntersect = count_intersect,
+        candidates[id] = {.intersectToday = intersectToday,
                           .countIntersectionNow = count_now,
                           .viewCount = view_count};
     }
@@ -211,15 +213,26 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
             return a_it > b_it;
         return a > b;
     };
-
+    auto urgency = [this](uint vocId) { return id_vocableSR.at(vocId).urgency(); };
     return ranges::max_element(
                candidates,
-               [preferedQuantity](const intersect_view& a, const intersect_view& b) {
+               [&preferedQuantity, &urgency](const intersect_view& a, const intersect_view& b) {
                    if (a.countIntersectionNow != b.countIntersectionNow)
                        return a.countIntersectionNow < b.countIntersectionNow;
-
-                   if (a.countIntersect != b.countIntersect)
-                       return preferedQuantity(a.countIntersect, b.countIntersect);
+                   if (a.intersectToday.size() <= 5 && b.intersectToday.size() <= 5) {
+                       float a_urgency = utl::min_element_val(a.intersectToday,
+                                                              std::numeric_limits<float>::infinity(),
+                                                              ranges::less{},
+                                                              urgency);
+                       float b_urgency = utl::min_element_val(b.intersectToday,
+                                                              std::numeric_limits<float>::infinity(),
+                                                              ranges::less{},
+                                                              urgency);
+                       if ((a_urgency <= 5 || b_urgency <= 5) && a_urgency != b_urgency)
+                           return a_urgency > b_urgency;
+                   }
+                   if (a.intersectToday.size() != b.intersectToday.size())
+                       return preferedQuantity(a.intersectToday.size(), b.intersectToday.size());
 
                    return a.viewCount > b.viewCount;
                },

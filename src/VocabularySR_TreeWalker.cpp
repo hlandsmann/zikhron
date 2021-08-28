@@ -1,17 +1,20 @@
 #include <fmt/format.h>
+#include <utils/min_element_val.h>
 #include <algorithm>
 #include <chrono>
 #include <cppcoro/generator.hpp>
 #include <cppcoro/recursive_generator.hpp>
+#include <limits>
 #include <ranges>
 
 #include "VocabularySR.h"
 namespace ranges = std::ranges;
 
-template <class T> auto PopFront(std::set<T>& set) -> cppcoro::generator<T> {
+template <class Key, class Compare = std::less<Key>>
+auto PopFront(std::set<Key, Compare>& set) -> cppcoro::generator<Key> {
     while (not set.empty()) {
         auto nextIt = set.begin();
-        T next = *nextIt;
+        Key next = *nextIt;
         set.erase(nextIt);
         co_yield next;
     }
@@ -27,6 +30,16 @@ template <class T> auto EachOnce(std::set<T>& set) -> cppcoro::generator<T> {
             }
         }
     }
+}
+
+template <class T> auto AtMostTake(const std::set<T>& set, uint counter) -> std::set<T> {
+    std::set<T> result;
+    for (auto elem : set) {
+        if (counter-- == 0)
+            break;
+        result.insert(elem);
+    }
+    return result;
 }
 
 auto VocabluarySR_TreeWalker::SplitGroup(const Group& group) -> std::vector<Group> {
@@ -140,18 +153,19 @@ VocabluarySR_TreeWalker::VocabluarySR_TreeWalker(const std::map<uint, VocableSR>
 }
 
 auto VocabluarySR_TreeWalker::OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId)
-    -> cppcoro::generator<uint> {
+    -> std::set<uint> {
+    std::set<uint> result;
     const auto& cm = id_cm.at(cardId);
     for (uint vocId : cm.vocableIds) {
         for (uint _cardId : id_vocableMeta.at(vocId).cardIds)
-            if (_cardId != cardId)
-                co_yield _cardId;
+            if (_cardId != cardId && id_cm.contains(_cardId))
+                result.insert(_cardId);
     }
+    return result;
 }
 
-struct preferedQuantity {
+template <std::array quantity> struct preferedQuantity {
     auto operator()(uint a, uint b) const -> bool {
-        const std::array quantity = {4, 3, 5, 2, 6};
         const auto a_it = ranges::find(quantity, a);
         const auto b_it = ranges::find(quantity, b);
         if (a_it != b_it)
@@ -161,10 +175,30 @@ struct preferedQuantity {
 };
 
 auto VocabluarySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_cm)
-    -> cppcoro::generator<uint> {
-    std::set<uint> evaluateCardIds;
+    -> std::vector<std::pair<uint, CardMeta>> {
+    std::vector<std::pair<uint, CardMeta>> result;
+    std::map<uint, uint> length_count;
+
     std::set<uint> setVocs;
-    std::map<uint, std::set<uint>, preferedQuantity> length_cardIds;
+
+    auto compare_by_urgency = [&id_cm, &setVocs, this](uint a, uint b) {
+        auto urgency = [&setVocs, this](uint vocId) {
+            if (setVocs.contains(vocId))
+                return std::numeric_limits<float>::infinity();
+            return id_vocableSR.at(vocId).urgency();
+        };
+        float a_urgency = utl::min_element_val(
+            id_cm.at(a).vocableIds, std::numeric_limits<float>::infinity(), ranges::less{}, urgency);
+        float b_urgency = utl::min_element_val(
+            id_cm.at(b).vocableIds, std::numeric_limits<float>::infinity(), ranges::less{}, urgency);
+        if (a_urgency == b_urgency)
+            return a < b;
+        return a_urgency < b_urgency;
+    };
+
+    std::set<uint> evaluateCardIds;
+    using myPreferedQuantity = preferedQuantity<{4, 3, 5, 2, 6}>;
+    std::map<uint, std::set<uint, decltype(compare_by_urgency)>, myPreferedQuantity> length_cardIds;
 
     auto lengthOfCard = [&](uint cardId) {
         return ranges::set_difference(id_cm.at(cardId).vocableIds, setVocs, counting_iterator{})
@@ -192,7 +226,9 @@ auto VocabluarySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_c
                     }
                     length_cardIds.at(countNewVocs).erase(_cardId);
                     evaluateCardIds.insert(_cardId);
-                } catch (...) { fmt::print("Happened here: {}\n", countNewVocs); }
+                } catch (const std::exception& e) {
+                    fmt::print("Happened here: {}, what: {}\n", countNewVocs, e.what());
+                }
             }
         };
 
@@ -202,7 +238,9 @@ auto VocabluarySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_c
         for (const uint cardId : evaluateCardIds) {
             uint countNewVocs = lengthOfCard(cardId);
             if (countNewVocs != 0) {
-                length_cardIds[countNewVocs].insert(cardId);
+                if (not length_cardIds.contains(countNewVocs))
+                    length_cardIds.emplace(countNewVocs, compare_by_urgency);
+                length_cardIds.at(countNewVocs).insert(cardId);
                 assert(length_cardIds.at(countNewVocs).contains(cardId));
             }
         }
@@ -217,71 +255,164 @@ auto VocabluarySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_c
         });
 
         if (length_cardIds.empty())
-            co_return;
+            break;
 
         auto& [length, cardIds] = *length_cardIds.begin();
         for (uint cardId : PopFront(cardIds)) {
             removeOtherCardsWithVocables(cardId);
-            auto loc = lengthOfCard(cardId);
-            ranges::copy(id_cm.at(cardId).vocableIds, std::inserter(setVocs, setVocs.begin()));
-            co_yield cardId;
-            fmt::print("SetVocSize: {}, length: {}, loc: {}\n",
-                       setVocs.size(),
-                       length,
-                       id_cm.at(cardId).vocableIds.size());
+            auto& cardMeta = id_cm.at(cardId);
+            ranges::copy(cardMeta.vocableIds, std::inserter(setVocs, setVocs.begin()));
+            result.emplace_back(cardId, cardMeta);
+            // fmt::print("SetVocSize: {}, length: {}, loc: {}\n",
+            //            setVocs.size(),
+            //            length,
+            //            cardMeta.vocableIds.size());
+            length_count[length]++;
+
             if (ranges::any_of(OtherCardsWithVocables(id_cm, cardId),
                                [&id_cm, &setVocs, &lengthOfCard, length](uint _cardId) {
                                    uint countNewVocs = lengthOfCard(_cardId);
                                    if (countNewVocs == 0)
                                        return false;
-                                   return preferedQuantity{}(countNewVocs, length);
+                                   return myPreferedQuantity{}(countNewVocs, length);
                                }))
                 break;
         }
     }
+    fmt::print("SetVocs size: {}\n", setVocs.size());
+    for (auto [length, count] : length_count) {
+        fmt::print("VocSize: {}, count: {}\n", length, count);
+    }
+
+    return result;
+}
+
+auto VocabluarySR_TreeWalker::RefinedCards(const std::vector<std::pair<uint, CardMeta>>& _id_cm)
+    -> std::vector<std::pair<uint, CardMeta>> {
+    std::map<uint, uint> length_count;
+    std::vector<std::pair<uint, CardMeta>> result;
+    std::map<uint, CardMeta> id_cm;
+    ranges::copy(_id_cm, std::inserter(id_cm, id_cm.begin()));
+
+    using myPreferedQuantity = preferedQuantity<{4, 3, 2, 1}>;
+
+    std::set<uint> setVocs;
+    auto notInSetVocs = [&setVocs](uint vocId) { return not setVocs.contains(vocId); };
+    auto lengthOfCard = [&](uint cardId) {
+        return ranges::count_if(id_cm.at(cardId).vocableIds, notInSetVocs);
+    };
+    auto urgency = [this](uint vocId) { return id_vocableSR.at(vocId).urgency(); };
+    auto card_minUrgency = [&urgency, &notInSetVocs, &id_cm](uint cardId) {
+        return utl::min_element_val(id_cm.at(cardId).vocableIds | std::views::filter(notInSetVocs),
+                                    std::numeric_limits<float>::infinity(),
+                                    ranges::less{},
+                                    urgency);
+    };
+    auto card_avgUrgency = [&urgency, &notInSetVocs, &id_cm](uint cardId) {
+        auto rng = id_cm.at(cardId).vocableIds | std::views::filter(notInSetVocs);
+        int counter = 0;
+        float sum = std::accumulate(
+            ranges::begin(rng), ranges::end(rng), 0., [&counter, &urgency](float a, uint b) {
+                counter++;
+                return a + urgency(b);
+            });
+        if (counter == 0)
+            return std::numeric_limits<float>::infinity();
+        return sum / float(counter);
+    };
+    auto compare_by_value = [&, this](uint cardIdA, uint cardIdB) {
+        if (auto [a, b] = std::pair(lengthOfCard(cardIdA), lengthOfCard(cardIdB)); a != b)
+            return myPreferedQuantity{}(a, b);
+        if (auto [a, b] = std::pair(card_minUrgency(cardIdA), card_minUrgency(cardIdB)); a != b)
+            return a < b;
+        if (auto [a, b] = std::pair(card_avgUrgency(cardIdA), card_avgUrgency(cardIdB)); a != b)
+            return a < b;
+        return cardIdA < cardIdB;
+    };
+
+    std::set<uint> evaluateCardIds;
+    std::set<uint, decltype(compare_by_value)> cid_wip(compare_by_value);
+    ranges::copy(_id_cm | std::views::keys, std::inserter(cid_wip, cid_wip.begin()));
+
+    auto removeOtherCardsWithVocables =
+        [this, &cid_wip, &id_cm, &setVocs, &evaluateCardIds, &lengthOfCard](uint cardId) {
+            for (uint _cardId : OtherCardsWithVocables(id_cm, cardId)) {
+                uint countNewVocs = lengthOfCard(_cardId);
+                if (countNewVocs == 0)
+                    continue;
+                if (not evaluateCardIds.contains(_cardId)) {
+                    if (cid_wip.contains(_cardId)) {
+                        cid_wip.erase(_cardId);
+                        evaluateCardIds.insert(_cardId);
+                    }
+                }
+            }
+        };
+    while (true) {
+        ranges::copy(evaluateCardIds, std::inserter(cid_wip, cid_wip.begin()));
+        evaluateCardIds.clear();
+        for (uint cardId : PopFront(cid_wip)) {
+            if (lengthOfCard(cardId) == 0)
+                continue;
+            if (ranges::any_of(evaluateCardIds,
+                               [&cardId, &compare_by_value, &lengthOfCard](uint _cardId) {
+                                   if (lengthOfCard(_cardId) == 0)
+                                       return false;
+                                   if (lengthOfCard(cardId) > 4)
+                                       return compare_by_value(_cardId, cardId);
+                                   return false;
+                               })) {
+                evaluateCardIds.insert(cardId);
+                break;
+            }
+
+            length_count[lengthOfCard(cardId)]++;
+
+            removeOtherCardsWithVocables(cardId);
+            auto& cardMeta = id_cm.at(cardId);
+            ranges::copy(cardMeta.vocableIds, std::inserter(setVocs, setVocs.begin()));
+            result.emplace_back(cardId, cardMeta);
+        }
+        if (evaluateCardIds.empty() && cid_wip.empty())
+            break;
+    }
+    fmt::print("SetVocs size: {}\n", setVocs.size());
+    int stopAt = 0;
+    setVocs.clear();
+    for (const auto& [cardId, cardMeta] : result) {
+        fmt::print("Length: {}, minUrgency: {}, avgUrgency: {} \n",
+                   lengthOfCard(cardId),
+                   card_minUrgency(cardId),
+                   card_avgUrgency(cardId));
+        if (stopAt++ > 10)
+            break;
+        ranges::copy(cardMeta.vocableIds, std::inserter(setVocs, setVocs.begin()));
+    }
+    for (auto [length, count] : length_count) {
+        fmt::print("VocSize: {}, count: {}\n", length, count);
+    }
+    return result;
 }
 
 auto cardsPrepending(uint vocId,
                      const std::map<uint, uint>& vocId_cardId,
                      const std::map<uint, CardMeta>& id_cm,
-                     const std::set<uint>& setVocs) -> cppcoro::recursive_generator<uint> {
-    // std::set<uint> necessaryVocs;
-    std::set<uint> yieldedCards;
-    uint cardIdGoal = vocId_cardId.at(vocId);
-    const auto& vocIds = id_cm.at(cardIdGoal).vocableIds;
-    for (uint vidNow : vocIds) {
-        if (vocId_cardId.at(vidNow) != cardIdGoal) {
-            for (uint cid : cardsPrepending(vidNow, vocId_cardId, id_cm, setVocs)) {
-                if (not yieldedCards.contains(cid)) {
-                    yieldedCards.insert(cid);
-                    co_yield cid;
-                }
-            }
-        }
-    }
-    co_yield cardIdGoal;
-}
-
-auto cardsPrepending2(uint vocId,
-                      const std::map<uint, uint>& vocId_cardId,
-                      const std::map<uint, CardMeta>& id_cm,
-                      const std::set<uint>& setVocs) -> cppcoro::generator<uint> {
+                     const std::set<uint>& setVocs) -> std::set<uint> {
     std::set<uint> necessaryVocs;
-    std::set<uint> yieldedCards;
+    std::set<uint> result;
     std::set<uint> cardsInProgress;
     uint cardIdGoal = vocId_cardId.at(vocId);
     cardsInProgress.insert(cardIdGoal);
     for (uint cardId : PopFront(cardsInProgress)) {
-        yieldedCards.insert(cardId);
+        result.insert(cardId);
         const auto& vocIds = id_cm.at(cardId).vocableIds;
         for (uint vidNow : vocIds) {
             uint nextCard = vocId_cardId.at(vidNow);
-            if (not yieldedCards.contains(nextCard))
+            if (not result.contains(nextCard))
                 cardsInProgress.insert(nextCard);
         }
     }
-    for (uint cardId : yieldedCards)
-        co_yield cardId;
+    return result;
 }
 
 void VocabluarySR_TreeWalker::ProcessGroup(Group& group) {
@@ -333,8 +464,9 @@ void VocabluarySR_TreeWalker::ProcessGroup(Group& group) {
     int counter = 0;
 
     std::map<uint, uint> vocId_cardId;
-    for (uint cardId : CardsBestSize(group.id_cardMeta)) {
-        const auto& cardMeta = group.id_cardMeta.at(cardId);
+
+    auto unrefined = CardsBestSize(group.id_cardMeta);
+    for (auto& [cardId, cardMeta] : unrefined) {
         for (uint vocId : cardMeta.vocableIds) {
             if (not vocId_cardId.contains(vocId))
                 vocId_cardId[vocId] = cardId;
@@ -345,7 +477,7 @@ void VocabluarySR_TreeWalker::ProcessGroup(Group& group) {
     }
     fmt::print("Counted {} cards\n", counter);
 
-    std::map<uint, uint> prependingCount;
+    std::map<uint, std::pair<uint, std::set<float>>> prependingCount;
     // for (const uint vocId : vocId_cardId | std::views::keys) {
     //     counter = 0;
     //     for (uint cid : cardsPrepending(vocId, vocId_cardId, group.id_cardMeta, setVocs))
@@ -355,15 +487,51 @@ void VocabluarySR_TreeWalker::ProcessGroup(Group& group) {
     // for (const auto [count, pre] : prependingCount) {
     //     fmt::print("Prepending: {}, count: {}\n", count, pre);
     // }
-    // fmt::print("------------------\n");
-    // prependingCount.clear();
-    // for (const uint vocId : vocId_cardId | std::views::keys) {
-    //     counter = 0;
-    //     for (uint cid : cardsPrepending2(vocId, vocId_cardId, group.id_cardMeta, setVocs))
-    //         counter++;
-    //     prependingCount[counter]++;
-    // }
-    // for (const auto [count, pre] : prependingCount) {
-    //     fmt::print("Prepending: {}, count: {}\n", count, pre);
-    // }
+    fmt::print("------------------\n");
+    prependingCount.clear();
+    for (const uint vocId : vocId_cardId | std::views::keys) {
+        counter = cardsPrepending(vocId, vocId_cardId, group.id_cardMeta, setVocs).size();
+
+        auto& [pre, urgency] = prependingCount[counter];
+        urgency.insert(id_vocableSR.at(vocId).urgency());
+        pre++;
+    }
+    for (const auto& [count, pre] : prependingCount) {
+        fmt::print("Prepending: {}, count: {}, urg: {}\n",
+                   count,
+                   pre.first,
+                   fmt::join(AtMostTake(pre.second, 10), ", "));
+    }
+    fmt::print(
+        "#######################################################################################\n");
+
+    std::map<uint, CardMeta> id_cm2;
+    ranges::copy(unrefined, std::inserter(id_cm2, id_cm2.begin()));
+    auto refined = RefinedCards(unrefined);
+    counter = 0;
+    vocId_cardId.clear();
+    for (auto& [cardId, cardMeta] : refined) {
+        for (uint vocId : cardMeta.vocableIds) {
+            if (not vocId_cardId.contains(vocId))
+                vocId_cardId[vocId] = cardId;
+        }
+        counter++;
+        // if (counter == 10)
+        //     break;
+    }
+    fmt::print("Counted {} cards\n", counter);
+    prependingCount.clear();
+    for (const uint vocId : vocId_cardId | std::views::keys) {
+        counter = cardsPrepending(vocId, vocId_cardId, group.id_cardMeta, setVocs).size();
+
+        auto& [pre, urgency] = prependingCount[counter];
+        urgency.insert(id_vocableSR.at(vocId).urgency());
+        pre++;
+    }
+    for (const auto& [count, pre] : prependingCount) {
+        fmt::print("Prepending: {}, count: {}, urg: {}\n",
+                   count,
+                   pre.first,
+                   fmt::join(AtMostTake(pre.second, 10), ", "));
+    }
 }
