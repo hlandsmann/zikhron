@@ -14,8 +14,6 @@ add_custom_target(ctre_hpp DEPENDS ${ctre-hpp})
 set_source_files_properties(${ctre-hpp} PROPERTIES GENERATED 1)
 add_library(ctre-tmp OBJECT ${ctre-hpp})
 add_library(ctre-single-header INTERFACE)
-
-# add_library(ctre-single-header INTERFACE)
 add_library(ctre::single-header ALIAS ctre-single-header)
 add_dependencies(ctre-tmp ctre_hpp)
 add_dependencies(ctre-single-header ctre-tmp)
