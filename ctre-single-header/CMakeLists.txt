@@ -7,6 +7,8 @@ add_custom_command(
     COMMAND ${CMAKE_COMMAND} -E copy
         ${ctre_SOURCE_DIR}/single-header/ctre.hpp
         ${ctre-hpp}
+    DEPENDS
+        ${ctre_SOURCE_DIR}/single-header/ctre.hpp
 )
 add_custom_target(ctre_hpp DEPENDS ${ctre-hpp})
 set_source_files_properties(${ctre-hpp} PROPERTIES GENERATED 1)
