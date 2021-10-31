@@ -1,9 +1,13 @@
 cmake_minimum_required(VERSION 3.19)
 project(zikhron)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(FindPkgConfig)
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/cppcoro)
+add_subdirectory(third_party/cppcoro)
+add_subdirectory(third_party/compile-time-regular-expressions)
+add_subdirectory(ctre-single-header)
+
 find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 
@@ -32,6 +36,7 @@ target_link_libraries(zikhron
         tcmalloc
         profiler
         pthread
+        cppcoro
 )
 target_compile_features(zikhron PRIVATE cxx_std_20)
 target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)

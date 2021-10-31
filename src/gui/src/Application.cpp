@@ -1,6 +1,3 @@
-#include <Annotate.h>               // for Annotate
-#include <Display.h>                // for Display
-#include <Edit.h>                   // for Edit
 #include <QtCore/qglobal.h>         // for qDebug
 #include <qdebug.h>                 // for QDebug
 #include <qguiapplication.h>        // for QGuiApplication
@@ -14,12 +11,16 @@
 #include <qurl.h>                   // for QUrl
 #include <exception>                // for exception
 #include <iostream>                 // for operator<<, basic_ostream, char_t...
+
+#include <Annotate.h>  // for Annotate
+#include <Application.h>
 #include <DataThread.h>             // for DataThread, PtrCard (ptr only)
+#include <Display.h>                // for Display
+#include <Edit.h>                   // for Edit
 _GLIBCXX_BEGIN_NAMESPACE_CONTAINER
 _GLIBCXX_BEGIN_NAMESPACE_ALGO
 
-int main(int argc, char* argv[]) {
-
+int Application::run(int argc, char* argv[]) {
     try {
         QGuiApplication app(argc, argv);
         app.setOrganizationName("zikhron");
@@ -63,4 +64,5 @@ int main(int argc, char* argv[]) {
     } catch (const std::exception& e) {
         std::cout << "Eception occured: " << e.what() << "\n";
     } catch (...) { std::cout << "Unknown exception occured \n"; }
+    return 0;
 }

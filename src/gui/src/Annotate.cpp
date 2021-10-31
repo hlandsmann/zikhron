@@ -1,7 +1,13 @@
 #include "Annotate.h"
+#include <annotation/Markup.h>
+#include <assert.h>
 #include <fmt/format.h>
+#include <utils/StringU8.h>
 #include <algorithm>
-#include <ranges>
+#include <concepts>
+#include <functional>
+#include <iterator>
+#include <utility>
 
 namespace ranges = std::ranges;
 
@@ -17,8 +23,8 @@ void Annotate::hoveredTextPosition(int pos) {
 }
 
 void Annotate::clickedTextPosition(int pos) {
-    auto [marked, unmarked, newPos, _combinations, _characterSequence] = paragraph->getAnnotationPossibilities(
-        pos);
+    auto [marked, unmarked, newPos, _combinations, _characterSequence] =
+        paragraph->getAnnotationPossibilities(pos);
 
     if (marked.empty())
         return;
@@ -44,7 +50,8 @@ void Annotate::chosenAnnotation(int index) {
     QList<QString> qtCharacterSequence;
 
     ranges::copy(combinations.at(index), std::back_inserter(qtCombination));
-    ranges::transform(characterSequence, std::back_inserter(qtCharacterSequence), QString::fromStdString);
+    ranges::transform(
+        characterSequence, std::back_inserter(qtCharacterSequence), QString::fromStdString);
     emit cardAnnotationChoice(qtCombination, qtCharacterSequence);
 }
 

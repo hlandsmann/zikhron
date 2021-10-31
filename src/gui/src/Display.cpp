@@ -1,16 +1,21 @@
-#include <fmt/format.h>
-#include <qqmlcontext.h>
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-#include <algorithm>
-#include <iostream>
-#include <ranges>
-
 #include "Display.h"
+#include <QtCore/qglobal.h>
 #include <annotation/Markup.h>
-#include <annotation/TextCard.h>
 #include <annotation/ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
+#include <fmt/format.h>
+#include <qcoreevent.h>
+#include <qdebug.h>
+#include <qevent.h>
 #include <utils/StringU8.h>
+#include <algorithm>
+#include <concepts>
+#include <cstddef>
+#include <iostream>
+#include <iterator>
+#include <numeric>
+#include <vector>
+#include "DataThread.h"
 
 namespace ranges = std::ranges;
 namespace card {

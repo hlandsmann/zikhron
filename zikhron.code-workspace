@@ -91,7 +91,8 @@
 			"any": "cpp",
 			"numbers": "cpp",
 			"semaphore": "cpp",
-			"qguiapplication": "cpp"
+			"qguiapplication": "cpp",
+			"charconv": "cpp"
 		}
 	}
 }

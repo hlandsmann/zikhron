@@ -1,14 +1,12 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <stddef.h>
 #include <compare>
-#include <functional>
-#include <limits>
+#include <iosfwd>
 #include <span>
 #include <string>
-#include <string_view>
 #include <vector>
-
 namespace icu {
 class UnicodeString;
 }

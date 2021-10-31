@@ -1,13 +1,15 @@
 #pragma once
 
-#include <QGuiApplication>
-#include <QQuickItem>
-#include <annotation/Markup.h>
-#include <utils/StringU8.h>
-#include <annotation/ZH_Annotator.h>
-#include <dictionary/ZH_Dictionary.h>
-
-#include "DataThread.h"
+#include <QtCore/qsharedpointer.h>  // for QSharedPointer
+#include <qlist.h>                  // for QList
+#include <qobjectdefs.h>            // for Q_OBJECT, signals, slots
+#include <qquickitem.h>             // for QQuickItem
+#include <qstring.h>                // for QString
+#include <utils/StringU8.h>         // for ItemU8
+#include <vector>                   // for vector
+#include "DataThread.h"             // for PtrParagraph
+class QObject;
+namespace markup { class Paragraph; }
 
 namespace card {
 class Annotate : public QQuickItem {

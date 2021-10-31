@@ -1,4 +1,6 @@
 #include "Edit.h"
+#include <QtCore/qglobal.h>  // for qDebug
+#include <qdebug.h>          // for QDebug
 
 namespace card {
 Edit::Edit() { setFiltersChildMouseEvents(true); }

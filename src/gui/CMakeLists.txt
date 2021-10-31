@@ -2,9 +2,8 @@
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5 REQUIRED Qml Quick Gui QuickControls2)
-qt5_add_resources(qml_QRC QML/qml.qrc)
 
-add_library(gui STATIC)
+add_library(gui SHARED)
 add_library(gui::gui ALIAS gui)
 target_include_directories(gui
     PRIVATE
@@ -13,7 +12,7 @@ target_include_directories(gui
     INTERFACE
         include
 )
-
+qt5_add_resources(qml_QRC QML/qml.qrc)
 target_sources(gui
     PRIVATE
         ${qml_QRC}

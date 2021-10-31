@@ -1,10 +1,10 @@
 #pragma once
 
-#include <QGuiApplication>
-#include <QMouseEvent>
-#include <QQuickItem>
-#include <QSharedPointer>
+#include <qobjectdefs.h>
+#include <qquickitem.h>
+#include <qstring.h>
 #include "DataThread.h"
+class QObject;
 
 namespace card {
 class Edit : public QQuickItem {

@@ -4,3 +4,6 @@
 [submodule "third_party/cppcoro"]
 	path = third_party/cppcoro
 	url = git@github.com:hlandsmann/cppcoro.git
+[submodule "third_party/compile-time-regular-expressions"]
+	path = third_party/compile-time-regular-expressions
+	url = git@github.com:hlandsmann/compile-time-regular-expressions.git

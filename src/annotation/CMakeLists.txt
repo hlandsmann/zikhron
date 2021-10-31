@@ -25,6 +25,7 @@ target_link_libraries(annotation
     PRIVATE
         utils::utils
         spdlog::spdlog
+        ctre::single-header
 )
 
 target_compile_features(annotation PUBLIC cxx_std_20)

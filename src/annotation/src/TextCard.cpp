@@ -4,11 +4,11 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <chrono>
+#include <ctre/single-header/ctre.hpp>
 #include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
-#include <regex>
 #include <stdexcept>
 
 namespace {
@@ -54,17 +54,19 @@ auto cardFromJsonFile(const std::string &filename, int cardId) -> std::unique_pt
 
 void CardDB::loadFromDirectory(std::string directoryPath) {
     namespace fs = std::filesystem;
-    const std::regex match("(\\d{6})(_dlg|_text)(\\.json)");
-
+    // const std::regex match("(\\d{6})(_dlg|_text)(\\.json)");
+    auto card_fn_matcher = ctre::match<"(\\d{6})(_dlg|_text)(\\.json)">;
     for (const fs::path &entry : fs::directory_iterator(directoryPath)) {
-        std::smatch pieces_match;
+        // std::smatch pieces_match;
         std::string fn = entry.filename().string();
-        if (not std::regex_match(fn, pieces_match, match)) {
+        // if (not std::regex_match(fn, pieces_match, match)) {
+        auto card_fn_match = card_fn_matcher(fn);
+        if (not card_fn_match) {
             spdlog::warn("File \"{}\" is ignored / not considered as card", fn);
             continue;
         }
         try {
-            int cardId = std::stoi(pieces_match[1]);
+            int cardId = std::stoi(card_fn_match.get<1>().to_string());
             if (cards.find(cardId) != cards.end()) {
                 spdlog::warn("File \"{}\" ignored, because number {} is already in use!",
                              entry.filename().string(),

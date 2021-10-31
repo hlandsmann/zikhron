@@ -1,19 +1,19 @@
 #pragma once
 
-#include <QGuiApplication>
-#include <QMouseEvent>
-#include <QQuickItem>
-#include <QSharedPointer>
+#include <QtCore/qsharedpointer.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qquickitem.h>
+#include <qstring.h>
+
 #include <DataThread.h>
-
-#include <annotation/Ease.h>
 #include <annotation/Markup.h>
-#include <annotation/TextCard.h>
 #include <annotation/ZH_Annotator.h>
-#include <dictionary/ZH_Dictionary.h>
-#include <unicode/unistr.h>
-#include <utils/StringU8.h>
+#include <memory>
+#include <string>
 
+class QEvent;
+class QObject;
 
 namespace card {
 class Display : public QQuickItem {
