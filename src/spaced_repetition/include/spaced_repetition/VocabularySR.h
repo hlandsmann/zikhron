@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Ease.h>
-#include <ZH_Annotator.h>
-#include <ZH_Dictionary.h>
+#include <annotation/Ease.h>
+#include <annotation/ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
 #include <cppcoro/generator.hpp>
 #include <iosfwd>
@@ -64,12 +64,29 @@ struct CardSR {
     static auto fromJson(const nlohmann::json&) -> pair_t;
 };
 
-class VocabluarySR_TreeWalker {
+class VocabularySR_X {
 public:
-    VocabluarySR_TreeWalker(const std::map<uint, VocableSR>&,
+    VocabularySR_X(const std::map<uint, VocableSR>&,
+                   const std::map<uint, CardMeta>&,
+                   const std::map<uint, VocableMeta>&);
+
+private:
+    void initDataStructure();
+    std::jthread worker;
+
+    using id_vocSR_t = std::pair<uint, VocableSR>;
+    std::vector<id_vocSR_t> repeatTodayVoc;
+
+    const std::map<uint, VocableSR>& id_vocableSR;
+    const std::map<uint, CardMeta>& id_cardMeta;
+    const std::map<uint, VocableMeta>& id_vocableMeta;
+};
+
+class VocabularySR_TreeWalker {
+public:
+    VocabularySR_TreeWalker(const std::map<uint, VocableSR>&,
                             const std::map<uint, CardMeta>&,
                             const std::map<uint, VocableMeta>&);
-    ~VocabluarySR_TreeWalker() = default;
 
 private:
     struct Group {
@@ -78,8 +95,7 @@ private:
     };
     auto SplitGroup(const Group& group) -> std::vector<Group>;
     void ProcessGroup(Group& group);
-    auto OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId)
-        -> std::set<uint>;
+    auto OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId) -> std::set<uint>;
 
     using IdCardMeta_vec = std::vector<std::pair<uint, CardMeta>>;
     auto CardsBestSize(const std::map<uint, CardMeta>& id_cm) -> IdCardMeta_vec;
@@ -163,7 +179,8 @@ private:
     using CharacterSequence = std::vector<utl::ItemU8>;
     using Combination = std::vector<int>;
     std::map<CharacterSequence, Combination> annotationChoices;
-    std::unique_ptr<VocabluarySR_TreeWalker> treeWalker;
+    std::unique_ptr<VocabularySR_TreeWalker> treeWalker;
+    std::unique_ptr<VocabularySR_X> X;
 };
 
 struct counting_iterator {

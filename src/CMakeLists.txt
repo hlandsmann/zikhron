@@ -1,0 +1,5 @@
+add_subdirectory(annotation)
+add_subdirectory(dictionary)
+add_subdirectory(gui)
+add_subdirectory(spaced_repetition)
+add_subdirectory(utils)

@@ -1,46 +1,37 @@
 cmake_minimum_required(VERSION 3.19)
 project(zikhron)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 include(FindPkgConfig)
 
-set(CMAKE_AUTOMOC ON)
-find_package(Qt5 REQUIRED Qml Quick Gui QuickControls2)
-qt5_add_resources(qml_QRC src/QML/qml.qrc)
-set(QML_LIBRARIES Qt5::Qml Qt5::Quick Qt5::QuickControls2)
-
 add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/cppcoro)
-add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/fmt)
+find_package(fmt REQUIRED)
+find_package(spdlog REQUIRED)
 
-pkg_search_module(ICU_UC REQUIRED icu-uc)
-pkg_search_module(ICU_IO REQUIRED icu-io)
-set(ICU_LIBRARIES "${ICU_UC_LIBRARIES}" "${ICU_IO_LIBRARIES}")
+find_program(IWYU_PATH NAMES include-what-you-use iwyu)
+if(NOT IWYU_PATH)
+  message(FATAL_ERROR "Could not find the program include-what-you-use")
+endif()
+set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
+set(CMAKE_C_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
 
-set(PROJECT_INCLUDES ${PROJECT_SOURCE_DIR}/src)
-set(SOURCE src/Application.cpp
-           src/TextCard.cpp
-           src/VocabularySR.cpp
-           src/VocabularySR_misc.cpp
-           src/VocabularySR_TreeWalker.cpp
-           src/ZH_Dictionary.cpp
-           src/ZH_Annotator.cpp
-           src/DataThread.cpp
-           src/utils/StringU8.cpp
-           src/utils/Markup.cpp
-           src/gui/card/Annotate.cpp
-           src/gui/card/Display.cpp
-           src/gui/card/Edit.cpp
+add_subdirectory(src)
+add_executable(zikhron)
+set_property(
+  TARGET zikhron
+  PROPERTY CXX_INCLUDE_WHAT_YOU_USE ${iwyu_path}
 )
-add_executable(${PROJECT_NAME} ${SOURCE} ${qml_QRC})
-target_link_libraries(${PROJECT_NAME}
-                      PRIVATE
-                        ${ICU_LIBRARIES}
-                        ${QML_LIBRARIES}
-                        fmt::fmt
-                        gsl tcmalloc profiler
-                        pthread
-                        cppcoro
+target_sources(zikhron
+    PRIVATE
+        src/zikhron.cpp
 )
-target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
-target_link_options(${PROJECT_NAME} PRIVATE LINKER:--gc-sections,--relax)
-target_include_directories(${PROJECT_NAME} PRIVATE ${PROJECT_INCLUDES})
+target_link_libraries(zikhron
+    PRIVATE
+        ${ICU_LIBRARIES}
+        gui::gui
+        gsl
+        tcmalloc
+        profiler
+        pthread
+)
+target_compile_features(zikhron PRIVATE cxx_std_20)
+target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)

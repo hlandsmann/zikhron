@@ -1,13 +1,15 @@
-#include "TextCard.h"
+#include <TextCard.h>
 #include <fmt/format.h>
+#include <rapidjsonWrapper.h>
+#include <spdlog/spdlog.h>
 #include <algorithm>
+#include <chrono>
+#include <exception>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <regex>
-#include <set>
-#include "rapidjosnWrapper.h"
-
-#include <iostream>
+#include <stdexcept>
 
 namespace {
 auto cardFromJsonFile(const std::string &filename, int cardId) -> std::unique_ptr<Card> {
@@ -54,24 +56,25 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
     namespace fs = std::filesystem;
     const std::regex match("(\\d{6})(_dlg|_text)(\\.json)");
 
-    for (const fs::path& entry : fs::directory_iterator(directoryPath)) {
+    for (const fs::path &entry : fs::directory_iterator(directoryPath)) {
         std::smatch pieces_match;
         std::string fn = entry.filename().string();
         if (not std::regex_match(fn, pieces_match, match)) {
-            std::cout << "File \"" << fn << "\" is ignored / not considered as card\n";
+            spdlog::warn("File \"{}\" is ignored / not considered as card", fn);
             continue;
         }
         try {
             int cardId = std::stoi(pieces_match[1]);
             if (cards.find(cardId) != cards.end()) {
-                std::cout << "File " << entry.filename() << " ignored, because number " << cardId
-                          << " is already in use!\n";
+                spdlog::warn("File \"{}\" ignored, because number {} is already in use!",
+                             entry.filename().string(),
+                             cardId);
                 continue;
             }
             // cards.push_back(cardFromJsonFile(entry, cardId));
             cards[cardId] = cardFromJsonFile(entry, cardId);
         } catch (std::exception &e) {
-            std::cout << e.what() << " - file: " << entry.filename() << std::endl;
+            spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
     }
     // std::sort(cards.begin(), cards.end(), [](const auto &a, const auto &b) { return a->id < b->id; });

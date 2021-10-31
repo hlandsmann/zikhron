@@ -3,9 +3,9 @@
 #include <memory>
 #include <QSharedPointer>
 #include <QThread>
-#include <utils/Markup.h>
-#include <Ease.h>
-#include "ZH_Dictionary.h"
+#include <annotation/Markup.h>
+#include <annotation/Ease.h>
+#include <dictionary/ZH_Dictionary.h>
 
 class VocabularySR;
 class Card;

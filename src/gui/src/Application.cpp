@@ -1,41 +1,25 @@
-#include <unicode/unistr.h>
-#include <exception>
-#include <fstream>
-#include <iostream>
-#include <limits>
-#include <numeric>
-#include <span>
-#include <stack>
-#include <string>
-#include "TextCard.h"
-#include "ZH_Annotator.h"
-#include "ZH_Dictionary.h"
-
-#include <QArgument>
-#include <QDate>
-#include <QGuiApplication>
-#include <QMetaObject>
-#include <QQmlApplicationEngine>
-#include <QQuickView>
-#include <QUrl>
-#include <QVariant>
-#include <QVariantList>
-#include <QVariantMap>
-#include <QtGui>
-#include <QtQuick>
-
-#include <qqmlcontext.h>
-#include <QGuiApplication>
-#include <QQmlApplicationEngine>
-
-#include <QSharedPointer>
-
-#include "DataThread.h"
-#include "gui/card/Annotate.h"
-#include "gui/card/Display.h"
-#include "gui/card/Edit.h"
+#include <Annotate.h>               // for Annotate
+#include <Display.h>                // for Display
+#include <Edit.h>                   // for Edit
+#include <QtCore/qglobal.h>         // for qDebug
+#include <qdebug.h>                 // for QDebug
+#include <qguiapplication.h>        // for QGuiApplication
+#include <qlist.h>                  // for QList
+#include <qmetatype.h>              // for qRegisterMetaType
+#include <qobject.h>                // for QObject
+#include <qqml.h>                   // for qmlRegisterType
+#include <qqmlapplicationengine.h>  // for QQmlApplicationEngine
+#include <qsettings.h>              // for QSettings
+#include <qstringliteral.h>         // for QStaticStringData, QStringLiteral
+#include <qurl.h>                   // for QUrl
+#include <exception>                // for exception
+#include <iostream>                 // for operator<<, basic_ostream, char_t...
+#include <DataThread.h>             // for DataThread, PtrCard (ptr only)
+_GLIBCXX_BEGIN_NAMESPACE_CONTAINER
+_GLIBCXX_BEGIN_NAMESPACE_ALGO
 
 int main(int argc, char* argv[]) {
+
     try {
         QGuiApplication app(argc, argv);
         app.setOrganizationName("zikhron");

@@ -1,7 +1,7 @@
-#include "VocabularySR.h"
-#include <TextCard.h>
+#include <VocabularySR.h>
+#include <annotation/Markup.h>
+#include <annotation/TextCard.h>
 #include <fmt/ostream.h>
-#include <utils/Markup.h>
 #include <utils/StringU8.h>
 #include <utils/min_element_val.h>
 #include <algorithm>
@@ -51,7 +51,8 @@ VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_
     fmt::print("Time totally elapsed: {} \n", chrono::duration_cast<microseconds>(gtr - start).count());
 
     CleanUpVocables();
-    treeWalker = std::make_unique<VocabluarySR_TreeWalker>(id_vocableSR, id_cardMeta, id_vocableMeta);
+    // treeWalker = std::make_unique<VocabularySR_TreeWalker>(id_vocableSR, id_cardMeta, id_vocableMeta);
+    X = std::make_unique<VocabularySR_X>(id_vocableSR, id_cardMeta, id_vocableMeta);
 }
 
 void VocabularySR::CleanUpVocables() {

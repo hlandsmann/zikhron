@@ -1,7 +1,10 @@
 #pragma once
 
+#include <stddef.h>
+#include <compare>
 #include <span>
 #include <string>
+#include <string_view>
 #include <vector>
 
 class ZH_Dictionary {

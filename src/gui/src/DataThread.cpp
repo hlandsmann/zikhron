@@ -1,6 +1,6 @@
 #include "DataThread.h"
-#include <TextCard.h>
-#include <VocabularySR.h>
+#include <annotation/TextCard.h>
+#include <spaced_repetition/VocabularySR.h>
 #include <utils/StringU8.h>
 #include <QDebug>
 #include <algorithm>

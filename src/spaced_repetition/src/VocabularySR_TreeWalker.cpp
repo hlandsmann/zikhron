@@ -5,6 +5,7 @@
 #include <cppcoro/generator.hpp>
 #include <cppcoro/recursive_generator.hpp>
 #include <limits>
+#include <numeric>
 #include <ranges>
 
 #include "VocabularySR.h"
@@ -42,7 +43,7 @@ template <class T> auto AtMostTake(const std::set<T>& set, uint counter) -> std:
     return result;
 }
 
-auto VocabluarySR_TreeWalker::SplitGroup(const Group& group) -> std::vector<Group> {
+auto VocabularySR_TreeWalker::SplitGroup(const Group& group) -> std::vector<Group> {
     std::vector<Group> result;
     std::set<uint> vocIdsInput;
     ranges::copy(group.id_vocMeta | std::views::keys, std::inserter(vocIdsInput, vocIdsInput.begin()));
@@ -84,7 +85,7 @@ auto VocabluarySR_TreeWalker::SplitGroup(const Group& group) -> std::vector<Grou
     return result;
 }
 
-VocabluarySR_TreeWalker::VocabluarySR_TreeWalker(const std::map<uint, VocableSR>& _id_vocableSR,
+VocabularySR_TreeWalker::VocabularySR_TreeWalker(const std::map<uint, VocableSR>& _id_vocableSR,
                                                  const std::map<uint, CardMeta>& _id_cardMeta,
                                                  const std::map<uint, VocableMeta>& _id_vocableMeta)
     : id_vocableSR(_id_vocableSR), id_cardMeta(_id_cardMeta), id_vocableMeta(_id_vocableMeta) {
@@ -152,7 +153,7 @@ VocabluarySR_TreeWalker::VocabluarySR_TreeWalker(const std::map<uint, VocableSR>
     });
 }
 
-auto VocabluarySR_TreeWalker::OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId)
+auto VocabularySR_TreeWalker::OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId)
     -> std::set<uint> {
     std::set<uint> result;
     const auto& cm = id_cm.at(cardId);
@@ -174,7 +175,7 @@ template <std::array quantity> struct preferedQuantity {
     }
 };
 
-auto VocabluarySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_cm)
+auto VocabularySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_cm)
     -> std::vector<std::pair<uint, CardMeta>> {
     std::vector<std::pair<uint, CardMeta>> result;
     std::map<uint, uint> length_count;
@@ -287,7 +288,7 @@ auto VocabluarySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_c
     return result;
 }
 
-auto VocabluarySR_TreeWalker::RefinedCards(const std::vector<std::pair<uint, CardMeta>>& _id_cm)
+auto VocabularySR_TreeWalker::RefinedCards(const std::vector<std::pair<uint, CardMeta>>& _id_cm)
     -> std::vector<std::pair<uint, CardMeta>> {
     std::map<uint, uint> length_count;
     std::vector<std::pair<uint, CardMeta>> result;
@@ -415,7 +416,7 @@ auto cardsPrepending(uint vocId,
     return result;
 }
 
-void VocabluarySR_TreeWalker::ProcessGroup(Group& group) {
+void VocabularySR_TreeWalker::ProcessGroup(Group& group) {
     std::map<uint, uint> vocId_count;
 
     std::vector<std::pair<uint, CardMeta>> v_id_cardMeta;

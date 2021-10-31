@@ -82,5 +82,6 @@
         "shared_mutex": "cpp",
         "cfenv": "cpp",
         "typeindex": "cpp"
-    }
+    },
+    "cmake.useCMakePresets": false
 }

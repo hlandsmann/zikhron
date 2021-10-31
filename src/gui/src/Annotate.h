@@ -2,10 +2,10 @@
 
 #include <QGuiApplication>
 #include <QQuickItem>
-#include <utils/Markup.h>
+#include <annotation/Markup.h>
 #include <utils/StringU8.h>
-#include <ZH_Annotator.h>
-#include <ZH_Dictionary.h>
+#include <annotation/ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
 
 #include "DataThread.h"
 

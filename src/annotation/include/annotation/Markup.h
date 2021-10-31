@@ -1,14 +1,14 @@
 #pragma once
 
-#include <TextCard.h>
+#include <annotation/TextCard.h>
+#include <annotation/Ease.h>
 #include <utils/StringU8.h>
 #include <functional>
 #include <iosfwd>
 #include <stack>
 
-#include <Ease.h>
-#include <ZH_Annotator.h>
-#include <ZH_Dictionary.h>
+#include <annotation/ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
 namespace markup {
 
 class Word {

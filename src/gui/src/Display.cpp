@@ -6,11 +6,11 @@
 #include <iostream>
 #include <ranges>
 
-#include <utils/StringU8.h>
 #include "Display.h"
-#include "TextCard.h"
-#include "ZH_Annotator.h"
-#include "utils/Markup.h"
+#include <annotation/Markup.h>
+#include <annotation/TextCard.h>
+#include <annotation/ZH_Annotator.h>
+#include <utils/StringU8.h>
 
 namespace ranges = std::ranges;
 namespace card {

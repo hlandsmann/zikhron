@@ -76,7 +76,7 @@ void VocableSR::advanceByEase(Ease ease) {
     indirectIntervalDay = 0;
 }
 
-bool VocableSR::advanceIndirectly() {
+auto VocableSR::advanceIndirectly() -> bool {
     if (isToBeRepeatedToday())
         return false;
 

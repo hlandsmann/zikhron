@@ -1,15 +1,15 @@
 #pragma once
 
+#include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
-#include <QSharedPointer>
 #include <compare>
 #include <list>
+#include <map>
 #include <memory>
 #include <optional>
 #include <set>
 #include <span>
 #include <vector>
-#include "ZH_Dictionary.h"
 
 class ZH_Annotator {
     using CharacterSequence = std::vector<utl::ItemU8>;

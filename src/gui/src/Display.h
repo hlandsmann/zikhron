@@ -1,17 +1,19 @@
 #pragma once
 
-#include <Ease.h>
-#include <TextCard.h>
-#include <ZH_Annotator.h>
-#include <ZH_Dictionary.h>
-#include <unicode/unistr.h>
-#include <utils/Markup.h>
-#include <utils/StringU8.h>
 #include <QGuiApplication>
 #include <QMouseEvent>
 #include <QQuickItem>
 #include <QSharedPointer>
-#include "DataThread.h"
+#include <DataThread.h>
+
+#include <annotation/Ease.h>
+#include <annotation/Markup.h>
+#include <annotation/TextCard.h>
+#include <annotation/ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
+#include <unicode/unistr.h>
+#include <utils/StringU8.h>
+
 
 namespace card {
 class Display : public QQuickItem {

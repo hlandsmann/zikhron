@@ -90,7 +90,8 @@
 			"*.rh": "cpp",
 			"any": "cpp",
 			"numbers": "cpp",
-			"semaphore": "cpp"
+			"semaphore": "cpp",
+			"qguiapplication": "cpp"
 		}
 	}
 }
