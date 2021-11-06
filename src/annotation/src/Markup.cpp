@@ -1,11 +1,11 @@
 #include "Markup.h"
 #include <fmt/format.h>
+#include <utils/Memoizer.h>
 #include <algorithm>
 #include <boost/range/combine.hpp>
-#include <iostream>
 #include <limits>
 #include <numeric>
-#include <utils/Memoizer.h>
+
 namespace ranges = std::ranges;
 
 namespace markup {

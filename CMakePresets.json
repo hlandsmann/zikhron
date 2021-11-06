@@ -13,7 +13,19 @@
             "generator": "Unix Makefiles",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
-                "CMAKE_CXX_FLAGS": "-O3 -Wall -Wextra -pedantic",
+                "CMAKE_CXX_FLAGS": "-O3",
+                "CMAKE_CXX_STANDARD_REQUIRED": "YES",
+                "CMAKE_CXX_EXTENSIONS": "OFF"
+            }
+        },
+        {
+            "name": "ninja",
+            "displayName": "ninja",
+            "description": "ninja build",
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_CXX_FLAGS": "-O3",
                 "CMAKE_CXX_STANDARD_REQUIRED": "YES",
                 "CMAKE_CXX_EXTENSIONS": "OFF"
             }

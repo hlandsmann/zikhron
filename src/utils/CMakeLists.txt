@@ -1,12 +1,12 @@
-add_library(utils OBJECT)
-add_library(utils::utils ALIAS utils)
-target_include_directories(utils
+add_library(zikhron-utils OBJECT)
+add_library(zikhron::utils ALIAS zikhron-utils)
+target_include_directories(zikhron-utils
     INTERFACE
         include
     PRIVATE
         include/utils
 )
-target_sources(utils
+target_sources(zikhron-utils
     PRIVATE
         src/StringU8.cpp
     PUBLIC
@@ -17,10 +17,12 @@ target_sources(utils
 pkg_search_module(ICU_UC REQUIRED icu-uc)
 pkg_search_module(ICU_IO REQUIRED icu-io)
 
-target_link_libraries(utils
+target_link_libraries(zikhron-utils
     PUBLIC
-    ${ICU_UC_LIBRARIES}
-    ${ICU_IO_LIBRARIES}
+        ${ICU_UC_LIBRARIES}
+        ${ICU_IO_LIBRARIES}
+    PRIVATE
+        zikhron::warnings
 )
 
-target_compile_features(utils PUBLIC cxx_std_20)
+target_compile_features(zikhron-utils PUBLIC cxx_std_20)

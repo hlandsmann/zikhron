@@ -1,13 +1,13 @@
-add_library(annotation STATIC)
-add_library(annotation::annotation ALIAS annotation)
-target_include_directories(annotation
+add_library(zikhron-annotation STATIC)
+add_library(zikhron::annotation ALIAS zikhron-annotation)
+target_include_directories(zikhron-annotation
 PRIVATE
     include/annotation
     src
 PUBLIC
     include
 )
-target_sources(annotation
+target_sources(zikhron-annotation
     PRIVATE
         src/Markup.cpp
         src/TextCard.cpp
@@ -19,13 +19,14 @@ target_sources(annotation
         include/annotation/ZH_Annotator.h
         include/annotation/TextCard.h
 )
-target_link_libraries(annotation
+target_link_libraries(zikhron-annotation
     PUBLIC
-        dictionary::dictionary
+        zikhron::dictionary
     PRIVATE
-        utils::utils
+        zikhron::utils
+        zikhron::warnings
         spdlog::spdlog
-        ctre::single-header
+        ctre::ctre
 )
 
-target_compile_features(annotation PUBLIC cxx_std_20)
+target_compile_features(zikhron-annotation PUBLIC cxx_std_20)

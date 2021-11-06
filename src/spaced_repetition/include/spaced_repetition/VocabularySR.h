@@ -4,7 +4,6 @@
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
-#include <cppcoro/generator.hpp>
 #include <iosfwd>
 #include <nlohmann/json_fwd.hpp>
 #include <thread>

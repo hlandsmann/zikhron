@@ -13,6 +13,7 @@ add_custom_command(
 add_custom_target(ctre_hpp DEPENDS ${ctre-hpp})
 set_source_files_properties(${ctre-hpp} PROPERTIES GENERATED 1)
 add_library(ctre-tmp OBJECT ${ctre-hpp})
+set_target_properties(ctre-tmp PROPERTIES LINKER_LANGUAGE CXX)
 add_library(ctre-single-header INTERFACE)
 add_library(ctre::single-header ALIAS ctre-single-header)
 add_dependencies(ctre-tmp ctre_hpp)

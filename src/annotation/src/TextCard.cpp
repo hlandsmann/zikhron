@@ -4,7 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <chrono>
-#include <ctre/single-header/ctre.hpp>
+#include <ctre.hpp>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -35,8 +35,8 @@ auto cardFromJsonFile(const std::string &filename, int cardId) -> std::unique_pt
             if (not speakerTextPair.MemberCount())
                 continue;
             const auto &item = *speakerTextPair.MemberBegin();
-            dialogueCard->dialogue.push_back({icu::UnicodeString::fromUTF8(item.name.GetString()),
-                                              icu::UnicodeString::fromUTF8(item.value.GetString())});
+            dialogueCard->dialogue.emplace_back(icu::UnicodeString::fromUTF8(item.name.GetString()),
+                                                icu::UnicodeString::fromUTF8(item.value.GetString()));
         }
         dialogueCard->dialogue.shrink_to_fit();
         return dialogueCard;
@@ -54,12 +54,9 @@ auto cardFromJsonFile(const std::string &filename, int cardId) -> std::unique_pt
 
 void CardDB::loadFromDirectory(std::string directoryPath) {
     namespace fs = std::filesystem;
-    // const std::regex match("(\\d{6})(_dlg|_text)(\\.json)");
     auto card_fn_matcher = ctre::match<"(\\d{6})(_dlg|_text)(\\.json)">;
     for (const fs::path &entry : fs::directory_iterator(directoryPath)) {
-        // std::smatch pieces_match;
         std::string fn = entry.filename().string();
-        // if (not std::regex_match(fn, pieces_match, match)) {
         auto card_fn_match = card_fn_matcher(fn);
         if (not card_fn_match) {
             spdlog::warn("File \"{}\" is ignored / not considered as card", fn);
@@ -73,14 +70,11 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
                              cardId);
                 continue;
             }
-            // cards.push_back(cardFromJsonFile(entry, cardId));
             cards[cardId] = cardFromJsonFile(entry, cardId);
         } catch (std::exception &e) {
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
     }
-    // std::sort(cards.begin(), cards.end(), [](const auto &a, const auto &b) { return a->id < b->id; });
-    // cards.resize(16);
 }
 
 auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString> {

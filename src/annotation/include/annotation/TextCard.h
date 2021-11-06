@@ -50,6 +50,5 @@ public:
     auto get() const -> const std::map<uint, CardPtr>&;
 
 private:
-    // std::vector<CardPtr> cards;
     std::map<uint, CardPtr> cards;
 };
