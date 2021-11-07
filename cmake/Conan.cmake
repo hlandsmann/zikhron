@@ -50,6 +50,8 @@ macro(run_conan)
       BUILD
       missing
       # Pass compile-time configured options into conan
+      OPTIONS
+
       SETTINGS
       ${settings})
   endforeach()

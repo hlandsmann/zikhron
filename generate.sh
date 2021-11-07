@@ -8,5 +8,6 @@ mkdir -p $build_dir
 mode="Release"
 cmake -B $build_dir \
     -DCMAKE_BUILD_TYPE=$mode \
+    -Dskip_run_conan=OFF \
     --preset=default
 (cd $build_dir; cmake --build . -j$(nproc))

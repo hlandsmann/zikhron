@@ -27,6 +27,7 @@ target_link_libraries(zikhron-annotation
         zikhron::warnings
         spdlog::spdlog
         ctre::ctre
+        Microsoft.GSL::GSL
 )
 
 target_compile_features(zikhron-annotation PUBLIC cxx_std_20)
