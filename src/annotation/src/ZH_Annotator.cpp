@@ -51,7 +51,7 @@ auto GetCandidates(const utl::StringU8& text,
 auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& candidates,
                const std::span<const ZH_Dictionary::Key>& keys,
                const ZH_Dictionary& dict) -> std::vector<std::vector<std::vector<int>>> {
-    using namespace ranges;
+    namespace views = ranges::views;
 
     using std::vector;
     vector<vector<int>> chunk;
@@ -59,7 +59,7 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
 
     const auto characterSet = dict.CharacterSetFromKeySpan(keys);
 
-    auto candidateLength = [&dict, &characterSet](const ZH_Annotator::ZH_dicItemVec& itemVec) -> int {
+    auto candidateLength = [&dict, &characterSet](const ZH_Annotator::ZH_dicItemVec& itemVec) -> size_t {
         return utl::StringU8(itemVec.front().key).length();
     };
     auto c_lengths = candidates |

@@ -19,7 +19,7 @@ auto Word::joinCharactersNonBreakable(const utl::StringU8& word) const -> std::s
     return result;
 }
 
-auto Word::lengthOfWord(const utl::StringU8& word) const -> int { return word.vlength() * 2 - 1; }
+auto Word::lengthOfWord(const utl::StringU8& word) const -> size_t { return word.vlength() * 2 - 1; }
 
 Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor) {
     if (1 == 1 && word.front().isMarkup()) {
@@ -112,8 +112,9 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
                       [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
 
     positions.push_back(0);
+    size_t absolutePosition = 0;
     ranges::transform(
-        words, std::back_inserter(positions), [absolutePosition = 0](const Word& word) mutable -> int {
+        words, std::back_inserter(positions), [&absolutePosition](const Word& word) -> size_t {
             absolutePosition += word.vLength();
             return absolutePosition;
         });
@@ -139,7 +140,7 @@ auto Paragraph::getWordIndex(int pos) const -> std::size_t {
             return std::numeric_limits<std::size_t>::max();
         posIt = std::prev(positions.end());
     }
-    return std::max<int>(0, std::distance(positions.begin(), posIt));
+    return std::max<size_t>(0, std::distance(positions.begin(), posIt));
 }
 
 void Paragraph::updateAnnotationColoring() {
@@ -174,7 +175,7 @@ void Paragraph::updateAnnotationColoring() {
         return ZH_Annotator::get_combinations(*chunkIt).size();
     });
 
-    int currentPos = 0;
+    size_t currentPos = 0;
     auto chunkIt = chunks.begin();
     for (const auto& [word, item] : boost::combine(words, items)) {
         if (word.isMarkup() || item.dicItemVec.empty()) {
@@ -242,7 +243,7 @@ void Paragraph::highlightWordAtPosition(int pos) {
     word.setColor(0xFFFFFF);
 }
 
-auto Paragraph::getAnnotationChunkFromPosition(int pos)
+auto Paragraph::getAnnotationChunkFromPosition(size_t pos)
     -> std::optional<std::reference_wrapper<AnnotationChunk>> {
     auto annoIt = ranges::find_if(annotationChunks, [pos](const AnnotationChunk& annotationChunk) {
         return annotationChunk.posBegin <= pos && pos < annotationChunk.posEnd;
@@ -339,8 +340,8 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
     });
 
     // clang-format off
-    const std::array colors = {0xfabed4, 0xffe119, 0xff294B, 0x3cd44b, 0x42d4f4, 0xf58231,
-                               0xf032e6, 0x913ec4, 0x4363ff, 0xbfef45, 0x469990};
+    const std::array colors = {0xffe119, 0x3cd44b, 0x42d4f4, 0xf58231, 0xf032e6, 0xfabed4,
+                               0x913ec4, 0xff294B, 0x4363ff, 0xbfef45, 0x469990};
     // clang-format on
     assert(zh_annotator.Items().size() == words.size());
 
@@ -383,9 +384,9 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
         std::back_inserter(vocablePositions),
         [n = 1](const ZH_Dictionary::Item& voc) mutable {
             int temp = n;  // clang-format off
-            n += utl::StringU8(voc.key).length() + 1 +
-                 utl::StringU8(voc.pronounciation).length() + 1 +
-                 utl::StringU8(voc.meanings.at(0)).length() + 1;
+            n += int(utl::StringU8(voc.key).length() + 1
+                   + utl::StringU8(voc.pronounciation).length() + 1
+                   + utl::StringU8(voc.meanings.at(0)).length() + 1);
             return temp;  // clang-format on
         },
         [](const auto& in) { return in.first; });

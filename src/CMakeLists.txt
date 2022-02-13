@@ -5,6 +5,7 @@ target_compile_options(
     INTERFACE
         -Wall
         -Wextra
+        -Wconversion
         -pedantic
 )
 add_library(zikhron::warnings ALIAS zikhron-warnings)

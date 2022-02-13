@@ -14,7 +14,7 @@ namespace markup {
 class Word {
     std::string rawWord;
     auto joinCharactersNonBreakable(const utl::StringU8& word) const -> std::string;
-    auto lengthOfWord(const utl::StringU8& word) const -> int;
+    auto lengthOfWord(const utl::StringU8& word) const -> size_t;
 
 public:
     Word(const utl::StringU8& word, uint32_t color, uint32_t backGroundColor);
@@ -27,12 +27,12 @@ public:
 
     void setColor(uint32_t color);
     void setBackgroundColor(uint32_t backgroundColor);
-    auto vLength() const -> int { return virtualLength; }
+    auto vLength() const -> size_t { return virtualLength; }
     auto isMarkup() const -> bool { return markup; }
 
 private:
     auto applyStyle(const std::string& str) const -> std::string;
-    int virtualLength = 0;
+    size_t virtualLength = 0;
     bool markup = false;
     uint32_t color = 0;
     uint32_t backGroundColor = 0;
@@ -60,7 +60,7 @@ public:
     struct AnnotationPossibilities {
         std::vector<std::string> unmarked;
         std::vector<std::string> marked;
-        int pos{};
+        size_t pos{};
         std::vector<std::vector<int>> combinations;
         std::vector<utl::ItemU8> characters;
     };
@@ -75,7 +75,7 @@ public:
     auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<uint, Ease>;
 
 private:
-    auto getAnnotationChunkFromPosition(int pos)
+    auto getAnnotationChunkFromPosition(size_t pos)
         -> std::optional<std::reference_wrapper<AnnotationChunk>>;
 
     std::unique_ptr<Card> card;
@@ -89,8 +89,8 @@ private:
         std::vector<std::reference_wrapper<Word>> words;
         std::vector<utl::ItemU8> characters;
         std::vector<std::vector<int>> chunk;
-        int posBegin = 0;
-        int posEnd = 0;
+        size_t posBegin = 0;
+        size_t posEnd = 0;
         void clear() {
             words.clear();
             characters.clear();

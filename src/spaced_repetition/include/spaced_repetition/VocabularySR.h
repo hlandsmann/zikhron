@@ -129,6 +129,7 @@ public:
 
 private:
     void GenerateFromCards();
+    auto CountTotalNewVocablesInSet() -> size_t;
     auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
     auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
@@ -144,7 +145,7 @@ private:
     void CleanUpVocables();
 
     // Get vocables that would need to be learned with this current cardId
-    auto GetRelevantVocables(uint cardId) -> Item_Id_vt;
+    auto GetActiveVocables_dicEntry(uint cardId) -> Item_Id_vt;
     auto GetRelevantEase(uint cardId) -> Id_Ease_vt;
     auto GetActiveVocables(uint cardId) -> std::set<uint>;
 
@@ -171,7 +172,7 @@ private:
     /* ids for vocables that are to be repeated NOW! - they get moved out of againVoc */
     std::set<uint> ids_nowVoc;
 
-    uint countOfNewVocablesToday = 0;
+    size_t countOfNewVocablesToday = 0;
     uint activeCardId{};
     bool getCardNeedsCleanup = false;
 

@@ -52,10 +52,10 @@ auto CardSR::fromJson(const nlohmann::json& c) -> pair_t {
 void VocableSR::advanceByEase(Ease ease) {
     float easeChange = [ease]() -> float {
         switch (ease) {
-        case Ease::easy: return 1.2;
-        case Ease::good: return 1.0;
-        case Ease::hard: return 0.8;
-        default: return 0.;
+        case Ease::easy: return 1.2f;
+        case Ease::good: return 1.0f;
+        case Ease::hard: return 0.8f;
+        default: return 0.f;
         }
     }();
     easeFactor = std::clamp(easeFactor * easeChange, 1.3f, 2.5f);
@@ -71,7 +71,7 @@ void VocableSR::advanceByEase(Ease ease) {
         if (ease == Ease::easy)
             intervalDay += 2 * easeFactor;
 
-        intervalDay += indirectIntervalDay / 3;
+        intervalDay += float(indirectIntervalDay / 3);
     }
     indirectIntervalDay = 0;
 }
@@ -131,7 +131,7 @@ auto VocableSR::isToBeRepeatedToday() const -> bool {
     std::time_t todayMidnight = todayMidnightTime();
 
     std::tm vocActiveTime_tm = *std::localtime(&lastSeen);
-    vocActiveTime_tm.tm_mday += intervalDay + indirectIntervalDay;
+    vocActiveTime_tm.tm_mday += int(intervalDay) + indirectIntervalDay;
     std::time_t vocActiveTime = std::mktime(&vocActiveTime_tm);
 
     return todayMidnight > vocActiveTime;

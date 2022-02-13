@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <filesystem>
 
 class ZH_Dictionary {
 public:
@@ -13,7 +14,7 @@ public:
         std::string key;
         unsigned pos;
     };
-    ZH_Dictionary(const std::string& filename);
+    ZH_Dictionary(const std::filesystem::path&);
     static auto Lower_bound(const std::string& key, const std::span<const Key>& characterSet)
         -> std::span<const Key>;
     static auto Lower_bound(const std::string_view& key, const std::span<const Key>& characterSet)

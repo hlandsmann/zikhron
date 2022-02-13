@@ -63,7 +63,7 @@ auto transformPronounciation(const std::string_view& pronounciation) -> std::str
 
     std::string finalResult;
     finalResult.reserve(pronounciation.size());
-    int startIndex = 0;
+    size_t startIndex = 0;
 
     auto [syllable, rest] = splitOnce(pronounciation, ' ');
     while (not syllable.empty()) {
@@ -71,14 +71,14 @@ auto transformPronounciation(const std::string_view& pronounciation) -> std::str
 
         const auto toneIt = std::find(tones.begin(), tones.end(), syllable.back());
         if (toneIt != tones.end() && syllable.size() > 1) {
-            const int toneIndex = std::distance(tones.begin(), toneIt);
+            const size_t toneIndex = std::distance(tones.begin(), toneIt);
 
             for (const auto& vowel : vowels) {
                 const auto vowelIndex = finalResult.find(vowel, startIndex);
                 if (vowelIndex == std::string::npos)
                     continue;
 
-                const int i = std::distance(vowels.begin(), &vowel);
+                const size_t i = std::distance(vowels.begin(), &vowel);
                 finalResult.replace(vowelIndex, vowel.length(), toneVowels[i][toneIndex]);
                 break;
             }
@@ -152,10 +152,10 @@ auto parseLine(const std::string_view& line) -> DictionaryItem_raw {
 
 }  // namespace
 
-ZH_Dictionary::ZH_Dictionary(const std::string& filename) {
+ZH_Dictionary::ZH_Dictionary(const std::filesystem::path& filename) {
     std::ifstream dictFile(filename);
     if (!dictFile)
-        throw std::runtime_error("Could not open dictionary file: '" + filename + "'");
+        throw std::runtime_error("Could not open dictionary file: '" + filename.string() + "'");
 
     unsigned position = 0;
     for (std::string line; getline(dictFile, line);) {

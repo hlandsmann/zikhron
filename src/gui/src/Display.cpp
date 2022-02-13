@@ -103,10 +103,10 @@ auto genPopupPosList(const ZH_Annotator::ZH_dicItemVec &items) -> QList<int> {
                    items.end(),
                    std::back_inserter(result),
                    [n = 1](const ZH_Dictionary::Item &item) mutable {
-                       int temp = n;
-                       n += utl::StringU8(item.key).length() + 1 +
-                            utl::StringU8(item.pronounciation).length() + 1 +
-                            utl::StringU8(item.meanings.at(0)).length() + 1;
+                       size_t temp = n;
+                       n += static_cast<int>(utl::StringU8(item.key).length() + 1 +
+                                             utl::StringU8(item.pronounciation).length() + 1 +
+                                             utl::StringU8(item.meanings.at(0)).length() + 1);
                        return temp;
                    });
     return result;
@@ -130,6 +130,7 @@ void Display::clickedTextPosition(int pos) {
 
     if (!zh_annotator)
         return;
+    spdlog::info("Hello World");
 
     const std::size_t index = paragraph->getWordIndex(pos);
     if (index >= zh_annotator->Items().size())

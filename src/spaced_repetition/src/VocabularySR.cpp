@@ -26,7 +26,10 @@ VocabularySR::~VocabularySR() {
     try {
         SaveProgress();
         SaveAnnotationChoices();
-    } catch (const std::exception& e) { std::cout << e.what() << "\n"; }
+    }
+    catch (const std::exception& e) {
+        std::cout << e.what() << "\n";
+    }
 }
 
 VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_dictionary)
@@ -51,8 +54,18 @@ VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_
     fmt::print("Time totally elapsed: {} \n", chrono::duration_cast<microseconds>(gtr - start).count());
 
     CleanUpVocables();
+    fmt::print("New Vocables that where not yet seen: {}\n", CountTotalNewVocablesInSet());
     // treeWalker = std::make_unique<VocabularySR_TreeWalker>(id_vocableSR, id_cardMeta, id_vocableMeta);
     X = std::make_unique<VocabularySR_X>(id_vocableSR, id_cardMeta, id_vocableMeta);
+}
+auto VocabularySR::CountTotalNewVocablesInSet() -> size_t {
+    std::set<uint> newVocables;
+    for (const auto& [id, cardMeta] : id_cardMeta) {
+        ranges::set_difference(cardMeta.vocableIds,
+                               id_vocableSR | std::views::keys,
+                               std::inserter(newVocables, newVocables.begin()));
+    }
+    return newVocables.size();
 }
 
 void VocabularySR::CleanUpVocables() {
@@ -62,7 +75,7 @@ void VocabularySR::CleanUpVocables() {
     auto seenCards = id_cardMeta | std::views::filter([this](std::pair<uint, CardMeta> id_cm) {
                          return ranges::set_difference(id_cm.second.vocableIds,
                                                        id_vocableSR | std::views::keys,
-                                                       counting_iterator{})
+                                                       utl::counting_iterator{})
                                     .out.count == 0;
                      });
 
@@ -116,7 +129,8 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
 
     const auto& setVocIdThis = cm.vocableIds;
 
-    count += pow(ranges::set_intersection(setVocIdThis, good, counting_iterator{}).out.count, 2);
+    count += int(std::pow(
+        float(ranges::set_intersection(setVocIdThis, good, utl::counting_iterator{}).out.count), 2.f));
 
     if (cardIdsSharedVoc.empty())
         return 1.;
@@ -128,12 +142,12 @@ auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
                                                   const std::set<uint>& neutral) const -> float {
     std::set<uint> diff;
     ranges::set_difference(cm.vocableIds, neutral, std::inserter(diff, diff.begin()));
-    int relevance = 0;
+    size_t relevance = 0;
     for (uint vocId : diff) {
         relevance += id_vocableMeta.at(vocId).cardIds.size();
     }
 
-    return float(relevance) / pow(abs(float(diff.size() - 2)) + 1, diff.size());
+    return float(relevance) / std::pow(std::abs(float(diff.size() - 2)) + 1.f, float(diff.size()));
 }
 
 void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId) {
@@ -176,17 +190,19 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
     };
     std::map<uint, intersect_view> candidates;
     for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
-        size_t count_union =
-            ranges::set_union(id_vocableSR | std::views::keys, cardMeta.vocableIds, counting_iterator{})
-                .out.count;
+        size_t count_union = ranges::set_union(id_vocableSR | std::views::keys,
+                                               cardMeta.vocableIds,
+                                               utl::counting_iterator{})
+                                 .out.count;
         if (count_union != id_vocableSR.size())
             continue;
         std::set<uint> intersectToday;
         ranges::set_intersection(ids_repeatTodayVoc,
                                  cardMeta.vocableIds,
                                  std::inserter(intersectToday, intersectToday.begin()));
-        size_t count_now =
-            ranges::set_intersection(ids_nowVoc, cardMeta.vocableIds, counting_iterator{}).out.count;
+        size_t count_now = ranges::set_intersection(
+                               ids_nowVoc, cardMeta.vocableIds, utl::counting_iterator{})
+                               .out.count;
         if (intersectToday.empty() && count_now == 0)
             continue;
         uint view_count{};
@@ -206,7 +222,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
         return {};
     }
 
-    const auto preferedQuantity = [](int a, int b) -> bool {
+    const auto preferedQuantity = [](size_t a, size_t b) -> bool {
         const std::array quantity = {4, 3, 5, 2, 6};
         const auto a_it = ranges::find(quantity, a);
         const auto b_it = ranges::find(quantity, b);
@@ -242,7 +258,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
-    if (countOfNewVocablesToday > 60)
+    if (countOfNewVocablesToday > 80)
         return {};
     if (ids_againVoc.size() >= 9) {
         fmt::print("Vocables that failed are of quantity {}. Therefore no new vocables for now\n",
@@ -256,18 +272,19 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
     };
     std::map<uint, intersections> candidates;
 
-    constexpr int maxNewPerCard = 4;
+    constexpr int maxNewPerCard = 6;
     constexpr int maxRepeatPerNewCard = 2;
 
     for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
 
-        size_t countNew = ranges::set_difference(
-                              cardMeta.vocableIds, id_vocableSR | std::views::keys, counting_iterator{})
+        size_t countNew = ranges::set_difference(cardMeta.vocableIds,
+                                                 id_vocableSR | std::views::keys,
+                                                 utl::counting_iterator{})
                               .out.count;
         if (countNew == 0 || countNew > maxNewPerCard)
             continue;
         size_t countRepeat = ranges::set_intersection(
-                                 cardMeta.vocableIds, ids_repeatTodayVoc, counting_iterator{})
+                                 cardMeta.vocableIds, ids_repeatTodayVoc, utl::counting_iterator{})
                                  .out.count;
         if (countRepeat > maxRepeatPerNewCard)
             continue;
@@ -375,7 +392,7 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
     fmt::print("Unchanged are: {}\n", fmt::join(unchangedVocables, ", "));
 
     return {std::unique_ptr<Card>(cardDB->get().at(activeCardId)->clone()),
-            GetRelevantVocables(activeCardId),
+            GetActiveVocables_dicEntry(activeCardId),
             GetRelevantEase(activeCardId)};
 }
 
@@ -402,7 +419,7 @@ auto VocabularySR::addAnnotation(const std::vector<int>& combination,
 
     const auto& card = cardDB->get().at(activeCardId);
     return {std::unique_ptr<Card>(card->clone()),
-            GetRelevantVocables(activeCardId),
+            GetActiveVocables_dicEntry(activeCardId),
             GetRelevantEase(activeCardId)};
 }
 
@@ -411,14 +428,14 @@ auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
     const CardMeta& cm = id_cardMeta.at(cardId);
 
     auto vocableActive = [&](uint vocId) -> bool {
-        return (not id_vocableSR.contains(vocId)) || ids_repeatTodayVoc.contains(vocId) ||
-               ids_againVoc.contains(vocId);
+        return (not id_vocableSR.contains(vocId)) || id_vocableSR.at(vocId).isToBeRepeatedToday() ||
+               ids_repeatTodayVoc.contains(vocId) || ids_againVoc.contains(vocId);
     };
     ranges::copy_if(cm.vocableIds, std::inserter(activeVocables, activeVocables.begin()), vocableActive);
     return activeVocables;
 }
 
-auto VocabularySR::GetRelevantVocables(uint cardId) -> Item_Id_vt {
+auto VocabularySR::GetActiveVocables_dicEntry(uint cardId) -> Item_Id_vt {
     std::set<uint> activeVocables = GetActiveVocables(cardId);
 
     Item_Id_vt relevantVocables;
@@ -499,7 +516,8 @@ void VocabularySR::SaveProgress() {
         // save file for CardSR -----------------------------------------------
         nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
         SaveJsonToFile(s_fn_metaCardSR, jsonCardSR);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         fmt::print("Saving of meta files failed. Error: {}\n", e.what());
     }
 }
@@ -513,7 +531,8 @@ void VocabularySR::SaveAnnotationChoices() {
                               return {{"char_seq", choice.first}, {"combination", choice.second}};
                           });
         SaveJsonToFile(s_fn_annotationChoices, array);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         fmt::print("Saving Annotation Choices failed with Error: {}\n", e.what());
     }
 }
@@ -535,14 +554,16 @@ void VocabularySR::LoadProgress() {
         nlohmann::json jsonVocSR = LoadJsonFromFile(s_fn_metaVocableSR);
         jsonToMap(id_vocableSR, jsonVocSR);
         fmt::print("Vocable SR file {} loaded!\n", s_fn_metaVocableSR);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         fmt::print("Vocabulary SR load for {} failed! Exception {}", s_fn_metaVocableSR, e.what());
     }
     try {
         nlohmann::json jsonCardSR = LoadJsonFromFile(s_fn_metaCardSR);
         jsonToMap(id_cardSR, jsonCardSR);
         fmt::print("Card SR file {} loaded!\n", s_fn_metaCardSR);
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         fmt::print("Card SR load for {} failed! Exception {}", s_fn_metaCardSR, e.what());
     }
 
@@ -569,7 +590,8 @@ void VocabularySR::LoadAnnotationChoices() {
                                                 [](const nlohmann::json& c) -> int { return c; });
                               return {char_seq, combination};
                           });
-    } catch (const std::exception& e) {
+    }
+    catch (const std::exception& e) {
         fmt::print("Load of AnnotationChoice file failed, Error: {}\n", e.what());
     }
 }
