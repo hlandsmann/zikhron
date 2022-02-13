@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 #include <ranges>
+#include <spdlog/spdlog.h>
 
 namespace ranges = std::ranges;
 DataThread::DataThread(QObject* parent) { Q_UNUSED(parent); }
@@ -16,8 +17,8 @@ auto loadCardDB() -> CardDB {
     CardDB cardDB;
     try {
         cardDB.loadFromDirectory("/home/harmen/src/zikhron/conversion/xxcards");
-    } catch (const std::exception& e) { std::cout << e.what() << std::endl; } catch (...) {
-        std::cout << "Unknown Error" << std::endl;
+    } catch (const std::exception& e) { spdlog::error( e.what()); } catch (...) {
+        spdlog::error("Unknown Error, load Card Database failed!");
     }
     return cardDB;
 }

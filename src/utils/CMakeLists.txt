@@ -10,6 +10,8 @@ target_sources(zikhron-utils
     PRIVATE
         src/StringU8.cpp
     PUBLIC
+        include/utils/counting_iterator.h
+        include/utils/linear_set.h
         include/utils/Memoizer.h
         include/utils/min_element_val.h
         include/utils/StringU8.h

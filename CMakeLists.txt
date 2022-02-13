@@ -16,6 +16,8 @@ find_package(fmt REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(ctre REQUIRED)
 find_package(Microsoft.GSL REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
 add_subdirectory(third_party/cppcoro)
 
 option(use_iwyu OFF)
@@ -29,22 +31,16 @@ if (use_iwyu)
 endif (use_iwyu)
 
 add_subdirectory(src)
-add_executable(zikhron)
-
-target_sources(zikhron
-    PRIVATE
-        src/zikhron.cpp
-)
-target_link_libraries(zikhron
-    PRIVATE
-        zikhron::gui
-)
-target_compile_features(zikhron PRIVATE cxx_std_20)
-target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)
 
 option(ENABLE_TESTING "Enable Test Builds" ON)
 if(ENABLE_TESTING)
     enable_testing()
     message("Building tests..")
     add_subdirectory(test)
+endif()
+
+option(ENABLE_BENCHMARK "Enable Benchmarking" ON)
+if(ENABLE_BENCHMARK)
+    message("Building Benchmarks..")
+    add_subdirectory(benchmark)
 endif()

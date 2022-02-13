@@ -31,6 +31,8 @@ target_sources(zikhron-gui
 
 target_link_libraries(zikhron-gui
     PRIVATE
+        fmt::fmt
+        spdlog::spdlog
         Qt5::Qml
         Qt5::Quick
         Qt5::QuickControls2
