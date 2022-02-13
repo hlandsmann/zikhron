@@ -5,59 +5,53 @@ find_package(Catch2 REQUIRED)
 include(CTest)
 include(Catch)
 
-add_library(catch_main STATIC catch_main.cpp)
-target_link_libraries(catch_main PUBLIC Catch2::Catch2)
+#test dictionary
+add_executable(test_dictionary)
+target_sources(test_dictionary
+    PRIVATE
+        dictionary/test.cpp
+        catch_main.cpp
+)
+target_link_libraries(test_dictionary
+    PRIVATE
+        Catch2::Catch2
+        zikhron::dictionary
+        zikhron::warnings
+)
+target_compile_definitions(test_dictionary PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
+catch_discover_tests(test_dictionary)
 
-add_executable(tests tests.cpp)
-target_link_libraries(tests PRIVATE  catch_main)
+#test treewalker
+add_executable(test_sr_treewalker)
+target_sources(test_sr_treewalker
+    PRIVATE
+        sr_treewalker/test.cpp
+        catch_main.cpp
+)
+target_link_libraries(test_sr_treewalker
+    PRIVATE
+        Catch2::Catch2
+        zikhron::annotation
+        zikhron::dictionary
+        zikhron::spaced_repetition
+        zikhron::warnings
+)
+target_compile_definitions(test_sr_treewalker PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
+catch_discover_tests(test_sr_treewalker)
 
-# automatically discover tests that are defined in catch based test files you can modify the unittests. Set TEST_PREFIX
-# to whatever you want, or use different for different binaries
-catch_discover_tests(
-  tests
-  TEST_PREFIX
-  "unittests."
-  REPORTER
-  xml
-  OUTPUT_DIR
-  .
-  OUTPUT_PREFIX
-  "unittests."
-  OUTPUT_SUFFIX
-  .xml)
-
-# Add a file containing a set of constexpr tests
-add_executable(constexpr_tests constexpr_tests.cpp)
-target_link_libraries(constexpr_tests PRIVATE  catch_main)
-
-catch_discover_tests(
-  constexpr_tests
-  TEST_PREFIX
-  "constexpr."
-  REPORTER
-  xml
-  OUTPUT_DIR
-  .
-  OUTPUT_PREFIX
-  "constexpr."
-  OUTPUT_SUFFIX
-  .xml)
-
-# Disable the constexpr portion of the test, and build again this allows us to have an executable that we can debug when
-# things go wrong with the constexpr testing
-add_executable(relaxed_constexpr_tests constexpr_tests.cpp)
-target_link_libraries(relaxed_constexpr_tests PRIVATE  catch_main)
-target_compile_definitions(relaxed_constexpr_tests PRIVATE -DCATCH_CONFIG_RUNTIME_STATIC_REQUIRE)
-
-catch_discover_tests(
-  relaxed_constexpr_tests
-  TEST_PREFIX
-  "relaxed_constexpr."
-  REPORTER
-  xml
-  OUTPUT_DIR
-  .
-  OUTPUT_PREFIX
-  "relaxed_constexpr."
-  OUTPUT_SUFFIX
-  .xml)
+#test utl::linear_set
+add_executable(test_utils_linear_set)
+target_sources(test_utils_linear_set
+    PRIVATE
+        utils_linear_set/test.cpp
+        catch_main.cpp
+)
+target_link_libraries(test_utils_linear_set
+    PRIVATE
+        Catch2::Catch2
+        zikhron::utils
+        zikhron::warnings
+        spdlog::spdlog
+)
+target_compile_definitions(test_utils_linear_set PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
+catch_discover_tests(test_utils_linear_set)

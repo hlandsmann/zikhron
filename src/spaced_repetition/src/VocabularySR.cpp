@@ -3,6 +3,7 @@
 #include <annotation/TextCard.h>
 #include <fmt/ostream.h>
 #include <utils/StringU8.h>
+#include <utils/counting_iterator.h>
 #include <utils/min_element_val.h>
 #include <algorithm>
 #include <chrono>

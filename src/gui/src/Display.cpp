@@ -7,6 +7,7 @@
 #include <qcoreevent.h>
 #include <qdebug.h>
 #include <qevent.h>
+#include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
 #include <algorithm>
 #include <concepts>

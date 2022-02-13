@@ -1,3 +1,5 @@
+// This is dead code. Just used for reference to build the real treewalker...
+
 #include <fmt/format.h>
 #include <utils/min_element_val.h>
 #include <algorithm>
@@ -7,6 +9,7 @@
 #include <limits>
 #include <numeric>
 #include <ranges>
+#include <utils/counting_iterator.h>
 
 #include "VocabularySR.h"
 namespace ranges = std::ranges;
@@ -202,7 +205,7 @@ auto VocabularySR_TreeWalker::CardsBestSize(const std::map<uint, CardMeta>& id_c
     std::map<uint, std::set<uint, decltype(compare_by_urgency)>, myPreferedQuantity> length_cardIds;
 
     auto lengthOfCard = [&](uint cardId) {
-        return ranges::set_difference(id_cm.at(cardId).vocableIds, setVocs, counting_iterator{})
+        return ranges::set_difference(id_cm.at(cardId).vocableIds, setVocs, utl::counting_iterator{})
             .out.count;
     };
     auto removeOtherCardsWithVocables =
@@ -455,7 +458,7 @@ void VocabularySR_TreeWalker::ProcessGroup(Group& group) {
     std::set<uint> layer_cards;
     for (uint cardId : length_cardIds[4]) {
         const auto& vocIds = group.id_cardMeta.at(cardId).vocableIds;
-        if (ranges::set_intersection(vocIds, layerVocs, counting_iterator{}).out.count == 0) {
+        if (ranges::set_intersection(vocIds, layerVocs, utl::counting_iterator{}).out.count == 0) {
             ranges::copy(vocIds, std::inserter(layerVocs, layerVocs.begin()));
             layer_cards.insert(cardId);
         }

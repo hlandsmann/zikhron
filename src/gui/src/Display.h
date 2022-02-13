@@ -44,11 +44,11 @@ private:
     int lastPos = -1;
     QSharedPointer<markup::Paragraph> paragraph;
     std::string annotated;
-    std::unique_ptr<ZH_Annotator> zh_annotator;
+    QSharedPointer<ZH_Annotator> zh_annotator;
 
-    struct AnnotatedBlock {
-        std::unique_ptr<ZH_Annotator> zh_annotator;
-        std::unique_ptr<markup::Paragraph> paragraph;
-    };
+    // struct AnnotatedBlock {
+    //     std::unique_ptr<ZH_Annotator> zh_annotator;
+    //     std::unique_ptr<markup::Paragraph> paragraph;
+    // };
 };
 }  // namespace card
