@@ -54,15 +54,41 @@ CardDisplay {
         rowEaseRefresh()
     }
 
+    // PopupItemChoice {
+    //     id: popupItemChoice
+    // }
+    VocableChoice {
+        id:vocableChoice
+    }
+
     onOpenPopup: {
         var posRect = cardText.positionToRectangle(pos)
-        popupItemChoice.text = popupText
-        cardText.cursorPosition = pos
-        console.log("pos: ", pos)
-        popupItemChoice.spanX = posRect.x
-        popupItemChoice.spanY = posRect.y + posRect.height
-        popupItemChoice.positions = popupPosList
-        popupItemChoice.open()
+        // popupItemChoice.text = popupText
+        // cardText.cursorPosition = pos
+        // console.log("pos: ", pos)
+        // popupItemChoice.spanX = posRect.x
+        // popupItemChoice.spanY = posRect.y + posRect.height
+        // popupItemChoice.positions = popupPosList
+        // popupItemChoice.open()
+
+        vocableChoice.spanX = posRect.x
+        vocableChoice.spanY = posRect.y + posRect.height
+        vocableChoice.open()
+
+    }
+
+    onOpenVocableChoice: {
+        var posRect = cardText.positionToRectangle(pos)
+        vocableChoice.spanX = posRect.x
+        vocableChoice.spanY = posRect.y + posRect.height
+        vocableChoice.openPopup(dicEntry, dicEntries)
+        vocableChoice.dataModel.clear()
+        for(var i = 0; i<dicEntries.length; i++) {
+            vocableChoice.dataModel.append({"vocableEntry": dicEntries[i]})
+            console.log(dicEntries[i])
+        }
+
+// vocableChoice.open()
     }
 
     ColumnLayout{
@@ -145,5 +171,6 @@ CardDisplay {
             }
         } // Item
     } // columnlayout
+
 
 }

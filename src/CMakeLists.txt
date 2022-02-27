@@ -7,7 +7,10 @@ target_compile_options(
         -Wextra
         -Wconversion
         -pedantic
+        # -fsanitize=address
 )
+# target_compile_definitions(zikhron-warnings INTERFACE LSAN_OPTION=verbosity=1:log_threads=1
+
 add_library(zikhron::warnings ALIAS zikhron-warnings)
 
 add_subdirectory(annotation)

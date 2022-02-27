@@ -67,7 +67,7 @@ Popup {
         leftPadding:0
         rightPadding:0
 
-        text: popupItemChoice.text
+        text: popup.text
         wrapMode: TextArea.WordWrap
         textFormat: Text.RichText
         readOnly: true

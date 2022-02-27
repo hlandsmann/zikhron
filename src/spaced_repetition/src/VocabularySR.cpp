@@ -25,8 +25,8 @@ namespace ranges = std::ranges;
 
 VocabularySR::~VocabularySR() {
     try {
-        SaveProgress();
-        SaveAnnotationChoices();
+        // SaveProgress();
+        // SaveAnnotationChoices();
     }
     catch (const std::exception& e) {
         std::cout << e.what() << "\n";
@@ -102,9 +102,7 @@ void VocabularySR::GenerateFromCards() {
 
     for (const auto& [cardId, card] : cards) {
         utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
-
         card->zh_annotator.emplace(card_text, zh_dictionary, annotationChoices);
-
         InsertVocabulary(card->zh_annotator.value().UniqueItems(), cardId);
     }
     fmt::print("Count of vocables: {}\n", zhdic_vocableMeta.size());
@@ -134,7 +132,7 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
         float(ranges::set_intersection(setVocIdThis, good, utl::counting_iterator{}).out.count), 2.f));
 
     if (cardIdsSharedVoc.empty())
-        return 1.;
+        return 1.f;
 
     return float(count) / float(setVocIdThis.size());
 }
@@ -259,7 +257,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
-    if (countOfNewVocablesToday > 80)
+    if (countOfNewVocablesToday > 0)
         return {};
     if (ids_againVoc.size() >= 9) {
         fmt::print("Vocables that failed are of quantity {}. Therefore no new vocables for now\n",
@@ -378,7 +376,7 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
         fmt::print("Get new words from Card #{}\n", activeCardId);
     } else
         return {nullptr, Item_Id_vt{}, Id_Ease_vt{}};
-
+activeCardId = 492;
     std::vector<std::string> advancedVocables;
     std::vector<std::string> unchangedVocables;
     for (uint vocId : id_cardMeta.at(activeCardId).vocableIds)

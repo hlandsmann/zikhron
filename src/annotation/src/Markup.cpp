@@ -1,10 +1,13 @@
 #include "Markup.h"
 #include <fmt/format.h>
+#include <spdlog/spdlog.h>
 #include <utils/Memoizer.h>
 #include <algorithm>
 #include <boost/range/combine.hpp>
 #include <limits>
 #include <numeric>
+#include <ranges>
+#include <span>
 
 namespace ranges = std::ranges;
 
@@ -19,6 +22,15 @@ auto Word::joinCharactersNonBreakable(const utl::StringU8& word) const -> std::s
     return result;
 }
 
+auto Word::utf8ByteLengthOfWord(const utl::StringU8& word) const -> size_t {
+    size_t result = std::accumulate(
+        word.cbegin(), std::prev(word.cend()), size_t{}, [](size_t acc, const std::string& str) {
+            return acc + str.length() + 3;  // 3 is the utf8 length of the non breakable character &#8288
+        });
+    result += std::string(word.back()).length();
+    return result;
+}
+
 auto Word::lengthOfWord(const utl::StringU8& word) const -> size_t { return word.vlength() * 2 - 1; }
 
 Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor) {
@@ -27,8 +39,10 @@ Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor
         rawWord = word;
         styledWord = word;
         virtualLength = word.vlength();
+        utf8ByteLength = std::string(word).length();
     } else {
         virtualLength = lengthOfWord(word);
+        utf8ByteLength = utf8ByteLengthOfWord(word);
         color = _color;
         backGroundColor = _backGroundColor;
         rawWord = joinCharactersNonBreakable(word);
@@ -69,37 +83,41 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
 
     std::string style = "";
     if ((colorMask & color) != 0)
-        style = fmt::format("{}color:#{:06x};", style, (colorMask & color));
+        style = fmt::format("{} color=\"#{:06x}\"", style, (colorMask & color));
     if ((colorMask & backGroundColor) != 0)
-        style = fmt::format("{}background-color:#{:06x};", style, (colorMask & backGroundColor));
+        style = fmt::format("{} background=\"#{:06x}\"", style, (colorMask & backGroundColor));
     if (not style.empty())
-        return fmt::format("<span style=\"{}\">{}</span>", style, str);
+        return fmt::format("<span{}>{}</span>", style, str);
     return str;
 }
 
 auto Paragraph::textFromCard(const Card& card) -> utl::StringU8 {
     utl::StringU8 text;
     if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
-        const std::string tbOpen = "<tr>";
-        const std::string tbClose = "</tr>";
-        const std::string open = "<td style=\"padding:10px 15px 10px 15px;\">";
-        const std::string close = "</td>";
         for (const auto& dialogue : dlgCard->dialogue) {
-            text.push_back({tbOpen, true, 0});
-            text.push_back({open, true, 1});
             text.append(dialogue.speaker);
-            text.push_back({close, true, 0});
-            text.push_back({open, true, 1});
+            text.append(std::string("~"));
             text.append(dialogue.text);
-            text.push_back({close, true, 0});
-            text.push_back({tbClose, true, 0});
+            text.append(std::string("~"));
         }
     }
     if (const TextCard* textCard = dynamic_cast<const TextCard*>(&card)) {
         text = textCard->text;
     }
-
     return text;
+}
+
+auto Paragraph::calculate_positions(const std::vector<Word>& words, size_t (Word::*len)() const) const
+    -> std::vector<int> {
+    std::vector<int> result;
+    result.push_back(0);
+    ranges::transform(words,
+                      std::back_inserter(result),
+                      [absolutePosition = size_t(0), len](const Word& word) mutable -> size_t {
+                          absolutePosition += std::invoke(len, word);
+                          return absolutePosition;
+                      });
+    return result;
 }
 
 Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
@@ -111,27 +129,64 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
                       std::back_inserter(words),
                       [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
 
-    positions.push_back(0);
-    size_t absolutePosition = 0;
-    ranges::transform(
-        words, std::back_inserter(positions), [&absolutePosition](const Word& word) -> size_t {
-            absolutePosition += word.vLength();
-            return absolutePosition;
-        });
+    utf8Positions = calculate_positions(words, &Word::vLength);
+    bytePositions = calculate_positions(words, &Word::byteLength);
+
+    fragments.clear();
+    if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(card.get())) {
+        std::vector<size_t> fragmentPositions;
+        size_t fragmentPos = 0;
+        for (const auto& dialogue : dlgCard->dialogue) {
+            fragmentPos += utl::StringU8(dialogue.speaker).length();
+            fragmentPositions.push_back(fragmentPos);
+            fragmentPos++;
+            fragmentPos += utl::StringU8(dialogue.text).length();
+            fragmentPositions.push_back(fragmentPos);
+            fragmentPos++;
+        }
+
+        size_t firstWordIndex = 0, wordIndex = 0, fragmentIndex = 0, currentLength = 0;
+        for (const auto& item : zh_annotator.Items()) {
+            currentLength += utl::StringU8(item.text).length();
+            wordIndex++;
+
+            if (fragmentIndex >= fragmentPositions.size())
+                break;
+            if (currentLength == fragmentPositions[fragmentIndex]) {
+                fragments.emplace_back(words.begin() + firstWordIndex, words.begin() + wordIndex);
+                firstWordIndex = wordIndex + 1;
+                fragmentIndex++;
+            }
+        }
+    } else {
+        fragments.emplace_back(words.begin(), words.end());
+    }
+    for (const auto& w : fragments) {
+        auto nw = std::accumulate(w.begin(), w.end(), std::string{}, utl::stringPlusT<Word>);
+        spdlog::info("\"{}\"", nw);
+    }
 }
 
 auto Paragraph::get() const -> std::string {
     return std::accumulate(words.begin(), words.end(), std::string{}, utl::stringPlusT<Word>);
 }
 
-auto Paragraph::getWordStartPosition(int pos) const -> int {
-    std::size_t index = getWordIndex(pos);
+auto Paragraph::getFragments() const -> std::vector<std::string> {
+    std::vector<std::string> result;
+    ranges::transform(fragments, std::back_inserter(result), [](const std::span<const Word>& fragment) {
+        return std::accumulate(fragment.begin(), fragment.end(), std::string{}, utl::stringPlusT<Word>);
+    });
+    return result;
+}
+
+auto Paragraph::getWordStartPosition(int pos, const std::vector<int>& positions) const -> int {
+    std::size_t index = getWordIndex(pos, positions);
     if (index >= positions.size())
         return -1;
     return positions[index];
 }
 
-auto Paragraph::getWordIndex(int pos) const -> std::size_t {
+auto Paragraph::getWordIndex(int pos, const std::vector<int>& positions) const -> std::size_t {
     auto posIt = std::adjacent_find(positions.begin(), positions.end(), [pos](int posA, int posB) {
         return posA <= pos && posB > pos;
     });
@@ -141,6 +196,17 @@ auto Paragraph::getWordIndex(int pos) const -> std::size_t {
         posIt = std::prev(positions.end());
     }
     return std::max<size_t>(0, std::distance(positions.begin(), posIt));
+}
+
+auto Paragraph::fragmentStartPos(size_t fragment, const std::vector<int>& positions) const -> int {
+    if (fragment >= fragments.size())
+        throw std::out_of_range(
+            fmt::format("Only {} fragments, fragment #{} requested", fragments.size(), fragment));
+    ptrdiff_t dist = std::distance(std::span<const Word>(words).begin(), fragments[fragment].begin());
+
+    int result = positions[dist];
+    spdlog::info("Result: {}", result);
+    return result;
 }
 
 void Paragraph::updateAnnotationColoring() {
@@ -223,10 +289,10 @@ void Paragraph::updateAnnotationColoring() {
     }
 }
 
-void Paragraph::highlightWordAtPosition(int pos) {
+void Paragraph::highlightWordAtPosition(int pos, const std::vector<int>& positions) {
     if (positions.empty())
         return;
-    size_t index = getWordIndex(pos);
+    size_t index = getWordIndex(pos, positions);
 
     if (index >= words.size())
         return;
@@ -235,7 +301,7 @@ void Paragraph::highlightWordAtPosition(int pos) {
 
     preChanges.push({.index = index, .word{words[index]}});
 
-    const ZH_Annotator::ZH_dicItemVec clickedItem = wordFromPosition(pos);
+    const ZH_Annotator::ZH_dicItemVec clickedItem = wordFromPosition(pos, positions);
     if (clickedItem.empty())
         return;
     Word& word = words[index];
@@ -317,16 +383,21 @@ void Paragraph::undoChange() {
     }
 }
 
-auto Paragraph::wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec {
+auto Paragraph::wordFromPosition(int pos, const std::vector<int>& positions) const
+    -> const ZH_Annotator::ZH_dicItemVec {
     assert(card->zh_annotator.has_value());
     const auto& zh_annotator = card->zh_annotator.value();
 
-    const std::size_t index = getWordIndex(pos);
+    const std::size_t index = getWordIndex(pos, positions);
     if (index >= zh_annotator.Items().size())
         return {};
 
     const ZH_Annotator::Item& item = zh_annotator.Items().at(index);
     return item.dicItemVec;
+}
+
+auto Paragraph::getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>& {
+    return vocables;
 }
 
 void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&& _vocables_id) {
@@ -359,41 +430,59 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
             }
         }
     }
-
-    vocableString = std::accumulate(
-        vocables_id.begin(),
-        vocables_id.end(),
-        std::string{},
-        [&, colorIndex = 0](std::string&& a, const auto& inItem) mutable {
-            const ZH_Dictionary::Item& b = inItem.first;
-            uint32_t color = colors[colorIndex++ % colors.size()];
-            return a += fmt::format(  // clang-format off
-                    "<tr>>"
-                        "<td style=\"padding:0 15px 0 15px;color:#{c:06x};\">{}</td>"
-                        "<td style=\"padding:0 15px 0 15px;color:#{c:06x};\">{}</td>"
-                        "<td style=\"color:#{c:06x};\">{}</td>"
-                    "</tr>",  // clang-format on
-                       b.key,
-                       b.pronounciation,
-                       b.meanings.at(0),
-                       fmt::arg("c", color));
-        });
-    vocablePositions.clear();
     ranges::transform(
         vocables_id,
-        std::back_inserter(vocablePositions),
-        [n = 1](const ZH_Dictionary::Item& voc) mutable {
-            int temp = n;  // clang-format off
-            n += int(utl::StringU8(voc.key).length() + 1
-                   + utl::StringU8(voc.pronounciation).length() + 1
-                   + utl::StringU8(voc.meanings.at(0)).length() + 1);
-            return temp;  // clang-format on
-        },
-        [](const auto& in) { return in.first; });
+        std::back_inserter(vocables),
+        [&, colorIndex = 0](const auto& inItem) mutable -> vocable_pronounciation_meaning_t {
+            const ZH_Dictionary::Item& zhItem = inItem.first;
+            uint32_t color = colors[colorIndex++ % colors.size()];
+            std::string style = fmt::format(" color=\"#{:06x}\"", color);
+
+            std::string vocable = fmt::format("<span{}>{}</span>", style, zhItem.key);
+            spdlog::info("voc: \"{}\"", vocable);
+            std::string pronounciation = fmt::format("<span{}>{}</span>", style, zhItem.pronounciation);
+            std::string meaning = fmt::format("<span{}>{}</span>", style, zhItem.meanings.at(0));
+            return {vocable, pronounciation, meaning};
+        });
+
+    for (const auto& [vocable, pronounciation, meaning] : vocables) {
+        spdlog::info("voc: \"{}\", pron: \"{}\", mg: \"{}\"", vocable, pronounciation, meaning);
+    }
+
+    // vocableString = std::accumulate(
+    //     vocables_id.begin(),
+    //     vocables_id.end(),
+    //     std::string{},
+    //     [&, colorIndex = 0](std::string&& a, const auto& inItem) mutable {
+    //         const ZH_Dictionary::Item& b = inItem.first;
+    //         uint32_t color = colors[colorIndex++ % colors.size()];
+    //         return a += fmt::format(  // clang-format off
+    //                 "<tr>>"
+    //                     "<td style=\"padding:0 15px 0 15px;color:#{c:06x};\">{}</td>"
+    //                     "<td style=\"padding:0 15px 0 15px;color:#{c:06x};\">{}</td>"
+    //                     "<td style=\"color:#{c:06x};\">{}</td>"
+    //                 "</tr>",  // clang-format on
+    //                    b.key,
+    //                    b.pronounciation,
+    //                    b.meanings.at(0),
+    //                    fmt::arg("c", color));
+    //     });
+    // vocablePositions.clear();
+    // ranges::transform(
+    //     vocables_id,
+    //     std::back_inserter(vocablePositions),
+    //     [n = 1](const ZH_Dictionary::Item& voc) mutable {
+    //         int temp = n;  // clang-format off
+    //         n += int(utl::StringU8(voc.key).length() + 1
+    //                + utl::StringU8(voc.pronounciation).length() + 1
+    //                + utl::StringU8(voc.meanings.at(0)).length() + 1);
+    //         return temp;  // clang-format on
+    //     },
+    //     [](const auto& in) { return in.first; });
 }
 
-auto Paragraph::getVocableString() const -> std::string { return vocableString; }
-auto Paragraph::getVocablePositions() const -> const std::vector<int>& { return vocablePositions; };
+// auto Paragraph::getVocableString() const -> std::string { return vocableString; }
+// auto Paragraph::getVocablePositions() const -> const std::vector<int>& { return vocablePositions; };
 auto Paragraph::getRelativeOrderedEaseList(const std::map<uint, Ease>& ease_in) const
     -> std::vector<std::pair<uint, Ease>> {
     std::vector<std::pair<uint, Ease>> ease_out;

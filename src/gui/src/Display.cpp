@@ -113,6 +113,21 @@ auto genPopupPosList(const ZH_Annotator::ZH_dicItemVec &items) -> QList<int> {
     return result;
 }
 
+auto genDicEntryText(const ZH_Dictionary::Item &item, bool shortText) -> QString {
+    std::string meaning = item.meanings.front();
+    if (shortText && utl::StringU8(meaning).length() > 32)
+        meaning = utl::StringU8(meaning).substr(0, 30) + "..";
+
+    const std::string result = fmt::format(  // clang-format off
+            "<tr>"
+              "<td style=\"padding:0 15px 0 15px;\">{}</td>"
+              "<td>{}</td>"
+            "</tr>",  // clang-format on
+        item.pronounciation,
+        meaning);
+    return QString::fromStdString(result);
+}
+
 // "<div><table border='1'><caption><h4>Test stats</h4>"+
 // "</caption><tr bgcolor='#9acd32'><th/><th>Number1</th><th>Number2</th></tr> <tr><th>Line1</th>"+
 // "<td> 0 </td> <td> 1 </td> </tr> <tr><th>Line2</th> <td> 0 </td> <td> 1 </td> </tr>"+
@@ -128,22 +143,6 @@ void Display::clickedTextPosition(int pos) {
     const auto &word = clickedItem.front();
     std::cout << word.key << " : "
               << " : " << word.pronounciation << " : " << word.meanings.front() << "\n";
-
-    if (!zh_annotator)
-        return;
-    spdlog::info("Hello World");
-
-    const std::size_t index = paragraph->getWordIndex(pos);
-    if (index >= zh_annotator->Items().size())
-        return;
-
-    const ZH_Annotator::Item &item = zh_annotator->Items().at(index);
-    // const ZH_Annotator::Item &items = zh_annotator->Items().at(index);
-    if (item.dicItemVec.empty())
-        return;
-    // const auto &dicitem = item.dicItem.value();
-    // const std::string dic_entry = fmt::format(
-    //     "{} ({}) - {}", dicitem.key, dicitem.pronounciation, dicitem.meanings.at(1));
 
     std::string table =
         std::string("") +
@@ -166,13 +165,22 @@ void Display::clickedTextPosition(int pos) {
         " <td><span style=\"display: inline;\">Short word</span></td>"
         " </tr>"
         "</table>";
-    std::string popupText = genPopupText(item.dicItemVec);
-    QList<int> popupPosList = genPopupPosList(item.dicItemVec);
+    std::string popupText = genPopupText(clickedItem);
+    QList<int> popupPosList = genPopupPosList(clickedItem);
     std::cout << popupText << "\n";
     std::cout << table2 << "\n";
 
-    emit openPopup(
-        paragraph->getWordStartPosition(pos), QString::fromStdString(popupText), popupPosList);
+    const auto dicEntry = genDicEntryText(clickedItem.front(), false);
+    QList<QString> dicEntries;
+    if (clickedItem.size() > 1) {
+        ranges::transform(clickedItem, std::back_inserter(dicEntries), [](const auto &item) -> QString {
+            return genDicEntryText(item, true);
+        });
+    }
+    emit openVocableChoice(paragraph->getWordStartPosition(pos), dicEntry, dicEntries);
+    // emit openPopup(
+    //     paragraph->getWordStartPosition(pos), QString::fromStdString(popupText), popupPosList);
+
     // emit textUpdate(QString::fromStdString(popupText));
 }
 

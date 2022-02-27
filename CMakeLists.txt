@@ -31,6 +31,7 @@ if (use_iwyu)
 endif (use_iwyu)
 
 add_subdirectory(src)
+add_subdirectory(mockup)
 
 option(ENABLE_TESTING "Enable Test Builds" ON)
 if(ENABLE_TESTING)

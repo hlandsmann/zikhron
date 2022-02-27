@@ -7,7 +7,7 @@ ComboBox {
     property var startHighlighted : -1
     function menuClosed() {}
     x: (implicitX + width > parent.width ? parent.width - width : implicitX)
-    model: [] //["First", "Second", "Third"]
+    model: []
     rightPadding: 0
     leftPadding: 0
     topPadding: 0

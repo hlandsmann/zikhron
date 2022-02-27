@@ -34,6 +34,7 @@ signals:
     void textUpdate(QString newText);
     void vocableUpdate(QString newVocables, QList<int> vocablePosList, QList<int> vocableEaseList);
     void openPopup(int pos, QString popupText, QList<int> popupPosList);
+    void openVocableChoice(int pos, QString dicEntry, QList<QString> dicEntries);
 
     void doubleClicked();
     void sendEase(QList<int>);
@@ -44,11 +45,6 @@ private:
     int lastPos = -1;
     QSharedPointer<markup::Paragraph> paragraph;
     std::string annotated;
-    QSharedPointer<ZH_Annotator> zh_annotator;
 
-    // struct AnnotatedBlock {
-    //     std::unique_ptr<ZH_Annotator> zh_annotator;
-    //     std::unique_ptr<markup::Paragraph> paragraph;
-    // };
 };
 }  // namespace card
