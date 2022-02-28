@@ -12,7 +12,7 @@
 #include <vector>
 
 class ZH_Annotator {
-    using CharacterSequence = std::vector<utl::ItemU8>;
+    using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
 
 public:

@@ -76,7 +76,7 @@ public:
     using Id_Ease_vt = std::map<uint, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
     auto getCard() -> CardInformation;
-    auto addAnnotation(const std::vector<int>& combination, const std::vector<utl::ItemU8>& characters)
+    auto addAnnotation(const std::vector<int>& combination, const std::vector<utl::CharU8>& characters)
         -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt&);
 
@@ -129,7 +129,7 @@ private:
     uint activeCardId{};
     bool getCardNeedsCleanup = false;
 
-    using CharacterSequence = std::vector<utl::ItemU8>;
+    using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
     std::map<CharacterSequence, Combination> annotationChoices;
     std::unique_ptr<VocabularySR_TreeWalker> treeWalker;

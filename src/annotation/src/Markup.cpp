@@ -346,7 +346,7 @@ auto Paragraph::getAnnotationPossibilities(int pos) -> AnnotationPossibilities {
     std::vector<std::string> marked;
     std::vector<std::string> unmarked;
 
-    const std::vector<utl::ItemU8>& items = annotationChunk.characters;
+    const std::vector<utl::CharU8>& items = annotationChunk.characters;
 
     const auto combinations = ZH_Annotator::get_combinations(annotationChunk.chunk);
     for (const auto& combination : combinations) {

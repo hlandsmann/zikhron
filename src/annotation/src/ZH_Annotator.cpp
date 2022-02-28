@@ -195,7 +195,7 @@ void ZH_Annotator::annotate() {
             int combinationLength = std::accumulate(combs.front().begin(), combs.front().end(), 0);
             auto finally = gsl::final_action([&pos, combinationLength]() { pos += combinationLength; });
             if (combinationLength > 1) {
-                const auto& possibleChoice = std::vector<utl::ItemU8>(
+                const auto& possibleChoice = std::vector<utl::CharU8>(
                     text.cbegin() + pos, text.cbegin() + pos + combinationLength);
                 const auto& choiceIt = choices.find(possibleChoice);
                 if (choiceIt != choices.end())

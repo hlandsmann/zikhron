@@ -69,7 +69,7 @@ public:
         std::vector<std::string> marked;
         size_t pos{};
         std::vector<std::vector<int>> combinations;
-        std::vector<utl::ItemU8> characters;
+        std::vector<utl::CharU8> characters;
     };
     auto getAnnotationPossibilities(int pos) -> AnnotationPossibilities;
     void undoChange();
@@ -98,7 +98,7 @@ private:
 
     struct AnnotationChunk {
         std::vector<std::reference_wrapper<Word>> words;
-        std::vector<utl::ItemU8> characters;
+        std::vector<utl::CharU8> characters;
         std::vector<std::vector<int>> chunk;
         size_t posBegin = 0;
         size_t posEnd = 0;

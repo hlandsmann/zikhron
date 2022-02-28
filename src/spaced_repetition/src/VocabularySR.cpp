@@ -396,7 +396,7 @@ activeCardId = 492;
 }
 
 auto VocabularySR::addAnnotation(const std::vector<int>& combination,
-                                 const std::vector<utl::ItemU8>& characterSequence) -> CardInformation {
+                                 const std::vector<utl::CharU8>& characterSequence) -> CardInformation {
     annotationChoices[characterSequence] = combination;
 
     std::set<uint> cardsWithCharSeq;
@@ -581,7 +581,7 @@ void VocabularySR::LoadAnnotationChoices() {
                               Combination combination;
                               ranges::transform(char_seqJson,
                                                 std::back_inserter(char_seq),
-                                                [](const nlohmann::json& character) -> utl::ItemU8 {
+                                                [](const nlohmann::json& character) -> utl::CharU8 {
                                                     return {std::string(character)};
                                                 });
                               ranges::transform(combinationJson,

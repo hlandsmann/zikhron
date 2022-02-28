@@ -12,7 +12,7 @@ namespace utl {
 // StringU8::StringU8(const std::string_view& _strv) : StringU8(std::string(_strv)) {}
 StringU8::StringU8(const icu::UnicodeString& _str) : StringU8(icustringToString(_str)) {}
 StringU8::StringU8(const std::string& str) { append(str); }
-StringU8::StringU8(const std::span<const ItemU8>& items) {
+StringU8::StringU8(const std::span<const CharU8>& items) {
     ranges::copy(items, std::back_inserter(chars));
 }
 
@@ -30,7 +30,7 @@ auto StringU8::length() const -> size_t { return chars.size(); }
 
 auto StringU8::vlength() const -> size_t {
     return std::accumulate(
-        chars.cbegin(), chars.cend(), size_t(0), [](const size_t a, const ItemU8& b) -> size_t {
+        chars.cbegin(), chars.cend(), size_t(0), [](const size_t a, const CharU8& b) -> size_t {
             return a + b.vLength();
         });
 }
@@ -43,10 +43,10 @@ auto StringU8::at(size_t pos) const -> StringU8 {
 auto StringU8::substr(size_t pos, size_t n) const -> std::string {
     auto first = std::min(std::next(chars.begin(), pos), chars.end());
     auto last = std::min(std::next(chars.begin(), pos + n), chars.end());
-    return std::accumulate(first, last, std::string{}, stringPlusT<ItemU8>);
+    return std::accumulate(first, last, std::string{}, stringPlusT<CharU8>);
 }
-auto StringU8::back() const -> ItemU8 { return chars.back(); }
-auto StringU8::front() const -> ItemU8 { return chars.front(); }
+auto StringU8::back() const -> CharU8 { return chars.back(); }
+auto StringU8::front() const -> CharU8 { return chars.front(); }
 
 auto StringU8::icustringToString(const icu::UnicodeString& _str) -> std::string {
     std::string tempString;
@@ -54,7 +54,7 @@ auto StringU8::icustringToString(const icu::UnicodeString& _str) -> std::string 
     return tempString;
 }
 
-void StringU8::push_back(const ItemU8& itemU8) { chars.push_back(itemU8); }
+void StringU8::push_back(const CharU8& itemU8) { chars.push_back(itemU8); }
 void StringU8::append(const std::string& str) {
     size_t i = 0, old_i = 0;
     while (i < str.length()) {
