@@ -10,7 +10,7 @@
 
 struct Card {
     Card(std::string _filename, int _id) : filename(_filename), id(_id){};
-    virtual auto clone() const -> Card* = 0;
+    virtual auto clone() const -> std::unique_ptr<Card> = 0;
     virtual ~Card() = default;
 
     virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
@@ -19,10 +19,17 @@ struct Card {
     std::optional<ZH_Annotator> zh_annotator;
 };
 
-struct DialogueCard : public Card {
-    DialogueCard(std::string _filename, int _id) : Card(_filename, _id){};
+template <typename Card_Type> struct Card_clone : public Card {
+public:
+    Card_clone(std::string _filename, int _id) : Card(_filename, _id){};
+    std::unique_ptr<Card> clone() const override {
+        return std::make_unique<Card_Type>(static_cast<Card_Type const&>(*this));
+    }
+};
+
+struct DialogueCard : public Card_clone<DialogueCard> {
+    DialogueCard(std::string _filename, int _id) : Card_clone<DialogueCard>(_filename, _id){};
     DialogueCard(const DialogueCard&) = default;
-    auto clone() const -> DialogueCard* override { return new DialogueCard(*this); }
     struct DialogueItem {
         icu::UnicodeString speaker;
         icu::UnicodeString text;
@@ -32,9 +39,8 @@ struct DialogueCard : public Card {
     auto getTextVector() const -> std::vector<icu::UnicodeString> override;
 };
 
-struct TextCard : public Card {
-    TextCard(std::string _filename, int _id) : Card(_filename, _id){};
-    auto clone() const -> TextCard* override { return new TextCard(*this); }
+struct TextCard : public Card_clone<TextCard> {
+    TextCard(std::string _filename, int _id) : Card_clone<TextCard>(_filename, _id){};
     TextCard(const TextCard&) = default;
     icu::UnicodeString text;
     auto getTextVector() const -> std::vector<icu::UnicodeString> override;
