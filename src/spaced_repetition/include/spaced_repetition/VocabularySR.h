@@ -34,31 +34,31 @@ private:
     const std::map<uint, VocableMeta>& id_vocableMeta;
 };
 
-class VocabularySR_TreeWalker {
-public:
-    VocabularySR_TreeWalker(const std::map<uint, VocableSR>&,
-                            const std::map<uint, CardMeta>&,
-                            const std::map<uint, VocableMeta>&);
+// class VocabularySR_TreeWalker {
+// public:
+//     VocabularySR_TreeWalker(const std::map<uint, VocableSR>&,
+//                             const std::map<uint, CardMeta>&,
+//                             const std::map<uint, VocableMeta>&);
 
-private:
-    struct Group {
-        std::map<uint, VocableMeta> id_vocMeta{};
-        std::map<uint, CardMeta> id_cardMeta{};
-    };
-    auto SplitGroup(const Group& group) -> std::vector<Group>;
-    void ProcessGroup(Group& group);
-    auto OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId) -> std::set<uint>;
+// private:
+//     struct Group {
+//         std::map<uint, VocableMeta> id_vocMeta{};
+//         std::map<uint, CardMeta> id_cardMeta{};
+//     };
+//     auto SplitGroup(const Group& group) -> std::vector<Group>;
+//     void ProcessGroup(Group& group);
+//     auto OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId) -> std::set<uint>;
 
-    using IdCardMeta_vec = std::vector<std::pair<uint, CardMeta>>;
-    auto CardsBestSize(const std::map<uint, CardMeta>& id_cm) -> IdCardMeta_vec;
-    auto RefinedCards(const IdCardMeta_vec&) -> IdCardMeta_vec;
+//     using IdCardMeta_vec = std::vector<std::pair<uint, CardMeta>>;
+//     auto CardsBestSize(const std::map<uint, CardMeta>& id_cm) -> IdCardMeta_vec;
+//     auto RefinedCards(const IdCardMeta_vec&) -> IdCardMeta_vec;
 
-    std::jthread worker;
+//     std::jthread worker;
 
-    std::map<uint, VocableSR> id_vocableSR;
-    std::map<uint, CardMeta> id_cardMeta;
-    std::map<uint, VocableMeta> id_vocableMeta;
-};
+//     std::map<uint, VocableSR> id_vocableSR;
+//     std::map<uint, CardMeta> id_cardMeta;
+//     std::map<uint, VocableMeta> id_vocableMeta;
+// };
 
 class VocabularySR {
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
@@ -132,6 +132,6 @@ private:
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
     std::map<CharacterSequence, Combination> annotationChoices;
-    std::unique_ptr<VocabularySR_TreeWalker> treeWalker;
+    // std::unique_ptr<VocabularySR_TreeWalker> treeWalker;
     std::unique_ptr<VocabularySR_X> X;
 };
