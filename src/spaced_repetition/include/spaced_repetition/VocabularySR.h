@@ -89,8 +89,8 @@ private:
     void InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId);
     void EraseVocabulary(uint cardId);
     static void SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js);
-    void SaveProgress();
-    void SaveAnnotationChoices();
+    void SaveProgress() const;
+    void SaveAnnotationChoices() const;
     static auto LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json;
     void LoadProgress();
     void LoadAnnotationChoices();
@@ -98,9 +98,9 @@ private:
     void CleanUpVocables();
 
     // Get vocables that would need to be learned with this current cardId
-    auto GetActiveVocables_dicEntry(uint cardId) -> Item_Id_vt;
+    auto GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt;
+    auto GetActiveVocables(uint cardId) const -> std::set<uint>;
     auto GetRelevantEase(uint cardId) -> Id_Ease_vt;
-    auto GetActiveVocables(uint cardId) -> std::set<uint>;
 
     // Calculate which Cards to learn next
     auto GetCardRepeatedVoc() -> std::optional<uint>;

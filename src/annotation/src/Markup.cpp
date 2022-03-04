@@ -34,7 +34,7 @@ auto Word::utf8ByteLengthOfWord(const utl::StringU8& word) const -> size_t {
 auto Word::lengthOfWord(const utl::StringU8& word) const -> size_t { return word.vlength() * 2 - 1; }
 
 Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor) {
-    if (1 == 1 && word.front().isMarkup()) {
+    if (word.front().isMarkup()) {
         markup = true;
         rawWord = word;
         styledWord = word;
@@ -163,7 +163,6 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
     }
     for (const auto& w : fragments) {
         auto nw = std::accumulate(w.begin(), w.end(), std::string{}, utl::stringPlusT<Word>);
-        spdlog::info("\"{}\"", nw);
     }
 }
 
@@ -205,7 +204,6 @@ auto Paragraph::fragmentStartPos(size_t fragment, const std::vector<int>& positi
     ptrdiff_t dist = std::distance(std::span<const Word>(words).begin(), fragments[fragment].begin());
 
     int result = positions[dist];
-    spdlog::info("Result: {}", result);
     return result;
 }
 
@@ -439,15 +437,10 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
             std::string style = fmt::format(" color=\"#{:06x}\"", color);
 
             std::string vocable = fmt::format("<span{}>{}</span>", style, zhItem.key);
-            spdlog::info("voc: \"{}\"", vocable);
             std::string pronounciation = fmt::format("<span{}>{}</span>", style, zhItem.pronounciation);
             std::string meaning = fmt::format("<span{}>{}</span>", style, zhItem.meanings.at(0));
             return {vocable, pronounciation, meaning};
         });
-
-    for (const auto& [vocable, pronounciation, meaning] : vocables) {
-        spdlog::info("voc: \"{}\", pron: \"{}\", mg: \"{}\"", vocable, pronounciation, meaning);
-    }
 
     // vocableString = std::accumulate(
     //     vocables_id.begin(),

@@ -188,7 +188,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
         uint viewCount{};
     };
     std::map<uint, intersect_view> candidates;
-    for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
+    for (const auto& [id, cardMeta] : id_cardMeta) {
         size_t count_union = ranges::set_union(id_vocableSR | std::views::keys,
                                                cardMeta.vocableIds,
                                                utl::counting_iterator{})
@@ -274,8 +274,7 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
     constexpr int maxNewPerCard = 6;
     constexpr int maxRepeatPerNewCard = 2;
 
-    for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
-
+    for (const auto& [id, cardMeta] : id_cardMeta) {
         size_t countNew = ranges::set_difference(cardMeta.vocableIds,
                                                  id_vocableSR | std::views::keys,
                                                  utl::counting_iterator{})
@@ -376,7 +375,7 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
         fmt::print("Get new words from Card #{}\n", activeCardId);
     } else
         return {nullptr, Item_Id_vt{}, Id_Ease_vt{}};
-activeCardId = 492;
+    // activeCardId = 492;
     std::vector<std::string> advancedVocables;
     std::vector<std::string> unchangedVocables;
     for (uint vocId : id_cardMeta.at(activeCardId).vocableIds)
@@ -390,7 +389,7 @@ activeCardId = 492;
     fmt::print("Advancing indirectly: {}\n", fmt::join(advancedVocables, ", "));
     fmt::print("Unchanged are: {}\n", fmt::join(unchangedVocables, ", "));
 
-    return {std::unique_ptr<Card>(cardDB->get().at(activeCardId)->clone()),
+    return {cardDB->get().at(activeCardId)->clone(),
             GetActiveVocables_dicEntry(activeCardId),
             GetRelevantEase(activeCardId)};
 }
@@ -422,7 +421,7 @@ auto VocabularySR::addAnnotation(const std::vector<int>& combination,
             GetRelevantEase(activeCardId)};
 }
 
-auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
+auto VocabularySR::GetActiveVocables(uint cardId) const -> std::set<uint> {
     std::set<uint> activeVocables;
     const CardMeta& cm = id_cardMeta.at(cardId);
 
@@ -434,7 +433,7 @@ auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
     return activeVocables;
 }
 
-auto VocabularySR::GetActiveVocables_dicEntry(uint cardId) -> Item_Id_vt {
+auto VocabularySR::GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt {
     std::set<uint> activeVocables = GetActiveVocables(cardId);
 
     Item_Id_vt relevantVocables;
@@ -495,7 +494,7 @@ void VocabularySR::SaveJsonToFile(const std::string_view& fn, const nlohmann::js
     ofs << js.dump(4);
 }
 
-void VocabularySR::SaveProgress() {
+void VocabularySR::SaveProgress() const {
     auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
         nlohmann::json jsonMeta = nlohmann::json::object();
         auto& content = jsonMeta[std::string(s_content)];
@@ -521,7 +520,7 @@ void VocabularySR::SaveProgress() {
     }
 }
 
-void VocabularySR::SaveAnnotationChoices() {
+void VocabularySR::SaveAnnotationChoices() const {
     try {
         nlohmann::json array = nlohmann::json::array();
         ranges::transform(annotationChoices,

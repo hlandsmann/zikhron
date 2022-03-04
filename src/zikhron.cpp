@@ -1,3 +1,3 @@
-#include <gui/Application.h>
+#include <gtkgui/Application.h>
 
 int main(int argc, char* argv[]) { return Application::run(argc, argv); }
