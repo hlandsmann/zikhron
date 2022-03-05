@@ -8,22 +8,31 @@
 #include <condition_variable>
 #include <functional>
 #include <memory>
+#include <queue>
 #include <string_view>
 #include <thread>
 #include <tuple>
 
 class DataThread {
-public:
-    using message_card = std::pair<std::unique_ptr<markup::Paragraph>, std::vector<Ease>>;
-    using message_annotation = std::shared_ptr<markup::Paragraph>;
-    using signal_card = std::function<void(message_card&&)>;
-    using signal_annotation = std::function<void(message_annotation&&)>;
+    DataThread();
 
-    DataThread(const signal_card&);
+public:
+    static auto get() -> DataThread&;
+    static void destroy();
     ~DataThread();
+
+    using message_card = std::pair<std::shared_ptr<markup::Paragraph>, std::vector<Ease>>;
+    using message_annotation = std::shared_ptr<markup::Paragraph>;
+    using signal_card = std::function<void(message_card&)>;
+    using signal_annotation = std::function<void(message_annotation&)>;
 
     void requestCard();
     void submitEase(const VocabularySR::Id_Ease_vt& ease);
+    void submitAnnotation(const ZH_Annotator::Combination& combination,
+                          const ZH_Annotator::CharacterSequence& characterSequence);
+
+    void signal_annotation_connect(const signal_annotation& signal);
+    void signal_card_connect(const signal_card& signal);
 
 private:
     static constexpr std::string_view path_to_dictionary =
@@ -36,18 +45,21 @@ private:
 
     void worker_thread(std::stop_token);
     void dispatcher_fun();
-    void sendActiveCard(CardInformation&& cardInformation);
+    void sendActiveCard(CardInformation& cardInformation);
 
     std::jthread worker;
     std::condition_variable_any condition;
     std::mutex condition_mutex;
 
-    std::function<void()> current_job;
     signal_card send_card;
-    message_card msg_paragraph;
-    message_annotation msg_annotation;
+    signal_annotation send_annotation;
+    // message_card msg_card;
+    // message_annotation msg_annotation;
 
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
     std::unique_ptr<VocabularySR> vocabularySR;
     Glib::Dispatcher dispatcher;
+
+    std::queue<std::function<void()>> job_queue;
+    std::queue<std::function<void()>> dispatch_queue;
 };

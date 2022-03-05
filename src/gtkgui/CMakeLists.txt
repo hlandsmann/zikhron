@@ -6,9 +6,9 @@ add_library(zikhron::gtkgui ALIAS zikhron_gtkgui)
 
 target_sources(zikhron_gtkgui
     PRIVATE
+        src/AnnotationOverlay.cpp
+        src/AnnotationOverlay.h
         src/Application.cpp
-        src/CardAnnotateDraw.cpp
-        src/CardAnnotateDraw.h
         src/CardDraw.cpp
         src/CardDraw.h
         src/DataThread.cpp

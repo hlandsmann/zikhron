@@ -27,9 +27,11 @@ void TextDraw::on_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int h
     // spdlog::info("OnDraw, width: {}, height: {}", width, height);
     cr->set_source_rgb(0.8, 0.8, 0.8);
 
-    // cr->set_line_width(1.0);
-    // cr->rectangle(0, 0, width, height);
-    // cr->stroke();
+    if (drawBorder) {
+        cr->set_line_width(1.0);
+        cr->rectangle(0, 0, width, height);
+        cr->stroke();
+    }
     cr->move_to(spacing, spacing + drift);
 
     auto layout = freshLayout();
@@ -67,15 +69,46 @@ auto TextDraw::calculateDrift(Glib::RefPtr<Pango::Layout> &layout) -> int {
     return _drift;
 }
 
+void TextDraw::setText(const std::string &str) {
+    text = str;
+    std::tie(currentNaturalWidth, currentMinHeight) = calculateOrientationHorizontal();
+    std::tie(currentMinWidth, currentNaturalHeight) = calculateOrientationVertical();
+    currentNaturalHeight = currentMinHeight;  // prevent flickering
+    queue_resize();
+}
+
 void TextDraw::setFontSize(int _fontSize) {
     fontSize = _fontSize;
     font.set_size(fontSize * Pango::SCALE);
+    // setText(text);
     queue_draw();
 }
 
 void TextDraw::setSpacing(int _spacing) {
     spacing = _spacing;
+    // setText(text);
     queue_draw();
+}
+
+void TextDraw::setDrawBorder(bool drawBorder_in) {
+    drawBorder = drawBorder_in;
+    queue_draw();
+}
+
+auto TextDraw::getCharacterPosition(int byteIndex) -> Gdk::Rectangle {
+    auto pangoRectangoe = lastDrawnLayout->index_to_pos(byteIndex);
+    Gdk::Rectangle resultRectangle;
+    resultRectangle.set_x((pangoRectangoe.get_x() / Pango::SCALE) + spacing);
+    resultRectangle.set_y((pangoRectangoe.get_y() / Pango::SCALE) + spacing + drift);
+    resultRectangle.set_width(pangoRectangoe.get_width() / Pango::SCALE);
+    resultRectangle.set_height(pangoRectangoe.get_height() / Pango::SCALE);
+
+    double x, y;
+    Gtk::Widget *root = dynamic_cast<Gtk::Widget *>(get_root());
+    translate_coordinates(*root, double(resultRectangle.get_x()), double(resultRectangle.get_y()), x, y);
+    resultRectangle.set_x(int(x));
+    resultRectangle.set_y(int(y));
+    return resultRectangle;
 }
 
 Glib::RefPtr<Pango::Layout> TextDraw::freshLayout() {
@@ -105,14 +138,6 @@ auto TextDraw::calculateOrientationVertical() -> std::pair<int, int> {
     auto minWidth = sizeWithSpace(width);
     auto naturalHeight = std::max(sizeWithSpace(height) + drift, sizeWithSpace(height));
     return {minWidth, naturalHeight};
-}
-
-void TextDraw::setText(const std::string &str) {
-    text = str;
-    std::tie(currentNaturalWidth, currentMinHeight) = calculateOrientationHorizontal();
-    std::tie(currentMinWidth, currentNaturalHeight) = calculateOrientationVertical();
-    currentNaturalHeight = currentMinHeight;  // prevent flickering
-    queue_resize();
 }
 
 void TextDraw::update_markup(const std::string &markup) {
@@ -149,7 +174,7 @@ void TextDraw::signal_mouseMotion(int x, int y) {
 
 void TextDraw::signal_mouseClick(int x, int y) {
     auto byteIndex = mousePosToByteIndex(x, y);
-    if (func_clickByteIndex && lastByteIndex != byteIndex) {
+    if (func_clickByteIndex) {
         func_clickByteIndex(byteIndex);
         lastByteIndex = byteIndex;
         spdlog::info("index: {}", byteIndex);
@@ -161,6 +186,7 @@ void TextDraw::signal_mouseClick(int x, int y) {
 void TextDraw::signal_mouseLeave() {
     if (func_mouseLeave)
         func_mouseLeave();
+    lastByteIndex = -1;
 }
 
 auto TextDraw::mousePosToByteIndex(int x, int y) const -> int {
@@ -185,3 +211,7 @@ auto TextDraw::mousePosToByteIndex(int x, int y) const -> int {
 
     return byteIndex;
 }
+
+auto TextDraw::getWidth() const -> int { return currentNaturalWidth; }
+
+auto TextDraw::getHeight() const -> int { return currentNaturalHeight; }

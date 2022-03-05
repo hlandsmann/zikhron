@@ -24,14 +24,22 @@ auto loadCardDB(const std::string& path_to_cardDB) -> CardDB {
 
 }  // namespace
 
-DataThread::DataThread(const signal_card& receive_paragraph) : send_card(receive_paragraph) {
-    current_job = [this]() {
+std::unique_ptr<DataThread> dataThread;
+
+auto DataThread::get() -> DataThread& {
+    if (!dataThread)
+        dataThread = std::unique_ptr<DataThread>(new DataThread());
+    return *dataThread;
+}
+
+void DataThread::destroy() { dataThread = nullptr; }
+
+DataThread::DataThread() {
+    job_queue.push([this]() {
         CardDB cardDB = loadCardDB(std::string{path_to_cardDB});
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
         vocabularySR = std::make_unique<VocabularySR>(std::move(cardDB), zh_dictionary);
-        auto cardInformation = vocabularySR->getCard();
-        sendActiveCard(std::move(cardInformation));
-    };
+    });
 
     dispatcher.connect([this]() { dispatcher_fun(); });
     worker = std::jthread([this](std::stop_token token) { worker_thread(token); });
@@ -45,15 +53,16 @@ void DataThread::worker_thread(std::stop_token token) {
     std::unique_lock lock(condition_mutex);
 
     do {
-        if (current_job) {
-            current_job();
-            dispatcher.emit();
+        while (not job_queue.empty()) {
+            job_queue.front()();
+            job_queue.pop();
         }
-        current_job = {};
+        dispatcher.emit();
+
         condition.wait(lock, token, [this, &token]() {
             if (token.stop_requested())
                 return false;
-            return static_cast<bool>(current_job);
+            return not job_queue.empty();
         });
     } while (!token.stop_requested());
 
@@ -61,9 +70,11 @@ void DataThread::worker_thread(std::stop_token token) {
 }
 
 void DataThread::dispatcher_fun() {
+    std::lock_guard<std::mutex> lock(condition_mutex);
     spdlog::info("Dispatch..");
-    if (send_card && msg_paragraph.first != nullptr) {
-        send_card(std::move(msg_paragraph));
+    while (not dispatch_queue.empty()) {
+        dispatch_queue.front()();
+        dispatch_queue.pop();
     }
 }
 
@@ -71,10 +82,10 @@ void DataThread::requestCard() {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         spdlog::info("Request card..");
-        current_job = [this]() {
+        job_queue.push([this]() {
             auto cardInformation = vocabularySR->getCard();
-            sendActiveCard(std::move(cardInformation));
-        };
+            sendActiveCard(cardInformation);
+        });
     }
     condition.notify_one();
 }
@@ -83,14 +94,46 @@ void DataThread::submitEase(const VocabularySR::Id_Ease_vt& ease) {
     vocabularySR->setEaseLastCard(ease);
 }
 
-void DataThread::sendActiveCard(CardInformation&& cardInformation) {
+void DataThread::signal_annotation_connect(const signal_annotation& signal) {
+    std::lock_guard<std::mutex> lock(condition_mutex);
+    send_annotation = signal;
+}
+
+void DataThread::signal_card_connect(const signal_card& signal) {
+    std::lock_guard<std::mutex> lock(condition_mutex);
+    send_card = signal;
+}
+
+void DataThread::sendActiveCard(CardInformation& cardInformation) {
     auto [current_card, vocables, ease] = std::move(cardInformation);
     auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
     auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card));
-    auto paragraph_annotation = std::make_unique<markup::Paragraph>(std::move(current_card_clone));
+    auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));
     paragraph->setupVocables(std::move(vocables));
     auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);
     std::vector<Ease> vocEaseList;
     ranges::copy(orderedEase | std::views::values, std::back_inserter(vocEaseList));
-    msg_paragraph = message_card(std::move(paragraph), std::move(vocEaseList));
+
+    dispatch_queue.push(
+        [this, msg_card = message_card(std::move(paragraph), std::move(vocEaseList))]() mutable {
+            if (send_card)
+                send_card(msg_card);
+        });
+    dispatch_queue.push([this, msg_annotation = std::move(paragraph_annotation)]() mutable {
+        if (send_annotation != nullptr) {
+            send_annotation(msg_annotation);
+        }
+    });
+}
+
+void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
+                                  const ZH_Annotator::CharacterSequence& characterSequence) {
+    {
+        std::lock_guard<std::mutex> lock(condition_mutex);
+        job_queue.push([this, combination, characterSequence]() {
+            auto cardInformation = vocabularySR->addAnnotation(combination, characterSequence);
+            sendActiveCard(cardInformation);
+        });
+    }
+    condition.notify_one();
 }

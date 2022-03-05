@@ -15,7 +15,10 @@ public:
                        int &natural_baseline) const override;
     void setFontSize(int fontSize);
     void setSpacing(int spacing);
-
+    void setDrawBorder(bool drawBorder = true);
+    auto getCharacterPosition(int byteIndex) -> Gdk::Rectangle;
+    auto getWidth() const -> int;
+    auto getHeight() const -> int;
     void signal_hoverByteIndex(const std::function<void(int byteIndex)> &functor) {
         func_hoverByteIndex = functor;
     };
@@ -23,7 +26,6 @@ public:
         func_clickByteIndex = functor;
     };
     void signal_mouseLeave(const std::function<void()> &functor) { func_mouseLeave = functor; };
-
 protected:
     void on_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
 
@@ -56,14 +58,10 @@ private:
     int currentMinWidth, currentNaturalWidth;
     int currentMinHeight, currentNaturalHeight;
 
-    int currentHeight = 0;
-    int currentWidth = 0;
-
-    // Glib::RefPtr<Pango::Layout> layout;
     Pango::FontDescription font;
-
     std::function<void(int)> func_hoverByteIndex;
     std::function<void(int)> func_clickByteIndex;
     std::function<void()> func_mouseLeave;
     int lastByteIndex = -1;
+    bool drawBorder = false;
 };

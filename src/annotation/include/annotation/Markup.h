@@ -65,6 +65,7 @@ public:
     void highlightAnnotationAtPosition(int pos);
 
     struct AnnotationPossibilities {
+        std::string activeChoice;
         std::vector<std::string> unmarked;
         std::vector<std::string> marked;
         size_t pos{};

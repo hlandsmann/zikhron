@@ -375,7 +375,7 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id
         fmt::print("Get new words from Card #{}\n", activeCardId);
     } else
         return {nullptr, Item_Id_vt{}, Id_Ease_vt{}};
-    // activeCardId = 492;
+    activeCardId = 763;
     std::vector<std::string> advancedVocables;
     std::vector<std::string> unchangedVocables;
     for (uint vocId : id_cardMeta.at(activeCardId).vocableIds)

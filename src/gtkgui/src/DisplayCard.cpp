@@ -1,3 +1,4 @@
+#include <DataThread.h>
 #include <DisplayCard.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -5,17 +6,23 @@
 
 namespace ranges = std::ranges;
 
-DisplayCard::DisplayCard() {
+DisplayCard::DisplayCard(Gtk::Overlay& ov) : overlay(ov) {
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     set_spacing(64);
     createCardControlButtons();
+    DataThread::get().signal_card_connect([this](auto& msg_card) { receive_card(msg_card); });
+    DataThread::get().signal_annotation_connect(
+        [this](auto& msg_annotation) { receive_annotation(msg_annotation); });
+    DataThread::get().requestCard();
 }
-void DisplayCard::receive_paragraph(DataThread::message_card&& msg_paragraph) {
-    std::tie(paragraph, easeList) = std::move(msg_paragraph);
+void DisplayCard::receive_card(DataThread::message_card& msg_card) {
+    if (cardDraw)
+        remove(*cardDraw);
+    if (vocableList)
+        remove(*vocableList);
 
-    for (const auto& fragment : paragraph->getFragments())
-        spdlog::info("frag: {}", fragment);
+    std::tie(paragraph, easeList) = std::move(msg_card);
 
     vocableList = std::make_unique<VocableList>();
     vocableList->setParagraph(paragraph, easeList);
@@ -23,12 +30,25 @@ void DisplayCard::receive_paragraph(DataThread::message_card&& msg_paragraph) {
     prepend(*vocableList);
     vocableList->set_visible(false);
 
-    cardDraw = std::make_unique<CardDraw>();
+    cardDraw = std::make_unique<CardDraw>(overlay);
     cardDraw->setParagraph(paragraph);
+    cardDraw->set_visible(not btnAnnotate.property_active());
     prepend(*cardDraw);
 
     cardControlBtnBox.set_visible(true);
 }
+
+void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotation) {
+    if (cardAnnotation)
+        remove(*cardAnnotation);
+    annotation = std::move(msg_annotation);
+    annotation->updateAnnotationColoring();
+    cardAnnotation = std::make_unique<CardDraw>(overlay);
+    cardAnnotation->setParagraph(std::move(annotation));
+    cardAnnotation->set_visible(btnAnnotate.property_active());
+    cardAnnotation->setAnnotationMode();
+    prepend(*cardAnnotation);
+};
 
 void DisplayCard::createCardControlButtons() {
     cardControlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
@@ -48,7 +68,6 @@ void DisplayCard::createCardControlButtons() {
         btnReveal.set_visible(true);
         btnNext.set_visible(false);
         submitChoiceOfEase();
-        removeCurrentCard();
         requestNewCard();
     });
     btnNext.set_visible(false);
@@ -75,28 +94,27 @@ void DisplayCard::createCardControlButtons() {
 
 void DisplayCard::submitChoiceOfEase() {
     auto id_ease = paragraph->getRestoredOrderOfEaseList(vocableList->getChoiceOfEase());
-    if (func_submitChoiceOfEase)
-        func_submitChoiceOfEase(id_ease);
+    DataThread::get().submitEase(id_ease);
 }
 
-void DisplayCard::removeCurrentCard() {
-    remove(*cardDraw);
-    remove(*vocableList);
-}
-
-void DisplayCard::requestNewCard() {
-    if (func_requestCard)
-        func_requestCard();
-}
+void DisplayCard::requestNewCard() { DataThread::get().requestCard(); }
 
 void DisplayCard::annotation_start() {
+    if (not annotation) {
+        spdlog::error("No annotation was sent!");
+        btnAnnotate.property_active() = false;
+        return;
+    }
+
     btnNext.set_visible(false);
     btnReveal.set_visible(false);
     vocableList->set_visible(false);
-    cardDraw->setModeAnnotation();
+    cardDraw->set_visible(false);
+    cardAnnotation->set_visible(true);
 }
 
 void DisplayCard::annotation_end() {
     btnReveal.set_visible(true);
     cardDraw->set_visible(true);
+    cardAnnotation->set_visible(false);
 }

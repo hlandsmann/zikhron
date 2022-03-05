@@ -243,7 +243,7 @@ void Paragraph::updateAnnotationColoring() {
     auto chunkIt = chunks.begin();
     for (const auto& [word, item] : boost::combine(words, items)) {
         if (word.isMarkup() || item.dicItemVec.empty()) {
-            currentPos += word.vLength();
+            currentPos += word.byteLength();
             annotationChunk.posBegin = currentPos;
             continue;
         }
@@ -253,7 +253,7 @@ void Paragraph::updateAnnotationColoring() {
         if (chunkIt == chunks.end())
             break;
 
-        currentPos += word.vLength();
+        currentPos += word.byteLength();
 
         if (numberOfCombinations.evaluate(chunkIt) < 2) {
             chunkIt++;
@@ -368,7 +368,15 @@ auto Paragraph::getAnnotationPossibilities(int pos) -> AnnotationPossibilities {
         unmarked.push_back(std::move(unmarkedCombination));
     }
 
-    return {unmarked, marked, annotationChunk.posBegin, combinations, annotationChunk.characters};
+    return {.activeChoice = std::accumulate(annotationChunk.words.begin(),
+                                            annotationChunk.words.end(),
+                                            std::string{},
+                                            utl::stringPlusT<Word>),
+            .unmarked = unmarked,
+            .marked = marked,
+            .pos = annotationChunk.posBegin,
+            .combinations = combinations,
+            .characters = annotationChunk.characters};
 }
 
 void Paragraph::undoChange() {
