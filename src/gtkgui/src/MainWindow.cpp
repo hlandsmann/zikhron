@@ -2,6 +2,13 @@
 
 #include <spdlog/spdlog.h>
 #include <filesystem>
+#include <string_view>
+
+constexpr std::string_view css =
+    ".overlay {"
+    "background-color: rgb(32,32,32);"
+    "border: 1px solid white;"
+    "}";
 
 MainWindow::MainWindow()
     : m_VBox(Gtk::Orientation::VERTICAL), box_vocabulary(Gtk::Orientation::VERTICAL) {
@@ -21,6 +28,12 @@ MainWindow::MainWindow()
 
     sidebar.append_page(*displayCard, label_cards);
     sidebar.append_page(m_VBox, label_vocabulary);
+    refCssProvider = Gtk::CssProvider::create();
+    refCssProvider->load_from_data(std::string{css});
+    auto screen = Gdk::Display::get_default();
+
+    Gtk::StyleContext::add_provider_for_display(
+        screen, refCssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
 MainWindow::~MainWindow() { DataThread::destroy(); }

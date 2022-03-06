@@ -1,5 +1,6 @@
 #pragma once
 #include <gtkmm.h>
+#include <spdlog/spdlog.h>
 
 class TextDraw : public Gtk::DrawingArea {
 public:
@@ -13,6 +14,7 @@ public:
                        int &natural,
                        int &minimum_baseline,
                        int &natural_baseline) const override;
+    void set_hard_size_request(bool request = true) { hard_size_request = request; };
     void setFontSize(int fontSize);
     void setSpacing(int spacing);
     void setDrawBorder(bool drawBorder = true);
@@ -26,6 +28,7 @@ public:
         func_clickByteIndex = functor;
     };
     void signal_mouseLeave(const std::function<void()> &functor) { func_mouseLeave = functor; };
+
 protected:
     void on_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height);
 
@@ -64,4 +67,5 @@ private:
     std::function<void()> func_mouseLeave;
     int lastByteIndex = -1;
     bool drawBorder = false;
+    bool hard_size_request = false;
 };

@@ -1,9 +1,9 @@
 #include <CardDraw.h>
 #include <DataThread.h>
 #include <spdlog/spdlog.h>
+#include <algorithm>
 #include <boost/range/combine.hpp>
 #include <ranges>
-#include <algorithm>
 
 namespace ranges = std::ranges;
 
@@ -42,6 +42,8 @@ void CardDraw::setupSignals() {
             textDrawContainer[textDrawIndex]->update_markup(paragraph->getFragments()[textDrawIndex]);
         });
         textDraw->signal_mouseClickByteIndex([this, textDrawIndex](int byteIndex) {
+            paragraph->undoChange();
+            textDrawContainer[textDrawIndex]->update_markup(paragraph->getFragments()[textDrawIndex]);
             if (isAnnotation)
                 mouseClickAnnotation(textDrawIndex, byteIndex);
             else
@@ -116,5 +118,26 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
 
     std::vector<std::string> pronounciations;
     std::vector<std::string> meanings;
-    ranges::transform(clickedItem, std::back_inserter(pronounciations), &ZH_Dictionary::Entry::pronounciation);
+    ranges::transform(
+        clickedItem, std::back_inserter(pronounciations), &ZH_Dictionary::Entry::pronounciation);
+    ranges::transform(
+        clickedItem,
+        std::back_inserter(meanings),
+        [](const auto& meanings) { return meanings.front(); },
+        &ZH_Dictionary::Entry::meanings);
+
+    auto vocableOverlayInit = VocableOverlayInit{
+        .key = clickedItem.front().key,
+        .pronounciationChoice = clickedItem.front().pronounciation,
+        .meaningChoice = clickedItem.front().meanings.front(),
+        .pronounciations = pronounciations,
+        .meanings = meanings,
+        .x = rect.get_x(),
+        .y = rect.get_y(),
+        .x_max = overlay.get_size(Gtk::Orientation::HORIZONTAL),
+        .y_max = overlay.get_size(Gtk::Orientation::VERTICAL)};
+    vocableOverlay = std::make_unique<VocableOverlay>(vocableOverlayInit);
+    vocableOverlay->signal_vocableChoice(
+        [this](std::optional<int> choice) { overlay.remove_overlay(*vocableOverlay); });
+    overlay.add_overlay(*vocableOverlay);
 }

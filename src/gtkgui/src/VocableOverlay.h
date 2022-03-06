@@ -4,6 +4,7 @@
 #include <gtkmm.h>
 #include <functional>
 #include <optional>
+#include <span>
 
 struct VocableOverlayInit {
     const std::string& key;
@@ -27,6 +28,12 @@ public:
     };
 
 private:
+    constexpr static int fontSize = 20;
+    constexpr static int fontSpacing = 10;
+    constexpr static int maxWidth = 500;
+    int x_pos = 0;
+    int y_pos = 0;
+
     void setupTextDraw();
     void show(int x, int y, int x_max, int y_max);
     void callback_motion(int index);
@@ -39,6 +46,15 @@ private:
     Gtk::ToggleButton expandBtn;
 
     std::vector<TextDrawPtr> textDrawContainer;
+    std::span<TextDrawPtr> textDrawPronounciations;
+    std::span<TextDrawPtr> textDrawMeanings;
 
+    const std::string key;
+    const std::string pronounciationChoice;
+    const std::string meaningChoice;
+    const std::vector<std::string> pronounciations;
+    const std::vector<std::string> meanings;
+
+    int active = -1;
     std::function<void(std::optional<int> choice)> func_vocableChoice;
 };

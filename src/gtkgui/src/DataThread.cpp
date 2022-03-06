@@ -71,7 +71,6 @@ void DataThread::worker_thread(std::stop_token token) {
 
 void DataThread::dispatcher_fun() {
     std::lock_guard<std::mutex> lock(condition_mutex);
-    spdlog::info("Dispatch..");
     while (not dispatch_queue.empty()) {
         dispatch_queue.front()();
         dispatch_queue.pop();
@@ -81,7 +80,6 @@ void DataThread::dispatcher_fun() {
 void DataThread::requestCard() {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
-        spdlog::info("Request card..");
         job_queue.push([this]() {
             auto cardInformation = vocabularySR->getCard();
             sendActiveCard(cardInformation);

@@ -49,15 +49,17 @@ void TextDraw::newHeightRequest(int height, Glib::RefPtr<Pango::Layout> &layout)
     drift = calculateDrift(layout);
     neededHeight = std::max(sizeWithSpace(neededHeight) + drift, sizeWithSpace(neededHeight));
 
-    // spdlog::warn("fs: {}, drift: {}, height: {}", fontSize, drift, neededHeight);
-
     if (neededHeight == height || lastNeededHeight == neededHeight)
         return;
     lastNeededHeight = neededHeight;
 
+    // spdlog::warn("fs: {}, drift: {}, height: {}", fontSize, drift, neededHeight);
+
     currentNaturalHeight = neededHeight;
     if (currentMinHeight > currentNaturalHeight)
         currentMinHeight = currentNaturalHeight;
+    if (hard_size_request)
+        set_size_request(-1, neededHeight);
     queue_resize();
 }
 
@@ -145,8 +147,12 @@ void TextDraw::update_markup(const std::string &markup) {
     queue_draw();
 }
 
-void TextDraw::measure_vfunc(Gtk::Orientation orientation, int, int &minimum, int &natural, int &, int &)
-    const {
+void TextDraw::measure_vfunc(Gtk::Orientation orientation,
+                             int /*for_size*/,
+                             int &minimum,
+                             int &natural,
+                             int &,
+                             int &) const {
     switch (orientation) {
     case Gtk::Orientation::HORIZONTAL:
         minimum = currentMinWidth;

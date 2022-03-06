@@ -76,7 +76,7 @@ void AnnotationOverlay::callback_motion(int index) {
     if (active != index) {
         auto& textDraw = textDrawAlternativeView[index];
         textDraw->update_markup(marked[index]);
-        textDrawContainer.front()->update_markup(marked[index]);
+        textDrawContainer.front()->update_markup(unmarked[index]);
         active = index;
     }
 }

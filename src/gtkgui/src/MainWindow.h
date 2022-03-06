@@ -19,4 +19,5 @@ private:
     Gtk::Label label_cards;
     Gtk::Label label_vocabulary;
     std::unique_ptr<DisplayCard> displayCard;
+    Glib::RefPtr<Gtk::CssProvider> refCssProvider;
 };
