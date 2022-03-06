@@ -22,7 +22,8 @@ struct AnnotationOverlayInit {
 class AnnotationOverlay : public Gtk::Fixed {
 public:
     using TextDrawPtr = std::unique_ptr<TextDraw>;
-    AnnotationOverlay(AnnotationOverlayInit& init);
+
+    AnnotationOverlay(const AnnotationOverlayInit& init);
     void signal_annotationChoice(const std::function<void(std::optional<int> choice)>& functor) {
         func_annotationChoice = functor;
     };

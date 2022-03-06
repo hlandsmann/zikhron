@@ -23,6 +23,8 @@ target_sources(zikhron_gtkgui
         src/TextDraw.h
         src/VocableList.cpp
         src/VocableList.h
+        src/VocableOverlay.cpp
+        src/VocableOverlay.h
     PUBLIC
         include/gtkgui/Application.h
 )

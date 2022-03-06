@@ -177,9 +177,7 @@ void TextDraw::signal_mouseClick(int x, int y) {
     if (func_clickByteIndex) {
         func_clickByteIndex(byteIndex);
         lastByteIndex = byteIndex;
-        spdlog::info("index: {}", byteIndex);
     }
-    spdlog::info("Click: {}", byteIndex);
     // spdlog::info("MouseX: {}, MouseY: {}, index: {}, trailing: {}", x, y, byteIndex, trailing);
 }
 

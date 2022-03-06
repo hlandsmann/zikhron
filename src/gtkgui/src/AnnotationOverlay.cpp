@@ -4,7 +4,7 @@
 #include <ranges>
 namespace ranges = std::ranges;
 
-AnnotationOverlay::AnnotationOverlay(AnnotationOverlayInit& init)
+AnnotationOverlay::AnnotationOverlay(const AnnotationOverlayInit& init)
     : marked(init.marked), unmarked(init.unmarked), activeChoice(init.activeChoice) {
     box.set_orientation(Gtk::Orientation::VERTICAL);
     // box.set_can_target();

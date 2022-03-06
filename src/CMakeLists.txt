@@ -31,6 +31,7 @@ target_sources(zikhron
 target_link_libraries(zikhron
     PRIVATE
         zikhron::gtkgui
+        # asan
 )
 target_compile_features(zikhron PRIVATE cxx_std_20)
 target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)
