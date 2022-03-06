@@ -39,30 +39,10 @@ void CardDraw::setupSignals() {
             textDrawContainer[index]->update_markup(paragraph->getFragments()[index]);
         });
         textDraw->signal_mouseClickByteIndex([this, index](int byteIndex) {
-            auto [activeChoice, marked, unmarked, newPos, combinations, characterSequence] =
-                paragraph->getAnnotationPossibilities(byteIndex);
-            if (marked.empty())
-                return;
-
-            auto rect = textDrawContainer[index]->getCharacterPosition(int(newPos));
-            auto annotationOverlayInit = AnnotationOverlayInit{
-                .activeChoice = activeChoice,
-                .marked = marked,
-                .unmarked = unmarked,
-                .x = rect.get_x(),
-                .y = rect.get_y(),
-                .x_max = overlay.get_size(Gtk::Orientation::HORIZONTAL),
-                .y_max = overlay.get_size(Gtk::Orientation::VERTICAL)};
-            annotationOverlay = std::make_unique<AnnotationOverlay>(annotationOverlayInit);
-            annotationOverlay->signal_annotationChoice([this, combinations, characterSequence](
-                                                           std::optional<int> choice) {
-                overlay.remove_overlay(*annotationOverlay);
-
-                if (not choice.has_value())
-                    return;
-                DataThread::get().submitAnnotation(combinations.at(choice.value()), characterSequence);
-            });
-            overlay.add_overlay(*annotationOverlay);
+            if (isAnnotation)
+                mouseClickAnnotation(index, byteIndex);
+            else
+                mouseClickStandard(index, byteIndex);
         });
         index++;
     }
@@ -81,3 +61,32 @@ void CardDraw::mouseHoverStandard(int index, int startIndexPos, int byteIndex) {
         paragraph->highlightWordAtPosition(startIndexPos + byteIndex, paragraph->BytePositions());
     textDrawContainer[index]->update_markup(paragraph->getFragments()[index]);
 }
+
+void CardDraw::mouseClickAnnotation(int index, int byteIndex) {
+    auto [activeChoice, marked, unmarked, newPos, combinations, characterSequence] =
+        paragraph->getAnnotationPossibilities(byteIndex);
+    if (marked.empty())
+        return;
+
+    auto rect = textDrawContainer[index]->getCharacterPosition(int(newPos));
+    auto annotationOverlayInit = AnnotationOverlayInit{
+        .activeChoice = activeChoice,
+        .marked = marked,
+        .unmarked = unmarked,
+        .x = rect.get_x(),
+        .y = rect.get_y(),
+        .x_max = overlay.get_size(Gtk::Orientation::HORIZONTAL),
+        .y_max = overlay.get_size(Gtk::Orientation::VERTICAL)};
+    annotationOverlay = std::make_unique<AnnotationOverlay>(annotationOverlayInit);
+    annotationOverlay->signal_annotationChoice(
+        [this, combinations, characterSequence](std::optional<int> choice) {
+            overlay.remove_overlay(*annotationOverlay);
+
+            if (not choice.has_value())
+                return;
+            DataThread::get().submitAnnotation(combinations.at(choice.value()), characterSequence);
+        });
+    overlay.add_overlay(*annotationOverlay);
+}
+
+void CardDraw::mouseClickStandard(int index, int byteIndex) {}

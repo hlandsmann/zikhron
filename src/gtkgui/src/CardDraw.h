@@ -14,6 +14,8 @@ public:
 private:
     void mouseHoverAnnotation(int index, int startIndexPos, int byteIndex);
     void mouseHoverStandard(int index, int startIndexPos, int byteIndex);
+    void mouseClickAnnotation(int index, int byteIndex);
+    void mouseClickStandard(int index, int byteIndex);
     constexpr static int textFontSize = 40;
     constexpr static int textSpacing = 20;
     void addTextDraw(int column, int row, const std::string& markup);
