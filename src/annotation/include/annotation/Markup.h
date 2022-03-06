@@ -76,7 +76,7 @@ public:
     void undoChange();
     auto wordFromPosition(int pos, const std::vector<int>& positions) const
         -> const ZH_Annotator::ZH_dicItemVec;
-    void setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&&);
+    void setupVocables(std::vector<std::pair<ZH_Dictionary::Entry, uint>>&&);
     // auto getVocableString() const -> std::string;
     auto getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>&;
     // auto getVocablePositions() const -> const std::vector<int>&;
@@ -120,7 +120,7 @@ private:
     std::vector<int> bytePositions;
     std::vector<std::span<const Word>> fragments;
 
-    std::vector<std::pair<ZH_Dictionary::Item, uint>> vocables_id;
+    std::vector<std::pair<ZH_Dictionary::Entry, uint>> vocables_id;
     // std::string vocableString;
     // std::vector<int> vocablePositions;
 

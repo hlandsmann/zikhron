@@ -28,17 +28,17 @@ public:
     auto Simplified() const -> std::span<const Key> { return simplified; }
     auto Traditional() const -> std::span<const Key> { return traditional; }
 
-    struct Item {
+    struct Entry {
         std::string key;
         std::string pronounciation;
         std::vector<std::string> meanings;
         unsigned id;
-        auto operator<=>(const Item&) const -> std::weak_ordering;
-        bool operator==(const Item&) const = default;
+        auto operator<=>(const Entry&) const -> std::weak_ordering;
+        bool operator==(const Entry&) const = default;
     };
     auto CharacterSetFromKeySpan(const std::span<const Key>& keys) const -> CharacterSet;
-    auto ItemFromPosition(size_t pos, const std::span<const Key>& keys) const -> Item;
-    auto ItemFromPosition(size_t pos, CharacterSet characterSet) const -> Item;
+    auto EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry;
+    auto EntryFromPosition(size_t pos, CharacterSet characterSet) const -> Entry;
 
 private:
     std::vector<Key> traditional;

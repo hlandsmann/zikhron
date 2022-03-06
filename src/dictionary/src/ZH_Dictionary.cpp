@@ -222,15 +222,15 @@ auto ZH_Dictionary::CharacterSetFromKeySpan(const std::span<const Key>& keys) co
     throw std::invalid_argument("Invalid choice other than traditional / simplified!");
 }
 
-auto ZH_Dictionary::ItemFromPosition(size_t pos, const std::span<const Key>& keys) const -> Item {
+auto ZH_Dictionary::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry {
     switch (CharacterSetFromKeySpan(keys)) {
-    case CharacterSet::Simplified: return ItemFromPosition(pos, CharacterSet::Simplified);
-    case CharacterSet::Traditional: return ItemFromPosition(pos, CharacterSet::Traditional);
+    case CharacterSet::Simplified: return EntryFromPosition(pos, CharacterSet::Simplified);
+    case CharacterSet::Traditional: return EntryFromPosition(pos, CharacterSet::Traditional);
     }
     __builtin_unreachable();
 }
 
-auto ZH_Dictionary::ItemFromPosition(size_t pos, CharacterSet characterSet) const -> Item {
+auto ZH_Dictionary::EntryFromPosition(size_t pos, CharacterSet characterSet) const -> Entry {
     const auto& pos_to_characterSet = (characterSet == CharacterSet::Simplified)
                                           ? position_to_simplified
                                           : position_to_traditional;
@@ -243,7 +243,7 @@ auto ZH_Dictionary::ItemFromPosition(size_t pos, CharacterSet characterSet) cons
     };
 }
 
-auto ZH_Dictionary::Item::operator<=>(const Item& other) const -> std::weak_ordering {
+auto ZH_Dictionary::Entry::operator<=>(const Entry& other) const -> std::weak_ordering {
     if (const auto cmp = key <=> other.key; cmp != 0)
         return cmp;
     if (const auto cmp = pronounciation <=> other.pronounciation; cmp != 0)

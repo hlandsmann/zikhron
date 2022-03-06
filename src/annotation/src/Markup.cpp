@@ -406,7 +406,7 @@ auto Paragraph::getVocables() const -> const std::vector<vocable_pronounciation_
     return vocables;
 }
 
-void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&& _vocables_id) {
+void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Entry, uint>>&& _vocables_id) {
     vocables_id = std::move(_vocables_id);
     assert(card->zh_annotator.has_value());
     const auto& zh_annotator = card->zh_annotator.value();
@@ -424,7 +424,7 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
 
     const auto& items = zh_annotator.Items();
     for (uint colorIndex = 0; colorIndex < vocables_id.size(); colorIndex++) {
-        const ZH_Dictionary::Item& voc = vocables_id[colorIndex].first;
+        const ZH_Dictionary::Entry& voc = vocables_id[colorIndex].first;
 
         for (boost::tuple<Word&, const ZH_Annotator::Item&> p : boost::combine(words, items)) {
             auto& word = p.get<0>();
@@ -440,7 +440,7 @@ void Paragraph::setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&
         vocables_id,
         std::back_inserter(vocables),
         [&, colorIndex = 0](const auto& inItem) mutable -> vocable_pronounciation_meaning_t {
-            const ZH_Dictionary::Item& zhItem = inItem.first;
+            const ZH_Dictionary::Entry& zhItem = inItem.first;
             uint32_t color = colors[colorIndex++ % colors.size()];
             std::string style = fmt::format(" color=\"#{:06x}\"", color);
 

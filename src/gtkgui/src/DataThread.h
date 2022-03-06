@@ -39,7 +39,7 @@ private:
         "/home/harmen/src/zikhron/dictionaries/cedict_ts.u8";
     static constexpr std::string_view path_to_cardDB = "/home/harmen/src/zikhron/conversion/xxcards";
 
-    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Item, uint>>;
+    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, uint>>;
     using Id_Ease_vt = std::map<uint, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
 

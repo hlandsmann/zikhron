@@ -116,5 +116,5 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
 
     std::vector<std::string> pronounciations;
     std::vector<std::string> meanings;
-    ranges::transform(clickedItem, std::back_inserter(pronounciations), &ZH_Dictionary::Item::pronounciation);
+    ranges::transform(clickedItem, std::back_inserter(pronounciations), &ZH_Dictionary::Entry::pronounciation);
 }

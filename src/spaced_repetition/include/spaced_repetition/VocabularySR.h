@@ -61,7 +61,7 @@ private:
 // };
 
 class VocabularySR {
-    using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
+    using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
     static constexpr std::string_view s_content = "content";
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
     static constexpr std::string_view s_fn_metaCardSR = "metaCardSR.json";
@@ -72,7 +72,7 @@ public:
     VocabularySR(CardDB&&, std::shared_ptr<ZH_Dictionary>);
     ~VocabularySR();
 
-    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Item, uint>>;
+    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, uint>>;
     using Id_Ease_vt = std::map<uint, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
     auto getCard() -> CardInformation;

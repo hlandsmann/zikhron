@@ -15,7 +15,7 @@ class ZH_Annotator {
 public:
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
-    using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
+    using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
 
     ZH_Annotator(const utl::StringU8& _text,
                  const std::shared_ptr<ZH_Dictionary>& _dictionary,
