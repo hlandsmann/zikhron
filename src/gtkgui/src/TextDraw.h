@@ -16,6 +16,8 @@ public:
                        int &natural_baseline) const override;
     void set_hard_size_request(bool request = true) { hard_size_request = request; };
     void setFontSize(int fontSize);
+    void setFontColor(double r, double g, double b);
+    void setFontColorDefault();
     void setSpacing(int spacing);
     void setDrawBorder(bool drawBorder = true);
     auto getCharacterPosition(int byteIndex) -> Gdk::Rectangle;
@@ -54,8 +56,12 @@ private:
     Glib::RefPtr<Pango::Layout> lastDrawnLayout = nullptr;
 
     constexpr static int defaultFontSize = 40;
+    int fontSize = defaultFontSize;
+
+    constexpr static std::tuple<double, double, double> defaultFontColor = {0.8, 0.8, 0.8};
+    std::tuple<double, double, double> fontColor = defaultFontColor;
+
     std::string text = "no text";
-    int fontSize = 40;
     int spacing = 30;
     int drift = 0;
     int currentMinWidth, currentNaturalWidth;

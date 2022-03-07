@@ -137,7 +137,10 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
         .x_max = overlay.get_size(Gtk::Orientation::HORIZONTAL),
         .y_max = overlay.get_size(Gtk::Orientation::VERTICAL)};
     vocableOverlay = std::make_unique<VocableOverlay>(vocableOverlayInit);
-    vocableOverlay->signal_vocableChoice(
-        [this](std::optional<int> choice) { overlay.remove_overlay(*vocableOverlay); });
+    vocableOverlay->signal_vocableChoice([this](std::optional<int> choice) {
+        overlay.remove_overlay(*vocableOverlay);
+        if (choice.has_value())
+            spdlog::info("Choisen: {}", choice.value());
+    });
     overlay.add_overlay(*vocableOverlay);
 }

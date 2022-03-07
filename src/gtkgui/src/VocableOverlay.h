@@ -31,13 +31,16 @@ private:
     constexpr static int fontSize = 20;
     constexpr static int fontSpacing = 10;
     constexpr static int maxWidth = 500;
+    constexpr static std::tuple<double, double, double> markedColorRGB = {1.0, 1.0, 0.8};
     int x_pos = 0;
     int y_pos = 0;
 
     void setupTextDraw();
     void show(int x, int y, int x_max, int y_max);
-    void callback_motion(int index);
-    void callback_leave(int index);
+    void setupTextdrawCallbacks();
+    void callback_click(int textDrawIndex);
+    void callback_leave(int textDrawIndex);
+    void callback_motion(int textDrawIndex);
 
     Glib::RefPtr<Gtk::GestureClick> clickController;
     Gtk::Box box;

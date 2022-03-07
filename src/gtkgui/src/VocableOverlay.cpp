@@ -67,22 +67,18 @@ VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
 
 void VocableOverlay::setupTextDraw() {
     auto list = {{key}, {pronounciationChoice}, {meaningChoice}, pronounciations, meanings};
-    ranges::transform(
-        list | std::views::join,
-        std::back_inserter(textDrawContainer),
-        [this, index = 0](const std::string& str) mutable {
-            auto textDraw = std::make_unique<TextDraw>();
-            textDraw->setSpacing(fontSpacing);
-            textDraw->setFontSize(fontSize);
-            // textDraw->setDrawBorder();
-            textDraw->setText(str);
-            textDraw->set_hexpand();
-            textDraw->set_hard_size_request();
-            textDraw->signal_hoverByteIndex([this, index](auto) { callback_motion(index); });
-            textDraw->signal_mouseLeave([this, index]() { callback_leave(index); });
-            index++;
-            return textDraw;
-        });
+    ranges::transform(list | std::views::join,
+                      std::back_inserter(textDrawContainer),
+                      [this, index = 0](const std::string& str) mutable {
+                          auto textDraw = std::make_unique<TextDraw>();
+                          textDraw->setSpacing(fontSpacing);
+                          textDraw->setFontSize(fontSize);
+                          textDraw->setText(str);
+                          textDraw->set_hexpand();
+                          textDraw->set_hard_size_request();
+                          index++;
+                          return textDraw;
+                      });
     auto textDrawIt = textDrawContainer.begin();
     currentGrid.attach(**(textDrawIt++), 0, 0, 3);
     currentGrid.attach(**(textDrawIt++), 1, 1);
@@ -98,45 +94,72 @@ void VocableOverlay::setupTextDraw() {
         choiceGrid.attach(*textDrawMeaning, 1, index);
         index++;
     }
+    setupTextdrawCallbacks();
     choiceGrid.set_visible(false);
     box.append(choiceGrid);
 }
 
 void VocableOverlay::show(int x, int y, int x_max, int y_max) {
+    if (box.is_ancestor(*this)) {
+        remove(box);
+    }
+
     if (textDrawContainer.empty())
         return;
 
     int minWidth, naturalWidth, minBaseline, naturalBaseline;
     box.measure(Gtk::Orientation::HORIZONTAL, -1, minWidth, naturalWidth, minBaseline, naturalBaseline);
-    spdlog::warn("natural: {}", naturalWidth);
 
     if (naturalWidth > maxWidth) {
         box.set_size_request(maxWidth, -1);
         naturalWidth = maxWidth;
-
     } else
         box.set_size_request(naturalWidth, -1);
     x = std::max(0, std::min(x, x_max - naturalWidth));
-    if (box.is_ancestor(*this)) {
-        remove(box);
-    }
+
+    int minHeight, naturalHeight;
+    box.measure(Gtk::Orientation::VERTICAL, -1, minHeight, naturalHeight, minBaseline, naturalBaseline);
+
+    y = std::max(0, std::min(y, y_max - naturalHeight));
+
     put(box, double(x), double(y));
     x_pos = x;
     y_pos = y;
 }
 
-void VocableOverlay::callback_motion(int index) {}
+void VocableOverlay::setupTextdrawCallbacks() {
+    int index = 0;
+    for (const auto& [textDrawMeaning, textDrawPronounciation] :
+         boost::combine(textDrawPronounciations, textDrawMeanings)) {
+        auto mouseClick = [this, index](auto) { callback_click(index); };
+        auto mouseLeave = [this, index] { callback_leave(index); };
+        auto mouseMotion = [this, index](auto) { callback_motion(index); };
+        textDrawPronounciation->signal_mouseClickByteIndex(mouseClick);
+        textDrawMeaning->signal_mouseClickByteIndex(mouseClick);
+        textDrawPronounciation->signal_mouseLeave(mouseLeave);
+        textDrawMeaning->signal_mouseLeave(mouseLeave);
+        textDrawPronounciation->signal_hoverByteIndex(mouseMotion);
+        textDrawMeaning->signal_hoverByteIndex(mouseMotion);
+        index++;
+    }
+}
 
-void VocableOverlay::callback_leave(int index) {}
+void VocableOverlay::callback_click(int textDrawIndex) {
+    if (func_vocableChoice) {
+        func_vocableChoice(textDrawIndex);
+    }
+}
 
-// void VocableOverlay::VocableBin::size_allocate(int width, int height, int baseline) {
-//     spdlog::warn("Size_allocate");
-// }
-// void VocableOverlay::VocableBin::measure_vfunc(Gtk::Orientation orientation,
-//                                                int for_size,
-//                                                int& minimum,
-//                                                int& natural,
-//                                                int& minimum_baseline,
-//                                                int& natural_baseline) const {
-//     spdlog::warn("measure");
-// }
+void VocableOverlay::callback_motion(int textDrawIndex) {
+    std::apply(
+        [this, textDrawIndex](auto... color) {
+            textDrawPronounciations[textDrawIndex]->setFontColor(color...);
+            textDrawMeanings[textDrawIndex]->setFontColor(color...);
+        },
+        markedColorRGB);
+}
+
+void VocableOverlay::callback_leave(int textDrawIndex) {
+    textDrawPronounciations[textDrawIndex]->setFontColorDefault();
+    textDrawMeanings[textDrawIndex]->setFontColorDefault();
+}

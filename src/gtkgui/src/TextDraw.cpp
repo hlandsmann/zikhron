@@ -25,7 +25,7 @@ TextDraw::~TextDraw() {}
 
 void TextDraw::on_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height) {
     // spdlog::info("OnDraw, width: {}, height: {}", width, height);
-    cr->set_source_rgb(0.8, 0.8, 0.8);
+    std::apply([&](auto... color) { cr->set_source_rgb(color...); }, fontColor);
 
     if (drawBorder) {
         cr->set_line_width(1.0);
@@ -84,6 +84,15 @@ void TextDraw::setFontSize(int _fontSize) {
     font.set_size(fontSize * Pango::SCALE);
     // setText(text);
     queue_draw();
+}
+
+void TextDraw::setFontColor(double r, double g, double b) {
+    fontColor = {r, g, b};
+    queue_draw();
+}
+
+void TextDraw::setFontColorDefault() {
+    std::apply([this](auto... color) { setFontColor(color...); }, defaultFontColor);
 }
 
 void TextDraw::setSpacing(int _spacing) {
