@@ -236,16 +236,16 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, VocableIds_vt,
     if (not ids_nowVoc.empty()) {
         auto repeatVocStart = GetCardRepeatedVoc();
         assert(repeatVocStart.has_value());
-        activeCardId = repeatVocStart.value();
+        activeCardId = *repeatVocStart;
         fmt::print("Get Card with words that are to be repeated now id: {}\n", *activeCardId);
     } else if (auto cardNewVocStart = GetCardNewVocStart(); cardNewVocStart.has_value()) {
-        activeCardId = cardNewVocStart.value();
+        activeCardId = *cardNewVocStart;
         fmt::print("Get Card with new vocables for starters#{}\n", *activeCardId);
     } else if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
-        activeCardId = cardRepeatVoc.value();
+        activeCardId = *cardRepeatVoc;
         fmt::print("Get Card with repeated vocables #{}\n", *activeCardId);
     } else if (auto cardNewVoc = GetCardNewVoc(); cardNewVoc.has_value()) {
-        activeCardId = cardNewVoc.value();
+        activeCardId = *cardNewVoc;
         fmt::print("Get new words from Card #{}\n", *activeCardId);
     } else
         return {nullptr, VocableIds_vt{}, Id_Ease_vt{}};
