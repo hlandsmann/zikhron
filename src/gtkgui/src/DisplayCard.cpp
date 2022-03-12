@@ -28,7 +28,7 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card) {
     vocableList->setParagraph(paragraph, easeList);
 
     prepend(*vocableList);
-    vocableList->set_visible(false);
+    vocableList->set_visible(displayVocabulary);
 
     cardDraw = std::make_unique<CardDraw>(overlay);
     cardDraw->setParagraph(paragraph);
@@ -56,7 +56,8 @@ void DisplayCard::createCardControlButtons() {
     separator1.set_expand();
     btnReveal.set_label("Reveal Vocabulary");
     btnReveal.signal_clicked().connect([this]() {
-        vocableList->set_visible(true);
+        displayVocabulary = true;
+        vocableList->set_visible(displayVocabulary);
         btnReveal.set_visible(false);
         btnNext.set_visible(true);
     });
@@ -65,6 +66,7 @@ void DisplayCard::createCardControlButtons() {
 
     btnNext.set_label("Submit choice of ease");
     btnNext.signal_clicked().connect([this]() {
+        displayVocabulary = false;
         btnReveal.set_visible(true);
         btnNext.set_visible(false);
         submitChoiceOfEase();
@@ -116,5 +118,6 @@ void DisplayCard::annotation_start() {
 void DisplayCard::annotation_end() {
     btnReveal.set_visible(true);
     cardDraw->set_visible(true);
+    vocableList->set_visible(displayVocabulary);
     cardAnnotation->set_visible(false);
 }

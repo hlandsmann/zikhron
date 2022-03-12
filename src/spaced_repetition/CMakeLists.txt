@@ -10,7 +10,8 @@ target_sources(zikhron-spaced_repetition
     PRIVATE
         src/SR_DataBase.cpp
     #    src/TreeWalker.cpp
-        src/VocabularySR.cpp
+        src/VocabularySR_part1.cpp
+        src/VocabularySR_part2.cpp
         src/VocabularySR_misc.cpp
         src/VocabularySR_X.cpp
     PUBLIC
@@ -24,9 +25,10 @@ target_link_libraries(zikhron-spaced_repetition
         zikhron::utils
         nlohmann_json::nlohmann_json
     PRIVATE
-        zikhron::warnings
         cppcoro
         fmt::fmt
+        spdlog::spdlog
+        zikhron::warnings
 )
 
 target_compile_features(zikhron-spaced_repetition PUBLIC cxx_std_20)

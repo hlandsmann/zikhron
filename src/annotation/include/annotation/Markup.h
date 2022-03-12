@@ -48,10 +48,11 @@ class Paragraph {
 public:
     using value_type = Word;
     using vocable_pronounciation_meaning_t = std::tuple<std::string, std::string, std::string>;
+    // ToDo: move that function to TextCard
     static auto textFromCard(const Card&) -> utl::StringU8;
 
     Paragraph(std::unique_ptr<Card> card);
-
+    Paragraph(std::unique_ptr<Card> card, std::vector<uint>&& vocableIds);
     auto get() const -> std::string;
     auto getFragments() const -> std::vector<std::string>;
     auto getWordStartPosition(int pos, const std::vector<int>& positions) const -> int;
@@ -76,13 +77,14 @@ public:
     void undoChange();
     auto wordFromPosition(int pos, const std::vector<int>& positions) const
         -> const ZH_Annotator::ZH_dicItemVec;
-    void setupVocables(std::vector<std::pair<ZH_Dictionary::Entry, uint>>&&);
-    // auto getVocableString() const -> std::string;
+    auto getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
+        -> ZH_Dictionary::Entry;
+    void setupVocables(const std::map<uint, Ease>&);
     auto getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>&;
-    // auto getVocablePositions() const -> const std::vector<int>&;
     auto getRelativeOrderedEaseList(const std::map<uint, Ease>&) const
         -> std::vector<std::pair<uint, Ease>>;
     auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<uint, Ease>;
+
 
 private:
     auto getAnnotationChunkFromPosition(size_t pos)
@@ -120,9 +122,10 @@ private:
     std::vector<int> bytePositions;
     std::vector<std::span<const Word>> fragments;
 
-    std::vector<std::pair<ZH_Dictionary::Entry, uint>> vocables_id;
-    // std::string vocableString;
-    // std::vector<int> vocablePositions;
+    std::vector<uint> vocableIds;
+    std::vector<uint> activeVocables;
+
+    // std::vector<std::pair<ZH_Dictionary::Entry, uint>> vocables_id;
 
     constexpr static std::array markingColors_red = {0x772222, 0xAA7777};
     constexpr static std::array markingColors_green = {0x227722, 0x77AA77};

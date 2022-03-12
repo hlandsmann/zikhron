@@ -30,6 +30,7 @@ public:
     void submitEase(const VocabularySR::Id_Ease_vt& ease);
     void submitAnnotation(const ZH_Annotator::Combination& combination,
                           const ZH_Annotator::CharacterSequence& characterSequence);
+    void submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
 
     void signal_annotation_connect(const signal_annotation& signal);
     void signal_card_connect(const signal_card& signal);
@@ -41,7 +42,7 @@ private:
 
     using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, uint>>;
     using Id_Ease_vt = std::map<uint, Ease>;
-    using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
+    using CardInformation = VocabularySR::CardInformation;
 
     void worker_thread(std::stop_token);
     void dispatcher_fun();

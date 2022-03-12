@@ -20,7 +20,7 @@ VocabularySR_X::VocabularySR_X(const std::map<uint, VocableSR>& _id_vocableSR,
                                const std::map<uint, CardMeta>& _id_cardMeta,
                                const std::map<uint, VocableMeta>& _id_vocableMeta)
     : id_vocableSR(_id_vocableSR), id_cardMeta(_id_cardMeta), id_vocableMeta(_id_vocableMeta) {
-    worker = std::jthread([this](std::stop_token token) {
+    worker = std::jthread([this](std::stop_token /*token*/) {
         // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
         fmt::print("Thread start <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n");
         auto init = time_it([this]() { initDataStructure(); });

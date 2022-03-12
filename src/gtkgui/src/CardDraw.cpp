@@ -104,12 +104,14 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
     auto startIndexPos = paragraph->fragmentStartPos(textDrawIndex, paragraph->BytePositions());
     const auto clickedItem = paragraph->wordFromPosition(startIndexPos + byteIndex,
                                                          paragraph->BytePositions());
+    const auto vocableChoice = paragraph->getVocableChoiceFromPosition(startIndexPos + byteIndex,
+                                                                       paragraph->BytePositions());
     if (clickedItem.empty())
         return;
     const auto& word = clickedItem.front();
     spdlog::info("{}", word.key);
     for (const auto& word : clickedItem) {
-        spdlog::info("    {}", word.pronounciation);
+        spdlog::info("    {}, id: {}", word.pronounciation, word.id);
         spdlog::info("        {}", word.meanings.front());
     }
 
@@ -126,21 +128,25 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
         [](const auto& meanings) { return meanings.front(); },
         &ZH_Dictionary::Entry::meanings);
 
-    auto vocableOverlayInit = VocableOverlayInit{
-        .key = clickedItem.front().key,
-        .pronounciationChoice = clickedItem.front().pronounciation,
-        .meaningChoice = clickedItem.front().meanings.front(),
-        .pronounciations = pronounciations,
-        .meanings = meanings,
-        .x = rect.get_x(),
-        .y = rect.get_y(),
-        .x_max = overlay.get_size(Gtk::Orientation::HORIZONTAL),
-        .y_max = overlay.get_size(Gtk::Orientation::VERTICAL)};
+    auto vocableOverlayInit = VocableOverlayInit{.key = clickedItem.front().key,
+                                                 .pronounciationChoice = vocableChoice.pronounciation,
+                                                 .meaningChoice = vocableChoice.meanings.front(),
+                                                 .pronounciations = pronounciations,
+                                                 .meanings = meanings,
+                                                 .x = rect.get_x(),
+                                                 .y = rect.get_y(),
+                                                 .x_max = overlay.get_size(Gtk::Orientation::HORIZONTAL),
+                                                 .y_max = overlay.get_size(Gtk::Orientation::VERTICAL)};
     vocableOverlay = std::make_unique<VocableOverlay>(vocableOverlayInit);
-    vocableOverlay->signal_vocableChoice([this](std::optional<int> choice) {
+    vocableOverlay->signal_vocableChoice([this, clickedItem, vocIdOldChoice = vocableChoice.id](std::optional<int> choice) {
         overlay.remove_overlay(*vocableOverlay);
-        if (choice.has_value())
-            spdlog::info("Choisen: {}", choice.value());
+        if (not choice.has_value())
+            return;
+        uint vocId = clickedItem.front().id;
+        uint vocIdNewChoice = clickedItem[choice.value()].id;
+        spdlog::info("Map id {} / {} to {}", vocId, vocIdOldChoice, vocIdNewChoice);
+        DataThread::get().submitVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
+
     });
     overlay.add_overlay(*vocableOverlay);
 }

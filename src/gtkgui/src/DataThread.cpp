@@ -103,11 +103,11 @@ void DataThread::signal_card_connect(const signal_card& signal) {
 }
 
 void DataThread::sendActiveCard(CardInformation& cardInformation) {
-    auto [current_card, vocables, ease] = std::move(cardInformation);
+    auto [current_card, vocableIds, ease] = std::move(cardInformation);
     auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
-    auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card));
+    auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
     auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));
-    paragraph->setupVocables(std::move(vocables));
+    paragraph->setupVocables(ease);
     auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);
     std::vector<Ease> vocEaseList;
     ranges::copy(orderedEase | std::views::values, std::back_inserter(vocEaseList));
@@ -130,6 +130,17 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.push([this, combination, characterSequence]() {
             auto cardInformation = vocabularySR->addAnnotation(combination, characterSequence);
+            sendActiveCard(cardInformation);
+        });
+    }
+    condition.notify_one();
+}
+
+void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) {
+    {
+        std::lock_guard<std::mutex> lock(condition_mutex);
+        job_queue.push([this, vocId, vocIdOldChoice, vocIdNewChoice]() {
+            auto cardInformation = vocabularySR->addVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
             sendActiveCard(cardInformation);
         });
     }

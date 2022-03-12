@@ -66,18 +66,20 @@ class VocabularySR {
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
     static constexpr std::string_view s_fn_metaCardSR = "metaCardSR.json";
     static constexpr std::string_view s_fn_annotationChoices = "annotationChoices.json";
+    static constexpr std::string_view s_fn_vocableChoices = "vocableChoices.json";
     static constexpr std::string_view s_path_meta = "/home/harmen/zikhron";
 
 public:
     VocabularySR(CardDB&&, std::shared_ptr<ZH_Dictionary>);
     ~VocabularySR();
 
-    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, uint>>;
+    using VocableIds_vt = std::vector<uint>;
     using Id_Ease_vt = std::map<uint, Ease>;
-    using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
+    using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getCard() -> CardInformation;
     auto addAnnotation(const std::vector<int>& combination, const std::vector<utl::CharU8>& characters)
         -> CardInformation;
+    auto addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt&);
 
 private:
@@ -86,20 +88,23 @@ private:
     auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
     auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
-    void InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId);
+    void InsertVocabulary(uint cardId);
     void EraseVocabulary(uint cardId);
     static void SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js);
     void SaveProgress() const;
     void SaveAnnotationChoices() const;
+    void SaveVocableChoices() const;
     static auto LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json;
     void LoadProgress();
     void LoadAnnotationChoices();
+    void LoadVocableChoices();
     void GenerateToRepeatWorkload();
     void CleanUpVocables();
 
     // Get vocables that would need to be learned with this current cardId
-    auto GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt;
+    // auto GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt;
     auto GetActiveVocables(uint cardId) const -> std::set<uint>;
+    auto GetVocableIdsInOrder(uint cardId) const -> std::vector<uint>;
     auto GetRelevantEase(uint cardId) -> Id_Ease_vt;
 
     // Calculate which Cards to learn next
@@ -109,7 +114,7 @@ private:
 
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
-    std::map<ZH_dicItemVec, uint> zhdic_vocableMeta;
+    std::map<std::string, uint> zhdic_vocableMeta;
     std::map<uint, VocableMeta> id_vocableMeta;
     // vocableId -> vocable (aka. ZH_dicItemVec)
     std::map<uint, ZH_dicItemVec> id_vocable;
@@ -117,6 +122,8 @@ private:
     std::map<uint, CardMeta> id_cardMeta;
     std::map<uint, CardSR> id_cardSR;
     std::map<uint, VocableSR> id_vocableSR;
+
+    std::map<uint, uint> id_id_vocableChoices;
 
     /* ids for to be repeated vocables */
     std::set<uint> ids_repeatTodayVoc;

@@ -12,6 +12,8 @@
 #include <vector>
 
 class ZH_Annotator {
+    const utl::StringU8 text;
+
 public:
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
@@ -43,11 +45,11 @@ public:
     void Reannotate();
     auto ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool;
 
+    const std::shared_ptr<ZH_Dictionary> dictionary;
+
 private:
     void annotate();
-    const utl::StringU8 text;
     std::string annotated_text;
-    const std::shared_ptr<ZH_Dictionary> dictionary;
     std::vector<Item> items;
     std::vector<std::vector<std::vector<int>>> chunks;
     std::vector<std::vector<ZH_dicItemVec>> candidates;

@@ -36,4 +36,6 @@ private:
     std::unique_ptr<VocableList> vocableList;
 
     Gtk::Overlay& overlay;
+
+    bool displayVocabulary = false;
 };
