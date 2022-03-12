@@ -107,7 +107,7 @@ auto Paragraph::textFromCard(const Card& card) -> utl::StringU8 {
     return text;
 }
 
-auto Paragraph::calculate_positions(const std::vector<Word>& words, size_t (Word::*len)() const) const
+auto Paragraph::calculate_positions(size_t (Word::*len)() const) const
     -> std::vector<int> {
     std::vector<int> result;
     result.push_back(0);
@@ -129,8 +129,8 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
                       std::back_inserter(words),
                       [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
 
-    utf8Positions = calculate_positions(words, &Word::vLength);
-    bytePositions = calculate_positions(words, &Word::byteLength);
+    utf8Positions = calculate_positions( &Word::vLength);
+    bytePositions = calculate_positions( &Word::byteLength);
 
     fragments.clear();
     if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(card.get())) {
@@ -166,8 +166,8 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
     }
 }
 
-Paragraph::Paragraph(std::unique_ptr<Card> card, std::vector<uint>&& vocableIds_in)
-    : Paragraph(std::move(card)) {
+Paragraph::Paragraph(std::unique_ptr<Card> card_in, std::vector<uint>&& vocableIds_in)
+    : Paragraph(std::move(card_in)) {
     vocableIds = std::move(vocableIds_in);
 }
 

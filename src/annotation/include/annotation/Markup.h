@@ -89,7 +89,7 @@ public:
 private:
     auto getAnnotationChunkFromPosition(size_t pos)
         -> std::optional<std::reference_wrapper<AnnotationChunk>>;
-    auto calculate_positions(const std::vector<Word>& words, size_t (Word::*len)() const) const
+    auto calculate_positions(size_t (Word::*len)() const) const
         -> std::vector<int>;
 
     std::unique_ptr<Card> card;

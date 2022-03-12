@@ -108,8 +108,7 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
                                                                        paragraph->BytePositions());
     if (clickedItem.empty())
         return;
-    const auto& word = clickedItem.front();
-    spdlog::info("{}", word.key);
+    spdlog::info("{}", clickedItem.front().key);
     for (const auto& word : clickedItem) {
         spdlog::info("    {}, id: {}", word.pronounciation, word.id);
         spdlog::info("        {}", word.meanings.front());
@@ -125,7 +124,7 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
     ranges::transform(
         clickedItem,
         std::back_inserter(meanings),
-        [](const auto& meanings) { return meanings.front(); },
+        [](const auto& meanings_sameKey) { return meanings_sameKey.front(); },
         &ZH_Dictionary::Entry::meanings);
 
     auto vocableOverlayInit = VocableOverlayInit{.key = clickedItem.front().key,

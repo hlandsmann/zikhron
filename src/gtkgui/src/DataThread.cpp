@@ -8,10 +8,10 @@ namespace ranges = std::ranges;
 
 namespace {
 
-auto loadCardDB(const std::string& path_to_cardDB) -> CardDB {
-    CardDB cardDB;
+auto loadCardDB(const std::string& path_to_cardDB) -> std::unique_ptr<CardDB> {
+    auto cardDB = std::make_unique<CardDB>();
     try {
-        cardDB.loadFromDirectory(path_to_cardDB);
+        cardDB->loadFromDirectory(path_to_cardDB);
     }
     catch (const std::exception& e) {
         spdlog::error(e.what());
@@ -36,9 +36,9 @@ void DataThread::destroy() { dataThread = nullptr; }
 
 DataThread::DataThread() {
     job_queue.push([this]() {
-        CardDB cardDB = loadCardDB(std::string{path_to_cardDB});
+        std::shared_ptr<CardDB> cardDB = std::move(loadCardDB(std::string{path_to_cardDB}));
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
-        vocabularySR = std::make_unique<VocabularySR>(std::move(cardDB), zh_dictionary);
+        vocabularySR = std::make_unique<VocabularySR>(cardDB, zh_dictionary);
     });
 
     dispatcher.connect([this]() { dispatcher_fun(); });
@@ -129,7 +129,7 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.push([this, combination, characterSequence]() {
-            auto cardInformation = vocabularySR->addAnnotation(combination, characterSequence);
+            auto cardInformation = vocabularySR->AddAnnotation(combination, characterSequence);
             sendActiveCard(cardInformation);
         });
     }
@@ -140,7 +140,7 @@ void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocId
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.push([this, vocId, vocIdOldChoice, vocIdNewChoice]() {
-            auto cardInformation = vocabularySR->addVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
+            auto cardInformation = vocabularySR->AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
             sendActiveCard(cardInformation);
         });
     }

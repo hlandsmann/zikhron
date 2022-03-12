@@ -147,7 +147,7 @@ auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_order
 }
 
 ZH_Annotator::ZH_Annotator(const utl::StringU8& _text,
-                           const std::shared_ptr<ZH_Dictionary>& _dictionary,
+                           const std::shared_ptr<const ZH_Dictionary>& _dictionary,
                            const std::map<CharacterSequence, Combination>& _choices)
     : text(_text), dictionary(_dictionary), choices(_choices) {
     annotate();

@@ -20,7 +20,7 @@ public:
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
 
     ZH_Annotator(const utl::StringU8& _text,
-                 const std::shared_ptr<ZH_Dictionary>& _dictionary,
+                 const std::shared_ptr<const ZH_Dictionary>& _dictionary,
                  const std::map<CharacterSequence, Combination>& _choices = {});
     auto Annotated() const -> const std::string&;
 
@@ -45,7 +45,7 @@ public:
     void Reannotate();
     auto ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool;
 
-    const std::shared_ptr<ZH_Dictionary> dictionary;
+    const std::shared_ptr<const ZH_Dictionary> dictionary;
 
 private:
     void annotate();

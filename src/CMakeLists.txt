@@ -6,9 +6,11 @@ target_compile_options(
         -Wall
         -Wextra
         -Wconversion
+        -Wshadow
         -pedantic
         # -fsanitize=address
 )
+
 # target_compile_definitions(zikhron-warnings INTERFACE LSAN_OPTION=verbosity=1:log_threads=1
 
 add_library(zikhron::warnings ALIAS zikhron-warnings)
@@ -30,8 +32,9 @@ target_sources(zikhron
 )
 target_link_libraries(zikhron
     PRIVATE
-        zikhron::gtkgui
         # asan
+        spdlog::spdlog
+        zikhron::gtkgui
 )
 target_compile_features(zikhron PRIVATE cxx_std_20)
 target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)

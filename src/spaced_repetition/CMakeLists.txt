@@ -9,11 +9,8 @@ target_include_directories(zikhron-spaced_repetition
 target_sources(zikhron-spaced_repetition
     PRIVATE
         src/SR_DataBase.cpp
-    #    src/TreeWalker.cpp
-        src/VocabularySR_part1.cpp
-        src/VocabularySR_part2.cpp
         src/VocabularySR_misc.cpp
-        src/VocabularySR_X.cpp
+        src/VocabularySR.cpp
     PUBLIC
         include/spaced_repetition/VocabularySR.h
         include/spaced_repetition/SR_DataBase.h
