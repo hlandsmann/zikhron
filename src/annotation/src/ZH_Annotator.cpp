@@ -35,7 +35,7 @@ auto GetCandidates(const utl::StringU8& text,
             ZH_Annotator::ZH_dicItemVec dicEntries;
             for (ZH_Dictionary::Key dictionaryKey : found) {
                 if (dictionaryKey.key == key) {
-                    dicEntries.push_back(dict.ItemFromPosition(dictionaryKey.pos, characterSet));
+                    dicEntries.push_back(dict.EntryFromPosition(dictionaryKey.pos, characterSet));
                 } else
                     break;
             }
@@ -147,7 +147,7 @@ auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_order
 }
 
 ZH_Annotator::ZH_Annotator(const utl::StringU8& _text,
-                           const std::shared_ptr<ZH_Dictionary>& _dictionary,
+                           const std::shared_ptr<const ZH_Dictionary>& _dictionary,
                            const std::map<CharacterSequence, Combination>& _choices)
     : text(_text), dictionary(_dictionary), choices(_choices) {
     annotate();
@@ -195,7 +195,7 @@ void ZH_Annotator::annotate() {
             int combinationLength = std::accumulate(combs.front().begin(), combs.front().end(), 0);
             auto finally = gsl::final_action([&pos, combinationLength]() { pos += combinationLength; });
             if (combinationLength > 1) {
-                const auto& possibleChoice = std::vector<utl::ItemU8>(
+                const auto& possibleChoice = std::vector<utl::CharU8>(
                     text.cbegin() + pos, text.cbegin() + pos + combinationLength);
                 const auto& choiceIt = choices.find(possibleChoice);
                 if (choiceIt != choices.end())

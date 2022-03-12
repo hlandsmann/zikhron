@@ -16,91 +16,36 @@
 class CardDB;
 class Card;
 
-class VocabularySR_X {
-public:
-    VocabularySR_X(const std::map<uint, VocableSR>&,
-                   const std::map<uint, CardMeta>&,
-                   const std::map<uint, VocableMeta>&);
-
-private:
-    void initDataStructure();
-    std::jthread worker;
-
-    using id_vocSR_t = std::pair<uint, VocableSR>;
-    std::vector<id_vocSR_t> repeatTodayVoc;
-
-    const std::map<uint, VocableSR>& id_vocableSR;
-    const std::map<uint, CardMeta>& id_cardMeta;
-    const std::map<uint, VocableMeta>& id_vocableMeta;
-};
-
-class VocabularySR_TreeWalker {
-public:
-    VocabularySR_TreeWalker(const std::map<uint, VocableSR>&,
-                            const std::map<uint, CardMeta>&,
-                            const std::map<uint, VocableMeta>&);
-
-private:
-    struct Group {
-        std::map<uint, VocableMeta> id_vocMeta{};
-        std::map<uint, CardMeta> id_cardMeta{};
-    };
-    auto SplitGroup(const Group& group) -> std::vector<Group>;
-    void ProcessGroup(Group& group);
-    auto OtherCardsWithVocables(const std::map<uint, CardMeta>& id_cm, uint cardId) -> std::set<uint>;
-
-    using IdCardMeta_vec = std::vector<std::pair<uint, CardMeta>>;
-    auto CardsBestSize(const std::map<uint, CardMeta>& id_cm) -> IdCardMeta_vec;
-    auto RefinedCards(const IdCardMeta_vec&) -> IdCardMeta_vec;
-
-    std::jthread worker;
-
-    std::map<uint, VocableSR> id_vocableSR;
-    std::map<uint, CardMeta> id_cardMeta;
-    std::map<uint, VocableMeta> id_vocableMeta;
-};
-
 class VocabularySR {
-    using ZH_dicItemVec = std::vector<ZH_Dictionary::Item>;
-    static constexpr std::string_view s_content = "content";
+    using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
     static constexpr std::string_view s_fn_metaCardSR = "metaCardSR.json";
     static constexpr std::string_view s_fn_annotationChoices = "annotationChoices.json";
+    static constexpr std::string_view s_fn_vocableChoices = "vocableChoices.json";
     static constexpr std::string_view s_path_meta = "/home/harmen/zikhron";
 
 public:
-    VocabularySR(CardDB&&, std::shared_ptr<ZH_Dictionary>);
-    ~VocabularySR();
+    VocabularySR(const std::shared_ptr<CardDB>&, const std::shared_ptr<ZH_Dictionary>&);
 
-    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Item, uint>>;
+    using VocableIds_vt = std::vector<uint>;
     using Id_Ease_vt = std::map<uint, Ease>;
-    using CardInformation = std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt>;
+    using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getCard() -> CardInformation;
-    auto addAnnotation(const std::vector<int>& combination, const std::vector<utl::ItemU8>& characters)
+    auto AddAnnotation(const std::vector<int>& combination, const std::vector<utl::CharU8>& characters)
         -> CardInformation;
+    auto AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt&);
 
 private:
-    void GenerateFromCards();
     auto CountTotalNewVocablesInSet() -> size_t;
     auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
     auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
-    void InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId);
-    void EraseVocabulary(uint cardId);
-    static void SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js);
-    void SaveProgress();
-    void SaveAnnotationChoices();
-    static auto LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json;
-    void LoadProgress();
-    void LoadAnnotationChoices();
-    void GenerateToRepeatWorkload();
-    void CleanUpVocables();
 
     // Get vocables that would need to be learned with this current cardId
-    auto GetActiveVocables_dicEntry(uint cardId) -> Item_Id_vt;
-    auto GetRelevantEase(uint cardId) -> Id_Ease_vt;
-    auto GetActiveVocables(uint cardId) -> std::set<uint>;
+    // auto GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt;
+    auto GetActiveVocables(uint cardId) const -> std::set<uint>;
+    auto GetRelevantEase(uint cardId) const -> Id_Ease_vt;
 
     // Calculate which Cards to learn next
     auto GetCardRepeatedVoc() -> std::optional<uint>;
@@ -109,29 +54,24 @@ private:
 
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
-    std::map<ZH_dicItemVec, uint> zhdic_vocableMeta;
-    std::map<uint, VocableMeta> id_vocableMeta;
-    // vocableId -> vocable (aka. ZH_dicItemVec)
-    std::map<uint, ZH_dicItemVec> id_vocable;
-    /* cardMeta sorted by value */
-    std::map<uint, CardMeta> id_cardMeta;
-    std::map<uint, CardSR> id_cardSR;
-    std::map<uint, VocableSR> id_vocableSR;
+    std::map<std::string, uint> zhdic_vocableMeta;
+
+    SR_DataBase sr_db;
+
+    const std::map<uint, CardSR>& id_cardSR = sr_db.Id_cardSR();
+
+    const std::map<uint, VocableSR>& id_vocableSR = sr_db.Id_vocableSR();
+    const std::map<uint, CardMeta>& id_cardMeta = sr_db.Id_cardMeta();
+    const std::map<uint, VocableMeta>& id_vocableMeta = sr_db.Id_vocableMeta();
 
     /* ids for to be repeated vocables */
-    std::set<uint> ids_repeatTodayVoc;
+    const std::set<uint>& ids_repeatTodayVoc = sr_db.Ids_repeatTodayVoc();
     /* ids for vocables the student failed */
-    std::set<uint> ids_againVoc;
+    const std::set<uint>& ids_againVoc = sr_db.Ids_againVoc();
     /* ids for vocables that are to be repeated NOW! - they get moved out of againVoc */
-    std::set<uint> ids_nowVoc;
+    const std::set<uint>& ids_nowVoc = sr_db.Ids_nowVoc();
 
     size_t countOfNewVocablesToday = 0;
-    uint activeCardId{};
+    std::optional<uint> activeCardId{};
     bool getCardNeedsCleanup = false;
-
-    using CharacterSequence = std::vector<utl::ItemU8>;
-    using Combination = std::vector<int>;
-    std::map<CharacterSequence, Combination> annotationChoices;
-    std::unique_ptr<VocabularySR_TreeWalker> treeWalker;
-    std::unique_ptr<VocabularySR_X> X;
 };

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <annotation/TextCard.h>
 #include <annotation/Ease.h>
+#include <annotation/TextCard.h>
 #include <utils/StringU8.h>
 #include <functional>
 #include <iosfwd>
@@ -14,6 +14,7 @@ namespace markup {
 class Word {
     std::string rawWord;
     auto joinCharactersNonBreakable(const utl::StringU8& word) const -> std::string;
+    auto utf8ByteLengthOfWord(const utl::StringU8& word) const -> size_t;
     auto lengthOfWord(const utl::StringU8& word) const -> size_t;
 
 public:
@@ -28,11 +29,13 @@ public:
     void setColor(uint32_t color);
     void setBackgroundColor(uint32_t backgroundColor);
     auto vLength() const -> size_t { return virtualLength; }
+    auto byteLength() const -> size_t { return utf8ByteLength; }
     auto isMarkup() const -> bool { return markup; }
 
 private:
     auto applyStyle(const std::string& str) const -> std::string;
     size_t virtualLength = 0;
+    size_t utf8ByteLength = 0;
     bool markup = false;
     uint32_t color = 0;
     uint32_t backGroundColor = 0;
@@ -44,39 +47,50 @@ class Paragraph {
 
 public:
     using value_type = Word;
+    using vocable_pronounciation_meaning_t = std::tuple<std::string, std::string, std::string>;
+    // ToDo: move that function to TextCard
     static auto textFromCard(const Card&) -> utl::StringU8;
 
-//Paragraph() = default;
     Paragraph(std::unique_ptr<Card> card);
-
+    Paragraph(std::unique_ptr<Card> card, std::vector<uint>&& vocableIds);
     auto get() const -> std::string;
-    auto getWordStartPosition(int pos) const -> int;
-    auto getWordIndex(int pos) const -> std::size_t;
+    auto getFragments() const -> std::vector<std::string>;
+    auto getWordStartPosition(int pos, const std::vector<int>& positions) const -> int;
+    auto getWordIndex(int pos, const std::vector<int>& positions) const -> std::size_t;
+    auto BytePositions() const -> const std::vector<int>& { return bytePositions; };
+    auto Utf8Positions() const -> const std::vector<int>& { return utf8Positions; };
+    auto fragmentStartPos(size_t fragment, const std::vector<int>& positions) const -> int;
 
     void updateAnnotationColoring();
-    void highlightWordAtPosition(int pos);
+    void highlightWordAtPosition(int pos, const std::vector<int>& positions);
     void highlightAnnotationAtPosition(int pos);
 
     struct AnnotationPossibilities {
+        std::string activeChoice;
         std::vector<std::string> unmarked;
         std::vector<std::string> marked;
         size_t pos{};
         std::vector<std::vector<int>> combinations;
-        std::vector<utl::ItemU8> characters;
+        std::vector<utl::CharU8> characters;
     };
     auto getAnnotationPossibilities(int pos) -> AnnotationPossibilities;
     void undoChange();
-    auto wordFromPosition(int pos) const -> const ZH_Annotator::ZH_dicItemVec;
-    void setupVocables(std::vector<std::pair<ZH_Dictionary::Item, uint>>&&);
-    auto getVocableString() const -> std::string;
-    auto getVocablePositions() const -> const std::vector<int>&;
+    auto wordFromPosition(int pos, const std::vector<int>& positions) const
+        -> const ZH_Annotator::ZH_dicItemVec;
+    auto getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
+        -> ZH_Dictionary::Entry;
+    void setupVocables(const std::map<uint, Ease>&);
+    auto getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>&;
     auto getRelativeOrderedEaseList(const std::map<uint, Ease>&) const
         -> std::vector<std::pair<uint, Ease>>;
     auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<uint, Ease>;
 
+
 private:
     auto getAnnotationChunkFromPosition(size_t pos)
         -> std::optional<std::reference_wrapper<AnnotationChunk>>;
+    auto calculate_positions(size_t (Word::*len)() const) const
+        -> std::vector<int>;
 
     std::unique_ptr<Card> card;
 
@@ -87,7 +101,7 @@ private:
 
     struct AnnotationChunk {
         std::vector<std::reference_wrapper<Word>> words;
-        std::vector<utl::ItemU8> characters;
+        std::vector<utl::CharU8> characters;
         std::vector<std::vector<int>> chunk;
         size_t posBegin = 0;
         size_t posEnd = 0;
@@ -103,11 +117,15 @@ private:
 
     std::stack<WordState> preChanges;
     std::vector<Word> words;
-    std::vector<int> positions;
+    std::vector<vocable_pronounciation_meaning_t> vocables;
+    std::vector<int> utf8Positions;
+    std::vector<int> bytePositions;
+    std::vector<std::span<const Word>> fragments;
 
-    std::vector<std::pair<ZH_Dictionary::Item, uint>> vocables_id;
-    std::string vocableString;
-    std::vector<int> vocablePositions;
+    std::vector<uint> vocableIds;
+    std::vector<uint> activeVocables;
+
+    // std::vector<std::pair<ZH_Dictionary::Entry, uint>> vocables_id;
 
     constexpr static std::array markingColors_red = {0x772222, 0xAA7777};
     constexpr static std::array markingColors_green = {0x227722, 0x77AA77};

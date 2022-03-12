@@ -2,10 +2,12 @@
 #include <annotation/Markup.h>
 #include <annotation/TextCard.h>
 #include <fmt/ostream.h>
+#include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
 #include <utils/counting_iterator.h>
 #include <utils/min_element_val.h>
 #include <algorithm>
+#include <boost/range/combine.hpp>
 #include <chrono>
 #include <cmath>
 #include <ctime>
@@ -23,42 +25,12 @@
 
 namespace ranges = std::ranges;
 
-VocabularySR::~VocabularySR() {
-    try {
-        SaveProgress();
-        SaveAnnotationChoices();
-    }
-    catch (const std::exception& e) {
-        std::cout << e.what() << "\n";
-    }
+VocabularySR::VocabularySR(const std::shared_ptr<CardDB>& cardDB_in,
+                           const std::shared_ptr<ZH_Dictionary>& zh_dictionary_in)
+    : cardDB(cardDB_in), zh_dictionary(zh_dictionary_in), sr_db(cardDB, zh_dictionary) {
+    spdlog::info("New Vocables that where not yet seen: {}\n", CountTotalNewVocablesInSet());
 }
 
-VocabularySR::VocabularySR(CardDB&& _cardDB, std::shared_ptr<ZH_Dictionary> _zh_dictionary)
-    : cardDB(std::make_shared<CardDB>(std::move(_cardDB))), zh_dictionary(_zh_dictionary) {
-    std::set<ZH_Annotator::Item> myDic;
-
-    LoadAnnotationChoices();
-    auto start = std::chrono::high_resolution_clock::now();
-    GenerateFromCards();
-    auto gfc = std::chrono::high_resolution_clock::now();
-    LoadProgress();
-    auto lp = std::chrono::high_resolution_clock::now();
-    GenerateToRepeatWorkload();
-    auto gtr = std::chrono::high_resolution_clock::now();
-    namespace chrono = std::chrono;
-    using microseconds = std::chrono::microseconds;
-    fmt::print("Time for GenerateFromCards: {} \n",
-               chrono::duration_cast<microseconds>(gfc - start).count());
-    fmt::print("Time for LoadProgress: {} \n", chrono::duration_cast<microseconds>(lp - gfc).count());
-    fmt::print("Time for GenerateToRepeatWorkload: {} \n",
-               chrono::duration_cast<microseconds>(gtr - lp).count());
-    fmt::print("Time totally elapsed: {} \n", chrono::duration_cast<microseconds>(gtr - start).count());
-
-    CleanUpVocables();
-    fmt::print("New Vocables that where not yet seen: {}\n", CountTotalNewVocablesInSet());
-    // treeWalker = std::make_unique<VocabularySR_TreeWalker>(id_vocableSR, id_cardMeta, id_vocableMeta);
-    X = std::make_unique<VocabularySR_X>(id_vocableSR, id_cardMeta, id_vocableMeta);
-}
 auto VocabularySR::CountTotalNewVocablesInSet() -> size_t {
     std::set<uint> newVocables;
     for (const auto& [id, cardMeta] : id_cardMeta) {
@@ -67,60 +39,6 @@ auto VocabularySR::CountTotalNewVocablesInSet() -> size_t {
                                std::inserter(newVocables, newVocables.begin()));
     }
     return newVocables.size();
-}
-
-void VocabularySR::CleanUpVocables() {
-    std::set<uint> badVocableIds;
-    std::set<uint> activeVocableIds;
-
-    auto seenCards = id_cardMeta | std::views::filter([this](std::pair<uint, CardMeta> id_cm) {
-                         return ranges::set_difference(id_cm.second.vocableIds,
-                                                       id_vocableSR | std::views::keys,
-                                                       utl::counting_iterator{})
-                                    .out.count == 0;
-                     });
-
-    for (const auto& [id, card] : seenCards) {
-        activeVocableIds.insert(card.vocableIds.begin(), card.vocableIds.end());
-    }
-    ranges::set_difference(id_vocableSR | std::views::keys,
-                           activeVocableIds,
-                           std::inserter(badVocableIds, badVocableIds.begin()));
-    for (uint id : badVocableIds) {
-        fmt::print("Erasing id: {} - key: {}\n",
-                   id,
-                   id_vocable.find(id) != id_vocable.end() ? id_vocable[id].front().key : "");
-        id_vocableSR.erase(id);
-        ids_repeatTodayVoc.erase(id);
-        ids_againVoc.erase(id);
-        ids_nowVoc.erase(id);
-    }
-}
-
-void VocabularySR::GenerateFromCards() {
-    const std::map<uint, CardDB::CardPtr>& cards = cardDB->get();
-
-    for (const auto& [cardId, card] : cards) {
-        utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
-
-        card->zh_annotator.emplace(card_text, zh_dictionary, annotationChoices);
-
-        InsertVocabulary(card->zh_annotator.value().UniqueItems(), cardId);
-    }
-    fmt::print("Count of vocables: {}\n", zhdic_vocableMeta.size());
-    std::set<std::string> allCharacters;
-
-    for (const auto& voc : zhdic_vocableMeta) {
-        if (voc.first.empty())
-            continue;
-
-        const auto word = utl::StringU8(voc.first.front().key);
-        allCharacters.insert(word.cbegin(), word.cend());
-    }
-
-    fmt::print("Characters: {}\n", fmt::join(allCharacters, ""));
-    fmt::print("Count of Characters: {}\n", allCharacters.size());
-    fmt::print("VocableSize: {}\n", zhdic_vocableMeta.size());
 }
 
 auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const
@@ -134,7 +52,7 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
         float(ranges::set_intersection(setVocIdThis, good, utl::counting_iterator{}).out.count), 2.f));
 
     if (cardIdsSharedVoc.empty())
-        return 1.;
+        return 1.f;
 
     return float(count) / float(setVocIdThis.size());
 }
@@ -151,37 +69,6 @@ auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
     return float(relevance) / std::pow(std::abs(float(diff.size() - 2)) + 1.f, float(diff.size()));
 }
 
-void VocabularySR::InsertVocabulary(const std::set<ZH_Annotator::Item>& cardVocabulary, uint cardId) {
-    CardMeta& cm = id_cardMeta[cardId];
-
-    for (auto& item : cardVocabulary) {
-        if (auto it = zhdic_vocableMeta.find(item.dicItemVec); it != zhdic_vocableMeta.end()) {
-            uint vocId = it->second;
-            auto& vocable = id_vocableMeta[vocId];
-            vocable.cardIds.insert(cardId);
-
-            cm.vocableIds.insert(vocId);
-        } else {
-            uint vocId = item.dicItemVec.front().id;
-            id_vocableMeta[vocId] = {.cardIds = {cardId}};
-            zhdic_vocableMeta[item.dicItemVec] = vocId;
-            id_vocable[vocId] = ZH_dicItemVec{item.dicItemVec};
-
-            cm.vocableIds.insert(vocId);
-        }
-    }
-    cm.cardId = cardId;
-}
-
-void VocabularySR::EraseVocabulary(uint cardId) {
-    CardMeta& cm = id_cardMeta.at(cardId);
-    for (uint vocId : cm.vocableIds) {
-        auto& vocable = id_vocableMeta.at(vocId);
-        vocable.cardIds.erase(cardId);
-    }
-    cm.vocableIds.clear();
-}
-
 auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
     struct intersect_view {
         std::set<uint> intersectToday{};
@@ -190,7 +77,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
         uint viewCount{};
     };
     std::map<uint, intersect_view> candidates;
-    for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
+    for (const auto& [id, cardMeta] : id_cardMeta) {
         size_t count_union = ranges::set_union(id_vocableSR | std::views::keys,
                                                cardMeta.vocableIds,
                                                utl::counting_iterator{})
@@ -215,11 +102,8 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
     }
     if (candidates.empty()) {
         for (uint id : ids_repeatTodayVoc) {
-            id_vocableSR.erase(id);
-
-            fmt::print("Erasing id: {} - key: {}\n", id, id_vocable[id].front().key);
+            spdlog::error("Id: {} should have been studied, but no card found\n", id);
         }
-        ids_repeatTodayVoc.clear();
         return {};
     }
 
@@ -259,7 +143,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
-    if (countOfNewVocablesToday > 80)
+    if (countOfNewVocablesToday > 0)
         return {};
     if (ids_againVoc.size() >= 9) {
         fmt::print("Vocables that failed are of quantity {}. Therefore no new vocables for now\n",
@@ -276,8 +160,7 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
     constexpr int maxNewPerCard = 6;
     constexpr int maxRepeatPerNewCard = 2;
 
-    for (const auto& [id, cardMeta] : id_cardMeta) {  //   std::set<uint> test;
-
+    for (const auto& [id, cardMeta] : id_cardMeta) {
         size_t countNew = ranges::set_difference(cardMeta.vocableIds,
                                                  id_vocableSR | std::views::keys,
                                                  utl::counting_iterator{})
@@ -320,8 +203,8 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
-    using id_cardMeta_v_t = typename decltype(id_cardMeta)::value_type;
-    std::function<float(id_cardMeta_v_t&)> calcValue;
+    using id_cardMeta_v_t = typename std::remove_reference_t<decltype(id_cardMeta)>::value_type;
+    std::function<float(const id_cardMeta_v_t&)> calcValue;
 
     if (ids_repeatTodayVoc.empty()) {
         std::set<uint> studiedVocableIds;
@@ -336,95 +219,63 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
         };
     }
 
-    const auto& it_id_cm = ranges::max_element(id_cardMeta, ranges::less{}, calcValue);
+    const auto it_id_cm = ranges::max_element(id_cardMeta, ranges::less{}, calcValue);
     if (it_id_cm == id_cardMeta.end())
         return {};
     const CardMeta& cm = it_id_cm->second;
 
     return cm.cardId;
 }
-auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, Item_Id_vt, Id_Ease_vt> {
-    if (getCardNeedsCleanup) {
-        getCardNeedsCleanup = false;
-        fmt::print("Cleaning up vocables .......\n");
-        CleanUpVocables();
-    }
 
-    std::set<uint> toRepeatVoc;
-    ranges::copy_if(ids_againVoc, std::inserter(toRepeatVoc, toRepeatVoc.begin()), [&](uint id) {
-        return id_vocableSR.at(id).pauseTimeOver();
-    });
-    for (uint id : toRepeatVoc) {
-        ids_againVoc.erase(id);
-        ids_repeatTodayVoc.insert(id);
-        ids_nowVoc.insert(id);
-        fmt::print("Wait time over for {}\n", id_vocable.at(id).front().key);
-    }
+auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt> {
+    sr_db.AdvanceFailedVocables();
     fmt::print("To Repeat: {}, Again: {}\n", ids_repeatTodayVoc.size(), ids_againVoc.size());
 
+    if (activeCardId.has_value())
+        sr_db.AdvanceIndirectlySeenVocables(*activeCardId);
     if (not ids_nowVoc.empty()) {
         auto repeatVocStart = GetCardRepeatedVoc();
         assert(repeatVocStart.has_value());
         activeCardId = repeatVocStart.value();
-        fmt::print("Get Card with words that are to be repeated now id: {}\n", activeCardId);
+        fmt::print("Get Card with words that are to be repeated now id: {}\n", *activeCardId);
     } else if (auto cardNewVocStart = GetCardNewVocStart(); cardNewVocStart.has_value()) {
         activeCardId = cardNewVocStart.value();
-        fmt::print("Get Card with new vocables for starters#{}\n", activeCardId);
+        fmt::print("Get Card with new vocables for starters#{}\n", *activeCardId);
     } else if (auto cardRepeatVoc = GetCardRepeatedVoc(); cardRepeatVoc.has_value()) {
         activeCardId = cardRepeatVoc.value();
-        fmt::print("Get Card with repeated vocables #{}\n", activeCardId);
+        fmt::print("Get Card with repeated vocables #{}\n", *activeCardId);
     } else if (auto cardNewVoc = GetCardNewVoc(); cardNewVoc.has_value()) {
         activeCardId = cardNewVoc.value();
-        fmt::print("Get new words from Card #{}\n", activeCardId);
+        fmt::print("Get new words from Card #{}\n", *activeCardId);
     } else
-        return {nullptr, Item_Id_vt{}, Id_Ease_vt{}};
+        return {nullptr, VocableIds_vt{}, Id_Ease_vt{}};
+    // activeCardId = 795;
 
-    std::vector<std::string> advancedVocables;
-    std::vector<std::string> unchangedVocables;
-    for (uint vocId : id_cardMeta.at(activeCardId).vocableIds)
-        if (auto it = id_vocableSR.find(vocId); it != id_vocableSR.end()) {
-            if (it->second.advanceIndirectly())
-                advancedVocables.push_back(id_vocable.at(it->first).front().key);
-            else
-                unchangedVocables.push_back(id_vocable.at(it->first).front().key);
-        }
-
-    fmt::print("Advancing indirectly: {}\n", fmt::join(advancedVocables, ", "));
-    fmt::print("Unchanged are: {}\n", fmt::join(unchangedVocables, ", "));
-
-    return {std::unique_ptr<Card>(cardDB->get().at(activeCardId)->clone()),
-            GetActiveVocables_dicEntry(activeCardId),
-            GetRelevantEase(activeCardId)};
+    return {cardDB->get().at(*activeCardId)->clone(),
+            sr_db.GetVocableIdsInOrder(*activeCardId),
+            GetRelevantEase(*activeCardId)};
 }
 
-auto VocabularySR::addAnnotation(const std::vector<int>& combination,
-                                 const std::vector<utl::ItemU8>& characterSequence) -> CardInformation {
-    annotationChoices[characterSequence] = combination;
-
-    std::set<uint> cardsWithCharSeq;
-
-    for (const auto& [id, cardPtr] : cardDB->get()) {
-        if (cardPtr->zh_annotator.value().ContainsCharacterSequence(characterSequence))
-            cardsWithCharSeq.insert(id);
-    }
-    fmt::print("relevant cardIds: {}\n", fmt::join(cardsWithCharSeq, ","));
-
-    for (uint cardId : cardsWithCharSeq) {
-        auto& cardPtr = cardDB->get().at(cardId);
-        cardPtr->zh_annotator.value().SetAnnotationChoices(annotationChoices);
-        cardPtr->zh_annotator.value().Reannotate();
-        EraseVocabulary(cardId);
-        InsertVocabulary(cardPtr->zh_annotator.value().UniqueItems(), cardId);
-    }
-    getCardNeedsCleanup = true;
-
-    const auto& card = cardDB->get().at(activeCardId);
+auto VocabularySR::AddAnnotation(const std::vector<int>& combination,
+                                 const std::vector<utl::CharU8>& characterSequence) -> CardInformation {
+    sr_db.AddAnnotation(combination, characterSequence, *activeCardId);
+    const auto& card = cardDB->get().at(*activeCardId);
     return {std::unique_ptr<Card>(card->clone()),
-            GetActiveVocables_dicEntry(activeCardId),
-            GetRelevantEase(activeCardId)};
+            sr_db.GetVocableIdsInOrder(*activeCardId),
+            GetRelevantEase(*activeCardId)};
 }
 
-auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
+auto VocabularySR::AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice)
+    -> CardInformation {
+    sr_db.AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
+
+    const auto& card = cardDB->get().at(*activeCardId);
+    return {std::unique_ptr<Card>(card->clone()),
+            sr_db.GetVocableIdsInOrder(*activeCardId),
+            GetRelevantEase(*activeCardId)};
+}
+
+auto VocabularySR::GetActiveVocables(uint cardId) const -> std::set<uint> {
     std::set<uint> activeVocables;
     const CardMeta& cm = id_cardMeta.at(cardId);
 
@@ -436,30 +287,19 @@ auto VocabularySR::GetActiveVocables(uint cardId) -> std::set<uint> {
     return activeVocables;
 }
 
-auto VocabularySR::GetActiveVocables_dicEntry(uint cardId) -> Item_Id_vt {
-    std::set<uint> activeVocables = GetActiveVocables(cardId);
-
-    Item_Id_vt relevantVocables;
-    ranges::transform(
-        activeVocables, std::back_inserter(relevantVocables), [&](uint vocId) -> Item_Id_vt::value_type {
-            return {id_vocable.at(vocId).front(), vocId};
-        });
-    return relevantVocables;
-}
-
-auto VocabularySR::GetRelevantEase(uint cardId) -> Id_Ease_vt {
+auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
     std::set<uint> activeVocables = GetActiveVocables(cardId);
     Id_Ease_vt ease;
     ranges::transform(
         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
-            const VocableSR& vocSR = id_vocableSR[vocId];
+            const VocableSR vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableSR();
             float easeFactor = vocSR.easeFactor;
             float intervalDay = vocSR.intervalDay;
-            fmt::print("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}\n",
-                       id_vocable.at(vocId).front().key,
-                       easeFactor,
-                       intervalDay,
-                       vocId);
+            spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
+                          zh_dictionary->EntryFromPosition(vocId, zh_dictionary->Simplified()).key,
+                          easeFactor,
+                          intervalDay,
+                          vocId);
             if (easeFactor <= 1.31 && intervalDay < 2)
                 return {vocId, Ease::again};
             if (easeFactor <= 1.6 && intervalDay < 5)
@@ -472,136 +312,8 @@ auto VocabularySR::GetRelevantEase(uint cardId) -> Id_Ease_vt {
 }
 
 void VocabularySR::setEaseLastCard(const Id_Ease_vt& id_ease) {
-    for (auto [id, ease] : id_ease) {
-        VocableSR& vocableSR = id_vocableSR[id];
-
-        vocableSR.advanceByEase(ease);
-        ids_nowVoc.erase(id);
-
-        if (ease == Ease::again)
-            ids_againVoc.insert(id);
-        else
-            ids_againVoc.erase(id);
-
-        ids_repeatTodayVoc.erase(id);
-
-        fmt::print("Ease of {} is {}\n", id_vocable.at(id).front().key, mapEaseToInt(ease));
+    for (auto [vocId, ease] : id_ease) {
+        sr_db.SetEase(vocId, ease);
     }
-    id_cardSR[activeCardId].ViewNow();
-}
-
-void VocabularySR::SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js) {
-    namespace fs = std::filesystem;
-    fs::path fn_metaFile = fs::path(s_path_meta) / fn;
-    std::ofstream ofs(fn_metaFile);
-    ofs << js.dump(4);
-}
-
-void VocabularySR::SaveProgress() {
-    auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
-        nlohmann::json jsonMeta = nlohmann::json::object();
-        auto& content = jsonMeta[std::string(s_content)];
-        content = nlohmann::json::array();
-
-        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
-        ranges::transform(map, std::back_inserter(content), &sr_t::toJson);
-        return jsonMeta;
-    };
-    std::filesystem::create_directory(s_path_meta);
-
-    try {
-        // save file for VocableSR --------------------------------------------
-        nlohmann::json jsonVocSR = generateJsonFromMap(id_vocableSR);
-        SaveJsonToFile(s_fn_metaVocableSR, jsonVocSR);
-
-        // save file for CardSR -----------------------------------------------
-        nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
-        SaveJsonToFile(s_fn_metaCardSR, jsonCardSR);
-    }
-    catch (const std::exception& e) {
-        fmt::print("Saving of meta files failed. Error: {}\n", e.what());
-    }
-}
-
-void VocabularySR::SaveAnnotationChoices() {
-    try {
-        nlohmann::json array = nlohmann::json::array();
-        ranges::transform(annotationChoices,
-                          std::back_inserter(array),
-                          [](const std::pair<CharacterSequence, Combination>& choice) -> nlohmann::json {
-                              return {{"char_seq", choice.first}, {"combination", choice.second}};
-                          });
-        SaveJsonToFile(s_fn_annotationChoices, array);
-    }
-    catch (const std::exception& e) {
-        fmt::print("Saving Annotation Choices failed with Error: {}\n", e.what());
-    }
-}
-
-auto VocabularySR::LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json {
-    namespace fs = std::filesystem;
-    fs::path fn_metaFile = fs::path(s_path_meta) / fn;
-    std::ifstream ifs(fn_metaFile);
-    return nlohmann::json::parse(ifs);
-}
-
-void VocabularySR::LoadProgress() {
-    auto jsonToMap = [](auto& map, const nlohmann::json& jsonMeta) {
-        const auto& content = jsonMeta.at(std::string(s_content));
-        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
-        ranges::transform(content, std::inserter(map, map.begin()), &sr_t::fromJson);
-    };
-    try {
-        nlohmann::json jsonVocSR = LoadJsonFromFile(s_fn_metaVocableSR);
-        jsonToMap(id_vocableSR, jsonVocSR);
-        fmt::print("Vocable SR file {} loaded!\n", s_fn_metaVocableSR);
-    }
-    catch (const std::exception& e) {
-        fmt::print("Vocabulary SR load for {} failed! Exception {}", s_fn_metaVocableSR, e.what());
-    }
-    try {
-        nlohmann::json jsonCardSR = LoadJsonFromFile(s_fn_metaCardSR);
-        jsonToMap(id_cardSR, jsonCardSR);
-        fmt::print("Card SR file {} loaded!\n", s_fn_metaCardSR);
-    }
-    catch (const std::exception& e) {
-        fmt::print("Card SR load for {} failed! Exception {}", s_fn_metaCardSR, e.what());
-    }
-
-    fmt::print("Vocables studied so far: {}, Cards viewed: {}\n", id_vocableSR.size(), id_cardSR.size());
-}
-
-void VocabularySR::LoadAnnotationChoices() {
-    try {
-        nlohmann::json choicesJson = LoadJsonFromFile(s_fn_annotationChoices);
-        ranges::transform(choicesJson,
-                          std::inserter(annotationChoices, annotationChoices.begin()),
-                          [](const nlohmann::json& choice) -> std::pair<CharacterSequence, Combination> {
-                              nlohmann::json char_seqJson = choice["char_seq"];
-                              nlohmann::json combinationJson = choice["combination"];
-                              CharacterSequence char_seq;
-                              Combination combination;
-                              ranges::transform(char_seqJson,
-                                                std::back_inserter(char_seq),
-                                                [](const nlohmann::json& character) -> utl::ItemU8 {
-                                                    return {std::string(character)};
-                                                });
-                              ranges::transform(combinationJson,
-                                                std::back_inserter(combination),
-                                                [](const nlohmann::json& c) -> int { return c; });
-                              return {char_seq, combination};
-                          });
-    }
-    catch (const std::exception& e) {
-        fmt::print("Load of AnnotationChoice file failed, Error: {}\n", e.what());
-    }
-}
-
-void VocabularySR::GenerateToRepeatWorkload() {
-    for (const auto& [id, vocSR] : id_vocableSR) {
-        if (vocSR.isToBeRepeatedToday())
-            ids_repeatTodayVoc.insert(id);
-        if (vocSR.isAgainVocable())
-            ids_againVoc.insert(id);
-    }
+    sr_db.ViewCard(*activeCardId);
 }

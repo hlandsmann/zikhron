@@ -1,4 +1,4 @@
-add_library(zikhron-spaced_repetition OBJECT)
+add_library(zikhron-spaced_repetition )
 add_library(zikhron::spaced_repetition ALIAS zikhron-spaced_repetition)
 target_include_directories(zikhron-spaced_repetition
     PRIVATE
@@ -9,10 +9,8 @@ target_include_directories(zikhron-spaced_repetition
 target_sources(zikhron-spaced_repetition
     PRIVATE
         src/SR_DataBase.cpp
-    #    src/TreeWalker.cpp
-        src/VocabularySR.cpp
         src/VocabularySR_misc.cpp
-        src/VocabularySR_X.cpp
+        src/VocabularySR.cpp
     PUBLIC
         include/spaced_repetition/VocabularySR.h
         include/spaced_repetition/SR_DataBase.h
@@ -24,9 +22,10 @@ target_link_libraries(zikhron-spaced_repetition
         zikhron::utils
         nlohmann_json::nlohmann_json
     PRIVATE
-        zikhron::warnings
         cppcoro
         fmt::fmt
+        spdlog::spdlog
+        zikhron::warnings
 )
 
 target_compile_features(zikhron-spaced_repetition PUBLIC cxx_std_20)
