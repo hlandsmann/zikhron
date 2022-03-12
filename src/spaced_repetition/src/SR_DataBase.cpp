@@ -215,8 +215,8 @@ void SR_DataBase::AdvanceIndirectlySeenVocables(uint cardId) {
                 unchangedVocables.push_back(id_vocable.at(it->first).front().key);
         }
 
-    spdlog::info("Advancing indirectly: {}\n", fmt::join(advancedVocables, ", "));
-    spdlog::debug("Unchanged are: {}\n", fmt::join(unchangedVocables, ", "));
+    spdlog::info("Advancing indirectly: {}", fmt::join(advancedVocables, ", "));
+    spdlog::debug("Unchanged are: {}", fmt::join(unchangedVocables, ", "));
 }
 
 void SR_DataBase::AdvanceFailedVocables() {
