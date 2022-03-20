@@ -1,4 +1,4 @@
-add_library(zikhron-utils OBJECT)
+add_library(zikhron-utils)
 add_library(zikhron::utils ALIAS zikhron-utils)
 target_include_directories(zikhron-utils
     INTERFACE

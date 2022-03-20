@@ -1,4 +1,4 @@
-add_library(zikhron-dictionary OBJECT)
+add_library(zikhron-dictionary)
 add_library(zikhron::dictionary ALIAS zikhron-dictionary)
 target_include_directories(zikhron-dictionary
     INTERFACE

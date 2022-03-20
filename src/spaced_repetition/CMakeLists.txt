@@ -1,4 +1,4 @@
-add_library(zikhron-spaced_repetition )
+add_library(zikhron-spaced_repetition)
 add_library(zikhron::spaced_repetition ALIAS zikhron-spaced_repetition)
 target_include_directories(zikhron-spaced_repetition
     PRIVATE
