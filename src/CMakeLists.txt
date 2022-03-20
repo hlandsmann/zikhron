@@ -8,6 +8,7 @@ target_compile_options(
         -Wconversion
         -Wshadow
         -pedantic
+        -fdiagnostics-color=always
         # -fsanitize=address
 )
 

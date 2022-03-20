@@ -3,12 +3,18 @@ workspace=$(cd $path_to_srcipt;pwd)
 cd $workspace
 
 build_dir=$workspace/build
-# mkdir -p $build_dir
+tmp_dir=/run/user/$(id -u)/$(basename $workspace)/build
 
-mode="DEBUG"
+rm -rf $tmp_dir
+rm -f $build_dir
+
+mkdir -p $tmp_dir
+ln -s $tmp_dir $build_dir
+
+mode="Debug"
 # mode="Release"
-cmake -B $build_dir \
+cmake -B $tmp_dir \
     -DCMAKE_BUILD_TYPE=$mode \
     -Dskip_run_conan=OFF \
-    --preset=default
+    --preset=ninja
 (cd $build_dir; cmake --build . -j$(nproc))
