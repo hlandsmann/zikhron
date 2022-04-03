@@ -1,13 +1,13 @@
-add_library(zikhron-annotation STATIC)
-add_library(zikhron::annotation ALIAS zikhron-annotation)
-target_include_directories(zikhron-annotation
+add_library(zikhron_annotation STATIC)
+add_library(zikhron::annotation ALIAS zikhron_annotation)
+target_include_directories(zikhron_annotation
 PRIVATE
     include/annotation
     src
 PUBLIC
     include
 )
-target_sources(zikhron-annotation
+target_sources(zikhron_annotation
     PRIVATE
         src/Markup.cpp
         src/TextCard.cpp
@@ -19,7 +19,7 @@ target_sources(zikhron-annotation
         include/annotation/ZH_Annotator.h
         include/annotation/TextCard.h
 )
-target_link_libraries(zikhron-annotation
+target_link_libraries(zikhron_annotation
     PUBLIC
         zikhron::dictionary
     PRIVATE
@@ -30,4 +30,4 @@ target_link_libraries(zikhron-annotation
         Microsoft.GSL::GSL
 )
 
-target_compile_features(zikhron-annotation PUBLIC cxx_std_20)
+target_compile_features(zikhron_annotation PUBLIC cxx_std_20)

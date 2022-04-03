@@ -10,7 +10,7 @@ DisplayCard::DisplayCard(Gtk::Overlay& ov) : overlay(ov) {
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     set_spacing(64);
-    createCardControlButtons();
+    createControlButtons();
     DataThread::get().signal_card_connect([this](auto& msg_card) { receive_card(msg_card); });
     DataThread::get().signal_annotation_connect(
         [this](auto& msg_annotation) { receive_annotation(msg_annotation); });
@@ -35,7 +35,7 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card) {
     cardDraw->set_visible(not btnAnnotate.property_active());
     prepend(*cardDraw);
 
-    cardControlBtnBox.set_visible(true);
+    controlBtnBox.set_visible(true);
 }
 
 void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotation) {
@@ -50,9 +50,9 @@ void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotat
     prepend(*cardAnnotation);
 };
 
-void DisplayCard::createCardControlButtons() {
-    cardControlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
-    cardControlBtnBox.append(separator1);
+void DisplayCard::createControlButtons() {
+    controlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
+    controlBtnBox.append(separator1);
     separator1.set_expand();
     btnReveal.set_label("Reveal Vocabulary");
     btnReveal.signal_clicked().connect([this]() {
@@ -61,7 +61,7 @@ void DisplayCard::createCardControlButtons() {
         btnReveal.set_visible(false);
         btnNext.set_visible(true);
     });
-    cardControlBtnBox.append(btnReveal);
+    controlBtnBox.append(btnReveal);
     btnReveal.set_halign(Gtk::Align::CENTER);
 
     btnNext.set_label("Submit choice of ease");
@@ -73,8 +73,8 @@ void DisplayCard::createCardControlButtons() {
         requestNewCard();
     });
     btnNext.set_visible(false);
-    cardControlBtnBox.append(btnNext);
-    cardControlBtnBox.append(separator2);
+    controlBtnBox.append(btnNext);
+    controlBtnBox.append(separator2);
     separator2.set_expand();
 
     btnAnnotate.set_label("Annotate");
@@ -86,12 +86,12 @@ void DisplayCard::createCardControlButtons() {
             annotation_end();
     });
 
-    cardControlBtnBox.append(btnAnnotate);
+    controlBtnBox.append(btnAnnotate);
 
-    append(cardControlBtnBox);
-    cardControlBtnBox.set_visible(false);
-    cardControlBtnBox.set_valign(Gtk::Align::END);
-    cardControlBtnBox.set_expand();
+    append(controlBtnBox);
+    controlBtnBox.set_visible(false);
+    controlBtnBox.set_valign(Gtk::Align::END);
+    controlBtnBox.set_expand();
 }
 
 void DisplayCard::submitChoiceOfEase() {

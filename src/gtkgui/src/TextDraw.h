@@ -7,7 +7,7 @@ public:
     TextDraw();
     void setText(const std::string &str);
     void update_markup(const std::string &markup);
-    virtual ~TextDraw();
+    virtual ~TextDraw() = default;
     void measure_vfunc(Gtk::Orientation orientation,
                        int for_size,
                        int &minimum,

@@ -6,12 +6,49 @@
 #include <gtkmm.h>
 #include <spaced_repetition/VocabularySR.h>
 #include <condition_variable>
+#include <filesystem>
 #include <functional>
 #include <memory>
+#include <nlohmann/json_fwd.hpp>
 #include <queue>
 #include <string_view>
 #include <thread>
 #include <tuple>
+
+class ZikhronConfig {
+    using path = std::filesystem::path;
+
+public:
+    struct ConfigMain {
+        static constexpr std::string_view s_last_video_file = "last_video_file";
+        static constexpr std::string_view s_active_page = "active_page";
+        path lastVideoFile;
+        int activePage {};
+
+    private:
+        friend class ZikhronConfig;
+        void setDefault() {
+            lastVideoFile = "";
+            activePage = 0;
+        }
+        void fromJson(const nlohmann::json& json);
+        auto toJson() const -> nlohmann::json;
+    };
+    ConfigMain cfgMain;
+
+private:
+    friend class DataThread;
+    ZikhronConfig();
+    ~ZikhronConfig();
+    auto ConfigDir() const -> path;
+    void open();
+    void save();
+
+    const path zikhron_config_dir = ConfigDir();
+    const path config_file = "zikhron.json";
+
+    bool save_config = true;
+};
 
 class DataThread {
     DataThread();
@@ -25,6 +62,7 @@ public:
     using message_annotation = std::shared_ptr<markup::Paragraph>;
     using signal_card = std::function<void(message_card&)>;
     using signal_annotation = std::function<void(message_annotation&)>;
+    ZikhronConfig zikhronCfg;
 
     void requestCard();
     void submitEase(const VocabularySR::Id_Ease_vt& ease);

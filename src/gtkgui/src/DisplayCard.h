@@ -2,6 +2,7 @@
 #include <CardDraw.h>
 #include <DataThread.h>
 #include <EaseChoice.h>
+#include <NotebookPage.h>
 #include <TextDraw.h>
 #include <VocableList.h>
 #include <annotation/Markup.h>
@@ -9,7 +10,7 @@
 #include <functional>
 #include <vector>
 
-class DisplayCard : public Gtk::Box {
+class DisplayCard : public Gtk::Box, public NotebookPage {
 public:
     DisplayCard(Gtk::Overlay&);
 
@@ -22,8 +23,8 @@ private:
     void requestNewCard();
     void annotation_start();
     void annotation_end();
-    void createCardControlButtons();
-    Gtk::Box cardControlBtnBox;
+    void createControlButtons();
+    Gtk::Box controlBtnBox;
     Gtk::Button btnNext;
     Gtk::Button btnReveal;
     Gtk::Separator separator1, separator2;

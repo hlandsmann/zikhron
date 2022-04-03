@@ -3,11 +3,22 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
+#include <filesystem>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include <ranges>
+#include <type_traits>
 namespace ranges = std::ranges;
+namespace fs = std::filesystem;
+
+template <> struct fmt::formatter<fs::path> {
+    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
+    template <typename FormatContext> auto format(const fs::path& path, FormatContext& ctx) {
+        return fmt::format_to(ctx.out(), "{}", path.string());
+    }
+};
 
 namespace {
-
 auto loadCardDB(const std::string& path_to_cardDB) -> std::unique_ptr<CardDB> {
     auto cardDB = std::make_unique<CardDB>();
     try {
@@ -22,7 +33,77 @@ auto loadCardDB(const std::string& path_to_cardDB) -> std::unique_ptr<CardDB> {
     return cardDB;
 }
 
+template <class JsonType, class TypeOut>
+auto extract(const nlohmann::json& json, const TypeOut& current, std::string_view key) -> TypeOut {
+    auto valueIt = json.find(std::string(key));
+    auto correctType = [](decltype(valueIt) it) {
+        if constexpr (std::is_same_v<JsonType, std::string>)
+            return it->is_string();
+        if constexpr (std::is_same_v<JsonType, int>)
+            return it->is_number_integer();
+    };
+    if (valueIt != json.end() && correctType(valueIt))
+        return JsonType(*valueIt);
+    else {
+        spdlog::info("in main config: key \"{}\" was set to {}", key, current);
+        return current;
+    }
+}
+
 }  // namespace
+
+void ZikhronConfig::ConfigMain::fromJson(const nlohmann::json& json) {
+    setDefault();
+    lastVideoFile = extract<std::string, path>(json, lastVideoFile, s_last_video_file);
+    activePage = extract<int, int>(json, activePage, s_active_page);
+}
+
+auto ZikhronConfig::ConfigMain::toJson() const -> nlohmann::json {
+    nlohmann::json json;
+    json[std::string(s_last_video_file)] = lastVideoFile;
+    json[std::string(s_active_page)] = activePage;
+    return json;
+}
+
+ZikhronConfig::ZikhronConfig() { open(); }
+
+ZikhronConfig::~ZikhronConfig() {
+    if (save_config)
+        save();
+}
+
+void ZikhronConfig::open() {
+    auto zikhron_config_file = zikhron_config_dir / config_file;
+    if (fs::exists(zikhron_config_file)) {
+        try {
+            std::ifstream ifs(zikhron_config_file);
+            cfgMain.fromJson(nlohmann::json::parse(ifs));
+        }
+        catch (const std::exception& e) {
+            save_config = false;  // if the user edits a config file and creates a syntax error, the file
+                                  // will not be overwritten
+            spdlog::error("Failed to parse zikhron config file: \"{}\"", e.what());
+        }
+    } else {
+        spdlog::info("Zikhron config file will be created on exit!");
+        cfgMain.setDefault();
+    }
+}
+
+void ZikhronConfig::save() {
+    auto zikhron_config_file = zikhron_config_dir / config_file;
+    auto json = cfgMain.toJson();
+
+    fs::create_directories(zikhron_config_dir);
+    std::ofstream ofs(zikhron_config_file);
+    ofs << json.dump(4);
+}
+
+auto ZikhronConfig::ConfigDir() const -> path {
+    auto home = std::getenv("HOME");
+    path config_dir = home ? path(home) / ".config" : "~/.config";
+    return config_dir / "zikhron";
+}
 
 std::unique_ptr<DataThread> dataThread;
 
@@ -47,6 +128,7 @@ DataThread::DataThread() {
 DataThread::~DataThread() {
     worker.request_stop();
     worker.join();
+    zikhronCfg.save();
 }
 
 void DataThread::worker_thread(std::stop_token token) {

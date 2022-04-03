@@ -19,8 +19,11 @@ target_sources(zikhron_gtkgui
         src/EaseChoice.h
         src/MainWindow.cpp
         src/MainWindow.h
+        src/NotebookPage.h
         src/TextDraw.cpp
         src/TextDraw.h
+        src/VideoSpace.cpp
+        src/VideoSpace.h
         src/VocableList.cpp
         src/VocableList.h
         src/VocableOverlay.cpp
@@ -33,16 +36,19 @@ target_include_directories(zikhron_gtkgui
         ${GTKMM_INCLUDE_DIRS}
         src
         include/gtkgui
-    PUBLIC
+    INTERFACE
         include
 )
 
 target_link_libraries(zikhron_gtkgui
+    PUBLIC
+        nlohmann_json::nlohmann_json
     PRIVATE
         ${GTKMM_LIBRARIES}
         spdlog::spdlog
         zikhron::annotation
         zikhron::dictionary
+        zikhron::multimedia
         zikhron::spaced_repetition
         zikhron::warnings
 )

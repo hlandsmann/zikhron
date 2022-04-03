@@ -21,6 +21,7 @@ add_subdirectory(dictionary)
 add_subdirectory(gtkgui)
 add_subdirectory(spaced_repetition)
 add_subdirectory(utils)
+add_subdirectory(multimedia)
 
 add_executable(zikhron)
 set_target_properties(zikhron

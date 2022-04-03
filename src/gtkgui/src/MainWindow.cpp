@@ -3,6 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <string_view>
+#include <type_traits>
 
 constexpr std::string_view css =
     ".overlay {"
@@ -10,24 +11,28 @@ constexpr std::string_view css =
     "border: 1px solid white;"
     "}";
 
-MainWindow::MainWindow()
-    : m_VBox(Gtk::Orientation::VERTICAL), box_vocabulary(Gtk::Orientation::VERTICAL) {
+MainWindow::MainWindow() {
     set_default_size(1920, 1080);
     set_title("Zikhron");
-    Gtk::Overlay* ov = new Gtk::Overlay();
-    ov->set_child(sidebar);
-    set_child(*ov);
+    overlay = std::make_shared<Gtk::Overlay>();
+    overlay->set_child(sidebar);
+    set_child(*overlay);
     sidebar.set_tab_pos(Gtk::PositionType::LEFT);
 
     sidebar.show();
-    label_cards.show();
 
-    label_cards.set_text("cards");
-    label_vocabulary.set_text("vocabulary");
-    displayCard = std::make_unique<DisplayCard>(*ov);
+    appendPage(std::make_shared<DisplayCard>(*overlay), "Cards");
+    appendPage(std::make_shared<VideoSpace>(), "Video");
 
-    sidebar.append_page(*displayCard, label_cards);
-    sidebar.append_page(m_VBox, label_vocabulary);
+    sidebar.set_current_page(DataThread::get().zikhronCfg.cfgMain.activePage);
+    sidebar.signal_switch_page().connect([this](Gtk::Widget *, guint slot) {
+        for (guint page = 0; page < pages.size(); page++) {
+            if (NotebookPage * notebookPage = dynamic_cast<NotebookPage *>(pages[page].get());
+                notebookPage != nullptr)
+                notebookPage->switchPage(slot == page);
+        }
+    });
+
     refCssProvider = Gtk::CssProvider::create();
     refCssProvider->load_from_data(std::string{css});
     auto screen = Gdk::Display::get_default();
@@ -36,4 +41,16 @@ MainWindow::MainWindow()
         screen, refCssProvider, GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 }
 
-MainWindow::~MainWindow() { DataThread::destroy(); }
+MainWindow::~MainWindow() {
+    DataThread::get().zikhronCfg.cfgMain.activePage = sidebar.get_current_page();
+    DataThread::destroy();
+}
+
+template <class WidgetType>
+void MainWindow::appendPage(const Glib::RefPtr<WidgetType> &page, const std::string &label) {
+    static_assert(std::is_base_of_v<NotebookPage, WidgetType>,
+                  "WidgetType needs to inherit from NotebookPage");
+    pages.push_back(page);
+    pageLabels.push_back(std::make_shared<Gtk::Label>(label));
+    sidebar.append_page(*page, *pageLabels.back());
+}

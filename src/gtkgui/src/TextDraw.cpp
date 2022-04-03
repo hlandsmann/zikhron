@@ -21,8 +21,6 @@ TextDraw::TextDraw() {
     add_controller(clickController);
 }
 
-TextDraw::~TextDraw() {}
-
 void TextDraw::on_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, int height) {
     // spdlog::info("OnDraw, width: {}, height: {}", width, height);
     std::apply([&](auto... color) { cr->set_source_rgb(color...); }, fontColor);
