@@ -5,14 +5,22 @@
 #include <filesystem>
 #include <functional>
 #include <memory>
+
 class MediaPlayer {
 public:
     MediaPlayer();
     void openFile(const std::filesystem::path& videoFile);
+    void play(bool play = true);
+    void pause(bool pause = true);
+    auto is_paused() const -> bool { return paused; }
+
     void initGL(const std::shared_ptr<Gtk::GLArea>& glArea);
-    bool render(const Glib::RefPtr<Gdk::GLContext>& context);
+    auto render(const Glib::RefPtr<Gdk::GLContext>& context) -> bool;
 
 private:
+    void handle_mpv_event(mpv_event* event);
+    void on_mpv_events();
+
     Glib::Dispatcher dispatch_mpvEvent;
     Glib::Dispatcher dispatch_render;
 
@@ -27,4 +35,6 @@ private:
     std::unique_ptr<mpv_render_context, decltype(renderCtx_deleter)> mpv_gl;
     std::shared_ptr<Gtk::GLArea> glArea;
     std::string videoFile;
+
+    int paused = true;
 };

@@ -5,10 +5,10 @@ add_library(zikhron_multimedia)
 add_library(zikhron::multimedia ALIAS zikhron_multimedia)
 target_sources(zikhron_multimedia
     PRIVATE
-        include/multimedia/mediaplayer.h
-        include/multimedia/subtitles.h
-        src/mediaplayer.cpp
-        src/subtitles.cpp
+        include/multimedia/Mediaplayer.h
+        include/multimedia/Subtitles.h
+        src/Mediaplayer.cpp
+        src/Subtitles.cpp
 )
 target_include_directories(zikhron_multimedia
     INTERFACE

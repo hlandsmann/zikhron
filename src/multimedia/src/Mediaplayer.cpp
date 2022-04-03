@@ -1,4 +1,4 @@
-#include <mediaplayer.h>
+#include <Mediaplayer.h>
 #include <spdlog/spdlog.h>
 #include <bit>
 
@@ -41,6 +41,7 @@ MediaPlayer::MediaPlayer() {
         if (glArea)
             glArea->queue_render();
     });
+    dispatch_mpvEvent.connect([this]() { on_mpv_events(); });
 
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
     mpv_set_option_string(mpv.get(), "terminal", "yes");
@@ -48,6 +49,14 @@ MediaPlayer::MediaPlayer() {
 
     if (mpv_initialize(mpv.get()) < 0)
         throw std::runtime_error("could not initialize mpv context");
+
+    mpv_set_wakeup_callback(
+        mpv.get(),
+        [](void *self) { std::bit_cast<decltype(this), void *>(self)->dispatch_mpvEvent.emit(); },
+        this);
+    mpv_observe_property(mpv.get(), 0, "duration", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
+    pause();
 }
 
 void MediaPlayer::openFile(const std::filesystem::path &videoFile_in) {
@@ -55,6 +64,13 @@ void MediaPlayer::openFile(const std::filesystem::path &videoFile_in) {
     const char *cmd[] = {"loadfile", videoFile.c_str(), NULL};
     mpv_command(mpv.get(), cmd);
     spdlog::info("opening file {}", videoFile.c_str());
+}
+
+void MediaPlayer::play(bool playMedia) { pause(not playMedia); }
+
+void MediaPlayer::pause(bool pauseMedia) {
+    paused = int(pauseMedia);
+    mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &paused);
 }
 
 void MediaPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
@@ -96,4 +112,38 @@ bool MediaPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &co
 
     mpv_render_context_render(mpv_gl.get(), params);
     return true;
+}
+
+void MediaPlayer::on_mpv_events() {
+    // Process all events, until the event queue is empty.
+    while (mpv) {
+        mpv_event *event = mpv_wait_event(mpv.get(), 0);
+        if (event->event_id == MPV_EVENT_NONE) {
+            break;
+        }
+        handle_mpv_event(event);
+    }
+}
+
+void MediaPlayer::handle_mpv_event(mpv_event *event) {
+    switch (event->event_id) {
+    case MPV_EVENT_PROPERTY_CHANGE: {
+        mpv_event_property *prop = (mpv_event_property *)event->data;
+        if (strcmp(prop->name, "time-pos") == 0) {
+            if (prop->format == MPV_FORMAT_DOUBLE) {
+                double time = *(double *)prop->data;
+                // Q_EMIT positionChanged(time);
+                spdlog::info("time-pos: {}", time);
+            }
+        } else if (strcmp(prop->name, "duration") == 0) {
+            if (prop->format == MPV_FORMAT_DOUBLE) {
+                double time = *(double *)prop->data;
+                spdlog::info("duration: {}", time);
+                // Q_EMIT durationChanged(time);
+            }
+        }
+        break;
+    }
+    default: break;
+    }
 }

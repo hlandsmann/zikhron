@@ -2,7 +2,7 @@
 
 #include <NotebookPage.h>
 #include <gtkmm.h>
-#include <multimedia/mediaplayer.h>
+#include <multimedia/Mediaplayer.h>
 
 class VideoSpace : public Gtk::Box, public NotebookPage {
 public:
@@ -12,6 +12,7 @@ public:
 private:
     void createGlArea();
     void createControlButtons();
+    void setPlayPauseBtnIcon();
     void createFileChooserDialog();
     void on_file_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     bool render(const Glib::RefPtr<Gdk::GLContext>& context);

@@ -44,14 +44,24 @@ void VideoSpace::createControlButtons() {
     controlBtnBox.append(separator1);
     separator1.set_expand();
 
-    // icon_pause.set_from_icon_name("media-playback-start");
-    btnPlayPause.set_image_from_icon_name("media-playback-start");
-    btnPlayPause.set_image_from_icon_name("media-playback-pause");
+    setPlayPauseBtnIcon();
+    btnPlayPause.signal_clicked().connect([this]() {
+        mediaPlayer->play(mediaPlayer->is_paused());
+        setPlayPauseBtnIcon();
+    });
+
     controlBtnBox.append(btnPlayPause);
     separator2.set_expand();
     controlBtnBox.append(separator2);
 
     append(controlBtnBox);
+}
+
+void VideoSpace::setPlayPauseBtnIcon() {
+    if (mediaPlayer->is_paused())
+        btnPlayPause.set_image_from_icon_name("media-playback-start");
+    else
+        btnPlayPause.set_image_from_icon_name("media-playback-pause");
 }
 
 void VideoSpace::createFileChooserDialog() {
