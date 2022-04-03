@@ -12,6 +12,8 @@ constexpr std::string_view css =
     "}";
 
 MainWindow::MainWindow() {
+    std::setlocale(LC_NUMERIC, "C");
+
     set_default_size(1920, 1080);
     set_title("Zikhron");
     overlay = std::make_shared<Gtk::Overlay>();
@@ -24,14 +26,14 @@ MainWindow::MainWindow() {
     appendPage(std::make_shared<DisplayCard>(*overlay), "Cards");
     appendPage(std::make_shared<VideoSpace>(), "Video");
 
-    sidebar.set_current_page(DataThread::get().zikhronCfg.cfgMain.activePage);
     sidebar.signal_switch_page().connect([this](Gtk::Widget *, guint slot) {
         for (guint page = 0; page < pages.size(); page++) {
-            if (NotebookPage * notebookPage = dynamic_cast<NotebookPage *>(pages[page].get());
+            if (NotebookPage *notebookPage = dynamic_cast<NotebookPage *>(pages[page].get());
                 notebookPage != nullptr)
                 notebookPage->switchPage(slot == page);
         }
     });
+    sidebar.set_current_page(DataThread::get().zikhronCfg.cfgMain.activePage);
 
     refCssProvider = Gtk::CssProvider::create();
     refCssProvider->load_from_data(std::string{css});

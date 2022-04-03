@@ -20,5 +20,9 @@ private:
     Gtk::Button btnOpenFile;
     Gtk::Button btnPlayPause;
     Gtk::Separator separator1, separator2;
-    Gtk::GLArea glArea;
+    std::shared_ptr<Gtk::GLArea> glArea = std::make_shared<Gtk::GLArea>();
+
+    std::shared_ptr<MediaPlayer> mediaPlayer= std::make_shared<MediaPlayer>();
+
+    bool active = false;
 };

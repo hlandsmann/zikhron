@@ -14,6 +14,7 @@ target_include_directories(zikhron_multimedia
     INTERFACE
         include
     PRIVATE
+        ${GTKMM_INCLUDE_DIRS}
         src
         include/multimedia
 )
@@ -30,3 +31,4 @@ target_link_libraries(zikhron_multimedia
         spdlog::spdlog
         zikhron::warnings
 )
+target_compile_features(zikhron_multimedia PRIVATE cxx_std_20)

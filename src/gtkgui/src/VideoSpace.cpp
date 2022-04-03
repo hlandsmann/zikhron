@@ -2,6 +2,19 @@
 #include <VideoSpace.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
+#ifdef GDK_WINDOWING_X11
+#include <epoxy/glx.h>
+// #include <gdk/x11/gdkx.h>
+#endif
+#ifdef GDK_WINDOWING_WAYLAND
+#include <epoxy/egl.h>
+// #include <gdk/wayland/gdkwayland.h>
+#endif
+#ifdef GDK_WINDOWING_WIN32
+#include <epoxy/wgl.h>
+#include <gdk/gdkwin32.h>
+#endif
+
 namespace fs = std::filesystem;
 
 VideoSpace::VideoSpace() {
@@ -13,14 +26,14 @@ VideoSpace::VideoSpace() {
 }
 
 void VideoSpace::createGlArea() {
-    glArea.set_expand(true);
-    glArea.set_size_request(1920, 1080);
-    glArea.set_auto_render(true);
-    glArea.signal_render().connect(sigc::mem_fun(*this, &VideoSpace::render), false);
-    glArea.signal_realize().connect(sigc::mem_fun(*this, &VideoSpace::realize));
+    glArea->set_expand(true);
+    glArea->set_size_request(1920, 1080);
+    glArea->set_auto_render(true);
+    glArea->signal_render().connect(sigc::mem_fun(*this, &VideoSpace::render), false);
+    glArea->signal_realize().connect(sigc::mem_fun(*this, &VideoSpace::realize));
     // m_GLArea.signal_unrealize().connect(sigc::mem_fun(*this, &MyWindow::unrealize));
 
-    append(glArea);
+    append(*glArea);
 }
 
 void VideoSpace::createControlButtons() {
@@ -80,6 +93,7 @@ void VideoSpace::on_file_dialog_response(int response_id, Gtk::FileChooserDialog
         auto filename = dialog->get_file()->get_path();
         spdlog::info("File selected: {}", filename);
         DataThread::get().zikhronCfg.cfgMain.lastVideoFile = filename;
+        mediaPlayer->openFile(filename);
         break;
     }
     default: {
@@ -89,7 +103,27 @@ void VideoSpace::on_file_dialog_response(int response_id, Gtk::FileChooserDialog
     }
     delete dialog;
 }
-void VideoSpace::switchPage(bool active) { spdlog::warn("Switch: {}", active); }
 
-bool VideoSpace::render(const Glib::RefPtr<Gdk::GLContext> &context) { return true; }
-void VideoSpace::realize() {}
+void VideoSpace::switchPage(bool active_in) {
+    active = active_in;
+    spdlog::info("VideoSpace active: {}", active);
+}
+
+bool VideoSpace::render(const Glib::RefPtr<Gdk::GLContext> &context) {
+    bool result = false;
+    if (mediaPlayer)
+        result = mediaPlayer->render(context);
+    if (result)
+        glFlush();
+    return result;
+}
+
+void VideoSpace::realize() {
+    mediaPlayer->initGL(glArea);
+    // auto cap_mediaPlayer = mediaPlayer;
+    DataThread::get().dispatch_arbitrary([mediaPlayer = mediaPlayer]() {
+        auto filename = DataThread::get().zikhronCfg.cfgMain.lastVideoFile;
+        if (not filename.empty() && std::filesystem::exists(filename))
+            mediaPlayer->openFile(filename);
+    });
+}

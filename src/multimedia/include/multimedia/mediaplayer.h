@@ -1,7 +1,30 @@
 #pragma once
+#include <gtkmm.h>
+#include <mpv/client.h>
+#include <mpv/render_gl.h>
+#include <filesystem>
+#include <functional>
+#include <memory>
+class MediaPlayer {
+public:
+    MediaPlayer();
+    void openFile(const std::filesystem::path& videoFile);
+    void initGL(const std::shared_ptr<Gtk::GLArea>& glArea);
+    bool render(const Glib::RefPtr<Gdk::GLContext>& context);
 
-class MediaPlayer{
-    public:
+private:
+    Glib::Dispatcher dispatch_mpvEvent;
+    Glib::Dispatcher dispatch_render;
 
-    private:
+    std::function<void(mpv_handle*)> mpv_deleter = [](mpv_handle* mpvHandle) {
+        mpv_terminate_destroy(mpvHandle);
+    };
+    std::unique_ptr<mpv_handle, decltype(mpv_deleter)> mpv;
+
+    std::function<void(mpv_render_context*)> renderCtx_deleter = [](mpv_render_context* render_ctx) {
+        mpv_render_context_free(render_ctx);
+    };
+    std::unique_ptr<mpv_render_context, decltype(renderCtx_deleter)> mpv_gl;
+    std::shared_ptr<Gtk::GLArea> glArea;
+    std::string videoFile;
 };

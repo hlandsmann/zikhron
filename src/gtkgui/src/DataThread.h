@@ -73,6 +73,8 @@ public:
     void signal_annotation_connect(const signal_annotation& signal);
     void signal_card_connect(const signal_card& signal);
 
+    void dispatch_arbitrary(const std::function<void()>& fun);
+
 private:
     static constexpr std::string_view path_to_dictionary =
         "/home/harmen/src/zikhron/dictionaries/cedict_ts.u8";

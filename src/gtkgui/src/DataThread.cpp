@@ -184,6 +184,12 @@ void DataThread::signal_card_connect(const signal_card& signal) {
     send_card = signal;
 }
 
+void DataThread::dispatch_arbitrary(const std::function<void()>& fun) {
+    std::lock_guard<std::mutex> lock(condition_mutex);
+    dispatch_queue.push(fun);
+    dispatcher.emit();
+}
+
 void DataThread::sendActiveCard(CardInformation& cardInformation) {
     auto [current_card, vocableIds, ease] = std::move(cardInformation);
     auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
