@@ -3,7 +3,7 @@
 #include <spdlog/spdlog.h>
 #include <functional>
 
-TextDraw::TextDraw() {
+TextDraw::TextDraw() : font("AR PL KaitiM GB") {
     set_draw_func(sigc::mem_fun(*this, &TextDraw::on_draw));
     setFontSize(defaultFontSize);
     motionController = Gtk::EventControllerMotion::create();
@@ -80,7 +80,6 @@ void TextDraw::setText(const std::string &str) {
 void TextDraw::setFontSize(int _fontSize) {
     fontSize = _fontSize;
     font.set_size(fontSize * Pango::SCALE);
-    // setText(text);
     queue_draw();
 }
 

@@ -51,9 +51,10 @@ void VideoSpace::createControlButtons() {
     });
 
     controlBtnBox.append(btnPlayPause);
-    separator2.set_expand();
-    controlBtnBox.append(separator2);
-
+    // separator2.set_expand();
+    // controlBtnBox.append(separator2);
+    progressBar.set_expand();
+    controlBtnBox.append(progressBar);
     append(controlBtnBox);
 }
 

@@ -4,6 +4,7 @@
 #include <gtkmm.h>
 #include <multimedia/Mediaplayer.h>
 
+
 class VideoSpace : public Gtk::Box, public NotebookPage {
 public:
     VideoSpace();
@@ -22,8 +23,8 @@ private:
     Gtk::Button btnPlayPause;
     Gtk::Separator separator1, separator2;
     std::shared_ptr<Gtk::GLArea> glArea = std::make_shared<Gtk::GLArea>();
-
-    std::shared_ptr<MediaPlayer> mediaPlayer= std::make_shared<MediaPlayer>();
+    Gtk::ProgressBar progressBar;
+    std::shared_ptr<MediaPlayer> mediaPlayer = std::make_shared<MediaPlayer>();
 
     bool active = false;
 };

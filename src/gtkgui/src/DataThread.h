@@ -5,6 +5,7 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <gtkmm.h>
 #include <spaced_repetition/VocabularySR.h>
+#include <utils/Property.h>
 #include <condition_variable>
 #include <filesystem>
 #include <functional>
@@ -23,7 +24,7 @@ public:
         static constexpr std::string_view s_last_video_file = "last_video_file";
         static constexpr std::string_view s_active_page = "active_page";
         path lastVideoFile;
-        int activePage {};
+        int activePage{};
 
     private:
         friend class ZikhronConfig;
@@ -100,6 +101,8 @@ private:
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
     std::unique_ptr<VocabularySR> vocabularySR;
     Glib::Dispatcher dispatcher;
+    Glib::Dispatcher propertyUpdate;
+    utl::PropertyServer propertyServer;
 
     std::queue<std::function<void()>> job_queue;
     std::queue<std::function<void()>> dispatch_queue;

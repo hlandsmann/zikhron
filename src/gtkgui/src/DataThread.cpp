@@ -115,7 +115,7 @@ auto DataThread::get() -> DataThread& {
 
 void DataThread::destroy() { dataThread = nullptr; }
 
-DataThread::DataThread() {
+DataThread::DataThread() : propertyServer([this]() { propertyUpdate.emit(); }) {
     job_queue.push([this]() {
         std::shared_ptr<CardDB> cardDB = std::move(loadCardDB(std::string{path_to_cardDB}));
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
@@ -123,6 +123,7 @@ DataThread::DataThread() {
     });
 
     dispatcher.connect([this]() { dispatcher_fun(); });
+    propertyUpdate.connect([this]() { propertyServer.updateProperties(); });
     worker = std::jthread([this](std::stop_token token) { worker_thread(token); });
 }
 DataThread::~DataThread() {

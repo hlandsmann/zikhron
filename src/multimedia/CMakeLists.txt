@@ -30,5 +30,6 @@ target_link_libraries(zikhron_multimedia
         fmt::fmt
         spdlog::spdlog
         zikhron::warnings
+        zikhron::utils
 )
 target_compile_features(zikhron_multimedia PRIVATE cxx_std_20)
