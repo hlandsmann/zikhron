@@ -17,23 +17,27 @@
 
 namespace fs = std::filesystem;
 
-VideoSpace::VideoSpace() {
+VideoSpace::VideoSpace(Gtk::Overlay &ov) : overlay(ov) {
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     set_spacing(16);
     createGlArea();
     createControlButtons();
+    createSubtitleOverlay();
 }
 
 void VideoSpace::createGlArea() {
-    glArea->set_expand(true);
-    glArea->set_size_request(1920, 1080);
+    glArea->set_expand(false);
+    glArea->set_size_request(1280, 720);
     glArea->set_auto_render(true);
-    glArea->signal_render().connect(sigc::mem_fun(*this, &VideoSpace::render), false);
-    glArea->signal_realize().connect(sigc::mem_fun(*this, &VideoSpace::realize));
+    glArea->signal_render().connect(sigc::mem_fun(*this, &VideoSpace::signal_render), false);
+    glArea->signal_realize().connect(sigc::mem_fun(*this, &VideoSpace::signal_realize));
+    glArea->signal_resize().connect(sigc::mem_fun(*this, &VideoSpace::signal_resize));
     // m_GLArea.signal_unrealize().connect(sigc::mem_fun(*this, &MyWindow::unrealize));
-
-    append(*glArea);
+    videoBox.set_orientation(Gtk::Orientation::HORIZONTAL);
+    videoBox.append(*glArea);
+    append(videoBox);
+    // videoBox.set_expand();
 }
 
 void VideoSpace::createControlButtons() {
@@ -49,13 +53,28 @@ void VideoSpace::createControlButtons() {
         mediaPlayer->play(mediaPlayer->is_paused());
         setPlayPauseBtnIcon();
     });
+    btnPlayPause.set_halign(Gtk::Align::CENTER);
 
     controlBtnBox.append(btnPlayPause);
-    // separator2.set_expand();
-    // controlBtnBox.append(separator2);
+    controlBtnBox.append(separator2);
+    separator2.set_expand();
+
     progressBar.set_expand();
+    progressBar.set_visible(false);
     controlBtnBox.append(progressBar);
     append(controlBtnBox);
+
+    controlBtnBox.set_valign(Gtk::Align::END);
+}
+
+void VideoSpace::createSubtitleOverlay() {
+    subtitleOverlay = std::make_unique<SubtitleOverlay>();
+    overlay.add_overlay(*subtitleOverlay);
+    auto active_sub_observer = active.observe([this](auto _active) {
+        spdlog::warn("visible: {}", _active);
+        subtitleOverlay->set_visible(_active);
+    });
+    observers.push(active_sub_observer);
 }
 
 void VideoSpace::setPlayPauseBtnIcon() {
@@ -101,10 +120,7 @@ void VideoSpace::createFileChooserDialog() {
 void VideoSpace::on_file_dialog_response(int response_id, Gtk::FileChooserDialog *dialog) {
     switch (response_id) {
     case Gtk::ResponseType::OK: {
-        auto filename = dialog->get_file()->get_path();
-        spdlog::info("File selected: {}", filename);
-        DataThread::get().zikhronCfg.cfgMain.lastVideoFile = filename;
-        mediaPlayer->openFile(filename);
+        filename = dialog->get_file()->get_path();
         break;
     }
     default: {
@@ -120,21 +136,45 @@ void VideoSpace::switchPage(bool active_in) {
     spdlog::info("VideoSpace active: {}", active);
 }
 
-bool VideoSpace::render(const Glib::RefPtr<Gdk::GLContext> &context) {
+bool VideoSpace::signal_render(const Glib::RefPtr<Gdk::GLContext> &context) {
     bool result = false;
     if (mediaPlayer)
         result = mediaPlayer->render(context);
     if (result)
         glFlush();
+
     return result;
 }
 
-void VideoSpace::realize() {
+void VideoSpace::signal_realize() {
     mediaPlayer->initGL(glArea);
-    // auto cap_mediaPlayer = mediaPlayer;
-    DataThread::get().dispatch_arbitrary([mediaPlayer = mediaPlayer]() {
-        auto filename = DataThread::get().zikhronCfg.cfgMain.lastVideoFile;
-        if (not filename.empty() && std::filesystem::exists(filename))
-            mediaPlayer->openFile(filename);
+    filename = DataThread::get().zikhronCfg.cfgMain.lastVideoFile.string();
+    auto filenameObserver = filename.observe([this](const std::string &_filename) {
+        DataThread::get().zikhronCfg.cfgMain.lastVideoFile = _filename;
+        spdlog::info("File selected: {}", _filename);
+        mediaPlayer->openFile(_filename);
+        subtitleDecoder = std::make_shared<SubtitleDecoder>(_filename);
+        auto progressObserver = subtitleDecoder->observeProgress(
+            [this](double progress) { progressBar.set_fraction(progress); });
+        auto finishedObserver = subtitleDecoder->observeFinished(
+            [this](bool finished) { subtitleLoading_callback(finished); });
+        observers.push(progressObserver);
+        observers.push(finishedObserver);
     });
+    observers.push(filenameObserver);
+}
+
+void VideoSpace::signal_resize(int width, int height) {
+    controlBtnBox.queue_draw();
+    spdlog::warn("width: {}, height: {}", width, height);
+}
+
+void VideoSpace::subtitleLoading_callback(bool finished) {
+    if (finished) {
+        separator2.set_visible(true);
+        progressBar.set_visible(false);
+    } else {
+        separator2.set_visible(false);
+        progressBar.set_visible(true);
+    }
 }

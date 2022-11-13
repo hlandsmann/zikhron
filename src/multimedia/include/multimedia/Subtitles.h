@@ -14,11 +14,11 @@ extern "C" {
 struct SubText {
     const std::string text;
     const int64_t start_time;
-    const int duration;
+    const int64_t duration;
 };
 
 class Subtitle {
-    friend class SubtitlesDecoder;
+    friend class SubtitleDecoder;
     std::vector<SubText> subtext;
     const AVCodecID codecID;
 
@@ -40,11 +40,16 @@ public:
     const std::string title;
 };
 
-class SubtitlesDecoder {
+class SubtitleDecoder {
 public:
-    SubtitlesDecoder(const std::string& filename);
+    SubtitleDecoder(const std::string& filename);
+    ~SubtitleDecoder();
+
+    auto observeProgress(const std::function<void(double)>&) -> std::shared_ptr<utl::Observer<double>>;
+    auto observeFinished(const std::function<void(bool)>&) -> std::shared_ptr<utl::Observer<bool>>;
 
 private:
+    void worker_thread(std::stop_token token);
     std::function<void(AVCodecContext* context)> AVContextDeleter = [](AVCodecContext* context) {
         avcodec_free_context(&context);
     };
@@ -57,4 +62,7 @@ private:
 
     std::map<int, Subtitle> subtitles;
     std::jthread worker;
+    std::string filename;
+    utl::Property<double> progress = 0.;
+    utl::Property<bool> finished = false;
 };

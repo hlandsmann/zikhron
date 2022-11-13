@@ -26,10 +26,11 @@ target_link_libraries(zikhron_multimedia
         mpv
     PRIVATE
         ${GTKMM_LIBRARIES}
+        Microsoft.GSL::GSL
         epoxy
         fmt::fmt
         spdlog::spdlog
-        zikhron::warnings
         zikhron::utils
+        zikhron::warnings
 )
 target_compile_features(zikhron_multimedia PRIVATE cxx_std_20)

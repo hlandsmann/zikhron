@@ -20,6 +20,8 @@ target_sources(zikhron_gtkgui
         src/MainWindow.cpp
         src/MainWindow.h
         src/NotebookPage.h
+        src/SubtitleOverlay.cpp
+        src/SubtitleOverlay.h
         src/TextDraw.cpp
         src/TextDraw.h
         src/VideoSpace.cpp

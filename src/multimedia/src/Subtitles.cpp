@@ -2,37 +2,48 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <functional>
+#include <gsl/gsl_util>
 #include <ranges>
 #include <span>
+
 namespace ranges = std::ranges;
 
-SubtitlesDecoder::SubtitlesDecoder(const std::string& filename) {
+SubtitleDecoder::SubtitleDecoder(const std::string& _filename) : filename(_filename) {
+    worker = std::jthread([this](std::stop_token token) { worker_thread(token); });
+}
+
+SubtitleDecoder::~SubtitleDecoder() {
+    worker.request_stop();
+    worker.join();
+}
+
+auto SubtitleDecoder::observeProgress(const std::function<void(double)>& observeCallback)
+    -> std::shared_ptr<utl::Observer<double>> {
+    return progress.observe(observeCallback);
+}
+auto SubtitleDecoder::observeFinished(const std::function<void(bool)>& finishedCallback)
+    -> std::shared_ptr<utl::Observer<bool>> {
+    return finished.observe(finishedCallback);
+}
+
+void SubtitleDecoder::worker_thread(std::stop_token token) {
     AVFormatContext* pFormatCtx = NULL;
-    if (avformat_open_input(&pFormatCtx, filename.c_str(), nullptr, nullptr) != 0)
+    if (avformat_open_input(&pFormatCtx, filename.c_str(), nullptr, nullptr) != 0) {
         spdlog::error("Could not open file '{}'", filename);
-    if (avformat_find_stream_info(pFormatCtx, NULL) < 0)
+        return;
+    }
+    if (avformat_find_stream_info(pFormatCtx, NULL) < 0) {
         spdlog::error("No Stream Info");
+        return;
+    }
     spdlog::info("Duration: {}", pFormatCtx->duration);
-    // AVCodecParameters* pCodecCtxOrig = NULL;
-    // AVCodecParameters* pCodecCtx     = NULL;
 
     auto streams = std::span(pFormatCtx->streams, pFormatCtx->streams + pFormatCtx->nb_streams);
     std::vector<AVStream*> subtitleStreams;
     ranges::copy_if(streams, std::back_inserter(subtitleStreams), [](AVStream* stream) {
         return stream->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE;
     });
-    // // Find the first video stream
-    // int videoStream = -1;
-    // for (i = 0; i < pFormatCtx->nb_streams; i++)
-    //     if (pFormatCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
-    //         videoStream = i;
-    //         break;
-    //     }
-    // if (videoStream == -1)
-    //     spdlog::error("Could not find a subtitle stream");
-    // spdlog::info("Streams found: {}", pFormatCtx->nb_streams);
-    // // Get a pointer to the codec context for the video stream
-    // pCodecCtx = pFormatCtx->streams[videoStream]->codecpar;
+
     for (AVStream* sub : subtitleStreams) {
         AVDictionaryEntry* sub_language = av_dict_get(
             sub->metadata, "language", nullptr, AV_DICT_IGNORE_SUFFIX);
@@ -42,14 +53,9 @@ SubtitlesDecoder::SubtitlesDecoder(const std::string& filename) {
                      sub_language ? sub_language->value : "-",
                      sub_title ? sub_title->value : "-");
 
-        // AVDictionaryEntry* entry = NULL;
-        // while (entry = av_dict_get(sub->metadata, "", entry, AV_DICT_IGNORE_SUFFIX)) {
-        //     spdlog::info("Key: {} - value: {}", entry->key, entry->value);
-        // }
-        // auto dec_desc = avcodec_descriptor_get(sub->codecpar->codec_id);
         auto dec_desc = avcodec_descriptor_get(sub->codecpar->codec_id);
         if (dec_desc && !(dec_desc->props & AV_CODEC_PROP_TEXT_SUB)) {
-            spdlog::error("Only text based subtitles are supported!");
+            spdlog::warn("Only text based subtitles are supported!");
         }
         Subtitle::Init subInit = {.isTextSub = 0 != (dec_desc->props & AV_CODEC_PROP_TEXT_SUB),
                                   .language = sub_language ? sub_language->value : "-",
@@ -61,16 +67,12 @@ SubtitlesDecoder::SubtitlesDecoder(const std::string& filename) {
     AVPacket pkt;
     int i = 0;
     int percent = -1;
-    while (av_read_frame(pFormatCtx, &pkt) >= 0) {
-        // if (pkt.stream_index != sub->index)
-        //     continue;
+    while (av_read_frame(pFormatCtx, &pkt) >= 0 && !token.stop_requested()) {
+        auto finally = gsl::final_action([&pkt]() { av_packet_unref(&pkt); });
+
         if (const auto it = subtitles.find(pkt.stream_index); it != subtitles.end()) {
             auto& subtitle = it->second;
             if (not subtitle.isTextSub)
-                continue;
-
-            // DoDo: Remove:
-            if (subtitle.title != "Simplified")
                 continue;
 
             const auto& codecCtx = get_AVCodecContext(subtitle.codecID);
@@ -82,21 +84,24 @@ SubtitlesDecoder::SubtitlesDecoder(const std::string& filename) {
                 spdlog::error("Failed to decode subtitle");
                 continue;
             }
-            // (" {} ({} - {})", av_subtitle.rects[0]->ass, pkt.pts, pkt.duration);
             i++;
             if (percent < (100 * 1000 * pkt.pts) / pFormatCtx->duration) {
-                percent = (100 * 1000 * pkt.pts) / pFormatCtx->duration;
-                spdlog::warn("Precent: {}", percent);
+                progress = (1000. * double(pkt.pts)) / double(pFormatCtx->duration);
             }
             subtitle.subtext.push_back(
                 {.text = decode_subtext(av_subtitle), .start_time = pkt.pts, .duration = pkt.duration});
             avsubtitle_free(&av_subtitle);
         }
     }
+    if (token.stop_requested()) {
+        spdlog::info("Cancel subtitle decoding..");
+        return;
+    }
     spdlog::info("Decoded {} frames.", i);
+    finished = true;
 }
 
-auto SubtitlesDecoder::create_AVCodecContext(AVCodecID codecID)
+auto SubtitleDecoder::create_AVCodecContext(AVCodecID codecID)
     -> std::unique_ptr<AVCodecContext, decltype(AVContextDeleter)> {
     auto codec = avcodec_find_decoder(codecID);
     spdlog::info("Decoder: {}", avcodec_get_name(codecID));
@@ -113,7 +118,7 @@ auto SubtitlesDecoder::create_AVCodecContext(AVCodecID codecID)
     return AVCodecContextPtr(codecCtx, AVContextDeleter);
 }
 
-auto SubtitlesDecoder::get_AVCodecContext(AVCodecID codecID)
+auto SubtitleDecoder::get_AVCodecContext(AVCodecID codecID)
     -> const std::unique_ptr<AVCodecContext, decltype(AVContextDeleter)>& {
     if (not id_avContext.contains(codecID)) {
         id_avContext[codecID] = create_AVCodecContext(codecID);
@@ -121,7 +126,7 @@ auto SubtitlesDecoder::get_AVCodecContext(AVCodecID codecID)
     return id_avContext.at(codecID);
 }
 
-auto SubtitlesDecoder::decode_subtext(const AVSubtitle& av_subtitle) const -> std::string {
+auto SubtitleDecoder::decode_subtext(const AVSubtitle& av_subtitle) const -> std::string {
     auto rects = std::span(av_subtitle.rects, av_subtitle.rects + av_subtitle.num_rects);
     std::string subtext;
     for (const auto& rect : rects) {

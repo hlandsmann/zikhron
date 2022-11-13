@@ -101,8 +101,7 @@ private:
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
     std::unique_ptr<VocabularySR> vocabularySR;
     Glib::Dispatcher dispatcher;
-    Glib::Dispatcher propertyUpdate;
-    utl::PropertyServer propertyServer;
+    std::shared_ptr<Glib::Dispatcher>  propertyUpdate = std::make_shared<Glib::Dispatcher>();
 
     std::queue<std::function<void()>> job_queue;
     std::queue<std::function<void()>> dispatch_queue;

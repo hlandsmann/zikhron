@@ -12,6 +12,7 @@ public:
     void openFile(const std::filesystem::path& videoFile);
     void play(bool play = true);
     void pause(bool pause = true);
+    void seek(double pos);
     auto is_paused() const -> bool { return paused; }
 
     void initGL(const std::shared_ptr<Gtk::GLArea>& glArea);

@@ -27,6 +27,7 @@ target_link_libraries(zikhron_utils
         ${ICU_IO_LIBRARIES}
     PRIVATE
         zikhron::warnings
+        spdlog::spdlog
 )
 
 target_compile_features(zikhron_utils PUBLIC cxx_std_20)

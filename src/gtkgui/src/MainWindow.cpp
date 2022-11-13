@@ -13,8 +13,7 @@ constexpr std::string_view css =
 
 MainWindow::MainWindow() {
     std::setlocale(LC_NUMERIC, "C");
-
-    set_default_size(1920, 1080);
+    set_default_size(1, 1);
     set_title("Zikhron");
     overlay = std::make_shared<Gtk::Overlay>();
     overlay->set_child(sidebar);
@@ -24,7 +23,7 @@ MainWindow::MainWindow() {
     sidebar.show();
 
     appendPage(std::make_shared<DisplayCard>(*overlay), "Cards");
-    appendPage(std::make_shared<VideoSpace>(), "Video");
+    appendPage(std::make_shared<VideoSpace>(*overlay), "Video");
 
     sidebar.signal_switch_page().connect([this](Gtk::Widget *, guint slot) {
         for (guint page = 0; page < pages.size(); page++) {

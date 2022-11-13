@@ -19,10 +19,13 @@ private:
     template <class WidgetType>
     void appendPage(const Glib::RefPtr<WidgetType>& page, const std::string& label);
 
-    Gtk::Notebook sidebar;
     Glib::RefPtr<Gtk::CssProvider> refCssProvider;
     std::shared_ptr<Gtk::Overlay> overlay;
 
     std::vector<Glib::RefPtr<Gtk::Widget>> pages;
     std::vector<Glib::RefPtr<Gtk::Label>> pageLabels;
+
+    // sidebar callback triggers on destruction - used data members may be invalid and lead to a crash.
+    // Hence destroy it first!
+    Gtk::Notebook sidebar;
 };

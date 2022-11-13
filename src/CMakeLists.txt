@@ -38,5 +38,10 @@ target_link_libraries(zikhron
         spdlog::spdlog
         zikhron::gtkgui
 )
+target_link_options(zikhron
+    PRIVATE
+        -static-libasan
+)
+
 target_compile_features(zikhron PRIVATE cxx_std_20)
 target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)

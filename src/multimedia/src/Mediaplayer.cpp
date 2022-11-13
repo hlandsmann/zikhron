@@ -45,7 +45,8 @@ MediaPlayer::MediaPlayer() {
 
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
     mpv_set_option_string(mpv.get(), "terminal", "yes");
-    mpv_set_option_string(mpv.get(), "msg-level", "all=v");
+    // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
+    mpv_set_option_string(mpv.get(), "sid", "no");
 
     if (mpv_initialize(mpv.get()) < 0)
         throw std::runtime_error("could not initialize mpv context");
@@ -63,7 +64,7 @@ void MediaPlayer::openFile(const std::filesystem::path &videoFile_in) {
     videoFile = videoFile_in.string();
     const char *cmd[] = {"loadfile", videoFile.c_str(), NULL};
     mpv_command(mpv.get(), cmd);
-    spdlog::info("opening file {}", videoFile.c_str());
+    spdlog::info("mpv opening file {}", videoFile.c_str());
 }
 
 void MediaPlayer::play(bool playMedia) { pause(not playMedia); }
@@ -71,6 +72,13 @@ void MediaPlayer::play(bool playMedia) { pause(not playMedia); }
 void MediaPlayer::pause(bool pauseMedia) {
     paused = int(pauseMedia);
     mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &paused);
+}
+
+void MediaPlayer::seek(double pos) {
+    static std::string seek_position;
+    seek_position = std::to_string(pos);
+    const char *cmd[] = {"seek", seek_position.c_str(), "absolute", NULL};
+    mpv_command(mpv.get(), cmd);
 }
 
 void MediaPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
@@ -109,8 +117,8 @@ bool MediaPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &co
     mpv_render_param params[] = {{MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo},
                                  {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
                                  {MPV_RENDER_PARAM_INVALID, nullptr}};
-
     mpv_render_context_render(mpv_gl.get(), params);
+    // glViewport(0,0,width,height);
     return true;
 }
 
@@ -133,7 +141,7 @@ void MediaPlayer::handle_mpv_event(mpv_event *event) {
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 double time = *(double *)prop->data;
                 // Q_EMIT positionChanged(time);
-                spdlog::info("time-pos: {}", time);
+                // spdlog::info("time-pos: {}", time);
             }
         } else if (strcmp(prop->name, "duration") == 0) {
             if (prop->format == MPV_FORMAT_DOUBLE) {
