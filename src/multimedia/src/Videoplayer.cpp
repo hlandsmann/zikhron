@@ -1,4 +1,4 @@
-#include <Mediaplayer.h>
+#include <Videoplayer.h>
 #include <spdlog/spdlog.h>
 #include <bit>
 
@@ -36,7 +36,7 @@ static void *get_proc_address([[maybe_unused]] void *fn_ctx, const gchar *name) 
 }
 }  // namespace
 
-MediaPlayer::MediaPlayer() {
+VideoPlayer::VideoPlayer() {
     dispatch_render.connect([this]() {
         if (glArea)
             glArea->queue_render();
@@ -60,28 +60,28 @@ MediaPlayer::MediaPlayer() {
     pause();
 }
 
-void MediaPlayer::openFile(const std::filesystem::path &videoFile_in) {
+void VideoPlayer::openFile(const std::filesystem::path &videoFile_in) {
     videoFile = videoFile_in.string();
     const char *cmd[] = {"loadfile", videoFile.c_str(), NULL};
     mpv_command(mpv.get(), cmd);
     spdlog::info("mpv opening file {}", videoFile.c_str());
 }
 
-void MediaPlayer::play(bool playMedia) { pause(not playMedia); }
+void VideoPlayer::play(bool playMedia) { pause(not playMedia); }
 
-void MediaPlayer::pause(bool pauseMedia) {
+void VideoPlayer::pause(bool pauseMedia) {
     paused = int(pauseMedia);
     mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &paused);
 }
 
-void MediaPlayer::seek(double pos) {
+void VideoPlayer::seek(double pos) {
     static std::string seek_position;
     seek_position = std::to_string(pos);
     const char *cmd[] = {"seek", seek_position.c_str(), "absolute", NULL};
     mpv_command(mpv.get(), cmd);
 }
 
-void MediaPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
+void VideoPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr, nullptr};
     mpv_render_param params[]{
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
@@ -95,14 +95,14 @@ void MediaPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
     mpv_render_context_set_update_callback(
         mpv_gl.get(),
         [](void *ctx) {
-            auto &self = *std::bit_cast<MediaPlayer *, void *>(ctx);
+            auto &self = *std::bit_cast<VideoPlayer *, void *>(ctx);
             self.dispatch_render.emit();
         },
-        std::bit_cast<void *, MediaPlayer *>(this));
+        std::bit_cast<void *, VideoPlayer *>(this));
     glArea = glArea_in;
 }
 
-bool MediaPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &context) {
+bool VideoPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &context) {
     if (mpv_gl == nullptr || glArea == nullptr)
         return false;
 
@@ -122,7 +122,7 @@ bool MediaPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &co
     return true;
 }
 
-void MediaPlayer::on_mpv_events() {
+void VideoPlayer::on_mpv_events() {
     // Process all events, until the event queue is empty.
     while (mpv) {
         mpv_event *event = mpv_wait_event(mpv.get(), 0);
@@ -133,7 +133,7 @@ void MediaPlayer::on_mpv_events() {
     }
 }
 
-void MediaPlayer::handle_mpv_event(mpv_event *event) {
+void VideoPlayer::handle_mpv_event(mpv_event *event) {
     switch (event->event_id) {
     case MPV_EVENT_PROPERTY_CHANGE: {
         mpv_event_property *prop = (mpv_event_property *)event->data;

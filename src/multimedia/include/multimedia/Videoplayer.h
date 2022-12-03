@@ -6,9 +6,9 @@
 #include <functional>
 #include <memory>
 
-class MediaPlayer {
+class VideoPlayer {
 public:
-    MediaPlayer();
+    VideoPlayer();
     void openFile(const std::filesystem::path& videoFile);
     void play(bool play = true);
     void pause(bool pause = true);

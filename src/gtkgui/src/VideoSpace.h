@@ -1,9 +1,10 @@
 #pragma once
 
 #include <NotebookPage.h>
+#include <SubtitleComboBox.h>
 #include <SubtitleOverlay.h>
 #include <gtkmm.h>
-#include <multimedia/Mediaplayer.h>
+#include <multimedia/Videoplayer.h>
 #include <multimedia/Subtitles.h>
 #include <utils/Property.h>
 #include <list>
@@ -29,12 +30,13 @@ private:
     utl::ObserverCollection observers;
     Gtk::Box videoBox;
     Gtk::Box controlBtnBox;
+    SubtitleComboBox subtitleComboBox;
     Gtk::Button btnOpenFile;
     Gtk::Button btnPlayPause;
     Gtk::Separator separator1, separator2;
     std::shared_ptr<Gtk::GLArea> glArea = std::make_shared<Gtk::GLArea>();
     Gtk::ProgressBar progressBar;
-    std::shared_ptr<MediaPlayer> mediaPlayer = std::make_shared<MediaPlayer>();
+    std::shared_ptr<VideoPlayer> mediaPlayer = std::make_shared<VideoPlayer>();
     std::shared_ptr<SubtitleDecoder> subtitleDecoder;
     std::unique_ptr<SubtitleOverlay> subtitleOverlay;
 
