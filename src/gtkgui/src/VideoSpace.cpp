@@ -62,6 +62,8 @@ void VideoSpace::createControlButtons() {
     progressBar.set_expand();
     progressBar.set_visible(false);
     controlBtnBox.append(progressBar);
+    controlBtnBox.append(subtitleComboBox);
+
     append(controlBtnBox);
 
     controlBtnBox.set_valign(Gtk::Align::END);
@@ -70,10 +72,9 @@ void VideoSpace::createControlButtons() {
 void VideoSpace::createSubtitleOverlay() {
     subtitleOverlay = std::make_unique<SubtitleOverlay>();
     overlay.add_overlay(*subtitleOverlay);
-    auto active_sub_observer = active.observe([this](auto _active) {
-        spdlog::warn("visible: {}", _active);
-        subtitleOverlay->set_visible(_active);
-    });
+    auto active_sub_observer = active.observe(
+        [this](auto _active) { subtitleOverlay->set_visible(_active); });
+
     observers.push(active_sub_observer);
 }
 

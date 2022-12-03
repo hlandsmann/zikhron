@@ -6,6 +6,8 @@ add_library(zikhron::gtkgui ALIAS zikhron_gtkgui)
 
 target_sources(zikhron_gtkgui
     PRIVATE
+        src/AddCards.cpp
+        src/AddCards.h
         src/AnnotationOverlay.cpp
         src/AnnotationOverlay.h
         src/Application.cpp
@@ -20,6 +22,8 @@ target_sources(zikhron_gtkgui
         src/MainWindow.cpp
         src/MainWindow.h
         src/NotebookPage.h
+        src/SubtitleComboBox.cpp
+        src/SubtitleComboBox.h
         src/SubtitleOverlay.cpp
         src/SubtitleOverlay.h
         src/TextDraw.cpp

@@ -1,9 +1,6 @@
 #pragma once
 
 #include <DataThread.h>
-#include <DisplayCard.h>
-#include <NotebookPage.h>
-#include <VideoSpace.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <gtkmm.h>
 #include <spaced_repetition/VocabularySR.h>
