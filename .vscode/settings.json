@@ -83,5 +83,6 @@
         "cfenv": "cpp",
         "typeindex": "cpp"
     },
-    "cmake.useCMakePresets": false
+    "cmake.useCMakePresets": "never",
+    "C_Cpp.errorSquiggles": "Enabled"
 }

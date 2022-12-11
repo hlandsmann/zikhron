@@ -72,8 +72,13 @@ void VideoSpace::createControlButtons() {
 void VideoSpace::createSubtitleOverlay() {
     subtitleOverlay = std::make_unique<SubtitleOverlay>();
     overlay.add_overlay(*subtitleOverlay);
-    auto active_sub_observer = active.observe(
-        [this](auto _active) { subtitleOverlay->set_visible(_active); });
+    auto active_sub_observer = active.observe([this](auto _active) {
+        subtitleOverlay->set_visible(_active);
+        if (!_active)
+            mediaPlayer->pause();
+
+        setPlayPauseBtnIcon();
+    });
 
     observers.push(active_sub_observer);
 }
@@ -92,7 +97,6 @@ void VideoSpace::createFileChooserDialog() {
 
     if (auto videoFile = DataThread::get().zikhronCfg.cfgMain.lastVideoFile;
         not videoFile.empty() && fs::exists(videoFile)) {
-        videoFile.parent_path();
         dialog->set_current_folder(Gio::File::create_for_path(videoFile.parent_path().string()));
     }
     dialog->set_modal(true);
@@ -134,7 +138,6 @@ void VideoSpace::on_file_dialog_response(int response_id, Gtk::FileChooserDialog
 
 void VideoSpace::switchPage(bool active_in) {
     active = active_in;
-    spdlog::info("VideoSpace active: {}", active);
 }
 
 bool VideoSpace::signal_render(const Glib::RefPtr<Gdk::GLContext> &context) {
@@ -152,7 +155,7 @@ void VideoSpace::signal_realize() {
     filename = DataThread::get().zikhronCfg.cfgMain.lastVideoFile.string();
     auto filenameObserver = filename.observe([this](const std::string &_filename) {
         DataThread::get().zikhronCfg.cfgMain.lastVideoFile = _filename;
-        spdlog::info("File selected: {}", _filename);
+        spdlog::info("Video file selected: {}", _filename);
         mediaPlayer->openFile(_filename);
         subtitleDecoder = std::make_shared<SubtitleDecoder>(_filename);
         auto progressObserver = subtitleDecoder->observeProgress(

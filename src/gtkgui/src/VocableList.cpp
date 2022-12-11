@@ -19,7 +19,7 @@ void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragra
     }
 
     for (const auto& [easeChoice, ease] : boost::combine(easeChoiceContainer, easeList))
-        easeChoice->setEase(ease);
+        easeChoice->setActive(mapEaseToInt(ease));
 }
 
 void VocableList::addTextDraw(int column, int row, const std::string& markup) {
@@ -32,15 +32,16 @@ void VocableList::addTextDraw(int column, int row, const std::string& markup) {
 }
 
 void VocableList::addEaseChoice(int column, int row) {
-    auto easeChoice = std::make_unique<EaseChoice>();
+    auto easeChoice = std::make_unique<ButtonGroup>("Again", "Hard", "Normal", "Easy");
     attach(*easeChoice, column, row);
     easeChoiceContainer.push_back(std::move(easeChoice));
 }
 
 auto VocableList::getChoiceOfEase() const -> std::vector<Ease> {
     std::vector<Ease> easeList;
-    ranges::transform(easeChoiceContainer,
-                      std::back_inserter(easeList),
-                      [](const auto& easeChoice) -> Ease { return easeChoice->getEase(); });
+    ranges::transform(
+        easeChoiceContainer, std::back_inserter(easeList), [](const auto& easeChoice) -> Ease {
+            return mapIntToEase(easeChoice->getActive());
+        });
     return easeList;
 }

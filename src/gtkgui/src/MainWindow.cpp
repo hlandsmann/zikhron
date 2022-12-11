@@ -7,7 +7,7 @@
 #include <filesystem>
 #include <string_view>
 #include <type_traits>
-#include <AddCards.h>
+#include <SupplyAudio.h>
 
 constexpr std::string_view css =
     ".overlay {"
@@ -28,7 +28,7 @@ MainWindow::MainWindow() {
 
     appendPage(std::make_shared<DisplayCard>(*overlay), "Cards");
     appendPage(std::make_shared<VideoSpace>(*overlay), "Video");
-    appendPage(std::make_shared<AddCards>(), "Add Cards");
+    appendPage(std::make_shared<SupplyAudio>(), "Add Cards");
 
     sidebar.signal_switch_page().connect([this](Gtk::Widget *, guint slot) {
         for (guint page = 0; page < pages.size(); page++) {

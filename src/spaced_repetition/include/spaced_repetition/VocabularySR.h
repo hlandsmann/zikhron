@@ -5,6 +5,7 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
 #include <iosfwd>
+#include <optional>
 #include <thread>
 
 #ifdef spaced_repetition_internal_include
@@ -31,6 +32,7 @@ public:
     using Id_Ease_vt = std::map<uint, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getCard() -> CardInformation;
+    auto getCardFromId(uint id) const -> std::optional<CardInformation>;
     auto AddAnnotation(const std::vector<int>& combination, const std::vector<utl::CharU8>& characters)
         -> CardInformation;
     auto AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) -> CardInformation;

@@ -3,6 +3,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+// #include <spdlog/spdlog.h>
 
 namespace utl {
 class PropertyBase;
@@ -68,8 +69,8 @@ public:
     virtual ~PropertyBase() = default;
 
 protected:
-    void emitUpdate();
-    bool value_changed = false;
+    void emitUpdate() const;
+    mutable bool value_changed = false;
     std::shared_ptr<PropertyHandle> handle;
 
 private:
@@ -82,17 +83,22 @@ public:
     Property(Value_t _value) : value(_value){};
     Property() = default;
     Property<Value_t>& operator=(const Value_t& _value) {
+            // spdlog::warn("update --- value {} {} ", value, _value);
         if (value != _value) {
+            old_value = value;
             value = _value;
             emitUpdate();
+            // spdlog::warn("update value {}", value);
             value_changed = true;
         }
         return *this;
     }
 
+    auto get_old_value() const -> Value_t { return old_value; }
+
     operator Value_t() const { return value; }
 
-    auto observe(const std::function<void(const Value_t&)>& onChangedCallback)
+    auto observe(const std::function<void(const Value_t&)>& onChangedCallback) const
         -> std::shared_ptr<Observer<Value_t>> {
         auto observer = std::make_shared<Observer<Value_t>>(onChangedCallback);
         observer->handle = handle;
@@ -129,7 +135,8 @@ private:
     }
 
     Value_t value{};
-    std::list<std::weak_ptr<Observer<Value_t>>> newObservers;
+    Value_t old_value{};
+    mutable std::list<std::weak_ptr<Observer<Value_t>>> newObservers;
     std::list<std::weak_ptr<Observer<Value_t>>> observers;
 };
 }  // namespace utl

@@ -1,4 +1,4 @@
-#include <Videoplayer.h>
+#include <MediaPlayer.h>
 #include <spdlog/spdlog.h>
 #include <bit>
 
@@ -36,7 +36,7 @@ static void *get_proc_address([[maybe_unused]] void *fn_ctx, const gchar *name) 
 }
 }  // namespace
 
-VideoPlayer::VideoPlayer() {
+MediaPlayer::MediaPlayer() {
     dispatch_render.connect([this]() {
         if (glArea)
             glArea->queue_render();
@@ -47,7 +47,7 @@ VideoPlayer::VideoPlayer() {
     mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
     mpv_set_option_string(mpv.get(), "sid", "no");
-
+    mpv_set_option_string(mpv.get(), "audio-display", "no");
     if (mpv_initialize(mpv.get()) < 0)
         throw std::runtime_error("could not initialize mpv context");
 
@@ -58,30 +58,45 @@ VideoPlayer::VideoPlayer() {
     mpv_observe_property(mpv.get(), 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
     pause();
+
+    observe_timePos([this](double time_pos) {
+        if (time_pos >= stopAtPosition) {
+            stopAtPosition = duration;
+            pause();
+        }
+    });
 }
 
-void VideoPlayer::openFile(const std::filesystem::path &videoFile_in) {
-    videoFile = videoFile_in.string();
-    const char *cmd[] = {"loadfile", videoFile.c_str(), NULL};
+void MediaPlayer::openFile(const std::filesystem::path &mediaFile_in) {
+    duration = 0;
+    timePos = 0;
+    mediaFile = mediaFile_in.string();
+    const char *cmd[] = {"loadfile", mediaFile.c_str(), NULL};
     mpv_command(mpv.get(), cmd);
-    spdlog::info("mpv opening file {}", videoFile.c_str());
+    spdlog::info("mpv opening file {}", mediaFile.c_str());
 }
 
-void VideoPlayer::play(bool playMedia) { pause(not playMedia); }
+void MediaPlayer::play_fragment(double start, double end) {
+    seek(start);
+    stopAtPosition = end;
+    play();
+}
 
-void VideoPlayer::pause(bool pauseMedia) {
+void MediaPlayer::play(bool playMedia) { pause(not playMedia); }
+
+void MediaPlayer::pause(bool pauseMedia) {
     paused = int(pauseMedia);
     mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &paused);
 }
 
-void VideoPlayer::seek(double pos) {
+void MediaPlayer::seek(double pos) {
     static std::string seek_position;
     seek_position = std::to_string(pos);
     const char *cmd[] = {"seek", seek_position.c_str(), "absolute", NULL};
     mpv_command(mpv.get(), cmd);
 }
 
-void VideoPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
+void MediaPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr, nullptr};
     mpv_render_param params[]{
         {MPV_RENDER_PARAM_API_TYPE, const_cast<char *>(MPV_RENDER_API_TYPE_OPENGL)},
@@ -95,14 +110,14 @@ void VideoPlayer::initGL(const std::shared_ptr<Gtk::GLArea> &glArea_in) {
     mpv_render_context_set_update_callback(
         mpv_gl.get(),
         [](void *ctx) {
-            auto &self = *std::bit_cast<VideoPlayer *, void *>(ctx);
+            auto &self = *std::bit_cast<MediaPlayer *, void *>(ctx);
             self.dispatch_render.emit();
         },
-        std::bit_cast<void *, VideoPlayer *>(this));
+        std::bit_cast<void *, MediaPlayer *>(this));
     glArea = glArea_in;
 }
 
-bool VideoPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &context) {
+bool MediaPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &context) {
     if (mpv_gl == nullptr || glArea == nullptr)
         return false;
 
@@ -122,7 +137,7 @@ bool VideoPlayer::render([[maybe_unused]] const Glib::RefPtr<Gdk::GLContext> &co
     return true;
 }
 
-void VideoPlayer::on_mpv_events() {
+void MediaPlayer::on_mpv_events() {
     // Process all events, until the event queue is empty.
     while (mpv) {
         mpv_event *event = mpv_wait_event(mpv.get(), 0);
@@ -133,25 +148,32 @@ void VideoPlayer::on_mpv_events() {
     }
 }
 
-void VideoPlayer::handle_mpv_event(mpv_event *event) {
+void MediaPlayer::handle_mpv_event(mpv_event *event) {
     switch (event->event_id) {
     case MPV_EVENT_PROPERTY_CHANGE: {
         mpv_event_property *prop = (mpv_event_property *)event->data;
         if (strcmp(prop->name, "time-pos") == 0) {
             if (prop->format == MPV_FORMAT_DOUBLE) {
-                double time = *(double *)prop->data;
-                // Q_EMIT positionChanged(time);
-                // spdlog::info("time-pos: {}", time);
+                timePos = *(double *)prop->data;
             }
         } else if (strcmp(prop->name, "duration") == 0) {
             if (prop->format == MPV_FORMAT_DOUBLE) {
-                double time = *(double *)prop->data;
-                spdlog::info("duration: {}", time);
-                // Q_EMIT durationChanged(time);
+                duration = *(double *)prop->data;
+                spdlog::info("duration: {}", duration);
             }
         }
         break;
     }
     default: break;
     }
+}
+
+void MediaPlayer::observe_duration(const std::function<void(double)> observer) {
+    auto durationObserver = duration.observe(observer);
+    observers.push(durationObserver);
+}
+
+void MediaPlayer::observe_timePos(const std::function<void(double)> observer) {
+    auto timePosObserver = timePos.observe(observer);
+    observers.push(timePosObserver);
 }

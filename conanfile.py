@@ -10,6 +10,6 @@ class zikhron(ConanFile):
         "spdlog/1.9.2",
         "ctre/3.4.1",
         "ms-gsl/3.1.0",
-        "nlohmann_json/3.10.4"
+        "nlohmann_json/3.11.2"
     )
     generators = "cmake", "gcc", "txt", "cmake_find_package"

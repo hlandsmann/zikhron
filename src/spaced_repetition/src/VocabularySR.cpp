@@ -256,6 +256,14 @@ auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, VocableIds_vt,
             GetRelevantEase(*activeCardId)};
 }
 
+auto VocabularySR::getCardFromId(uint id) const
+    -> std::optional<std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>> {
+    if (cardDB->get().contains(id))
+        return {{cardDB->get().at(id)->clone(), sr_db.GetVocableIdsInOrder(id), GetRelevantEase(id)}};
+    else
+        return {};
+}
+
 auto VocabularySR::AddAnnotation(const std::vector<int>& combination,
                                  const std::vector<utl::CharU8>& characterSequence) -> CardInformation {
     sr_db.AddAnnotation(combination, characterSequence, *activeCardId);

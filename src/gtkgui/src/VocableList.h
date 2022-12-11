@@ -1,5 +1,5 @@
 #pragma once
-#include <EaseChoice.h>
+#include <ButtonGroup.h>
 #include <TextDraw.h>
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
@@ -11,7 +11,7 @@ public:
     void setParagraph(const std::shared_ptr<markup::Paragraph>&, const std::vector<Ease>&);
     auto getChoiceOfEase() const -> std::vector<Ease>;
     using TextDrawPtr = std::unique_ptr<TextDraw>;
-    using EaseChoicePtr = std::unique_ptr<EaseChoice>;
+    using EaseChoicePtr = std::unique_ptr<ButtonGroup>;
 
 private:
     constexpr static int vocableFontSize = 20;

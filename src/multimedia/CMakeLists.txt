@@ -5,10 +5,12 @@ add_library(zikhron_multimedia)
 add_library(zikhron::multimedia ALIAS zikhron_multimedia)
 target_sources(zikhron_multimedia
     PRIVATE
+        include/multimedia/CardAudioGroup.h
+        include/multimedia/MediaPlayer.h
         include/multimedia/Subtitles.h
-        include/multimedia/Videoplayer.h
+        src/CardAudioGroup.cpp
+        src/MediaPlayer.cpp
         src/Subtitles.cpp
-        src/Videoplayer.cpp
 )
 target_include_directories(zikhron_multimedia
     INTERFACE
@@ -24,13 +26,16 @@ target_link_libraries(zikhron_multimedia
         avformat
         avutil
         mpv
+        nlohmann_json::nlohmann_json
     PRIVATE
         ${GTKMM_LIBRARIES}
         Microsoft.GSL::GSL
+        ctre::ctre
         epoxy
         fmt::fmt
         spdlog::spdlog
         zikhron::utils
         zikhron::warnings
+
 )
 target_compile_features(zikhron_multimedia PRIVATE cxx_std_20)

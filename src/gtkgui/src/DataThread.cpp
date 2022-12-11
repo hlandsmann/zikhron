@@ -1,5 +1,4 @@
 #include <DataThread.h>
-#include <annotation/TextCard.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
@@ -55,12 +54,14 @@ auto extract(const nlohmann::json& json, const TypeOut& current, std::string_vie
 void ZikhronConfig::ConfigMain::fromJson(const nlohmann::json& json) {
     setDefault();
     lastVideoFile = extract<std::string, path>(json, lastVideoFile, s_last_video_file);
+    lastAudioFile = extract<std::string, path>(json, lastAudioFile, s_last_audio_file);
     activePage = extract<int, int>(json, activePage, s_active_page);
 }
 
 auto ZikhronConfig::ConfigMain::toJson() const -> nlohmann::json {
     nlohmann::json json;
     json[std::string(s_last_video_file)] = lastVideoFile;
+    json[std::string(s_last_audio_file)] = lastAudioFile;
     json[std::string(s_active_page)] = activePage;
     return json;
 }
@@ -121,7 +122,7 @@ DataThread::DataThread() {
             update->emit();
     });
     job_queue.push([this]() {
-        std::shared_ptr<CardDB> cardDB = std::move(loadCardDB(std::string{path_to_cardDB}));
+        cardDB = std::move(loadCardDB(std::string{path_to_cardDB}));
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
         vocabularySR = std::make_unique<VocabularySR>(cardDB, zh_dictionary);
     });
@@ -174,6 +175,23 @@ void DataThread::requestCard() {
     }
     condition.notify_one();
 }
+
+void DataThread::requestCardFromIds(const std::vector<uint>&& _ids) {
+    {
+        std::lock_guard<std::mutex> lock(condition_mutex);
+        job_queue.push([this, ids = std::move(_ids)]() {
+            std::vector<paragraph_optional> paragraphs;
+            ranges::transform(
+                ids, std::back_inserter(paragraphs), [this](auto id) { return getCardFromId(id); });
+            dispatch_queue.push([this, paragraphs = std::move(paragraphs)]() mutable {
+                if (send_card)
+                    send_paragraphFromIds(std::move(paragraphs));
+            });
+        });
+    }
+    condition.notify_one();
+}
+
 void DataThread::submitEase(const VocabularySR::Id_Ease_vt& ease) {
     std::lock_guard<std::mutex> lock(condition_mutex);
     vocabularySR->setEaseLastCard(ease);
@@ -189,10 +207,26 @@ void DataThread::signal_card_connect(const signal_card& signal) {
     send_card = signal;
 }
 
+void DataThread::signal_paragraphFromIds_connect(const signal_paragraphFromIds& signal) {
+    std::lock_guard<std::mutex> lock(condition_mutex);
+    send_paragraphFromIds = signal;
+}
+
 void DataThread::dispatch_arbitrary(const std::function<void()>& fun) {
     std::lock_guard<std::mutex> lock(condition_mutex);
     dispatch_queue.push(fun);
     dispatcher.emit();
+}
+
+auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<markup::Paragraph>> {
+    auto opt_cardInformation = vocabularySR->getCardFromId(id);
+    if (!opt_cardInformation.has_value())
+        return {};
+    auto [current_card, vocableIds, ease] = std::move(opt_cardInformation.value());
+    auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
+    paragraph->setupVocables(ease);
+
+    return {std::move(paragraph)};
 }
 
 void DataThread::sendActiveCard(CardInformation& cardInformation) {

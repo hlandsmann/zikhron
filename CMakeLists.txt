@@ -6,10 +6,17 @@ include(FindPkgConfig)
 
 include(cmake/Conan.cmake)
 option(skip_run_conan OFF)
-if (NOT skip_run_conan)
+
+# if(NOT skip_run_conan)
     run_conan()
-    set(skip_run_conan ON CACHE BOOL "Run only once")
-endif (NOT skip_run_conan)
+#     set(skip_run_conan ON CACHE BOOL "Run only once")
+# endif(NOT skip_run_conan)
+
+# regenerate build system if conanfile.py changes
+set_property(DIRECTORY
+             APPEND
+             PROPERTY CMAKE_CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/conanfile.py)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
 
 find_package(fmt REQUIRED)
@@ -21,18 +28,22 @@ find_package(nlohmann_json REQUIRED)
 add_subdirectory(third_party/cppcoro)
 
 option(use_iwyu OFF)
-if (use_iwyu)
+
+if(use_iwyu)
     find_program(IWYU_PATH NAMES include-what-you-use iwyu)
+
     if(NOT IWYU_PATH)
-    message(FATAL_ERROR "Could not find the program include-what-you-use")
+        message(FATAL_ERROR "Could not find the program include-what-you-use")
     endif()
+
     set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
     set(CMAKE_C_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
-endif (use_iwyu)
+endif(use_iwyu)
 
 add_subdirectory(src)
 
 option(ENABLE_TESTING "Enable Test Builds" ON)
+
 if(ENABLE_TESTING)
     enable_testing()
     message("Building tests..")
@@ -40,6 +51,7 @@ if(ENABLE_TESTING)
 endif()
 
 option(ENABLE_BENCHMARK "Enable Benchmarking" ON)
+
 if(ENABLE_BENCHMARK)
     message("Building Benchmarks..")
     add_subdirectory(benchmark)

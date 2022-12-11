@@ -1,7 +1,7 @@
 #pragma once
 #include <CardDraw.h>
 #include <DataThread.h>
-#include <EaseChoice.h>
+#include <ButtonGroup.h>
 #include <NotebookPage.h>
 #include <TextDraw.h>
 #include <VocableList.h>

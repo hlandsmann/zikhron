@@ -71,7 +71,8 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
                 continue;
             }
             cards[cardId] = cardFromJsonFile(entry, cardId);
-        } catch (std::exception &e) {
+        }
+        catch (std::exception &e) {
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
     }
