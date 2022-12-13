@@ -1,6 +1,5 @@
 #pragma once
 #include <gtkmm.h>
-#include <spdlog/spdlog.h>
 
 class TextDraw : public Gtk::DrawingArea {
 public:
