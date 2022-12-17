@@ -21,6 +21,8 @@ target_sources(zikhron_gtkgui
         src/MainWindow.h
         src/MediaButtons.cpp
         src/MediaButtons.h
+        src/MediaSlider.cpp
+        src/MediaSlider.h
         src/NotebookPage.h
         src/SubtitleComboBox.cpp
         src/SubtitleComboBox.h

@@ -131,6 +131,7 @@ DataThread::DataThread() {
     propertyUpdate->connect([this]() { utl::PropertyServer::get().updateProperties(); });
     worker = std::jthread([this](std::stop_token token) { worker_thread(token); });
 }
+
 DataThread::~DataThread() {
     worker.request_stop();
     worker.join();
@@ -231,6 +232,7 @@ auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<m
 
 void DataThread::sendActiveCard(CardInformation& cardInformation) {
     auto [current_card, vocableIds, ease] = std::move(cardInformation);
+    uint cardId = current_card->id;
     auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
     auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
     auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));
@@ -240,7 +242,7 @@ void DataThread::sendActiveCard(CardInformation& cardInformation) {
     ranges::copy(orderedEase | std::views::values, std::back_inserter(vocEaseList));
 
     dispatch_queue.push(
-        [this, msg_card = message_card(std::move(paragraph), std::move(vocEaseList))]() mutable {
+        [this, msg_card = message_card(std::move(paragraph), std::move(vocEaseList), cardId)]() mutable {
             if (send_card)
                 send_card(msg_card);
         });

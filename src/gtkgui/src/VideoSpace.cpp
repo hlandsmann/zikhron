@@ -50,7 +50,7 @@ void VideoSpace::createControlButtons() {
 
     setPlayPauseBtnIcon();
     btnPlayPause.signal_clicked().connect([this]() {
-        mediaPlayer->play(mediaPlayer->is_paused());
+        mediaPlayer->play();
         setPlayPauseBtnIcon();
     });
     btnPlayPause.set_halign(Gtk::Align::CENTER);

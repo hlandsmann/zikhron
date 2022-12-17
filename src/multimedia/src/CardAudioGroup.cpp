@@ -28,11 +28,11 @@ auto CardAudioGroup::toJson(const CardAudioGroup& self) -> json {
     return cardAudioGroup;
 }
 
-auto CardAudioGroup::fromJson(const json& cag) -> CardAudioGroup {
+auto CardAudioGroup::fromJson(const json& cag_json) -> CardAudioGroup {
     CardAudioGroup cardAudioGroup;
     auto& cardId_audioFragment = cardAudioGroup.cardId_audioFragment;
-    cardAudioGroup.audioFile = std::string(cag[std::string(s_audioFile)]);
-    ranges::transform(cag[std::string(s_fragments)].items(),
+    cardAudioGroup.audioFile = std::string(cag_json[std::string(s_audioFile)]);
+    ranges::transform(cag_json[std::string(s_fragments)].items(),
                       std::inserter(cardId_audioFragment, cardId_audioFragment.begin()),
                       [](const auto& cardId_fragment) -> std::pair<uint, AudioFragment> {
                           const auto& [cardId, fragment_json] = cardId_fragment;
@@ -82,6 +82,7 @@ void CardAudioGroupDB::load() {
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
     }
+    setupStudyAudioFragments();
 }
 
 void CardAudioGroupDB::save(uint groupId, const CardAudioGroup& cardAudioGroup) {
@@ -96,6 +97,8 @@ void CardAudioGroupDB::save(uint groupId, const CardAudioGroup& cardAudioGroup) 
         std::ofstream ofs(fn_cardAudioGroup);
         ofs << CardAudioGroup::toJson(cardAudioGroup).dump(4);
         spdlog::debug("Saved {}", fn_cardAudioGroup.string());
+        id_cardAudioGroup[groupId].onFileSystem = true;
+        setupStudyAudioFragments();
     }
     catch (const std::exception& e) {
         spdlog::error("Failed to save file, exception: {}", e.what());
@@ -107,4 +110,74 @@ auto CardAudioGroupDB::get_cardAudioGroup(uint groupId) const -> CardAudioGroup 
         return id_cardAudioGroup.at(groupId);
     else
         return {};
+}
+
+void CardAudioGroupDB::insert(uint groupId, const CardAudioGroup& cag) {
+    if (groupId == 0)
+        return;
+
+    spdlog::debug("group: {}, size {}", groupId, cag.cardId_audioFragment.size());
+    bool is_saved = id_cardAudioGroup[groupId].onFileSystem;
+    id_cardAudioGroup[groupId] = cag;
+    id_cardAudioGroup[groupId].onFileSystem = is_saved;
+    setupStudyAudioFragments();
+}
+
+auto CardAudioGroupDB::nextOrThisGroupId(uint groupId) const -> uint {
+    if (id_cardAudioGroup.empty())
+        return firstGroupId;
+    auto it = ranges::find_if(
+        id_cardAudioGroup,
+        [groupId](uint nextId) { return nextId >= groupId; },
+        &decltype(id_cardAudioGroup)::value_type::first);
+    if (it == id_cardAudioGroup.end())
+        return id_cardAudioGroup.begin()->first;
+    return it->first;
+}
+
+auto CardAudioGroupDB::prevOrThisGroupId(uint groupId) const -> uint {
+    if (id_cardAudioGroup.empty())
+        return firstGroupId;
+    auto it = ranges::find_if(
+        id_cardAudioGroup | std::views::reverse,
+        [groupId](uint nextId) { return nextId <= groupId; },
+        &decltype(id_cardAudioGroup)::value_type::first);
+    if (it == id_cardAudioGroup.rend())
+        return id_cardAudioGroup.rbegin()->first;
+    return it->first;
+}
+
+auto CardAudioGroupDB::newCardAudioGroup() -> uint {
+    uint newGroupId = firstGroupId;
+    if (not id_cardAudioGroup.empty()) {
+        if (auto it = ranges::adjacent_find(
+                id_cardAudioGroup, [](const auto& a, const auto& b) { return b.first - a.first != 1; });
+            it != id_cardAudioGroup.end()) {
+            newGroupId = it->first + 1;
+        } else {
+            newGroupId = id_cardAudioGroup.rbegin()->first + 1;
+        }
+    }
+    spdlog::warn("new groupID: {}", newGroupId);
+    id_cardAudioGroup[newGroupId] = CardAudioGroup{};
+    return newGroupId;
+}
+
+void CardAudioGroupDB::setupStudyAudioFragments() {
+    for (const auto& cag : id_cardAudioGroup | std::views::values) {
+        ranges::transform(
+            cag.cardId_audioFragment,
+            std::inserter(cardId_studyAudioFragment, cardId_studyAudioFragment.begin()),
+            [&cag](const auto& cardId_fragment) -> std::pair<uint, StudyAudioFragment> {
+                const auto& [cardId, fragment] = cardId_fragment;
+                return {cardId,
+                        {.start = fragment.start, .end = fragment.end, .audioFile = cag.audioFile}};
+            });
+    }
+}
+
+auto CardAudioGroupDB::get_studyAudioFragment(uint cardId) const -> std::optional<StudyAudioFragment> {
+    if (not cardId_studyAudioFragment.contains(cardId))
+        return {};
+    return cardId_studyAudioFragment.at(cardId);
 }

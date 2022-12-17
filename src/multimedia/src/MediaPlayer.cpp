@@ -57,6 +57,8 @@ MediaPlayer::MediaPlayer() {
         this);
     mpv_observe_property(mpv.get(), 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
+    mpv_observe_property(mpv.get(), 0, "pause", MPV_FORMAT_FLAG);
+
     pause();
 
     observe_timePos([this](double time_pos) {
@@ -68,25 +70,31 @@ MediaPlayer::MediaPlayer() {
 }
 
 void MediaPlayer::openFile(const std::filesystem::path &mediaFile_in) {
-    duration = 0;
-    timePos = 0;
+    duration = 0.;
+    timePos = 0.;
     mediaFile = mediaFile_in.string();
     const char *cmd[] = {"loadfile", mediaFile.c_str(), NULL};
     mpv_command(mpv.get(), cmd);
     spdlog::info("mpv opening file {}", mediaFile.c_str());
+    pause();
 }
 
 void MediaPlayer::play_fragment(double start, double end) {
     seek(start);
-    stopAtPosition = end;
-    play();
+    play(end);
 }
 
-void MediaPlayer::play(bool playMedia) { pause(not playMedia); }
+void MediaPlayer::play(double until) {
+    if (until == 0)
+        until = duration;
+    stopAtPosition = until;
+    mpv_flag_paused = 0;
+    mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
+}
 
-void MediaPlayer::pause(bool pauseMedia) {
-    paused = int(pauseMedia);
-    mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &paused);
+void MediaPlayer::pause() {
+    mpv_flag_paused = 1;
+    mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
 }
 
 void MediaPlayer::seek(double pos) {
@@ -155,11 +163,19 @@ void MediaPlayer::handle_mpv_event(mpv_event *event) {
         if (strcmp(prop->name, "time-pos") == 0) {
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 timePos = *(double *)prop->data;
+                if (duration - timePos <= 1) {
+                    enable_stop_timer();
+                }
             }
         } else if (strcmp(prop->name, "duration") == 0) {
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 duration = *(double *)prop->data;
                 spdlog::info("duration: {}", duration);
+            }
+        } else if (strcmp(prop->name, "pause") == 0) {
+            if (prop->format == MPV_FORMAT_FLAG) {
+                paused = *(int *)prop->data;
+                // spdlog::info("paused: {}", paused);
             }
         }
         break;
@@ -176,4 +192,30 @@ void MediaPlayer::observe_duration(const std::function<void(double)> observer) {
 void MediaPlayer::observe_timePos(const std::function<void(double)> observer) {
     auto timePosObserver = timePos.observe(observer);
     observers.push(timePosObserver);
+}
+
+void MediaPlayer::enable_stop_timer() {
+    if (!timer_running) {
+        sigc::slot<bool()> slot = sigc::bind([this](int _timer_id) { return timer_stop(_timer_id); },
+                                             timer_id);
+        timer_connection = Glib::signal_timeout().connect(slot, 1000);
+    }
+    timer_running = true;
+}
+
+void MediaPlayer::disable_stop_timer() {
+    spdlog::info("Stop emergency disabled!");
+    timer_connection.disconnect();
+    timer_running = false;
+}
+
+bool MediaPlayer::timer_stop(int /*timer_id*/) {
+    if (paused) {
+        disable_stop_timer();
+        return false;
+    }
+    spdlog::warn("Mediaplayer - Timer file reload!");
+    pause();
+    openFile(mediaFile);
+    return true;
 }

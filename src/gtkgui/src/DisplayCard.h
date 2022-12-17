@@ -1,12 +1,16 @@
 #pragma once
+#include <ButtonGroup.h>
 #include <CardDraw.h>
 #include <DataThread.h>
-#include <ButtonGroup.h>
+#include <MediaButtons.h>
 #include <NotebookPage.h>
 #include <TextDraw.h>
 #include <VocableList.h>
 #include <annotation/Markup.h>
 #include <gtkmm.h>
+#include <multimedia/CardAudioGroup.h>
+#include <multimedia/MediaPlayer.h>
+#include <MediaSlider.h>
 #include <functional>
 #include <vector>
 
@@ -24,7 +28,17 @@ private:
     void annotation_start();
     void annotation_end();
     void createControlButtons();
+    void playFromRelativeProgress(double progress);
+    utl::ObserverCollection observers;
+
+
+    MediaPlayer mediaPlayer;
+    PlayPauseButton btn_playCard{mediaPlayer};
+    MediaSlider scale_mediaProgress;
+    std::optional<StudyAudioFragment> studyAudioFragment;
+
     Gtk::Box controlBtnBox;
+    // Gtk::CheckButton autoPlay;
     Gtk::Button btnNext;
     Gtk::Button btnReveal;
     Gtk::Separator separator1, separator2;
@@ -35,6 +49,7 @@ private:
     std::unique_ptr<CardDraw> cardDraw;
     std::unique_ptr<CardDraw> cardAnnotation;
     std::unique_ptr<VocableList> vocableList;
+    uint cardId = 0;
 
     Gtk::Overlay& overlay;
 

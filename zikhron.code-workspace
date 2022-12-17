@@ -94,7 +94,8 @@
             "qguiapplication": "cpp",
             "charconv": "cpp",
             "gsl_util": "cpp",
-            "filesystem": "cpp"
+            "filesystem": "cpp",
+            "gsl_assert": "cpp"
         }
 	}
 }

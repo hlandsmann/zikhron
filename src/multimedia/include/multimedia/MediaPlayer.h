@@ -10,22 +10,32 @@
 class MediaPlayer {
 public:
     MediaPlayer();
+
+    auto property_duration() const -> const utl::Property<double>& { return duration; }
+    auto property_paused() const -> const utl::Property<bool>& { return paused; }
+    auto property_timePos() const -> const utl::Property<double>& { return timePos; }
+
     void openFile(const std::filesystem::path& mediaFile);
-    void play(bool play = true);
+    void play(double until = 0.0);
     void play_fragment(double start, double end);
-    void pause(bool pause = true);
+    void pause();
     void seek(double pos);
     auto is_paused() const -> bool { return paused; }
     void initGL(const std::shared_ptr<Gtk::GLArea>& glArea);
     auto render(const Glib::RefPtr<Gdk::GLContext>& context) -> bool;
-
-    auto get_duration() const -> const utl::Property<double>& { return duration; }
 
 private:
     void observe_duration(const std::function<void(double)> observer);
     void observe_timePos(const std::function<void(double)> observer);
     void handle_mpv_event(mpv_event* event);
     void on_mpv_events();
+
+    void enable_stop_timer();
+    void disable_stop_timer();
+    bool timer_stop(int timer_id);
+    int timer_id = 0;
+    bool timer_running = false;
+    sigc::connection timer_connection;
 
     Glib::Dispatcher dispatch_mpvEvent;
     Glib::Dispatcher dispatch_render;
@@ -45,7 +55,8 @@ private:
     utl::ObserverCollection observers;
     utl::Property<double> duration;
     utl::Property<double> timePos;
-    int paused = true;
+    int mpv_flag_paused = true;
+    utl::Property<bool> paused = true;
 
     double stopAtPosition = 0;
 };

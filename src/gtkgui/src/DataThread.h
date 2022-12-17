@@ -63,7 +63,7 @@ public:
     static void destroy();
     ~DataThread();
     using paragraph_optional = std::optional<std::shared_ptr<markup::Paragraph>>;
-    using message_card = std::pair<std::shared_ptr<markup::Paragraph>, std::vector<Ease>>;
+    using message_card = std::tuple<std::shared_ptr<markup::Paragraph>, std::vector<Ease>, uint>;
     using message_annotation = std::shared_ptr<markup::Paragraph>;
     using message_paragraphFromIds = std::vector<paragraph_optional>;
     using signal_card = std::function<void(message_card&)>;

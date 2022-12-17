@@ -1,13 +1,16 @@
 #pragma once
 
 #include <ButtonGroup.h>
+#include <MediaButtons.h>
 #include <NotebookPage.h>
 #include <TextDraw.h>
 #include <gtkmm.h>
 #include <multimedia/CardAudioGroup.h>
 #include <multimedia/MediaPlayer.h>
 #include <utils/Property.h>
+#include <filesystem>
 #include <functional>
+#include <MediaSlider.h>
 
 template <class Value_t> class SpinBtnBox : public Gtk::Box {
 public:
@@ -20,8 +23,9 @@ public:
                    double page_increment,
                    double page_size);
     utl::Property<Value_t> currentValue = 0;
-    void set_value(Value_t value) { spinButton.set_value(value); }
+    void set_value(Value_t value);
     void set_digits(int digits);
+    bool changeBySetValue = false;
 
 protected:
     void observe_value(const std::function<void(Value_t)>& observer);
@@ -46,9 +50,22 @@ public:
     SpinBtnBoxPlay() = default;
 };
 
+class PlayBox : public Gtk::Box {
+public:
+    PlayBox(MediaPlayer&);
+
+private:
+    utl::ObserverCollection observers;
+    MediaPlayer& mediaPlayer;
+    Gtk::Grid grid;
+    PlayPauseButton playBtn;
+    MediaSlider slider;
+    Gtk::Label lbl_timePos;
+};
+
 class FragmentPlayBox : public Gtk::Box {
 public:
-    FragmentPlayBox(const std::shared_ptr<MediaPlayer>& mediaPlayer);
+    FragmentPlayBox(MediaPlayer& mediaPlayer);
     void set_minmax(double min, double max);
     void set_minimum(double min);
     void set_maximum(double max);
@@ -58,13 +75,13 @@ public:
 
 private:
     void configure();
+    MediaPlayer& mediaPlayer;
+
     SpinBtnBoxPlay spinBtn_playStart;
     SpinBtnBoxPlay spinBtn_playEnd;
-    Gtk::Button btn_playFirstFragment;
-    Gtk::Button btn_playLastFragment;
-    Gtk::Button btn_play;
-    Gtk::Button btn_reverse;
-    std::shared_ptr<MediaPlayer> mediaPlayer;
+    PlayStopButton btn_playFirstFragment{mediaPlayer};
+    PlayStopButton btn_playLastFragment{mediaPlayer};
+    PlayStopButton btn_play{mediaPlayer};
     utl::ObserverCollection observers;
 
     double lower = 0;
@@ -90,15 +107,16 @@ private:
     void clearPage();
     void fillPage(std::vector<DataThread::paragraph_optional>&& paragraphs);
     void createMainCtrlBtnBox();
-    void setPlayPauseBtnIcon();
     auto addCard(const std::shared_ptr<markup::Paragraph>& paragraph, int row) -> int;
     void addTextDraw(int column, int row, const std::string& markup);
     void requestCards();
     void createFileChooserDialog();
     void on_file_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     void cfgAudioFileObserver();
-    void saveCurrentAudioGroup();
+    auto getCurrentAudioGroup() const -> CardAudioGroup;
     void setUpCardAudioGroup(uint groupId);
+    void setUpFragmentPlayBoxes(uint groupId);
+    void createNewAudioCardGroup();
 
     std::map<uint, FragmentPlayBoxPtr> fragmentPlayBoxes;
     auto first_fragmentPlayBox() const -> decltype(std::ranges::begin(fragmentPlayBoxes));
@@ -114,16 +132,19 @@ private:
     std::vector<TextDrawPtr> textDrawContainer;
     std::vector<FragmentPlayBoxPtr> fragmentPlayBoxesVisible;
 
-    std::shared_ptr<MediaPlayer> mediaPlayer = std::make_shared<MediaPlayer>();
+    std::filesystem::path oldValidAudiofilePath;  // configuring file chooser dialogue
+
+    MediaPlayer mediaPlayer{};
     Gtk::Button btnSave;
-    Gtk::Button btnOpenFile;
-    Gtk::Button btnPlayPause;
+    Gtk::Button btnOpenAudioFile;
+    Gtk::Button btnNewAudioCardGroup;
+    PlayBox playBox{mediaPlayer};
     std::unique_ptr<ButtonGroup> btnGroup_accuracy;
 
     Gtk::Box mainCtrlBtnBox;
+    SpinBtnBoxCards spinBtn_audioGroup = SpinBtnBoxCards("Audio Group");
     SpinBtnBoxCards spinBtn_firstCard = SpinBtnBoxCards("First Card");
     SpinBtnBoxCards spinBtn_lastCard = SpinBtnBoxCards("Last Card");
 
-    CardAudioGroup cardAudio;
     CardAudioGroupDB& cardAudioGroupDB = CardAudioGroupDB::get();
 };

@@ -143,7 +143,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
-    if (countOfNewVocablesToday > 0)
+    if (countOfNewVocablesToday > 20)
         return {};
     if (ids_againVoc.size() >= 9) {
         fmt::print("Vocables that failed are of quantity {}. Therefore no new vocables for now\n",

@@ -381,8 +381,8 @@ void SR_DataBase::AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNe
         cardMeta.vocableIds.erase(vocIdOldChoice);
         cardMeta.vocableIds.insert(vocIdNewChoice);
     }
-    id_vocableMeta[vocIdNewChoice] = id_vocableMeta.at(vocIdOldChoice);
-    id_vocableSR[vocIdNewChoice] = id_vocableSR.at(vocIdOldChoice);
+    id_vocableMeta[vocIdNewChoice] = id_vocableMeta[vocIdOldChoice];
+    id_vocableSR[vocIdNewChoice] = id_vocableSR[vocIdOldChoice];
     id_vocable[vocIdNewChoice] = id_vocable[vocIdOldChoice];
     id_vocable.erase(vocIdOldChoice);
     id_vocableMeta.erase(vocIdOldChoice);
