@@ -28,7 +28,7 @@ MainWindow::MainWindow() {
 
     appendPage(std::make_shared<DisplayCard>(*overlay), "Cards");
     appendPage(std::make_shared<VideoSpace>(*overlay), "Video");
-    appendPage(std::make_shared<SupplyAudio>(), "Add Cards");
+    appendPage(std::make_shared<SupplyAudio>(), "Audio");
 
     sidebar.signal_switch_page().connect([this](Gtk::Widget *, guint slot) {
         for (guint page = 0; page < pages.size(); page++) {

@@ -10,6 +10,7 @@ namespace ranges = std::ranges;
 CardDraw::CardDraw(Gtk::Overlay& overlay_in) : overlay(overlay_in) { set_column_spacing(48); }
 
 void CardDraw::setParagraph(const std::shared_ptr<markup::Paragraph>& paragraph_in) {
+    reset();
     paragraph = paragraph_in;
     int textDrawIndex = 0;  // ToDo: use enumerate here
     for (const auto& fragment : paragraph->getFragments()) {
@@ -148,4 +149,12 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
 
     });
     overlay.add_overlay(*vocableOverlay);
+}
+
+void CardDraw::reset(){
+    for (const auto& textDraw : textDrawContainer) {
+        remove(*textDraw);
+    }
+
+    textDrawContainer.clear();
 }

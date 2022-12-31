@@ -7,10 +7,7 @@ include(FindPkgConfig)
 include(cmake/Conan.cmake)
 option(skip_run_conan OFF)
 
-# if(NOT skip_run_conan)
-    run_conan()
-#     set(skip_run_conan ON CACHE BOOL "Run only once")
-# endif(NOT skip_run_conan)
+run_conan()
 
 # regenerate build system if conanfile.py changes
 set_property(DIRECTORY

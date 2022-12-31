@@ -6,10 +6,13 @@
 
 namespace ranges = std::ranges;
 
-DisplayCard::DisplayCard(Gtk::Overlay& ov) : overlay(ov) {
+DisplayCard::DisplayCard(Gtk::Overlay& ov) : overlay(ov), cardDraw(ov), cardAnnotation(ov) {
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     set_spacing(64);
+    append(cardDraw);
+    append(cardAnnotation);
+    append(vocableList);
     createControlButtons();
     DataThread::get().signal_card_connect([this](auto& msg_card) { receive_card(msg_card); });
     DataThread::get().signal_annotation_connect(
@@ -18,23 +21,14 @@ DisplayCard::DisplayCard(Gtk::Overlay& ov) : overlay(ov) {
 }
 
 void DisplayCard::receive_card(DataThread::message_card& msg_card) {
-    if (cardDraw)
-        remove(*cardDraw);
-    if (vocableList)
-        remove(*vocableList);
-
     std::tie(paragraph, easeList, cardId) = std::move(msg_card);
 
-    vocableList = std::make_unique<VocableList>();
-    vocableList->setParagraph(paragraph, easeList);
+    vocableList.setParagraph(paragraph, easeList);
 
-    prepend(*vocableList);
-    vocableList->set_visible(displayVocabulary);
+    vocableList.set_visible(displayVocabulary);
 
-    cardDraw = std::make_unique<CardDraw>(overlay);
-    cardDraw->setParagraph(paragraph);
-    cardDraw->set_visible(not btnAnnotate.property_active());
-    prepend(*cardDraw);
+    cardDraw.setParagraph(paragraph);
+    cardDraw.set_visible(not btnAnnotate.property_active());
 
     studyAudioFragment = CardAudioGroupDB::get().get_studyAudioFragment(cardId);
     btn_playCard.set_visible(studyAudioFragment.has_value());
@@ -49,27 +43,23 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card) {
 }
 
 void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotation) {
-    if (cardAnnotation)
-        remove(*cardAnnotation);
+
     annotation = std::move(msg_annotation);
     annotation->updateAnnotationColoring();
-    cardAnnotation = std::make_unique<CardDraw>(overlay);
-    cardAnnotation->setParagraph(std::move(annotation));
-    cardAnnotation->set_visible(btnAnnotate.property_active());
-    cardAnnotation->setAnnotationMode();
-    prepend(*cardAnnotation);
+    cardAnnotation.setParagraph(std::move(annotation));
+    cardAnnotation.set_visible(btnAnnotate.property_active());
+    cardAnnotation.setAnnotationMode();
 };
 
 void DisplayCard::createControlButtons() {
     controlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
     controlBtnBox.append(btn_playCard);
-    btn_playCard.signal_start_connect([this](MediaPlayer& _mediaPlayer) {
+    btn_playCard.signal_start_connect([this](MediaPlayer& /*_mediaPlayer*/) {
         double progress = scale_mediaProgress.getProgress() > 0.99 ? 0.
                                                                    : scale_mediaProgress.getProgress();
         playFromRelativeProgress(progress);
     });
     btn_playCard.signal_pause_connect([this](MediaPlayer& _mediaPlayer) { _mediaPlayer.pause(); });
-    // scale_mediaProgress.set_orientation(Gtk::Orientation::HORIZONTAL);
     scale_mediaProgress.set_expand();
     scale_mediaProgress.signal_clickProgress_connect(
         [this](double progress) { playFromRelativeProgress(progress); });
@@ -87,26 +77,24 @@ void DisplayCard::createControlButtons() {
     controlBtnBox.append(scale_mediaProgress);
     controlBtnBox.append(separator1);
     separator1.set_expand();
-    btnReveal.set_label("Reveal Vocabulary");
-    btnReveal.signal_clicked().connect([this]() {
-        displayVocabulary = true;
-        vocableList->set_visible(displayVocabulary);
-        btnReveal.set_visible(false);
-        btnNext.set_visible(true);
-    });
-    controlBtnBox.append(btnReveal);
-    btnReveal.set_halign(Gtk::Align::CENTER);
 
-    btnNext.set_label("Submit choice of ease");
-    btnNext.signal_clicked().connect([this]() {
-        displayVocabulary = false;
-        btnReveal.set_visible(true);
-        btnNext.set_visible(false);
-        submitChoiceOfEase();
-        requestNewCard();
+    observers.push(displayVocabulary.observe([this](bool vocableListVisible) {
+        if (vocableListVisible) {
+            btnNextReveal.set_label("Submit choice of ease");
+        } else {
+            btnNextReveal.set_label("Reveal vocabulary");
+        }
+        vocableList.set_visible(vocableListVisible);
+    }));
+    btnNextReveal.set_halign(Gtk::Align::CENTER);
+    btnNextReveal.signal_clicked().connect([this]() {
+        if (displayVocabulary) {
+            submitChoiceOfEase();
+            requestNewCard();
+        }
+        displayVocabulary = not displayVocabulary;
     });
-    btnNext.set_visible(false);
-    controlBtnBox.append(btnNext);
+    controlBtnBox.append(btnNextReveal);
     controlBtnBox.append(separator2);
     separator2.set_expand();
 
@@ -128,7 +116,7 @@ void DisplayCard::createControlButtons() {
 }
 
 void DisplayCard::submitChoiceOfEase() {
-    auto id_ease = paragraph->getRestoredOrderOfEaseList(vocableList->getChoiceOfEase());
+    auto id_ease = paragraph->getRestoredOrderOfEaseList(vocableList.getChoiceOfEase());
     DataThread::get().submitEase(id_ease);
 }
 
@@ -141,18 +129,17 @@ void DisplayCard::annotation_start() {
         return;
     }
 
-    btnNext.set_visible(false);
-    btnReveal.set_visible(false);
-    vocableList->set_visible(false);
-    cardDraw->set_visible(false);
-    cardAnnotation->set_visible(true);
+    btnNextReveal.set_visible(false);
+    displayVocabulary = false;
+    cardDraw.set_visible(false);
+    cardAnnotation.set_visible(true);
 }
 
 void DisplayCard::annotation_end() {
-    btnReveal.set_visible(true);
-    cardDraw->set_visible(true);
-    vocableList->set_visible(displayVocabulary);
-    cardAnnotation->set_visible(false);
+    btnNextReveal.set_visible(true);
+    cardDraw.set_visible(true);
+    vocableList.set_visible(displayVocabulary);
+    cardAnnotation.set_visible(false);
 }
 
 void DisplayCard::playFromRelativeProgress(double progress) {

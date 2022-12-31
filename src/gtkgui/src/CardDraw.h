@@ -21,6 +21,7 @@ private:
     constexpr static int textSpacing = 20;
     void addTextDraw(int column, int row, const std::string& markup);
     void setupSignals();
+    void reset();
     std::vector<TextDrawPtr> textDrawContainer;
     std::shared_ptr<markup::Paragraph> paragraph;
     std::unique_ptr<AnnotationOverlay> annotationOverlay;

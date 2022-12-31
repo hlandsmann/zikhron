@@ -19,6 +19,7 @@ private:
 
     void addTextDraw(int column, int row, const std::string& markup);
     void addEaseChoice(int column, int row);
+    void reset();
 
     std::vector<TextDrawPtr> textDrawContainer;
     std::vector<EaseChoicePtr> easeChoiceContainer;

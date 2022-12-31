@@ -8,6 +8,8 @@ VocableList::VocableList() { set_column_spacing(32); }
 
 void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragraph_in,
                                const std::vector<Ease>& easeList) {
+    reset();
+
     paragraph = paragraph_in;
     int index = 0;
     for (const auto& [vocable, pronounciation, meaning] : paragraph->getVocables()) {
@@ -44,4 +46,15 @@ auto VocableList::getChoiceOfEase() const -> std::vector<Ease> {
             return mapIntToEase(easeChoice->getActive());
         });
     return easeList;
+}
+
+void VocableList::reset() {
+    for (const auto& textDraw : textDrawContainer) {
+        remove(*textDraw);
+    }
+    for (const auto& easeChoice : easeChoiceContainer) {
+        remove(*easeChoice);
+    }
+    textDrawContainer.clear();
+    easeChoiceContainer.clear();
 }

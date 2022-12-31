@@ -194,9 +194,8 @@ void SupplyAudio::clearPage() {
 }
 
 void SupplyAudio::fillPage(std::vector<DataThread::paragraph_optional>&& paragraphs) {
-    int row = 1;
     uint cardId = spinBtn_firstCard.currentValue;
-    for (const auto& p : paragraphs) {
+    for (int row{1}; const auto& p : paragraphs) {
         if (p.has_value()) {
             if (!fragmentPlayBoxes[cardId])
                 fragmentPlayBoxes[cardId] = std::make_shared<FragmentPlayBox>(mediaPlayer);

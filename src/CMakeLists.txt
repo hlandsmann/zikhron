@@ -1,7 +1,6 @@
 
 add_library(zikhron-warnings INTERFACE)
-target_compile_options(
-    zikhron-warnings
+target_compile_options(zikhron-warnings
     INTERFACE
         -Wall
         -Wextra

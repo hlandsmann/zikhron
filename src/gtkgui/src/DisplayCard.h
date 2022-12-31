@@ -3,6 +3,7 @@
 #include <CardDraw.h>
 #include <DataThread.h>
 #include <MediaButtons.h>
+#include <MediaSlider.h>
 #include <NotebookPage.h>
 #include <TextDraw.h>
 #include <VocableList.h>
@@ -10,7 +11,7 @@
 #include <gtkmm.h>
 #include <multimedia/CardAudioGroup.h>
 #include <multimedia/MediaPlayer.h>
-#include <MediaSlider.h>
+#include <utils/Property.h>
 #include <functional>
 #include <vector>
 
@@ -30,7 +31,7 @@ private:
     void createControlButtons();
     void playFromRelativeProgress(double progress);
     utl::ObserverCollection observers;
-
+    Gtk::Overlay& overlay;
 
     MediaPlayer mediaPlayer;
     PlayPauseButton btn_playCard{mediaPlayer};
@@ -38,20 +39,17 @@ private:
     std::optional<StudyAudioFragment> studyAudioFragment;
 
     Gtk::Box controlBtnBox;
-    // Gtk::CheckButton autoPlay;
-    Gtk::Button btnNext;
-    Gtk::Button btnReveal;
+    Gtk::Button btnNextReveal;
+    utl::Property<bool> vocablelistVisible = false;
     Gtk::Separator separator1, separator2;
     Gtk::ToggleButton btnAnnotate;
     std::shared_ptr<markup::Paragraph> paragraph;
     std::shared_ptr<markup::Paragraph> annotation;
     std::vector<Ease> easeList;
-    std::unique_ptr<CardDraw> cardDraw;
-    std::unique_ptr<CardDraw> cardAnnotation;
-    std::unique_ptr<VocableList> vocableList;
+    CardDraw cardDraw;
+    CardDraw cardAnnotation;
+    VocableList vocableList;
     uint cardId = 0;
 
-    Gtk::Overlay& overlay;
-
-    bool displayVocabulary = false;
+    utl::Property<bool> displayVocabulary = false;
 };
