@@ -1,5 +1,6 @@
 #pragma once
 
+#include <MediaButtons.h>
 #include <NotebookPage.h>
 #include <SubtitleComboBox.h>
 #include <SubtitleOverlay.h>
@@ -18,13 +19,14 @@ private:
     void createGlArea();
     void createControlButtons();
     void createSubtitleOverlay();
-    void setPlayPauseBtnIcon();
     void createFileChooserDialog();
     void on_file_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
     bool signal_render(const Glib::RefPtr<Gdk::GLContext>& context);
     void signal_realize();
     void signal_resize(int width, int height);
     void subtitleLoading_callback(bool finished);
+    MediaPlayer mediaPlayer{};
+
 
     Gtk::Overlay& overlay;
     utl::ObserverCollection observers;
@@ -32,11 +34,10 @@ private:
     Gtk::Box controlBtnBox;
     SubtitleComboBox subtitleComboBox;
     Gtk::Button btnOpenFile;
-    Gtk::Button btnPlayPause;
+    PlayPauseButton btnPlayPause{mediaPlayer};
     Gtk::Separator separator1, separator2;
     std::shared_ptr<Gtk::GLArea> glArea = std::make_shared<Gtk::GLArea>();
     Gtk::ProgressBar progressBar;
-    std::shared_ptr<MediaPlayer> mediaPlayer = std::make_shared<MediaPlayer>();
     std::shared_ptr<SubtitleDecoder> subtitleDecoder;
     std::unique_ptr<SubtitleOverlay> subtitleOverlay;
 
