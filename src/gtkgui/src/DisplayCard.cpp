@@ -6,7 +6,8 @@
 
 namespace ranges = std::ranges;
 
-DisplayCard::DisplayCard(Gtk::Overlay& ov) : overlay(ov), cardDraw(ov), cardAnnotation(ov) {
+DisplayCard::DisplayCard(Gtk::Overlay& ov)
+    : overlay(ov), cardDraw(ov), cardAnnotation(ov), grp_single_group("single", "group") {
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     set_spacing(64);
@@ -43,7 +44,6 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card) {
 }
 
 void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotation) {
-
     annotation = std::move(msg_annotation);
     annotation->updateAnnotationColoring();
     cardAnnotation.setParagraph(std::move(annotation));
@@ -53,7 +53,9 @@ void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotat
 
 void DisplayCard::createControlButtons() {
     controlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
-    controlBtnBox.append(btn_playCard);
+    controlBtnBox.set_spacing(24);
+    playBox.set_orientation(Gtk::Orientation::HORIZONTAL);
+    playBox.append(btn_playCard);
     btn_playCard.signal_start_connect([this](MediaPlayer& /*_mediaPlayer*/) {
         double progress = scale_mediaProgress.getProgress() > 0.99 ? 0.
                                                                    : scale_mediaProgress.getProgress();
@@ -74,7 +76,8 @@ void DisplayCard::createControlButtons() {
         scale_mediaProgress.setProgress(std::clamp(relative_progress / length, 0., 1.));
     }));
 
-    controlBtnBox.append(scale_mediaProgress);
+    playBox.append(scale_mediaProgress);
+    controlBtnBox.append(playBox);
     controlBtnBox.append(separator1);
     separator1.set_expand();
 
@@ -95,6 +98,8 @@ void DisplayCard::createControlButtons() {
         displayVocabulary = not displayVocabulary;
     });
     controlBtnBox.append(btnNextReveal);
+    grp_single_group.setActive(0);
+    controlBtnBox.append(grp_single_group);
     controlBtnBox.append(separator2);
     separator2.set_expand();
 

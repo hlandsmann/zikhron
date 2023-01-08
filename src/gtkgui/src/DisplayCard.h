@@ -32,22 +32,24 @@ private:
     void playFromRelativeProgress(double progress);
     utl::ObserverCollection observers;
     Gtk::Overlay& overlay;
-
+    CardDraw cardDraw;
+    CardDraw cardAnnotation;
     MediaPlayer mediaPlayer;
     PlayPauseButton btn_playCard{mediaPlayer};
     MediaSlider scale_mediaProgress;
     std::optional<StudyAudioFragment> studyAudioFragment;
 
     Gtk::Box controlBtnBox;
+    Gtk::Box playBox;
     Gtk::Button btnNextReveal;
+    ButtonGroup grp_single_group;
     utl::Property<bool> vocablelistVisible = false;
     Gtk::Separator separator1, separator2;
     Gtk::ToggleButton btnAnnotate;
     std::shared_ptr<markup::Paragraph> paragraph;
     std::shared_ptr<markup::Paragraph> annotation;
     std::vector<Ease> easeList;
-    CardDraw cardDraw;
-    CardDraw cardAnnotation;
+
     VocableList vocableList;
     uint cardId = 0;
 
