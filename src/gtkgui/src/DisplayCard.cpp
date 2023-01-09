@@ -54,6 +54,7 @@ void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotat
 void DisplayCard::createControlButtons() {
     controlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
     controlBtnBox.set_spacing(24);
+
     playBox.set_orientation(Gtk::Orientation::HORIZONTAL);
     playBox.append(btn_playCard);
     btn_playCard.signal_start_connect([this](MediaPlayer& /*_mediaPlayer*/) {
@@ -77,9 +78,6 @@ void DisplayCard::createControlButtons() {
     }));
 
     playBox.append(scale_mediaProgress);
-    controlBtnBox.append(playBox);
-    controlBtnBox.append(separator1);
-    separator1.set_expand();
 
     observers.push(displayVocabulary.observe([this](bool vocableListVisible) {
         if (vocableListVisible) {
@@ -97,14 +95,11 @@ void DisplayCard::createControlButtons() {
         }
         displayVocabulary = not displayVocabulary;
     });
-    controlBtnBox.append(btnNextReveal);
-    grp_single_group.setActive(0);
-    controlBtnBox.append(grp_single_group);
-    controlBtnBox.append(separator2);
-    separator2.set_expand();
 
+    grp_single_group.setActive(0);
+    grp_single_group.setSensitive(false);
     btnAnnotate.set_label("Annotate");
-    btnAnnotate.set_valign(Gtk::Align::END);
+    btnAnnotate.set_halign(Gtk::Align::END);
     btnAnnotate.signal_clicked().connect([this]() {
         if (btnAnnotate.property_active())
             annotation_start();
@@ -112,6 +107,14 @@ void DisplayCard::createControlButtons() {
             annotation_end();
     });
 
+    btnGrp_forwardBackward.set_sensitive(false);
+
+    controlBtnBox.append(playBox);
+    controlBtnBox.append(separator1);
+    separator1.set_expand();
+    controlBtnBox.append(btnNextReveal);
+    controlBtnBox.append(grp_single_group);
+    controlBtnBox.append(btnGrp_forwardBackward);
     controlBtnBox.append(btnAnnotate);
 
     append(controlBtnBox);

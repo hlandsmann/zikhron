@@ -41,10 +41,11 @@ private:
 
     Gtk::Box controlBtnBox;
     Gtk::Box playBox;
+    BtnGrpForwardBackward btnGrp_forwardBackward;
     Gtk::Button btnNextReveal;
     ButtonGroup grp_single_group;
     utl::Property<bool> vocablelistVisible = false;
-    Gtk::Separator separator1, separator2;
+    Gtk::Separator separator1;
     Gtk::ToggleButton btnAnnotate;
     std::shared_ptr<markup::Paragraph> paragraph;
     std::shared_ptr<markup::Paragraph> annotation;

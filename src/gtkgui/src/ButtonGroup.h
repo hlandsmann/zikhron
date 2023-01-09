@@ -13,6 +13,7 @@ public:
     void setActive(uint active);
     auto getActive() const -> uint;
     void observe_active(const std::function<void(uint)> observer);
+    void setSensitive(bool sensitive = true);
 
 private:
     utl::ObserverCollection observers;

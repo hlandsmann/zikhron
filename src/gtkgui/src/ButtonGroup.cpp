@@ -40,3 +40,7 @@ void ButtonGroup::observe_active(const std::function<void(uint)> observer) {
     auto activeObserver = active.observe(observer);
     observers.push(activeObserver);
 }
+
+void ButtonGroup::setSensitive(bool sensitive) {
+    ranges::for_each(buttons, [sensitive](auto& button) { button->set_sensitive(sensitive); });
+}

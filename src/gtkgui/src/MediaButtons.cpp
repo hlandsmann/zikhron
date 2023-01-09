@@ -69,3 +69,23 @@ PlayPauseButton::PlayPauseButton(MediaPlayer& _mediaPlayer) : MediaButton(_media
 }
 
 void PlayPauseButton::onBtnClick_post() {}
+
+BtnGrpForwardBackward::BtnGrpForwardBackward() {
+    set_orientation(Gtk::Orientation::HORIZONTAL);
+    set_spacing(0);
+    beginGroupBtn.set_image_from_icon_name("media-skip-backward");
+    prevBtn.set_image_from_icon_name("media-seek-backward");
+    nextBtn.set_image_from_icon_name("media-seek-forward");
+    endGroupBtn.set_image_from_icon_name("media-skip-forward");
+    append(beginGroupBtn);
+    append(prevBtn);
+    append(nextBtn);
+    append(endGroupBtn);
+}
+
+void BtnGrpForwardBackward::setSensitive(bool sensitive) {
+    beginGroupBtn.set_sensitive(sensitive);
+    prevBtn.set_sensitive(sensitive);
+    nextBtn.set_sensitive(sensitive);
+    endGroupBtn.set_sensitive(sensitive);
+}

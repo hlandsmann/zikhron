@@ -49,3 +49,15 @@ private:
     void onBtnClick_post();
     std::shared_ptr<utl::ObserverBase> observer_paused;
 };
+
+class BtnGrpForwardBackward : public Gtk::Box {
+public:
+    BtnGrpForwardBackward();
+    void setSensitive(bool active = true);
+
+private:
+    Gtk::Button beginGroupBtn;
+    Gtk::Button prevBtn;
+    Gtk::Button nextBtn;
+    Gtk::Button endGroupBtn;
+};
