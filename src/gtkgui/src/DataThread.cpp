@@ -166,11 +166,11 @@ void DataThread::dispatcher_fun() {
     }
 }
 
-void DataThread::requestCard() {
+void DataThread::requestCard(std::optional<uint> preferedCardId) {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
-        job_queue.push([this]() {
-            auto cardInformation = vocabularySR->getCard();
+        job_queue.push([this, preferedCardId]() {
+            auto cardInformation = vocabularySR->getNextCardChoice(preferedCardId);
             sendActiveCard(cardInformation);
         });
     }

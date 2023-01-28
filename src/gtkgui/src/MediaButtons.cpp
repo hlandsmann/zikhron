@@ -73,19 +73,45 @@ void PlayPauseButton::onBtnClick_post() {}
 BtnGrpForwardBackward::BtnGrpForwardBackward() {
     set_orientation(Gtk::Orientation::HORIZONTAL);
     set_spacing(0);
-    beginGroupBtn.set_image_from_icon_name("media-skip-backward");
-    prevBtn.set_image_from_icon_name("media-seek-backward");
-    nextBtn.set_image_from_icon_name("media-seek-forward");
-    endGroupBtn.set_image_from_icon_name("media-skip-forward");
-    append(beginGroupBtn);
-    append(prevBtn);
-    append(nextBtn);
-    append(endGroupBtn);
+    skipBackwardBtn.set_image_from_icon_name("media-skip-backward");
+    seekBackwardBtn.set_image_from_icon_name("media-seek-backward");
+    seekForwardBtn.set_image_from_icon_name("media-seek-forward");
+    skipForwardBtn.set_image_from_icon_name("media-skip-forward");
+    append(skipBackwardBtn);
+    append(seekBackwardBtn);
+    append(seekForwardBtn);
+    append(skipForwardBtn);
 }
 
 void BtnGrpForwardBackward::setSensitive(bool sensitive) {
-    beginGroupBtn.set_sensitive(sensitive);
-    prevBtn.set_sensitive(sensitive);
-    nextBtn.set_sensitive(sensitive);
-    endGroupBtn.set_sensitive(sensitive);
+    skipBackwardBtn.set_sensitive(sensitive);
+    seekBackwardBtn.set_sensitive(sensitive);
+    seekForwardBtn.set_sensitive(sensitive);
+    skipForwardBtn.set_sensitive(sensitive);
+}
+
+void BtnGrpForwardBackward::setIndividualSensitivity(bool sensitive_skipBackwardBtn,
+                                                     bool sensitive_seekBackwardBtn,
+                                                     bool sensitive_seekForwardBtn,
+                                                     bool sensitive_skipForwardBtn) {
+    skipBackwardBtn.set_sensitive(sensitive_skipBackwardBtn);
+    seekBackwardBtn.set_sensitive(sensitive_seekBackwardBtn);
+    seekForwardBtn.set_sensitive(sensitive_seekForwardBtn);
+    skipForwardBtn.set_sensitive(sensitive_skipForwardBtn);
+}
+
+void BtnGrpForwardBackward::skipBackwardClick(const std::function<void()>& cb_fun) {
+    skipBackwardBtn.signal_clicked().connect(cb_fun);
+}
+
+void BtnGrpForwardBackward::seekBackwardClick(const std::function<void()>& cb_fun) {
+    seekBackwardBtn.signal_clicked().connect(cb_fun);
+}
+
+void BtnGrpForwardBackward::seekForwardClick(const std::function<void()>& cb_fun) {
+    seekForwardBtn.signal_clicked().connect(cb_fun);
+}
+
+void BtnGrpForwardBackward::skipForwardClick(const std::function<void()>& cb_fun) {
+    skipForwardBtn.signal_clicked().connect(cb_fun);
 }

@@ -48,8 +48,8 @@ void VideoSpace::createControlButtons() {
     controlBtnBox.append(separator1);
     separator1.set_expand();
 
-    btnPlayPause.signal_start_connect([this](MediaPlayer &/*mediaPlayer*/) { mediaPlayer.play(); });
-    btnPlayPause.signal_pause_connect([this](MediaPlayer &/*mediaPlayer*/) { mediaPlayer.pause(); });
+    btnPlayPause.signal_start_connect([this](MediaPlayer & /*mediaPlayer*/) { mediaPlayer.play(); });
+    btnPlayPause.signal_pause_connect([this](MediaPlayer & /*mediaPlayer*/) { mediaPlayer.pause(); });
     btnPlayPause.set_halign(Gtk::Align::CENTER);
 
     controlBtnBox.append(btnPlayPause);

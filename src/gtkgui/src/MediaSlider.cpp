@@ -5,7 +5,7 @@
 MediaSlider::MediaSlider() {
     set_draw_func(sigc::mem_fun(*this, &MediaSlider::on_draw));
     clickController = Gtk::GestureClick::create();
-    clickController->signal_pressed().connect([this](int key, double x, double y) {
+    clickController->signal_pressed().connect([this](int /* key */, double x, double /* y */) {
         double totalBarLength = lastWidth - spacing * 4;
         double bar_x = spacing * 2;
 
@@ -34,7 +34,6 @@ void MediaSlider::on_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, in
     cr->set_line_width(height - spacing * 4);
     cr->line_to(bar_x + totalBarLength * progress, bar_y);
     cr->stroke();
-
 }
 
 void MediaSlider::setSpacing(int _spacing) {

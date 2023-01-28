@@ -16,6 +16,8 @@
 #include <vector>
 
 class DisplayCard : public Gtk::Box, public NotebookPage {
+    enum class StudyMode { SingleCard, Group };
+
 public:
     DisplayCard(Gtk::Overlay&);
 
@@ -25,11 +27,11 @@ private:
 
     void submitChoiceOfEase();
     void removeCurrentCard();
-    void requestNewCard();
     void annotation_start();
     void annotation_end();
     void createControlButtons();
     void playFromRelativeProgress(double progress);
+    void updateBackwardForwardButton();
     utl::ObserverCollection observers;
     Gtk::Overlay& overlay;
     CardDraw cardDraw;

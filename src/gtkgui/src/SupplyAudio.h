@@ -2,6 +2,7 @@
 
 #include <ButtonGroup.h>
 #include <MediaButtons.h>
+#include <MediaSlider.h>
 #include <NotebookPage.h>
 #include <TextDraw.h>
 #include <gtkmm.h>
@@ -10,7 +11,7 @@
 #include <utils/Property.h>
 #include <filesystem>
 #include <functional>
-#include <MediaSlider.h>
+#include <ranges>
 
 template <class Value_t> class SpinBtnBox : public Gtk::Box {
 public:

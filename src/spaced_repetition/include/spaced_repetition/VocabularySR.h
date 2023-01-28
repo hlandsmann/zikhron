@@ -31,7 +31,7 @@ public:
     using VocableIds_vt = std::vector<uint>;
     using Id_Ease_vt = std::map<uint, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
-    auto getCard() -> CardInformation;
+    auto getNextCardChoice(std::optional<uint> preferedCardId = {}) -> CardInformation;
     auto getCardFromId(uint id) const -> std::optional<CardInformation>;
     auto AddAnnotation(const std::vector<int>& combination, const std::vector<utl::CharU8>& characters)
         -> CardInformation;

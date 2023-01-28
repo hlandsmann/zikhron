@@ -30,17 +30,24 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card) {
 
     cardDraw.setParagraph(paragraph);
     cardDraw.set_visible(not btnAnnotate.property_active());
-
-    studyAudioFragment = CardAudioGroupDB::get().get_studyAudioFragment(cardId);
+    const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
+    studyAudioFragment = cardAudioDB.get_studyAudioFragment(cardId);
     btn_playCard.set_visible(studyAudioFragment.has_value());
     scale_mediaProgress.set_visible(studyAudioFragment.has_value());
     scale_mediaProgress.setProgress(0);
     separator1.set_visible(!studyAudioFragment.has_value());
     if (studyAudioFragment.has_value()) {
         mediaPlayer.openFile(studyAudioFragment.value().audioFile);
+    } else {
+        grp_single_group.setActive(static_cast<uint>(StudyMode::SingleCard));
     }
     mediaPlayer.pause();
     controlBtnBox.set_visible(true);
+
+    grp_single_group.setSensitive(studyAudioFragment.has_value());
+    if (static_cast<StudyMode>(grp_single_group.getActive()) == StudyMode::Group) {
+        updateBackwardForwardButton();
+    }
 }
 
 void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotation) {
@@ -91,12 +98,25 @@ void DisplayCard::createControlButtons() {
     btnNextReveal.signal_clicked().connect([this]() {
         if (displayVocabulary) {
             submitChoiceOfEase();
-            requestNewCard();
+
+            if (static_cast<StudyMode>(grp_single_group.getActive()) == StudyMode::Group) {
+                const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
+                const auto nextCardId = cardAudioDB.seekForward(cardId);
+                DataThread::get().requestCard(nextCardId);
+                if (!nextCardId.has_value())
+                    grp_single_group.setActive(static_cast<uint>(StudyMode::SingleCard));
+            } else
+                DataThread::get().requestCard();
         }
         displayVocabulary = not displayVocabulary;
     });
-
-    grp_single_group.setActive(0);
+    grp_single_group.observe_active([this](uint active) {
+        switch (static_cast<StudyMode>(active)) {
+        case StudyMode::SingleCard: btnGrp_forwardBackward.setSensitive(false); break;
+        case StudyMode::Group: updateBackwardForwardButton(); break;
+        }
+    });
+    grp_single_group.setActive(static_cast<uint>(StudyMode::SingleCard));
     grp_single_group.setSensitive(false);
     btnAnnotate.set_label("Annotate");
     btnAnnotate.set_halign(Gtk::Align::END);
@@ -107,7 +127,27 @@ void DisplayCard::createControlButtons() {
             annotation_end();
     });
 
-    btnGrp_forwardBackward.set_sensitive(false);
+    btnGrp_forwardBackward.setSensitive(false);
+    btnGrp_forwardBackward.skipBackwardClick([this]() {
+        const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
+        const auto nextCardId = cardAudioDB.skipBackward(cardId);
+        DataThread::get().requestCard(nextCardId);
+    });
+    btnGrp_forwardBackward.seekBackwardClick([this]() {
+        const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
+        const auto nextCardId = cardAudioDB.seekBackward(cardId);
+        DataThread::get().requestCard(nextCardId);
+    });
+    btnGrp_forwardBackward.seekForwardClick([this]() {
+        const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
+        const auto nextCardId = cardAudioDB.seekForward(cardId);
+        DataThread::get().requestCard(nextCardId);
+    });
+    btnGrp_forwardBackward.skipForwardClick([this]() {
+        const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
+        const auto nextCardId = cardAudioDB.skipForward(cardId);
+        DataThread::get().requestCard(nextCardId);
+    });
 
     controlBtnBox.append(playBox);
     controlBtnBox.append(separator1);
@@ -127,8 +167,6 @@ void DisplayCard::submitChoiceOfEase() {
     auto id_ease = paragraph->getRestoredOrderOfEaseList(vocableList.getChoiceOfEase());
     DataThread::get().submitEase(id_ease);
 }
-
-void DisplayCard::requestNewCard() { DataThread::get().requestCard(); }
 
 void DisplayCard::annotation_start() {
     if (not annotation) {
@@ -153,8 +191,17 @@ void DisplayCard::annotation_end() {
 void DisplayCard::playFromRelativeProgress(double progress) {
     if (not studyAudioFragment.has_value())
         return;
-    const StudyAudioFragment& saf = studyAudioFragment.value();
+    const StudyAudioFragment& saf = *studyAudioFragment;
     double length = saf.end - saf.start;
     double start = saf.start + length * progress;
     mediaPlayer.play_fragment(start, saf.end);
+}
+
+void DisplayCard::updateBackwardForwardButton() {
+    const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
+
+    btnGrp_forwardBackward.setIndividualSensitivity(cardAudioDB.skipBackward(cardId).has_value(),
+                                                    cardAudioDB.seekBackward(cardId).has_value(),
+                                                    cardAudioDB.seekForward(cardId).has_value(),
+                                                    cardAudioDB.skipForward(cardId).has_value());
 }

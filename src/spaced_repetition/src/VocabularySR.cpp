@@ -227,13 +227,14 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
     return cm.cardId;
 }
 
-auto VocabularySR::getCard() -> std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt> {
+auto VocabularySR::getNextCardChoice(std::optional<uint> preferedCardId)
+    -> std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt> {
     sr_db.AdvanceFailedVocables();
     fmt::print("To Repeat: {}, Again: {}\n", ids_repeatTodayVoc.size(), ids_againVoc.size());
 
-    if (activeCardId.has_value())
-        sr_db.AdvanceIndirectlySeenVocables(*activeCardId);
-    if (not ids_nowVoc.empty()) {
+    if (preferedCardId.has_value())
+        activeCardId = *preferedCardId;
+    else if (not ids_nowVoc.empty()) {
         auto repeatVocStart = GetCardRepeatedVoc();
         assert(repeatVocStart.has_value());
         activeCardId = *repeatVocStart;
@@ -324,4 +325,5 @@ void VocabularySR::setEaseLastCard(const Id_Ease_vt& id_ease) {
         sr_db.SetEase(vocId, ease);
     }
     sr_db.ViewCard(*activeCardId);
+    sr_db.AdvanceIndirectlySeenVocables(*activeCardId);
 }

@@ -113,7 +113,7 @@ auto CardAudioGroupDB::get_cardAudioGroup(uint groupId) const -> CardAudioGroup 
 }
 
 void CardAudioGroupDB::insert(uint groupId, const CardAudioGroup& cag) {
-    if (groupId == 0)
+    if (groupId == s_invalidGroupId)
         return;
 
     spdlog::debug("group: {}, size {}", groupId, cag.cardId_audioFragment.size());
@@ -125,7 +125,7 @@ void CardAudioGroupDB::insert(uint groupId, const CardAudioGroup& cag) {
 
 auto CardAudioGroupDB::nextOrThisGroupId(uint groupId) const -> uint {
     if (id_cardAudioGroup.empty())
-        return firstGroupId;
+        return s_firstGroupId;
     auto it = ranges::find_if(
         id_cardAudioGroup,
         [groupId](uint nextId) { return nextId >= groupId; },
@@ -137,7 +137,7 @@ auto CardAudioGroupDB::nextOrThisGroupId(uint groupId) const -> uint {
 
 auto CardAudioGroupDB::prevOrThisGroupId(uint groupId) const -> uint {
     if (id_cardAudioGroup.empty())
-        return firstGroupId;
+        return s_firstGroupId;
     auto it = ranges::find_if(
         id_cardAudioGroup | std::views::reverse,
         [groupId](uint nextId) { return nextId <= groupId; },
@@ -148,7 +148,7 @@ auto CardAudioGroupDB::prevOrThisGroupId(uint groupId) const -> uint {
 }
 
 auto CardAudioGroupDB::newCardAudioGroup() -> uint {
-    uint newGroupId = firstGroupId;
+    uint newGroupId = s_firstGroupId;
     if (not id_cardAudioGroup.empty()) {
         if (auto it = ranges::adjacent_find(
                 id_cardAudioGroup, [](const auto& a, const auto& b) { return b.first - a.first != 1; });
@@ -180,4 +180,70 @@ auto CardAudioGroupDB::get_studyAudioFragment(uint cardId) const -> std::optiona
     if (not cardId_studyAudioFragment.contains(cardId))
         return {};
     return cardId_studyAudioFragment.at(cardId);
+}
+
+auto CardAudioGroupDB::seekForward(uint cardId) const -> std::optional<uint> {
+    const auto cardIdIt_group = cardIdIt_and_group(cardId);
+    if (!cardIdIt_group.has_value())
+        return {};
+    const auto& [cardId_It, cardId_audioFragment] = *cardIdIt_group;
+    if (const auto next_cardId_It = std::next(cardId_It); next_cardId_It != cardId_audioFragment.end())
+        return {next_cardId_It->first};
+    return {};
+}
+
+auto CardAudioGroupDB::seekBackward(uint cardId) const -> std::optional<uint> {
+    const auto cardIdIt_group = cardIdIt_and_group(cardId);
+    if (!cardIdIt_group.has_value())
+        return {};
+    const auto& [cardId_It, cardId_audioFragment] = *cardIdIt_group;
+    if (cardId_It != cardId_audioFragment.begin())
+        return {std::prev(cardId_It)->first};
+    return {};
+}
+
+auto CardAudioGroupDB::skipForward(uint cardId) const -> std::optional<uint> {
+    const auto cardIdIt_group = cardIdIt_and_group(cardId);
+    if (!cardIdIt_group.has_value())
+        return {};
+    const auto& [cardId_It, cardId_audioFragment] = *cardIdIt_group;
+    if (cardId_It != std::prev(cardId_audioFragment.end()))
+        return {cardId_audioFragment.rbegin()->first};
+    return {};
+}
+
+auto CardAudioGroupDB::skipBackward(uint cardId) const -> std::optional<uint> {
+    const auto cardIdIt_group = cardIdIt_and_group(cardId);
+    if (!cardIdIt_group.has_value())
+        return {};
+    const auto& [cardId_It, cardId_audioFragment] = *cardIdIt_group;
+    if (cardId_It != cardId_audioFragment.begin())
+        return {cardId_audioFragment.begin()->first};
+    return {};
+}
+
+auto CardAudioGroupDB::findAudioGroupFromCardId(uint cardId) const -> std::optional<uint> {
+    auto groupIt = ranges::find_if(
+        id_cardAudioGroup,
+        [cardId](const CardAudioGroup& cardAudioGroup) {
+            return cardAudioGroup.cardId_audioFragment.contains(cardId);
+        },
+        &decltype(id_cardAudioGroup)::value_type::second);
+    if (groupIt != id_cardAudioGroup.end())
+        return {groupIt->first};
+    return {};
+}
+
+auto CardAudioGroupDB::cardIdIt_and_group(uint cardId) const -> std::optional<
+    std::pair<decltype(std::ranges::begin(id_cardAudioGroup.begin()->second.cardId_audioFragment)),
+              const decltype(CardAudioGroup().cardId_audioFragment)&>> {
+    auto audioGroupId = findAudioGroupFromCardId(cardId);
+    if (not audioGroupId.has_value())
+        return {};
+    const auto& cardId_audioFragment = id_cardAudioGroup.at(*audioGroupId).cardId_audioFragment;
+    const auto cardId_It = ranges::find(
+        cardId_audioFragment,
+        cardId,
+        &std::remove_reference_t<decltype(cardId_audioFragment)>::value_type::first);
+    return {{cardId_It, cardId_audioFragment}};
 }

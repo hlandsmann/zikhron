@@ -4,6 +4,8 @@
 #include <nlohmann/json_fwd.hpp>
 #include <optional>
 #include <string_view>
+#include <tuple>
+#include <utility>
 
 struct AudioFragment {
     double start{};
@@ -33,7 +35,8 @@ private:
 };
 
 class CardAudioGroupDB {
-    static constexpr uint firstGroupId = 1;
+    static constexpr uint s_firstGroupId = 1;
+    static constexpr uint s_invalidGroupId = 0;
     static constexpr std::string_view s_groupDir = "/home/harmen/zikhron/group/";
     CardAudioGroupDB();
 
@@ -41,6 +44,10 @@ public:
     static auto get() -> CardAudioGroupDB &;
     void save(uint groupId, const CardAudioGroup &);
     void insert(uint groupId, const CardAudioGroup &);
+    auto seekBackward(uint cardId) const -> std::optional<uint>;
+    auto seekForward(uint cardId) const -> std::optional<uint>;
+    auto skipBackward(uint cardId) const -> std::optional<uint>;
+    auto skipForward(uint cardId) const -> std::optional<uint>;
     auto nextOrThisGroupId(uint groupId) const -> uint;
     auto prevOrThisGroupId(uint groupId) const -> uint;
     auto newCardAudioGroup() -> uint;
@@ -50,7 +57,12 @@ public:
 private:
     void load();
     void setupStudyAudioFragments();
+    auto findAudioGroupFromCardId(uint cardId) const -> std::optional<uint>;
 
     std::map<uint, CardAudioGroup> id_cardAudioGroup;
     std::map<uint, StudyAudioFragment> cardId_studyAudioFragment;
+
+    auto cardIdIt_and_group(uint cardId) const -> std::optional<
+        std::pair<decltype(std::ranges::begin(id_cardAudioGroup.begin()->second.cardId_audioFragment)),
+                  const decltype(CardAudioGroup().cardId_audioFragment) &>>;
 };

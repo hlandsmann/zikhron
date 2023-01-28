@@ -53,11 +53,19 @@ private:
 class BtnGrpForwardBackward : public Gtk::Box {
 public:
     BtnGrpForwardBackward();
-    void setSensitive(bool active = true);
+    void setSensitive(bool sensitive = true);
+    void setIndividualSensitivity(bool sensitive_skipBackwardBtn,
+                                  bool sensitive_seekBackwardBtn,
+                                  bool sensitive_seekForwardBtn,
+                                  bool sensitive_skipForwardBtn);
+    void skipBackwardClick(const std::function<void()>&);
+    void seekBackwardClick(const std::function<void()>&);
+    void seekForwardClick(const std::function<void()>&);
+    void skipForwardClick(const std::function<void()>&);
 
 private:
-    Gtk::Button beginGroupBtn;
-    Gtk::Button prevBtn;
-    Gtk::Button nextBtn;
-    Gtk::Button endGroupBtn;
+    Gtk::Button skipBackwardBtn;
+    Gtk::Button seekBackwardBtn;
+    Gtk::Button seekForwardBtn;
+    Gtk::Button skipForwardBtn;
 };

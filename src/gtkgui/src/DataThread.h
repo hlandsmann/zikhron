@@ -71,7 +71,7 @@ public:
     using signal_paragraphFromIds = std::function<void(message_paragraphFromIds&&)>;
     ZikhronConfig zikhronCfg;
 
-    void requestCard();
+    void requestCard(std::optional<uint> preferedCardId = {});
     void requestCardFromIds(const std::vector<uint>&& ids);
     void submitEase(const VocabularySR::Id_Ease_vt& ease);
     void submitAnnotation(const ZH_Annotator::Combination& combination,
