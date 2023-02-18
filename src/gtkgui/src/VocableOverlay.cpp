@@ -3,14 +3,11 @@
 #include <algorithm>
 #include <boost/range/combine.hpp>
 #include <ranges>
+
 namespace ranges = std::ranges;
 
 VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
-    : key(init.key)
-    , pronounciationChoice(init.pronounciationChoice)
-    , meaningChoice(init.meaningChoice)
-    , pronounciations(init.pronounciations)
-    , meanings(init.meanings) {
+    : entries(std::move(init.entries)), choice_entry(init.choice_entry) {
     box.get_style_context()->add_class("overlay");
     box.set_orientation(Gtk::Orientation::VERTICAL);
     box.set_vexpand();
@@ -33,32 +30,53 @@ VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
     });
     add_controller(clickController);
 
-    if (pronounciations.size() > 1) {
-        expandBtn.set_label(">");
-        expandBtn.signal_clicked().connect(
+    if (entries.size() > 1) {
+        expandEntriesBtn.set_label(">");
+        expandEntriesBtn.signal_clicked().connect(
             [this, x = init.x, y = init.y, x_max = init.x_max, y_max = init.y_max]() {
-                if (expandBtn.property_active()) {
-                    expandBtn.set_label("v");
-                    choiceGrid.set_visible(true);
+                if (expandEntriesBtn.property_active()) {
+                    expandEntriesBtn.set_label("v");
+                    entryChoiceGrid.set_visible(true);
                     show(x, y, x_max, y_max);
                 } else {
-                    expandBtn.set_label(">");
-                    choiceGrid.set_visible(false);
+                    expandEntriesBtn.set_label(">");
+                    entryChoiceGrid.set_visible(false);
                     show(x, y, x_max, y_max);
                 }
             });
-        expandBtn.set_valign(Gtk::Align::END);
-        expandBtn.set_halign(Gtk::Align::START);
-        currentGrid.attach(expandBtn, 0, 1);
+        expandEntriesBtn.set_valign(Gtk::Align::END);
+        expandEntriesBtn.set_halign(Gtk::Align::START);
+        currentGrid.attach(expandEntriesBtn, 0, 1);
+    }
+
+    if (entries[choice_entry].meanings.size() > 1) {
+        expandMeaningsBtn.set_label("...");
+        expandMeaningsBtn.signal_clicked().connect(
+            [this, x = init.x, y = init.y, x_max = init.x_max, y_max = init.y_max]() {
+                if (expandMeaningsBtn.property_active()) {
+                    meaningChoiceBox.set_visible(true);
+                    show(x, y, x_max, y_max);
+                } else {
+                    meaningChoiceBox.set_visible(false);
+                    show(x, y, x_max, y_max);
+                }
+            });
+        expandMeaningsBtn.set_valign(Gtk::Align::END);
+        expandMeaningsBtn.set_halign(Gtk::Align::START);
+        currentGrid.attach(expandMeaningsBtn, 3, 1);
     }
 
     currentGrid.set_row_spacing(10);
     currentGrid.set_column_spacing(20);
     currentGrid.set_margin(10);
 
-    choiceGrid.set_row_spacing(10);
-    choiceGrid.set_column_spacing(20);
-    choiceGrid.set_margin(10);
+    entryChoiceGrid.set_row_spacing(10);
+    entryChoiceGrid.set_column_spacing(20);
+    entryChoiceGrid.set_margin(10);
+
+    meaningChoiceBox.set_spacing(10);
+    meaningChoiceBox.set_margin(10);
+    meaningChoiceBox.set_orientation(Gtk::Orientation::VERTICAL);
 
     setupTextDraw();
 
@@ -66,7 +84,21 @@ VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
 }
 
 void VocableOverlay::setupTextDraw() {
-    auto list = {{key}, {pronounciationChoice}, {meaningChoice}, pronounciations, meanings};
+    std::vector<std::string> meaning_multipleEntries;
+    std::vector<std::string> pronounciations_vertical;
+    ranges::transform(entries,
+                      std::back_inserter(meaning_multipleEntries),
+                      [](const ZH_Dictionary::Entry& entry) { return entry.meanings.front(); });
+    ranges::transform(entries,
+                      std::back_inserter(pronounciations_vertical),
+                      [](const ZH_Dictionary::Entry& entry) { return entry.pronounciation; });
+    auto list = {{entries.front().key},
+                 {entries[choice_entry].pronounciation},
+                 {entries[choice_entry].meanings.front()},
+                 pronounciations_vertical,
+                 meaning_multipleEntries,
+                 entries[choice_entry].meanings};
+    textDrawContainer.clear();
     ranges::transform(list | std::views::join,
                       std::back_inserter(textDrawContainer),
                       [this, index = 0](const std::string& str) mutable {
@@ -85,18 +117,27 @@ void VocableOverlay::setupTextDraw() {
     currentGrid.attach(**(textDrawIt++), 2, 1);
     box.append(currentGrid);
 
-    textDrawPronounciations = std::span(textDrawIt, textDrawIt + pronounciations.size());
-    textDrawMeanings = std::span(textDrawIt + pronounciations.size(), textDrawContainer.end());
+    textDrawPronounciations = std::span(textDrawIt, textDrawIt + entries.size());
+    std::advance(textDrawIt, entries.size());
+    textDrawMeaning_multipleEntries = std::span(textDrawIt, textDrawIt + entries.size());
+    std::advance(textDrawIt, entries.size());
+    textDrawMeanings_singleEntry = std::span(textDrawIt,
+                                             textDrawIt + entries[choice_entry].meanings.size());
     int index = 0;
     for (const auto& [textDrawPronouncation, textDrawMeaning] :
-         boost::combine(textDrawPronounciations, textDrawMeanings)) {
-        choiceGrid.attach(*textDrawPronouncation, 0, index);
-        choiceGrid.attach(*textDrawMeaning, 1, index);
+         boost::combine(textDrawPronounciations, textDrawMeaning_multipleEntries)) {
+        entryChoiceGrid.attach(*textDrawPronouncation, 0, index);
+        entryChoiceGrid.attach(*textDrawMeaning, 1, index);
         index++;
     }
     setupTextdrawCallbacks();
-    choiceGrid.set_visible(false);
-    box.append(choiceGrid);
+    entryChoiceGrid.set_visible(false);
+    box.append(entryChoiceGrid);
+    for (const auto& textDrawMeaning : textDrawMeanings_singleEntry) {
+        meaningChoiceBox.append(*textDrawMeaning);
+    }
+    meaningChoiceBox.set_visible(false);
+    box.append(meaningChoiceBox);
 }
 
 void VocableOverlay::show(int x, int y, int x_max, int y_max) {
@@ -130,7 +171,7 @@ void VocableOverlay::show(int x, int y, int x_max, int y_max) {
 void VocableOverlay::setupTextdrawCallbacks() {
     int index = 0;
     for (const auto& [textDrawMeaning, textDrawPronounciation] :
-         boost::combine(textDrawPronounciations, textDrawMeanings)) {
+         boost::combine(textDrawPronounciations, textDrawMeaning_multipleEntries)) {
         auto mouseClick = [this, index](auto) { callback_click(index); };
         auto mouseLeave = [this, index] { callback_leave(index); };
         auto mouseMotion = [this, index](auto) { callback_motion(index); };
@@ -154,12 +195,12 @@ void VocableOverlay::callback_motion(int textDrawIndex) {
     std::apply(
         [this, textDrawIndex](auto... color) {
             textDrawPronounciations[textDrawIndex]->setFontColor(color...);
-            textDrawMeanings[textDrawIndex]->setFontColor(color...);
+            textDrawMeaning_multipleEntries[textDrawIndex]->setFontColor(color...);
         },
         markedColorRGB);
 }
 
 void VocableOverlay::callback_leave(int textDrawIndex) {
     textDrawPronounciations[textDrawIndex]->setFontColorDefault();
-    textDrawMeanings[textDrawIndex]->setFontColorDefault();
+    textDrawMeaning_multipleEntries[textDrawIndex]->setFontColorDefault();
 }

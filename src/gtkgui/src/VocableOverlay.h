@@ -1,17 +1,15 @@
 #pragma once
 
 #include <TextDraw.h>
+#include <dictionary/ZH_Dictionary.h>
 #include <gtkmm.h>
 #include <functional>
 #include <optional>
 #include <span>
 
 struct VocableOverlayInit {
-    const std::string& key;
-    const std::string& pronounciationChoice;
-    const std::string& meaningChoice;
-    const std::vector<std::string>& pronounciations;
-    const std::vector<std::string>& meanings;
+    std::vector<ZH_Dictionary::Entry> entries;
+    size_t choice_entry;
     int x;
     int y;
     int x_max;
@@ -45,18 +43,18 @@ private:
     Glib::RefPtr<Gtk::GestureClick> clickController;
     Gtk::Box box;
     Gtk::Grid currentGrid;
-    Gtk::Grid choiceGrid;
-    Gtk::ToggleButton expandBtn;
+    Gtk::Grid entryChoiceGrid;
+    Gtk::Box meaningChoiceBox;
+    Gtk::ToggleButton expandEntriesBtn;
+    Gtk::ToggleButton expandMeaningsBtn;
 
     std::vector<TextDrawPtr> textDrawContainer;
     std::span<TextDrawPtr> textDrawPronounciations;
-    std::span<TextDrawPtr> textDrawMeanings;
+    std::span<TextDrawPtr> textDrawMeaning_multipleEntries;
+    std::span<TextDrawPtr> textDrawMeanings_singleEntry;
 
-    const std::string key;
-    const std::string pronounciationChoice;
-    const std::string meaningChoice;
-    const std::vector<std::string> pronounciations;
-    const std::vector<std::string> meanings;
+    std::vector<ZH_Dictionary::Entry> entries;
+    size_t choice_entry;
 
     int active = -1;
     std::function<void(std::optional<int> choice)> func_vocableChoice;

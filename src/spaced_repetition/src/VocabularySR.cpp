@@ -143,6 +143,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
+        return {};
     if (countOfNewVocablesToday > 20)
         return {};
     if (ids_againVoc.size() >= 9) {
@@ -157,7 +158,7 @@ auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
     };
     std::map<uint, intersections> candidates;
 
-    constexpr int maxNewPerCard = 6;
+    constexpr int maxNewPerCard = 8;
     constexpr int maxRepeatPerNewCard = 2;
 
     for (const auto& [id, cardMeta] : id_cardMeta) {
@@ -232,9 +233,9 @@ auto VocabularySR::getNextCardChoice(std::optional<uint> preferedCardId)
     sr_db.AdvanceFailedVocables();
     fmt::print("To Repeat: {}, Again: {}\n", ids_repeatTodayVoc.size(), ids_againVoc.size());
 
-    if (preferedCardId.has_value())
+    if (preferedCardId.has_value()) {
         activeCardId = *preferedCardId;
-    else if (not ids_nowVoc.empty()) {
+    } else if (not ids_nowVoc.empty()) {
         auto repeatVocStart = GetCardRepeatedVoc();
         assert(repeatVocStart.has_value());
         activeCardId = *repeatVocStart;

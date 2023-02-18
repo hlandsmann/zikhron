@@ -115,43 +115,36 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex) {
         spdlog::info("        {}", word.meanings.front());
     }
 
+    auto vocableChoiceIt = ranges::find(clickedItem, vocableChoice.id, &ZH_Dictionary::Entry::id);
+    if (vocableChoiceIt == clickedItem.end()) {
+        spdlog::error("Choice for key {} not found!", clickedItem.front().key);
+        return;
+    }
+    size_t choice_entry = std::distance(clickedItem.begin(), vocableChoiceIt);
     auto newPos = paragraph->getWordStartPosition(startIndexPos + byteIndex, paragraph->BytePositions());
     auto rect = textDrawContainer[textDrawIndex]->getCharacterPosition(int(newPos - startIndexPos));
 
-    std::vector<std::string> pronounciations;
-    std::vector<std::string> meanings;
-    ranges::transform(
-        clickedItem, std::back_inserter(pronounciations), &ZH_Dictionary::Entry::pronounciation);
-    ranges::transform(
-        clickedItem,
-        std::back_inserter(meanings),
-        [](const auto& meanings_sameKey) { return meanings_sameKey.front(); },
-        &ZH_Dictionary::Entry::meanings);
-
-    auto vocableOverlayInit = VocableOverlayInit{.key = clickedItem.front().key,
-                                                 .pronounciationChoice = vocableChoice.pronounciation,
-                                                 .meaningChoice = vocableChoice.meanings.front(),
-                                                 .pronounciations = pronounciations,
-                                                 .meanings = meanings,
+    auto vocableOverlayInit = VocableOverlayInit{.entries = clickedItem,
+                                                 .choice_entry = choice_entry,
                                                  .x = rect.get_x(),
                                                  .y = rect.get_y(),
                                                  .x_max = overlay.get_size(Gtk::Orientation::HORIZONTAL),
                                                  .y_max = overlay.get_size(Gtk::Orientation::VERTICAL)};
     vocableOverlay = std::make_unique<VocableOverlay>(vocableOverlayInit);
-    vocableOverlay->signal_vocableChoice([this, clickedItem, vocIdOldChoice = vocableChoice.id](std::optional<int> choice) {
-        overlay.remove_overlay(*vocableOverlay);
-        if (not choice.has_value())
-            return;
-        uint vocId = clickedItem.front().id;
-        uint vocIdNewChoice = clickedItem[choice.value()].id;
-        spdlog::info("Map id {} / {} to {}", vocId, vocIdOldChoice, vocIdNewChoice);
-        DataThread::get().submitVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
-
-    });
+    vocableOverlay->signal_vocableChoice(
+        [this, clickedItem, vocIdOldChoice = vocableChoice.id](std::optional<int> choice) {
+            overlay.remove_overlay(*vocableOverlay);
+            if (not choice.has_value())
+                return;
+            uint vocId = clickedItem.front().id;
+            uint vocIdNewChoice = clickedItem[choice.value()].id;
+            spdlog::info("Map id {} / {} to {}", vocId, vocIdOldChoice, vocIdNewChoice);
+            DataThread::get().submitVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
+        });
     overlay.add_overlay(*vocableOverlay);
 }
 
-void CardDraw::reset(){
+void CardDraw::reset() {
     for (const auto& textDraw : textDrawContainer) {
         remove(*textDraw);
     }

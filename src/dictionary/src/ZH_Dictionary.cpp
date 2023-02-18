@@ -143,7 +143,9 @@ auto parseLine(const std::string_view& line) -> DictionaryItem_raw {
 
     std::tie(meaning, rest) = splitOnce(rest, '/');
     while (not meaning.empty()) {
-        dicItem.meanings.push_back(transformMeaning(meaning));
+        const auto transformed = transformMeaning(meaning);
+        if (transformed.size() > 1)
+            dicItem.meanings.push_back(transformed);
         std::tie(meaning, rest) = splitOnce(rest, '/');
     }
 
@@ -235,12 +237,10 @@ auto ZH_Dictionary::EntryFromPosition(size_t pos, CharacterSet characterSet) con
                                           ? position_to_simplified
                                           : position_to_traditional;
     const auto& keys = (characterSet == CharacterSet::Simplified) ? Simplified() : Traditional();
-    return {
-        .key = keys[pos_to_characterSet[pos]].key,
-        .pronounciation = pronounciation.at(pos),
-        .meanings = meanings.at(pos),
-        .id = unsigned(pos)
-    };
+    return {.key = keys[pos_to_characterSet[pos]].key,
+            .pronounciation = pronounciation.at(pos),
+            .meanings = meanings.at(pos),
+            .id = unsigned(pos)};
 }
 
 auto ZH_Dictionary::Entry::operator<=>(const Entry& other) const -> std::weak_ordering {
