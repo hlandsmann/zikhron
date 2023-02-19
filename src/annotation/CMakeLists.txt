@@ -9,10 +9,11 @@ PUBLIC
 )
 target_sources(zikhron_annotation
     PRIVATE
+        src/Ease.cpp
         src/Markup.cpp
         src/TextCard.cpp
-        src/rapidjsonWrapper.h
         src/ZH_Annotator.cpp
+        src/rapidjsonWrapper.h
     PUBLIC
         include/annotation/Ease.h
         include/annotation/Markup.h

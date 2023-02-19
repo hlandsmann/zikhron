@@ -143,7 +143,8 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
-        return {};
+    return {};
+
     if (countOfNewVocablesToday > 20)
         return {};
     if (ids_againVoc.size() >= 9) {
@@ -303,20 +304,14 @@ auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
     ranges::transform(
         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
             const VocableSR vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableSR();
-            float easeFactor = vocSR.easeFactor;
-            float intervalDay = vocSR.intervalDay;
             spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
                           zh_dictionary->EntryFromPosition(vocId, zh_dictionary->Simplified()).key,
-                          easeFactor,
-                          intervalDay,
+                          vocSR.easeFactor,
+                          vocSR.intervalDay,
                           vocId);
-            if (easeFactor <= 1.31 && intervalDay < 2)
-                return {vocId, Ease::again};
-            if (easeFactor <= 1.6 && intervalDay < 5)
-                return {vocId, Ease::hard};
-            if (easeFactor <= 2.1)
-                return {vocId, Ease::good};
-            return {vocId, Ease::easy};
+            return {
+                vocId, { vocSR.intervalDay, vocSR.easeFactor, vocSR.indirectIntervalDay }
+            };
         });
     return ease;
 }

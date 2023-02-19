@@ -107,8 +107,7 @@ auto Paragraph::textFromCard(const Card& card) -> utl::StringU8 {
     return text;
 }
 
-auto Paragraph::calculate_positions(size_t (Word::*len)() const) const
-    -> std::vector<int> {
+auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::vector<int> {
     std::vector<int> result;
     result.push_back(0);
     ranges::transform(words,
@@ -129,8 +128,8 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
                       std::back_inserter(words),
                       [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
 
-    utf8Positions = calculate_positions( &Word::vLength);
-    bytePositions = calculate_positions( &Word::byteLength);
+    utf8Positions = calculate_positions(&Word::vLength);
+    bytePositions = calculate_positions(&Word::byteLength);
 
     fragments.clear();
     if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(card.get())) {
@@ -505,7 +504,7 @@ auto Paragraph::getRestoredOrderOfEaseList(const std::vector<Ease>& ease_in) con
 
     std::map<uint, Ease> ease_out;
     for (const auto& [vocId, ease] : boost::combine(activeVocables, ease_in)) {
-        ease_out[vocId] = ease;
+        ease_out.insert({vocId, ease});
     }
 
     return ease_out;

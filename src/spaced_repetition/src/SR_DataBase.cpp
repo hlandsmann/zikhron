@@ -193,13 +193,17 @@ void SR_DataBase::SetEase(uint vocId, Ease ease) {
     vocableSR.advanceByEase(ease);
     ids_nowVoc.erase(vocId);
 
-    if (ease == Ease::again)
+    if (ease.ease == EaseVal::again)
         ids_againVoc.insert(vocId);
     else
         ids_againVoc.erase(vocId);
 
     ids_repeatTodayVoc.erase(vocId);
-    spdlog::debug("Ease of {} is {}", id_vocable.at(vocId).front().key, mapEaseToInt(ease));
+    spdlog::debug("Ease of {} is {}, intervalDay {:.2f}, easeFactor {:.2f}",
+                  id_vocable.at(vocId).front().key,
+                  mapEaseToInt(ease.ease),
+                  vocableSR.intervalDay,
+                  vocableSR.easeFactor);
 }
 
 void SR_DataBase::ViewCard(uint cardId) { id_cardSR[cardId].ViewNow(); }

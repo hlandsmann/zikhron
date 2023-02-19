@@ -50,30 +50,13 @@ auto CardSR::fromJson(const nlohmann::json& c) -> pair_t {
 }
 
 void VocableSR::advanceByEase(Ease ease) {
-    float easeChange = [ease]() -> float {
-        switch (ease) {
-        case Ease::easy: return 1.2f;
-        case Ease::good: return 1.0f;
-        case Ease::hard: return 0.8f;
-        default: return 0.f;
-        }
-    }();
-    easeFactor = std::clamp(easeFactor * easeChange, 1.3f, 2.5f);
     lastSeen = std::time(nullptr);
     indirectView = std::time(nullptr);
 
-    if (ease == Ease::again) {
-        intervalDay = 0;
-    } else {
-        intervalDay = std::max(1.f, intervalDay * easeFactor);
-        if (ease == Ease::good)
-            intervalDay += 1 * easeFactor;
-        if (ease == Ease::easy)
-            intervalDay += 2 * easeFactor;
-
-        intervalDay += float(indirectIntervalDay / 3);
-    }
-    indirectIntervalDay = 0;
+    auto progress = ease.getProgress();
+    intervalDay = progress.intervalDay;
+    easeFactor = progress.easeFactor;
+    indirectIntervalDay = progress.indirectIntervalDay;
 }
 
 auto VocableSR::advanceIndirectly() -> bool {

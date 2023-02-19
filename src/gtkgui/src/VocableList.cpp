@@ -1,4 +1,5 @@
 #include <VocableList.h>
+#include <fmt/format.h>
 #include <algorithm>
 #include <boost/range/combine.hpp>
 #include <ranges>
@@ -7,7 +8,9 @@ namespace ranges = std::ranges;
 VocableList::VocableList() { set_column_spacing(32); }
 
 void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragraph_in,
-                               const std::vector<Ease>& easeList) {
+                               const std::vector<Ease>& _easeList) {
+    easeList = _easeList;
+
     reset();
 
     paragraph = paragraph_in;
@@ -17,11 +20,23 @@ void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragra
         addTextDraw(1, index, pronounciation);
         addTextDraw(2, index, meaning);
         addEaseChoice(3, index);
+        addLabel(4, index);
         index++;
     }
 
-    for (const auto& [easeChoice, ease] : boost::combine(easeChoiceContainer, easeList))
-        easeChoice->setActive(mapEaseToInt(ease));
+    index = 0;
+    for (const auto& [easeChoice, ease, label] :
+         boost::combine(easeChoiceContainer, easeList, labelContainer)) {
+        easeChoice->observe_active([this, ease, index](uint active) {
+            auto tmpEase = ease;
+            tmpEase.ease = mapIntToEase(active);
+            auto progress = tmpEase.getProgress();
+            labelContainer[index]->set_label(
+                fmt::format("{:.1f}, ({:.1f})", progress.intervalDay, progress.easeFactor));
+        });
+        easeChoice->setActive(mapEaseToInt(ease.ease));
+        index++;
+    }
 }
 
 void VocableList::addTextDraw(int column, int row, const std::string& markup) {
@@ -39,12 +54,17 @@ void VocableList::addEaseChoice(int column, int row) {
     easeChoiceContainer.push_back(std::move(easeChoice));
 }
 
-auto VocableList::getChoiceOfEase() const -> std::vector<Ease> {
-    std::vector<Ease> easeList;
-    ranges::transform(
-        easeChoiceContainer, std::back_inserter(easeList), [](const auto& easeChoice) -> Ease {
-            return mapIntToEase(easeChoice->getActive());
-        });
+void VocableList::addLabel(int column, int row) {
+    auto progressLabel = std::make_unique<Gtk::Label>("");
+    progressLabel->set_margin_end(16);
+    attach(*progressLabel, column, row);
+    labelContainer.push_back(std::move(progressLabel));
+}
+
+auto VocableList::getChoiceOfEase() -> std::vector<Ease> {
+    for (size_t i = 0; i < easeList.size(); i++) {
+        easeList[i].ease = mapIntToEase(easeChoiceContainer[i]->getActive());
+    }
     return easeList;
 }
 
@@ -55,6 +75,10 @@ void VocableList::reset() {
     for (const auto& easeChoice : easeChoiceContainer) {
         remove(*easeChoice);
     }
+    for (const auto& label : labelContainer) {
+        remove(*label);
+    }
     textDrawContainer.clear();
     easeChoiceContainer.clear();
+    labelContainer.clear();
 }
