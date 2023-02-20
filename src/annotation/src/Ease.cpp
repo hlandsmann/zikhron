@@ -7,7 +7,7 @@
 
 namespace ranges = std::ranges;
 
-Ease::Ease(float intervalDay, float easeFactor, float indirectIntervalDay)
+Ease::Ease(float intervalDay, float easeFactor, unsigned int indirectIntervalDay)
     : progress{.intervalDay = intervalDay,
                .easeFactor = easeFactor,
                .indirectIntervalDay = indirectIntervalDay} {
@@ -42,8 +42,8 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress {
 
     float intervalDayExtra = [=]() -> float {
         switch (ease) {
-        case EaseVal::easy: return progress.indirectIntervalDay / 3;
-        case EaseVal::good: return progress.indirectIntervalDay / 4;
+        case EaseVal::easy: return float(progress.indirectIntervalDay) / 3.f;
+        case EaseVal::good: return float(progress.indirectIntervalDay) / 4.f;
         default: return 0.f;
         }
     }();
@@ -51,6 +51,7 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress {
 
     return {.intervalDay = intervalDay, .easeFactor = easeFactor, .indirectIntervalDay = 0};
 }
+
 auto Ease::getProgress() const -> Progress {
     std::array easeValList = {EaseVal::again, EaseVal::hard, EaseVal::good, EaseVal::easy};
     std::array<float, easeValList.size()> intervals;
