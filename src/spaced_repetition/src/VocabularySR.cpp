@@ -143,7 +143,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::GetCardNewVocStart() -> std::optional<uint> {
-    return {};
+    // return {};
 
     if (countOfNewVocablesToday > 20)
         return {};
