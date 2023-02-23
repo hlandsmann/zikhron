@@ -1,6 +1,7 @@
 #pragma once
-#include <ranges>
 #include <algorithm>
+#include <functional>
+#include <ranges>
 
 namespace utl {
 namespace ranges = std::ranges;
