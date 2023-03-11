@@ -1,6 +1,5 @@
 #include <TextCard.h>
 #include <fmt/format.h>
-#include <rapidjsonWrapper.h>
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <chrono>
@@ -9,34 +8,29 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <nlohmann/json.hpp>
 #include <stdexcept>
-
+#include <string>
 namespace {
-auto cardFromJsonFile(const std::string &filename, int cardId) -> std::unique_ptr<Card> {
+auto cardFromJsonFile(const std::string &filename, uint cardId) -> std::unique_ptr<Card> {
     std::ifstream cardFile(filename, std::ios::in | std::ios::binary);
     if (!cardFile)
         throw std::runtime_error("Failure to read file");
+    auto jsonCard = nlohmann::json::parse(cardFile);
+    if (const auto &version = jsonCard.at("version"); version != "0.0")
+        throw std::runtime_error(fmt::format("Supported version is '0.0', but got '{}'", version));
 
-    rapidjson::IStreamWrapper isw(cardFile);
-    rapidjson::Document jsonCard;
-    jsonCard.ParseStream(isw);
-
-    if (const auto &version = jsonCard["version"]; version != "0.0")
-        throw std::runtime_error(
-            fmt::format("Supported version is '0.0', but got '{}'", version.GetString()));
-
-    if (jsonCard["type"] == "dialogue") {
+    if (jsonCard.at("type") == "dialogue") {
         const auto &dlg = jsonCard["content"];
-        if (not dlg.IsArray())
+        if (not dlg.is_array())
             throw std::runtime_error("Expected an array");
-
         auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId);
-        for (const auto &speakerTextPair : dlg.GetArray()) {
-            if (not speakerTextPair.MemberCount())
+        for (const auto &speakerTextPair : dlg) {
+            if (not speakerTextPair.size())
                 continue;
-            const auto &item = *speakerTextPair.MemberBegin();
-            dialogueCard->dialogue.emplace_back(icu::UnicodeString::fromUTF8(item.name.GetString()),
-                                                icu::UnicodeString::fromUTF8(item.value.GetString()));
+            const auto &item = *speakerTextPair.items().begin();
+            dialogueCard->dialogue.emplace_back(icu::UnicodeString::fromUTF8(std::string(item.key())),
+                                                icu::UnicodeString::fromUTF8(std::string(item.value())));
         }
         dialogueCard->dialogue.shrink_to_fit();
         return dialogueCard;
@@ -44,7 +38,7 @@ auto cardFromJsonFile(const std::string &filename, int cardId) -> std::unique_pt
     if (jsonCard["type"] == "text") {
         const auto &text = jsonCard["content"];
         auto textCard = std::make_unique<TextCard>(filename, cardId);
-        textCard->text = icu::UnicodeString::fromUTF8(text.GetString());
+        textCard->text = icu::UnicodeString::fromUTF8(std::string(text));
 
         return textCard;
     }
@@ -63,7 +57,7 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
             continue;
         }
         try {
-            int cardId = std::stoi(card_fn_match.get<1>().to_string());
+            uint cardId = std::stoi(card_fn_match.get<1>().to_string());
             if (cards.find(cardId) != cards.end()) {
                 spdlog::warn("File \"{}\" ignored, because number {} is already in use!",
                              entry.filename().string(),

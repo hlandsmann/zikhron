@@ -13,7 +13,6 @@ target_sources(zikhron_annotation
         src/Markup.cpp
         src/TextCard.cpp
         src/ZH_Annotator.cpp
-        src/rapidjsonWrapper.h
     PUBLIC
         include/annotation/Ease.h
         include/annotation/Markup.h
@@ -24,11 +23,12 @@ target_link_libraries(zikhron_annotation
     PUBLIC
         zikhron::dictionary
     PRIVATE
+        Microsoft.GSL::GSL
+        ctre::ctre
+        nlohmann_json::nlohmann_json
+        spdlog::spdlog
         zikhron::utils
         zikhron::warnings
-        spdlog::spdlog
-        ctre::ctre
-        Microsoft.GSL::GSL
 )
 
 target_compile_features(zikhron_annotation PUBLIC cxx_std_20)
