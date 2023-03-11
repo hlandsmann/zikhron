@@ -22,8 +22,6 @@ find_package(ctre REQUIRED)
 find_package(Microsoft.GSL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-add_subdirectory(third_party/cppcoro)
-
 option(use_iwyu OFF)
 
 if(use_iwyu)

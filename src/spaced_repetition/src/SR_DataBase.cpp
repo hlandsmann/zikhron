@@ -324,7 +324,7 @@ void SR_DataBase::CleanUpVocables(std::set<uint> ignoreVocableIds) {
                  std::inserter(ignoreVocableIds, ignoreVocableIds.begin()));
 
     auto seenCards = id_cardMeta |
-                     std::views::filter([this, &ignoreVocableIds](std::pair<uint, CardMeta> id_cm) {
+                     std::views::filter([&ignoreVocableIds](std::pair<uint, CardMeta> id_cm) {
                          return ranges::set_difference(
                                     id_cm.second.vocableIds, ignoreVocableIds, utl::counting_iterator{})
                                     .out.count == 0;

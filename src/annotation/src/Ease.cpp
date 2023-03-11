@@ -61,9 +61,7 @@ auto Ease::getProgress() const -> Progress {
 
     auto intervalSpan = std::span(std::next(intervals.begin()), intervals.end());
     for (auto it = intervalSpan.begin(); it < intervalSpan.end(); it++) {
-        float previousInterval = *std::prev(it);
-        if (*it < previousInterval + 1.f)
-            *it = previousInterval + 1.f;
+        *it = std::max(*it, *std::prev(it) + 1.f);
     }
 
     float intervalDay = intervals[mapEaseToInt(ease)];

@@ -22,7 +22,6 @@ target_link_libraries(zikhron_spaced_repetition
         zikhron::utils
         nlohmann_json::nlohmann_json
     PRIVATE
-        cppcoro
         fmt::fmt
         spdlog::spdlog
         zikhron::warnings

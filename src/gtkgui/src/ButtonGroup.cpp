@@ -10,6 +10,7 @@ ButtonGroup::ButtonGroup(std::initializer_list<std::string> labels) {
     ranges::transform(labels, std::back_inserter(buttons), [this](const std::string& label) {
         auto btn = std::make_unique<Gtk::ToggleButton>();
         btn->set_label(label);
+        btn->add_css_class("toggleEnable");
         btn->signal_toggled().connect([this]() {
             auto it = ranges::find_if(
                 buttons, [](const auto& toggleButton) { return toggleButton->property_active(); });

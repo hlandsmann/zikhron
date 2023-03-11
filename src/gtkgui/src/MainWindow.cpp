@@ -2,17 +2,23 @@
 
 #include <DisplayCard.h>
 #include <NotebookPage.h>
+#include <SupplyAudio.h>
 #include <VideoSpace.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <string_view>
 #include <type_traits>
-#include <SupplyAudio.h>
 
 constexpr std::string_view css =
     ".overlay {"
-    "background-color: rgb(32,32,32);"
-    "border: 1px solid white;"
+    "    background-color: rgb(32,32,32);"
+    "    border: 1px solid white;"
+    "}"
+    ".toggleEnable {"
+    "    background-color: rgb(128,128,128);"
+    "}"
+    ".toggleDisable {"
+    "    background-color: rgb(32,32,32);"
     "}";
 
 MainWindow::MainWindow() {

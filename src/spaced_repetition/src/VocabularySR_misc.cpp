@@ -9,7 +9,9 @@
 namespace {
 
 auto serialize_time_t(const std::time_t& time) -> std::string {
-    return fmt::format("{}", std::put_time(std::localtime(&time), "%F %T"));
+    std::stringstream transTime;
+    transTime << std::put_time(std::localtime(&time), "%F %T");
+    return transTime.str();
 }
 
 auto deserialize_time_t(const std::string& s) -> std::time_t {

@@ -117,18 +117,18 @@ auto DataThread::get() -> DataThread& {
 void DataThread::destroy() { dataThread = nullptr; }
 
 DataThread::DataThread() {
-    utl::PropertyServer::get().setSignalUpdate([this, dispatch = std::weak_ptr(propertyUpdate)]() {
+    utl::PropertyServer::get().setSignalUpdate([dispatch = std::weak_ptr(propertyUpdate)]() {
         if (auto update = dispatch.lock(); update != nullptr)
             update->emit();
     });
     job_queue.push([this]() {
-        cardDB = std::move(loadCardDB(std::string{path_to_cardDB}));
+        cardDB = loadCardDB(std::string{path_to_cardDB});
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
         vocabularySR = std::make_unique<VocabularySR>(cardDB, zh_dictionary);
     });
 
     dispatcher.connect([this]() { dispatcher_fun(); });
-    propertyUpdate->connect([this]() { utl::PropertyServer::get().updateProperties(); });
+    propertyUpdate->connect([]() { utl::PropertyServer::get().updateProperties(); });
     worker = std::jthread([this](std::stop_token token) { worker_thread(token); });
 }
 
