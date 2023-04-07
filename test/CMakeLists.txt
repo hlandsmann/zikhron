@@ -10,11 +10,11 @@ add_executable(test_dictionary)
 target_sources(test_dictionary
     PRIVATE
         dictionary/test.cpp
-        catch_main.cpp
 )
 target_link_libraries(test_dictionary
     PRIVATE
         Catch2::Catch2
+        Catch2::Catch2WithMain
         zikhron::dictionary
         zikhron::warnings
 )
@@ -26,11 +26,11 @@ add_executable(test_sr_treewalker)
 target_sources(test_sr_treewalker
     PRIVATE
         sr_treewalker/test.cpp
-        catch_main.cpp
 )
 target_link_libraries(test_sr_treewalker
     PRIVATE
         Catch2::Catch2
+        Catch2::Catch2WithMain
         zikhron::annotation
         zikhron::dictionary
         zikhron::spaced_repetition
@@ -44,11 +44,11 @@ add_executable(test_utils_linear_set)
 target_sources(test_utils_linear_set
     PRIVATE
         utils_linear_set/test.cpp
-        catch_main.cpp
 )
 target_link_libraries(test_utils_linear_set
     PRIVATE
         Catch2::Catch2
+        Catch2::Catch2WithMain
         zikhron::utils
         zikhron::warnings
         spdlog::spdlog
