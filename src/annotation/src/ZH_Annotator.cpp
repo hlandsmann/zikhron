@@ -103,14 +103,14 @@ auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> st
             const auto& node = chunk[pos];
             if (node.empty())
                 break;
-            pos += node.back();
+            pos += static_cast<size_t>(node.back());
             comb.push_back(node.back());
         }
     };
     auto next_combination = [&pos, &comb, &chunk]() {
         namespace ranges = std::ranges;
         while (not comb.empty()) {
-            const int forward = comb.back();
+            const size_t forward = static_cast<size_t>(comb.back());
             comb.pop_back();
             pos -= forward;
 
@@ -119,7 +119,7 @@ auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> st
 
             if (it == node.begin())
                 continue;
-            pos += *std::prev(it);
+            pos += static_cast<size_t>(*std::prev(it));
             comb.push_back(*std::prev(it));
             break;
         }
@@ -198,7 +198,7 @@ void ZH_Annotator::annotate() {
             }
             return *std::min_element(combs.begin(), combs.end(), compare_combination);
         });
-    int pos = 0;
+    size_t pos = 0;
     for (const auto& comb : min_combis) {
         if (comb.empty()) {
             items.push_back(text.at(pos));
@@ -206,7 +206,7 @@ void ZH_Annotator::annotate() {
             continue;
         }
 
-        ranges::transform(comb, std::back_inserter(items), [&](const auto& length) {
+        ranges::transform(comb, std::back_inserter(items), [&](const size_t length) {
             const auto itemIt = ranges::find(candidates[pos], size_t(length), [](const auto& itemVec) {
                 return StringU8(itemVec.front().key).length();
             });
