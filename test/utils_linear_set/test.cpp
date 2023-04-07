@@ -1,7 +1,7 @@
 #include <spdlog/spdlog.h>
 #include <utils/linear_set.h>
 #include <algorithm>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <random>
 #include <ranges>
 #include <set>

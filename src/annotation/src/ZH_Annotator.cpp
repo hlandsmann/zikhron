@@ -4,7 +4,8 @@
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 #include <algorithm>
-#include <gsl/gsl_util>
+#include <cstddef>
+#include <gsl/util>
 #include <iostream>
 #include <limits>
 #include <numeric>
@@ -12,7 +13,6 @@
 #include <span>
 #include <string_view>
 
-using std::cout;
 namespace ranges = std::ranges;
 namespace {
 
@@ -48,18 +48,15 @@ auto GetCandidates(const utl::StringU8& text,
     return candidates;
 }
 
-auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& candidates,
-               const std::span<const ZH_Dictionary::Key>& keys,
-               const ZH_Dictionary& dict) -> std::vector<std::vector<std::vector<int>>> {
+auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& candidates)
+    -> std::vector<std::vector<std::vector<int>>> {
     namespace views = ranges::views;
 
     using std::vector;
     vector<vector<int>> chunk;
     vector<vector<vector<int>>> chunks;
 
-    const auto characterSet = dict.CharacterSetFromKeySpan(keys);
-
-    auto candidateLength = [&dict, &characterSet](const ZH_Annotator::ZH_dicItemVec& itemVec) -> size_t {
+    auto candidateLength = [](const ZH_Annotator::ZH_dicItemVec& itemVec) -> size_t {
         return utl::StringU8(itemVec.front().key).length();
     };
     auto c_lengths = candidates |
@@ -95,11 +92,10 @@ auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -
 }
 }  // namespace
 
-auto ZH_Annotator::get_combinations(const std::vector<std::vector<int>>& chunk)
-    -> std::vector<std::vector<int>> {
+auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> std::vector<Combination> {
     using std::vector;
-    vector<vector<int>> combis;
-    vector<int> comb;
+    vector<Combination> combis;
+    Combination comb;
     size_t pos = 0;
 
     auto fill_foward = [&pos, &comb, &chunk]() {
@@ -176,11 +172,10 @@ auto ZH_Annotator::Chunks() const -> const std::vector<std::vector<std::vector<i
 
 void ZH_Annotator::annotate() {
     using utl::StringU8;
-    namespace ranges = std::ranges;
 
     const auto keys = dictionary->Simplified();
     candidates = GetCandidates(text, keys, *dictionary);
-    chunks = GetChunks(candidates, keys, *dictionary);
+    chunks = GetChunks(candidates);
 
     namespace ranges = std::ranges;
     namespace views = std::ranges::views;

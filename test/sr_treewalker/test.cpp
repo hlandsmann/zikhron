@@ -1,10 +1,9 @@
 #include <annotation/TextCard.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <catch2/catch_all.hpp>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
-
-#include <catch2/catch.hpp>
 
 namespace fs = std::filesystem;
 

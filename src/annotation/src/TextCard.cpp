@@ -57,7 +57,7 @@ void CardDB::loadFromDirectory(std::string directoryPath) {
             continue;
         }
         try {
-            uint cardId = std::stoi(card_fn_match.get<1>().to_string());
+            uint cardId = static_cast<uint>(std::stoi(card_fn_match.get<1>().to_string()));
             if (cards.find(cardId) != cards.end()) {
                 spdlog::warn("File \"{}\" ignored, because number {} is already in use!",
                              entry.filename().string(),

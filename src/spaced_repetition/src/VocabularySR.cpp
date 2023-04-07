@@ -1,6 +1,7 @@
 #include <VocabularySR.h>
 #include <annotation/Markup.h>
 #include <annotation/TextCard.h>
+#include <annotation/ZH_Annotator.h>
 #include <fmt/ostream.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
@@ -267,7 +268,7 @@ auto VocabularySR::getCardFromId(uint id) const
         return {};
 }
 
-auto VocabularySR::AddAnnotation(const std::vector<int>& combination,
+auto VocabularySR::AddAnnotation(const ZH_Annotator::Combination& combination,
                                  const std::vector<utl::CharU8>& characterSequence) -> CardInformation {
     sr_db.AddAnnotation(combination, characterSequence, *activeCardId);
     const auto& card = cardDB->get().at(*activeCardId);

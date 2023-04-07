@@ -15,7 +15,7 @@
 #endif
 
 class CardDB;
-class Card;
+struct Card;
 
 class VocabularySR {
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
@@ -33,8 +33,8 @@ public:
     using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getNextCardChoice(std::optional<uint> preferedCardId = {}) -> CardInformation;
     auto getCardFromId(uint id) const -> std::optional<CardInformation>;
-    auto AddAnnotation(const std::vector<int>& combination, const std::vector<utl::CharU8>& characters)
-        -> CardInformation;
+    auto AddAnnotation(const ZH_Annotator::Combination& combination,
+                       const std::vector<utl::CharU8>& characters) -> CardInformation;
     auto AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt&);
 

@@ -73,10 +73,20 @@ void MediaPlayer::openFile(const std::filesystem::path &mediaFile_in) {
     duration = 0.;
     timePos = 0.;
     mediaFile = mediaFile_in.string();
+    if (mediaFile.empty()) {
+        pause();
+        closeFile();
+        return;
+    }
     const char *cmd[] = {"loadfile", mediaFile.c_str(), NULL};
     mpv_command(mpv.get(), cmd);
     spdlog::info("mpv opening file {}", mediaFile.c_str());
     pause();
+}
+
+void MediaPlayer::closeFile() {
+    duration = 0.;
+    timePos = 0.;
 }
 
 void MediaPlayer::play_fragment(double start, double end) {

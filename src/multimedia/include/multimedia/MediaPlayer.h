@@ -30,6 +30,7 @@ private:
     void handle_mpv_event(mpv_event* event);
     void on_mpv_events();
 
+    void closeFile();
     void enable_stop_timer();
     void disable_stop_timer();
     bool timer_stop(int timer_id);

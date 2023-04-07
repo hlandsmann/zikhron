@@ -1,5 +1,6 @@
 #include <SR_DataBase.h>
 #include <annotation/Markup.h>
+#include <annotation/ZH_Annotator.h>
 #include <spdlog/spdlog.h>
 #include <utils/counting_iterator.h>
 #include <algorithm>
@@ -347,7 +348,7 @@ void SR_DataBase::CleanUpVocables(std::set<uint> ignoreVocableIds) {
     }
 }
 
-void SR_DataBase::AddAnnotation(const std::vector<int>& combination,
+void SR_DataBase::AddAnnotation(const ZH_Annotator::Combination& combination,
                                 const std::vector<utl::CharU8>& characterSequence,
                                 uint activeCardId) {
     annotationChoices[characterSequence] = combination;

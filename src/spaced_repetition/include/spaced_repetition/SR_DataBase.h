@@ -2,6 +2,7 @@
 
 #include <annotation/Ease.h>
 #include <annotation/TextCard.h>
+#include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <ctime>
 #include <nlohmann/json_fwd.hpp>
@@ -86,7 +87,7 @@ public:
     void ViewCard(uint cardId);
     void AdvanceIndirectlySeenVocables(uint cardId);
     void AdvanceFailedVocables();
-    void AddAnnotation(const std::vector<int>& combination,
+    void AddAnnotation(const ZH_Annotator::Combination& combination,
                        const std::vector<utl::CharU8>& characterSequence,
                        uint activeCardId);
     void AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
