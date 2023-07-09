@@ -40,14 +40,15 @@ public:
 
 private:
     auto CountTotalNewVocablesInSet() -> size_t;
-    [[nodiscard]] auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
-    [[nodiscard]] auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
+    [[nodiscard]] auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const
         -> float;
+    [[nodiscard]] auto CalculateCardValueSingleNewVoc(const CardMeta& cm,
+                                                      const std::set<uint>& neutral) const -> float;
 
     // Get vocables that would need to be learned with this current cardId
     // auto GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt;
-    [[nodiscard]]auto GetActiveVocables(uint cardId) const -> std::set<uint>;
-   [[nodiscard]] auto GetRelevantEase(uint cardId) const -> Id_Ease_vt;
+    [[nodiscard]] auto GetActiveVocables(uint cardId) const -> std::set<uint>;
+    [[nodiscard]] auto GetRelevantEase(uint cardId) const -> Id_Ease_vt;
 
     // Calculate which Cards to learn next
     auto GetCardRepeatedVoc() -> std::optional<uint>;

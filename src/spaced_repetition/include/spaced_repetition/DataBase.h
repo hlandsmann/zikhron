@@ -39,10 +39,10 @@ struct VocableSR {
 
     void advanceByEase(Ease);
     bool advanceIndirectly();
-    auto urgency() const -> float;
-    auto pauseTimeOver() const -> bool;
-    auto isToBeRepeatedToday() const -> bool;
-    auto isAgainVocable() const -> bool;
+    [[nodiscard]] auto urgency() const -> float;
+    [[nodiscard]] auto pauseTimeOver() const -> bool;
+    [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
+    [[nodiscard]] auto isAgainVocable() const -> bool;
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
 };
@@ -74,15 +74,19 @@ public:
     SR_DataBase(const std::shared_ptr<CardDB>&, const std::shared_ptr<ZH_Dictionary>&);
     ~SR_DataBase();
 
-    auto Id_cardSR() const -> const std::map<uint, CardSR>& { return id_cardSR; };
-    auto Id_vocableSR() const -> const std::map<uint, VocableSR>& { return id_vocableSR; };
-    auto Id_cardMeta() const -> const std::map<uint, CardMeta>& { return id_cardMeta; };
-    auto Id_vocableMeta() const -> const std::map<uint, VocableMeta>& { return id_vocableMeta; };
-    auto Ids_repeatTodayVoc() const -> const std::set<uint>& { return ids_repeatTodayVoc; };
-    auto Ids_againVoc() const -> const std::set<uint>& { return ids_againVoc; };
-    auto Ids_nowVoc() const -> const std::set<uint>& { return ids_nowVoc; };
+    [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, CardSR>& { return id_cardSR; };
+    [[nodiscard]] auto Id_vocableSR() const -> const std::map<uint, VocableSR>& { return id_vocableSR; };
+    [[nodiscard]] auto Id_cardMeta() const -> const std::map<uint, CardMeta>& { return id_cardMeta; };
+    [[nodiscard]] auto Id_vocableMeta() const -> const std::map<uint, VocableMeta>& {
+        return id_vocableMeta;
+    };
+    [[nodiscard]] auto Ids_repeatTodayVoc() const -> const std::set<uint>& {
+        return ids_repeatTodayVoc;
+    };
+    [[nodiscard]] auto Ids_againVoc() const -> const std::set<uint>& { return ids_againVoc; };
+    [[nodiscard]] auto Ids_nowVoc() const -> const std::set<uint>& { return ids_nowVoc; };
 
-    auto GetVocableIdsInOrder(uint cardId) const -> std::vector<uint>;
+    [[nodiscard]] auto GetVocableIdsInOrder(uint cardId) const -> std::vector<uint>;
     void SetEase(uint vocId, Ease ease);
     void ViewCard(uint cardId);
     void AdvanceIndirectlySeenVocables(uint cardId);
@@ -109,8 +113,8 @@ private:
     void GenerateToRepeatWorkload();
     void CleanUpVocables(std::set<uint> ignoreVocableIds);
 
-    const std::shared_ptr<CardDB> cardDB;
-    const std::shared_ptr<const ZH_Dictionary> zh_dictionary;
+    std::shared_ptr<CardDB> cardDB;
+    std::shared_ptr<const ZH_Dictionary> zh_dictionary;
 
     // vocableId -> vocable (aka. ZH_dicItemVec)
     std::map<uint, ZH_dicItemVec> id_vocable;

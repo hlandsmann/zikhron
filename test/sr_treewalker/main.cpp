@@ -17,10 +17,10 @@ auto get_zikhron_cfg() {
     return nlohmann::json::parse(ifs);
 }
 
-auto loadCardDB(const fs::path& card_db_path) -> CardDB {
-    CardDB cardDB;
+auto loadCardDB(const fs::path& card_db_path) ->std::shared_ptr< CardDB >{
+    auto cardDB=std::make_shared<CardDB>();
     try {
-        cardDB.loadFromDirectory(card_db_path / "cards");
+        cardDB->loadFromDirectory(card_db_path / "cards");
     }
     catch (const std::exception& e) {
         spdlog::error("Exception: {}", e.what());
@@ -38,7 +38,8 @@ int main() {
     fs::path dictionary_fn = zikhron_cfg["dictionary"];
     fs::path card_db_path = zikhron_cfg["card_db"];
 
-    auto zh_dictionary = ZH_Dictionary(dictionary_fn);
-    CardDB cardDB = loadCardDB(card_db_path);
-    spdlog::info("CardDB size: {}", cardDB.get().size());
+    auto zh_dictionary = std::make_shared<ZH_Dictionary>(dictionary_fn);
+    auto cardDB = loadCardDB(card_db_path);
+    spdlog::info("CardDB size: {}", cardDB->get().size());
+    TreeWalker treeWalker{cardDB, zh_dictionary};
 }
