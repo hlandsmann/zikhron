@@ -9,9 +9,9 @@
 #include <thread>
 
 #ifdef spaced_repetition_internal_include
-#include "SR_DataBase.h"
+#include "DataBase.h"
 #else
-#include <spaced_repetition/SR_DataBase.h>
+#include <spaced_repetition/DataBase.h>
 #endif
 
 class CardDB;
@@ -32,7 +32,7 @@ public:
     using Id_Ease_vt = std::map<uint, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getNextCardChoice(std::optional<uint> preferedCardId = {}) -> CardInformation;
-    auto getCardFromId(uint id) const -> std::optional<CardInformation>;
+    [[nodiscard]] auto getCardFromId(uint id) const -> std::optional<CardInformation>;
     auto AddAnnotation(const ZH_Annotator::Combination& combination,
                        const std::vector<utl::CharU8>& characters) -> CardInformation;
     auto AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) -> CardInformation;
@@ -40,14 +40,14 @@ public:
 
 private:
     auto CountTotalNewVocablesInSet() -> size_t;
-    auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
-    auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
+    [[nodiscard]] auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const -> float;
+    [[nodiscard]] auto CalculateCardValueSingleNewVoc(const CardMeta& cm, const std::set<uint>& neutral) const
         -> float;
 
     // Get vocables that would need to be learned with this current cardId
     // auto GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt;
-    auto GetActiveVocables(uint cardId) const -> std::set<uint>;
-    auto GetRelevantEase(uint cardId) const -> Id_Ease_vt;
+    [[nodiscard]]auto GetActiveVocables(uint cardId) const -> std::set<uint>;
+   [[nodiscard]] auto GetRelevantEase(uint cardId) const -> Id_Ease_vt;
 
     // Calculate which Cards to learn next
     auto GetCardRepeatedVoc() -> std::optional<uint>;

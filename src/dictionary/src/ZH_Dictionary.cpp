@@ -71,14 +71,14 @@ auto transformPronounciation(const std::string_view& pronounciation) -> std::str
 
         const auto toneIt = std::find(tones.begin(), tones.end(), syllable.back());
         if (toneIt != tones.end() && syllable.size() > 1) {
-            const size_t toneIndex = std::distance(tones.begin(), toneIt);
+            const size_t toneIndex = static_cast<size_t>(std::distance(tones.begin(), toneIt));
 
             for (const auto& vowel : vowels) {
                 const auto vowelIndex = finalResult.find(vowel, startIndex);
                 if (vowelIndex == std::string::npos)
                     continue;
 
-                const size_t i = std::distance(vowels.begin(), &vowel);
+                const size_t i = static_cast<size_t>(std::distance(vowels.begin(), &vowel));
                 finalResult.replace(vowelIndex, vowel.length(), toneVowels[i][toneIndex]);
                 break;
             }

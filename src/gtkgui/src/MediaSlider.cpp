@@ -28,8 +28,8 @@ void MediaSlider::on_draw(const Cairo::RefPtr<Cairo::Context> &cr, int width, in
     cr->stroke();
 
     double totalBarLength = width - spacing * 4;
-    double bar_x = spacing * 2;
-    double bar_y = height / 2;
+    double bar_x = spacing * 2.;
+    double bar_y = height / 2.;
     cr->move_to(bar_x, bar_y);
     cr->set_line_width(height - spacing * 4);
     cr->line_to(bar_x + totalBarLength * progress, bar_y);

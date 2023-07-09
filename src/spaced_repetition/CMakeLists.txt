@@ -8,12 +8,13 @@ target_include_directories(zikhron_spaced_repetition
 )
 target_sources(zikhron_spaced_repetition
     PRIVATE
-        src/SR_DataBase.cpp
-        src/VocabularySR_misc.cpp
-        src/VocabularySR.cpp
-    PUBLIC
-        include/spaced_repetition/VocabularySR.h
-        include/spaced_repetition/SR_DataBase.h
+        include/spaced_repetition/DataBase.h
+        include/spaced_repetition/TreeWalker.h
+        include/spaced_repetition/Vocabulary.h
+        src/DataBase.cpp
+        src/TreeWalker.cpp
+        src/Vocabulary.cpp
+        src/Vocabulary_misc.cpp
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC

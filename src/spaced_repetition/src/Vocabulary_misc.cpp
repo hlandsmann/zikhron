@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <nlohmann/json.hpp>
 #include <sstream>
-#include "VocabularySR.h"
+#include "Vocabulary.h"
 
 namespace {
 

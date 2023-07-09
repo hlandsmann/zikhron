@@ -6,7 +6,7 @@ class zikhron(ConanFile):
     version = "0.1"
     requires = (
         "benchmark/1.6.0",
-        "catch2/3.0.1",
+        "catch2/3.3.2",
         "fmt/9.1.0",
         "spdlog/1.11.0",
         "ctre/3.7.2",

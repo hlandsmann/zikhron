@@ -31,8 +31,8 @@ struct VocableSR {
     static constexpr std::string_view s_indirect_view = "indirect_view";
     static constexpr std::string_view s_indirect_interval_day = "indirect_interval_day";
 
-    float easeFactor = 0.f;
-    float intervalDay = 0.f;
+    float easeFactor = 0.F;
+    float intervalDay = 0.F;
     std::time_t lastSeen{};
     std::time_t indirectView{};
     uint indirectIntervalDay = 0;
