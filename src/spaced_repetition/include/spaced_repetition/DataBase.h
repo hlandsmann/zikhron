@@ -22,6 +22,11 @@ struct CardMeta {
 };
 
 struct VocableSR {
+    struct RepeatRange {
+        int min;
+        int median;
+        int max;
+    };
     static constexpr int pause_time_minutes = 5;
     using pair_t = std::pair<uint, VocableSR>;
     static constexpr std::string_view s_id = "id";
@@ -35,7 +40,7 @@ struct VocableSR {
     float intervalDay = 0.F;
     std::time_t lastSeen{};
     std::time_t indirectView{};
-    uint indirectIntervalDay = 0;
+    int indirectIntervalDay = 0;
 
     void advanceByEase(Ease);
     bool advanceIndirectly();
@@ -43,6 +48,8 @@ struct VocableSR {
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
     [[nodiscard]] auto isAgainVocable() const -> bool;
+    [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
+
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
 };

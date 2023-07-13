@@ -170,6 +170,10 @@ auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicIte
 
 auto ZH_Annotator::Chunks() const -> const std::vector<std::vector<std::vector<int>>>& { return chunks; }
 
+auto ZH_Annotator::Dictionary() const -> const std::shared_ptr<const ZH_Dictionary>& {
+    return dictionary;
+}
+
 void ZH_Annotator::annotate() {
     using utl::StringU8;
 
@@ -201,7 +205,7 @@ void ZH_Annotator::annotate() {
     size_t pos = 0;
     for (const auto& comb : min_combis) {
         if (comb.empty()) {
-            items.push_back(text.at(pos));
+            items.emplace_back(text.at(pos));
             pos++;
             continue;
         }

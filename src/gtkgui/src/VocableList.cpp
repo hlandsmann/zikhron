@@ -34,7 +34,7 @@ void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragra
             labelContainer[index]->set_label(
                 fmt::format("{:.1f}, ({:.1f})", progress.intervalDay, progress.easeFactor));
         });
-        easeChoice->setActive(mapEaseToInt(ease.ease));
+        easeChoice->setActive(mapEaseToUint(ease.ease));
         index++;
     }
 }

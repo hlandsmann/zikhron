@@ -37,7 +37,7 @@ public:
             activePage = 0;
         }
         void fromJson(const nlohmann::json& json);
-        auto toJson() const -> nlohmann::json;
+        [[nodiscard]] auto toJson() const -> nlohmann::json;
     };
     ConfigMain cfgMain;
 
@@ -45,12 +45,12 @@ private:
     friend class DataThread;
     ZikhronConfig();
     ~ZikhronConfig();
-    auto ConfigDir() const -> path;
+    [[nodiscard]] static auto ConfigDir() -> path;
     void open();
     void save();
 
-    const path zikhron_config_dir = ConfigDir();
-    const path config_file = "zikhron.json";
+    path zikhron_config_dir = ConfigDir();
+    path config_file = "zikhron.json";
 
     bool save_config = true;
 };
@@ -60,7 +60,6 @@ class DataThread {
 
 public:
     static auto get() -> DataThread&;
-    static void destroy();
     ~DataThread();
     using paragraph_optional = std::optional<std::shared_ptr<markup::Paragraph>>;
     using message_card = std::tuple<std::shared_ptr<markup::Paragraph>, std::vector<Ease>, uint>;
@@ -72,7 +71,7 @@ public:
     ZikhronConfig zikhronCfg;
 
     void requestCard(std::optional<uint> preferedCardId = {});
-    void requestCardFromIds(const std::vector<uint>&& ids);
+    void requestCardFromIds(std::vector<uint>&& ids);
     void submitEase(const VocabularySR::Id_Ease_vt& ease);
     void submitAnnotation(const ZH_Annotator::Combination& combination,
                           const ZH_Annotator::CharacterSequence& characterSequence);
@@ -96,7 +95,7 @@ private:
     void dispatcher_fun();
     void sendActiveCard(CardInformation& cardInformation);
 
-    auto getCardFromId(uint id) const -> paragraph_optional;
+    [[nodiscard]] auto getCardFromId(uint id) const -> paragraph_optional;
 
     std::jthread worker;
     std::condition_variable_any condition;

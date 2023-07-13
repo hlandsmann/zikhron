@@ -22,7 +22,7 @@ constexpr std::string_view css =
     "}";
 
 MainWindow::MainWindow() {
-    std::setlocale(LC_NUMERIC, "C");
+    spdlog::info("Locale is {}", std::setlocale(LC_NUMERIC, "C"));
     set_default_size(1, 1);
     set_title("Zikhron");
     overlay = std::make_shared<Gtk::Overlay>();
@@ -38,9 +38,10 @@ MainWindow::MainWindow() {
 
     sidebar.signal_switch_page().connect([this](Gtk::Widget *, guint slot) {
         for (guint page = 0; page < pages.size(); page++) {
-            if (NotebookPage *notebookPage = dynamic_cast<NotebookPage *>(pages[page].get());
-                notebookPage != nullptr)
+            if (auto *notebookPage = dynamic_cast<NotebookPage *>(pages[page].get());
+                notebookPage != nullptr) {
                 notebookPage->switchPage(slot == page);
+            }
         }
     });
     sidebar.set_current_page(DataThread::get().zikhronCfg.cfgMain.activePage);
@@ -55,7 +56,6 @@ MainWindow::MainWindow() {
 
 MainWindow::~MainWindow() {
     DataThread::get().zikhronCfg.cfgMain.activePage = sidebar.get_current_page();
-    DataThread::destroy();
 }
 
 template <class WidgetType>

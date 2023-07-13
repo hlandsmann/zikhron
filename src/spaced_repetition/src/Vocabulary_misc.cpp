@@ -15,7 +15,7 @@ auto serialize_time_t(const std::time_t& time) -> std::string {
 }
 
 auto deserialize_time_t(const std::string& s) -> std::time_t {
-    std::tm time;
+    std::tm time{};
     std::stringstream ss(s);
     ss >> std::get_time(&time, "%Y-%m-%d %H:%M:%S");
     return std::mktime(&time);
@@ -63,7 +63,7 @@ void VocableSR::advanceByEase(Ease ease) {
 
 auto VocableSR::advanceIndirectly() -> bool {
     if (isToBeRepeatedToday())
-        return false;
+    {return false;}
 
     bool advanceIntervalDay = false;
 
@@ -73,7 +73,7 @@ auto VocableSR::advanceIndirectly() -> bool {
     std::time_t indirectViewTime = std::mktime(&IndirectViewTime_tm);
 
     if (indirectViewTime < todayMidnightTime())
-        advanceIntervalDay = true;
+    {advanceIntervalDay = true;}
     indirectView = std::time(nullptr);
 
     indirectIntervalDay += advanceIntervalDay ? 1 : 0;
@@ -91,7 +91,7 @@ auto VocableSR::pauseTimeOver() const -> bool {
     std::time_t now_time = std::time(nullptr);
 
     return last_time < now_time;
-};
+}
 
 auto VocableSR::fromJson(const nlohmann::json& jsonIn) -> pair_t {
     return {jsonIn.at(std::string(VocableSR::s_id)),
@@ -116,10 +116,14 @@ auto VocableSR::isToBeRepeatedToday() const -> bool {
     std::time_t todayMidnight = todayMidnightTime();
 
     std::tm vocActiveTime_tm = *std::localtime(&lastSeen);
-    vocActiveTime_tm.tm_mday += int(intervalDay) + indirectIntervalDay;
+    vocActiveTime_tm.tm_mday += static_cast<int>(intervalDay) + indirectIntervalDay;
     std::time_t vocActiveTime = std::mktime(&vocActiveTime_tm);
 
     return todayMidnight > vocActiveTime;
 }
 
 auto VocableSR::isAgainVocable() const -> bool { return intervalDay == 0; };
+
+auto VocableSR::getRepeatRange() const -> RepeatRange {
+
+}

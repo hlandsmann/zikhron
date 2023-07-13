@@ -10,7 +10,7 @@
 class MainWindow : public Gtk::Window {
 public:
     MainWindow();
-    virtual ~MainWindow();
+    ~MainWindow() override;
 
 private:
     template <class WidgetType>

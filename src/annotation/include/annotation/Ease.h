@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 enum class EaseVal : unsigned int { again, hard, good, easy };
 
 inline auto mapIntToEase(unsigned int e) -> EaseVal {
@@ -7,12 +9,12 @@ inline auto mapIntToEase(unsigned int e) -> EaseVal {
     case 0: return EaseVal::again;
     case 1: return EaseVal::hard;
     case 2: return EaseVal::good;
-    case 3: return EaseVal::easy;
+    case 3:
     default: return EaseVal::easy;
     }
 }
 
-inline auto mapEaseToInt(EaseVal e) -> int {
+inline auto mapEaseToUint(EaseVal e) -> unsigned {
     switch (e) {
     case EaseVal::again: return 0;
     case EaseVal::hard: return 1;
@@ -23,13 +25,28 @@ inline auto mapEaseToInt(EaseVal e) -> int {
 }
 
 struct Ease {
+    static constexpr float tempEaseFactorHard = 1.2F;
+    static constexpr float minEaseFactor = 1.3F;
+    static constexpr float maxEaseFactor = 2.5F;
+
+    static constexpr float changeFactorEasy = 1.15F;
+    static constexpr float changeFactorGood = 1.F;
+    static constexpr float changeFactorHard = 0.85F;
+
+    static constexpr float thresholdFactorGood = 2.1F;
+    static constexpr float thresholdFactorHard = 1.6F;
+    static constexpr float thresholdFactorAgain = minEaseFactor + 0.1F;
+
+    static constexpr int thresholdIntervalHard = 5;
+    static constexpr int thresholdIntervalAgain = 2;
+
     struct Progress {
         float intervalDay;
         float easeFactor;
-        unsigned int indirectIntervalDay;
+        int indirectIntervalDay;
     };
-    Ease(float intervalDay, float easeFactor, unsigned int indirectIntervalDay);
-    auto getProgress() const -> Progress;
+    Ease(float intervalDay, float easeFactor, int indirectIntervalDay);
+    [[nodiscard]] auto getProgress() const -> Progress;
 
     EaseVal ease;
     Progress progress;

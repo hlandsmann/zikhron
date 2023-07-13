@@ -93,7 +93,7 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
 
 auto Paragraph::textFromCard(const Card& card) -> utl::StringU8 {
     utl::StringU8 text;
-    if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
+    if (const auto* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
         for (const auto& dialogue : dlgCard->dialogue) {
             text.append(dialogue.speaker);
             text.append(std::string("~"));
@@ -101,7 +101,7 @@ auto Paragraph::textFromCard(const Card& card) -> utl::StringU8 {
             text.append(std::string("~"));
         }
     }
-    if (const TextCard* textCard = dynamic_cast<const TextCard*>(&card)) {
+    if (const auto* textCard = dynamic_cast<const TextCard*>(&card)) {
         text = textCard->text;
     }
     return text;
@@ -424,7 +424,7 @@ auto Paragraph::getVocableChoiceFromPosition(int pos, const std::vector<int>& po
         });
     assert(indexVocableChoice < vocableIds.size());
     size_t vocId = vocableIds[indexVocableChoice];
-    const ZH_Dictionary& zh_dictionary = *card->zh_annotator.value().dictionary;
+    const ZH_Dictionary& zh_dictionary = *card->zh_annotator.value().Dictionary();
 
     return zh_dictionary.EntryFromPosition(vocId, zh_dictionary.Simplified());
 }
@@ -437,7 +437,7 @@ void Paragraph::setupVocables(const std::map<uint, Ease>& ease) {
     assert(card->zh_annotator.has_value());
     const auto& zh_annotator = card->zh_annotator.value();
 
-    const ZH_Dictionary& zh_dictionary = *card->zh_annotator.value().dictionary;
+    const ZH_Dictionary& zh_dictionary = *card->zh_annotator.value().Dictionary();
     activeVocables.clear();
     ranges::copy(ease | std::views::keys, std::back_inserter(activeVocables));
     ranges::sort(activeVocables, std::less{}, [&](const auto& vocId) {

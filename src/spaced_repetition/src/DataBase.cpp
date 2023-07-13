@@ -156,6 +156,8 @@ void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& car
 
     CardMeta& cm = id_cardMeta[cardId];
     const CardDB::CardPtr& cardPtr = cardDB->get().at(cardId);
+    // if( not cardPtr.has_value()) return ;
+    assert(cardPtr->zh_annotator.has_value());
     const ZH_Annotator& annotator = cardPtr->zh_annotator.value();
 
     // Its unfortunate, that we cannot simply use a view.... but we gotta live with that.
@@ -202,7 +204,7 @@ void SR_DataBase::SetEase(uint vocId, Ease ease) {
     ids_repeatTodayVoc.erase(vocId);
     spdlog::debug("Ease of {} is {}, intervalDay {:.2f}, easeFactor {:.2f}",
                   id_vocable.at(vocId).front().key,
-                  mapEaseToInt(ease.ease),
+                  mapEaseToUint(ease.ease),
                   vocableSR.intervalDay,
                   vocableSR.easeFactor);
 }
