@@ -44,25 +44,25 @@ public:
     static auto get() -> CardAudioGroupDB &;
     void save(uint groupId, const CardAudioGroup &);
     void insert(uint groupId, const CardAudioGroup &);
-    auto seekBackward(uint cardId) const -> std::optional<uint>;
-    auto seekForward(uint cardId) const -> std::optional<uint>;
-    auto skipBackward(uint cardId) const -> std::optional<uint>;
-    auto skipForward(uint cardId) const -> std::optional<uint>;
-    auto nextOrThisGroupId(uint groupId) const -> uint;
-    auto prevOrThisGroupId(uint groupId) const -> uint;
-    auto newCardAudioGroup() -> uint;
-    auto get_cardAudioGroup(uint groupId) const -> CardAudioGroup;
-    auto get_studyAudioFragment(uint cardId) const -> std::optional<StudyAudioFragment>;
+    [[nodiscard]] auto seekBackward(uint cardId) const -> std::optional<uint>;
+    [[nodiscard]] auto seekForward(uint cardId) const -> std::optional<uint>;
+    [[nodiscard]] auto skipBackward(uint cardId) const -> std::optional<uint>;
+    [[nodiscard]] auto skipForward(uint cardId) const -> std::optional<uint>;
+    [[nodiscard]] auto nextOrThisGroupId(uint groupId) const -> uint;
+    [[nodiscard]] auto prevOrThisGroupId(uint groupId) const -> uint;
+    [[nodiscard]] auto newCardAudioGroup() -> uint;
+    [[nodiscard]] auto get_cardAudioGroup(uint groupId) const -> CardAudioGroup;
+    [[nodiscard]] auto get_studyAudioFragment(uint cardId) const -> std::optional<StudyAudioFragment>;
 
 private:
     void load();
     void setupStudyAudioFragments();
-    auto findAudioGroupFromCardId(uint cardId) const -> std::optional<uint>;
+    [[nodiscard]] auto findAudioGroupFromCardId(uint cardId) const -> std::optional<uint>;
 
     std::map<uint, CardAudioGroup> id_cardAudioGroup;
     std::map<uint, StudyAudioFragment> cardId_studyAudioFragment;
 
-    auto cardIdIt_and_group(uint cardId) const -> std::optional<
+    [[nodiscard]] auto cardIdIt_and_group(uint cardId) const -> std::optional<
         std::pair<decltype(std::ranges::begin(id_cardAudioGroup.begin()->second.cardId_audioFragment)),
                   const decltype(CardAudioGroup().cardId_audioFragment) &>>;
 };

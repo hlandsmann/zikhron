@@ -257,6 +257,16 @@ void SupplyAudio::createMainCtrlBtnBox() {
         auto cag = getCurrentAudioGroup();
         cardAudioGroupDB.save(spinBtn_audioGroup.currentValue, cag);
     });
+    btnStudyGroup.set_label("study group");
+    btnStudyGroup.signal_clicked().connect([this]() {
+        auto cag = getCurrentAudioGroup();
+        if (cag.cardId_audioFragment.empty()) {
+            return;
+        }
+        auto& [key, _] = *cag.cardId_audioFragment.begin();
+        DataThread::get().requestCard({key});
+    });
+
     btnOpenAudioFile.set_image_from_icon_name("media-record");
     btnOpenAudioFile.signal_clicked().connect([this]() { createFileChooserDialog(); });
     btnNewAudioCardGroup.set_image_from_icon_name("document-new");
@@ -286,10 +296,12 @@ void SupplyAudio::createMainCtrlBtnBox() {
     }));
     observers.push(spinBtn_lastCard.currentValue.observe([this](uint value) {
         if (not spinBtn_lastCard.changeBySetValue) {
-            if (spinBtn_firstCard.currentValue > value)
+            if (spinBtn_firstCard.currentValue > value) {
                 spinBtn_firstCard.currentValue = value;
-            if (spinBtn_lastCard.currentValue.get_old_value() + 10 < value)
+            }
+            if (spinBtn_lastCard.currentValue.get_old_value() + 10 < value) {
                 spinBtn_firstCard.currentValue = value;
+            }
         }
         spinBtn_lastCard.changeBySetValue = false;
         requestCards();
@@ -298,6 +310,7 @@ void SupplyAudio::createMainCtrlBtnBox() {
     btnGroup_accuracy->observe_active([this](uint digits) { fragment_adjust_stepsize(digits); });
     btnGroup_accuracy->setActive(0);
     mainCtrlBtnBox.append(btnSave);
+    mainCtrlBtnBox.append(btnStudyGroup);
     mainCtrlBtnBox.append(spinBtn_audioGroup);
     mainCtrlBtnBox.append(btnNewAudioCardGroup);
     mainCtrlBtnBox.append(btnOpenAudioFile);

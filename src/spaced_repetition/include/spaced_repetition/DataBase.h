@@ -21,11 +21,26 @@ struct CardMeta {
     uint cardId = 0;
 };
 
-struct VocableSR {
+class VocableSR {
+public:
+    struct Init {
+        float easeFactor = 0.F;
+        float intervalDay = 0.F;
+        std::time_t lastSeen{};
+        std::time_t indirectView{};
+        int indirectIntervalDay = 0;
+    };
+    VocableSR(Init init)
+        : easeFactor{init.easeFactor}
+        , intervalDay{init.intervalDay}
+        , lastSeen{init.lastSeen}
+        , indirectView{init.indirectView}
+        , indirectIntervalDay{init.indirectIntervalDay} {}
+    VocableSR() : VocableSR(Init{}) {}
     struct RepeatRange {
-        int min;
-        int median;
-        int max;
+        int daysMin;
+        int daysNormal;
+        int daysMax;
     };
     static constexpr int pause_time_minutes = 5;
     using pair_t = std::pair<uint, VocableSR>;
@@ -36,22 +51,26 @@ struct VocableSR {
     static constexpr std::string_view s_indirect_view = "indirect_view";
     static constexpr std::string_view s_indirect_interval_day = "indirect_interval_day";
 
-    float easeFactor = 0.F;
-    float intervalDay = 0.F;
-    std::time_t lastSeen{};
-    std::time_t indirectView{};
-    int indirectIntervalDay = 0;
-
     void advanceByEase(Ease);
-    bool advanceIndirectly();
+    auto advanceIndirectly() -> bool;
     [[nodiscard]] auto urgency() const -> float;
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
     [[nodiscard]] auto isAgainVocable() const -> bool;
     [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
+    [[nodiscard]] auto IntervalDay() const -> float { return intervalDay; }
+    [[nodiscard]] auto EaseFactor() const -> float { return easeFactor; }
+    [[nodiscard]] auto IndirectIntervalDay() const -> int { return indirectIntervalDay; }
 
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
+
+private:
+    float easeFactor = 0.F;
+    float intervalDay = 0.F;
+    std::time_t lastSeen{};
+    std::time_t indirectView{};
+    int indirectIntervalDay = 0;
 };
 
 struct CardSR {
@@ -79,6 +98,10 @@ class SR_DataBase {
 
 public:
     SR_DataBase(const std::shared_ptr<CardDB>&, const std::shared_ptr<ZH_Dictionary>&);
+    SR_DataBase(SR_DataBase&&) = delete;
+    SR_DataBase(const SR_DataBase&) = delete;
+    auto operator=(SR_DataBase&&) -> SR_DataBase = delete;
+    auto operator=(const SR_DataBase&) -> SR_DataBase = delete;
     ~SR_DataBase();
 
     [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, CardSR>& { return id_cardSR; };

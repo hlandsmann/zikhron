@@ -205,8 +205,8 @@ void SR_DataBase::SetEase(uint vocId, Ease ease) {
     spdlog::debug("Ease of {} is {}, intervalDay {:.2f}, easeFactor {:.2f}",
                   id_vocable.at(vocId).front().key,
                   mapEaseToUint(ease.ease),
-                  vocableSR.intervalDay,
-                  vocableSR.easeFactor);
+                  vocableSR.IntervalDay(),
+                  vocableSR.EaseFactor());
 }
 
 void SR_DataBase::ViewCard(uint cardId) { id_cardSR[cardId].ViewNow(); }

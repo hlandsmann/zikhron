@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ButtonGroup.h>
+#include <DataThread.h>
 #include <MediaButtons.h>
 #include <MediaSlider.h>
 #include <NotebookPage.h>
@@ -137,6 +138,7 @@ private:
 
     MediaPlayer mediaPlayer{};
     Gtk::Button btnSave;
+    Gtk::Button btnStudyGroup;
     Gtk::Button btnOpenAudioFile;
     Gtk::Button btnNewAudioCardGroup;
     PlayBox playBox{mediaPlayer};

@@ -2,7 +2,6 @@
 #include <annotation/Markup.h>
 #include <annotation/TextCard.h>
 #include <annotation/ZH_Annotator.h>
-#include <fmt/ostream.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
 #include <utils/counting_iterator.h>
@@ -15,8 +14,6 @@
 #include <filesystem>
 #include <fstream>
 #include <functional>
-#include <iomanip>
-#include <iostream>
 #include <map>
 #include <nlohmann/json.hpp>
 #include <optional>
@@ -67,7 +64,7 @@ auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
         relevance += id_vocableMeta.at(vocId).cardIds.size();
     }
 
-    return float(relevance) / std::pow(std::abs(float(diff.size() - 2)) + 1.f, float(diff.size()));
+    return float{relevance} / std::pow(std::abs(float(diff.size() - 2)) + 1.f, float(diff.size()));
 }
 
 auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
@@ -307,10 +304,10 @@ auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
             const VocableSR vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableSR();
             spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
                           zh_dictionary->EntryFromPosition(vocId, zh_dictionary->Simplified()).key,
-                          vocSR.easeFactor,
-                          vocSR.intervalDay,
+                          vocSR.EaseFactor(),
+                          vocSR.IntervalDay(),
                           vocId);
-            return {vocId, {vocSR.intervalDay, vocSR.easeFactor, vocSR.indirectIntervalDay}};
+            return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
         });
     return ease;
 }

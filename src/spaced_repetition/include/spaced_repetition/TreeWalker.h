@@ -7,7 +7,7 @@
 
 class TreeWalker {
 public:
-    TreeWalker(const std::shared_ptr<CardDB>&, const std::shared_ptr<ZH_Dictionary>&);
+    TreeWalker(std::shared_ptr<CardDB>, std::shared_ptr<ZH_Dictionary>);
 
 private:
     std::shared_ptr<CardDB> cardDB;

@@ -1,11 +1,13 @@
 #include <fmt/format.h>
+#include <chrono>
 #include <fmt/ostream.h>
 #include <ctime>
 #include <iomanip>
 #include <nlohmann/json.hpp>
 #include <sstream>
-#include "Vocabulary.h"
+#include "DataBase.h"
 
+namespace chrono = std::chrono; 
 namespace {
 
 auto serialize_time_t(const std::time_t& time) -> std::string {
@@ -16,6 +18,7 @@ auto serialize_time_t(const std::time_t& time) -> std::string {
 
 auto deserialize_time_t(const std::string& s) -> std::time_t {
     std::tm time{};
+    time.tm_isdst = -1;
     std::stringstream ss(s);
     ss >> std::get_time(&time, "%Y-%m-%d %H:%M:%S");
     return std::mktime(&time);
@@ -29,6 +32,21 @@ auto todayMidnightTime() -> std::time_t {
     todayMidnight_tm.tm_hour = 0;
     todayMidnight_tm.tm_mday += 1;
     return std::mktime(&todayMidnight_tm);
+}
+
+auto advanceTimeByDays(std::time_t inputTime, float days) -> std::time_t {
+    std::tm vocActiveTime_tm = *std::localtime(&inputTime);
+    vocActiveTime_tm.tm_mday += static_cast<int>(days);
+    return std::mktime(&vocActiveTime_tm);
+}
+
+auto daysFromNow(std::time_t startTime, float intervalDays) -> int {
+    const auto sysclock_now = chrono::system_clock::from_time_t(std::time(nullptr));
+    const auto sysclock_startTime = chrono::system_clock::from_time_t(
+        advanceTimeByDays(startTime, intervalDays));
+    const auto timePoint_now = chrono::time_point_cast<chrono::days>(sysclock_now);
+    const auto timePoint_due = chrono::time_point_cast<chrono::days>(sysclock_startTime);
+    return static_cast<int>((chrono::sys_days{timePoint_due} - chrono::sys_days{timePoint_now}).count());
 }
 
 }  // namespace
@@ -62,8 +80,9 @@ void VocableSR::advanceByEase(Ease ease) {
 }
 
 auto VocableSR::advanceIndirectly() -> bool {
-    if (isToBeRepeatedToday())
-    {return false;}
+    if (isToBeRepeatedToday()) {
+        return false;
+    }
 
     bool advanceIntervalDay = false;
 
@@ -72,8 +91,9 @@ auto VocableSR::advanceIndirectly() -> bool {
     IndirectViewTime_tm.tm_mday += 1;
     std::time_t indirectViewTime = std::mktime(&IndirectViewTime_tm);
 
-    if (indirectViewTime < todayMidnightTime())
-    {advanceIntervalDay = true;}
+    if (indirectViewTime < todayMidnightTime()) {
+        advanceIntervalDay = true;
+    }
     indirectView = std::time(nullptr);
 
     indirectIntervalDay += advanceIntervalDay ? 1 : 0;
@@ -81,7 +101,7 @@ auto VocableSR::advanceIndirectly() -> bool {
 }
 
 auto VocableSR::urgency() const -> float {
-    return (easeFactor * intervalDay) + float(indirectIntervalDay);
+    return (easeFactor * intervalDay) + static_cast<float>(indirectIntervalDay);
 }
 
 auto VocableSR::pauseTimeOver() const -> bool {
@@ -94,12 +114,12 @@ auto VocableSR::pauseTimeOver() const -> bool {
 }
 
 auto VocableSR::fromJson(const nlohmann::json& jsonIn) -> pair_t {
-    return {jsonIn.at(std::string(VocableSR::s_id)),
-            {.easeFactor = jsonIn.at(std::string(VocableSR::s_ease_factor)),
-             .intervalDay = jsonIn.at(std::string(VocableSR::s_interval_day)),
-             .lastSeen = deserialize_time_t(jsonIn.at(std::string(VocableSR::s_last_seen))),
-             .indirectView = deserialize_time_t(jsonIn.at(std::string(VocableSR::s_indirect_view))),
-             .indirectIntervalDay = jsonIn.at(std::string(VocableSR::s_indirect_interval_day))}};
+    Init init = {.easeFactor = jsonIn.at(std::string(VocableSR::s_ease_factor)),
+                 .intervalDay = jsonIn.at(std::string(VocableSR::s_interval_day)),
+                 .lastSeen = deserialize_time_t(jsonIn.at(std::string(VocableSR::s_last_seen))),
+                 .indirectView = deserialize_time_t(jsonIn.at(std::string(VocableSR::s_indirect_view))),
+                 .indirectIntervalDay = jsonIn.at(std::string(VocableSR::s_indirect_interval_day))};
+    return {jsonIn.at(std::string(VocableSR::s_id)), {init}};
 }
 
 auto VocableSR::toJson(const pair_t& pair) -> nlohmann::json {
@@ -114,10 +134,8 @@ auto VocableSR::toJson(const pair_t& pair) -> nlohmann::json {
 
 auto VocableSR::isToBeRepeatedToday() const -> bool {
     std::time_t todayMidnight = todayMidnightTime();
-
-    std::tm vocActiveTime_tm = *std::localtime(&lastSeen);
-    vocActiveTime_tm.tm_mday += static_cast<int>(intervalDay) + indirectIntervalDay;
-    std::time_t vocActiveTime = std::mktime(&vocActiveTime_tm);
+    std::time_t vocActiveTime = advanceTimeByDays(lastSeen,
+                                                  intervalDay + static_cast<float>(indirectIntervalDay));
 
     return todayMidnight > vocActiveTime;
 }
@@ -125,5 +143,10 @@ auto VocableSR::isToBeRepeatedToday() const -> bool {
 auto VocableSR::isAgainVocable() const -> bool { return intervalDay == 0; };
 
 auto VocableSR::getRepeatRange() const -> RepeatRange {
-
+    constexpr auto square = 2.F;
+    float minFactor =  std::pow(Ease::changeFactorHard, square);
+    float maxFactor = easeFactor * Ease::changeFactorHard;
+    return {.daysMin =    daysFromNow(lastSeen, intervalDay * minFactor),
+            .daysNormal = daysFromNow(lastSeen, intervalDay),
+            .daysMax =    daysFromNow(lastSeen, intervalDay * maxFactor)};
 }

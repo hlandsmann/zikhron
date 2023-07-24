@@ -22,7 +22,7 @@ find_package(ctre REQUIRED)
 find_package(Microsoft.GSL REQUIRED)
 find_package(nlohmann_json REQUIRED)
 
-option(use_iwyu OFF)
+option(use_iwyu ON)
 
 if(use_iwyu)
     find_program(IWYU_PATH NAMES include-what-you-use iwyu)
