@@ -3,12 +3,18 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <memory>
-#include "DataBase.h"
+#include <ranges>
+#include "DataBase_deprecated.h"
+
+namespace ranges = std::ranges;
 
 namespace {
 void walk(const SR_DataBase& db) {
-    const auto& id_cardSR = db.Id_cardSR();
+    const auto& id_cardSR = db.Id_cardMeta();
     spdlog::info("Number of cards: {}", id_cardSR.size());
+    for(const auto& m: id_cardSR | std::views::reverse | std::views::values | std::views::take(10)){
+      spdlog::info("Number of vocs: {}", m.vocableIds.size());
+    }
 }
 
 }  // namespace

@@ -8,10 +8,10 @@ target_include_directories(zikhron_spaced_repetition
 )
 target_sources(zikhron_spaced_repetition
     PRIVATE
-        include/spaced_repetition/DataBase.h
+        include/spaced_repetition/DataBase_deprecated.h
         include/spaced_repetition/TreeWalker.h
         include/spaced_repetition/Vocabulary.h
-        src/DataBase.cpp
+        src/DataBase_deprecated.cpp
         src/TreeWalker.cpp
         src/Vocabulary.cpp
         src/Vocabulary_misc.cpp

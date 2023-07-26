@@ -9,9 +9,9 @@
 #include <thread>
 
 #ifdef spaced_repetition_internal_include
-#include "DataBase.h"
+#include "DataBase_deprecated.h"
 #else
-#include <spaced_repetition/DataBase.h>
+#include <spaced_repetition/DataBase_deprecated.h>
 #endif
 
 class CardDB;
