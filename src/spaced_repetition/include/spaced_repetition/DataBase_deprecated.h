@@ -8,6 +8,8 @@
 #include <nlohmann/json_fwd.hpp>
 #include <set>
 #include <string_view>
+#include "Card.h"
+#include "Vocable.h"
 
 struct VocableMeta {
     // uint id = 0;
@@ -19,72 +21,6 @@ struct CardMeta {
     std::set<uint> vocableIds;
 
     uint cardId = 0;
-};
-
-class VocableSR {
-public:
-    struct Init {
-        float easeFactor = 0.F;
-        float intervalDay = 0.F;
-        std::time_t lastSeen{};
-        std::time_t indirectView{};
-        int indirectIntervalDay = 0;
-    };
-    VocableSR(Init init)
-        : easeFactor{init.easeFactor}
-        , intervalDay{init.intervalDay}
-        , lastSeen{init.lastSeen}
-        , indirectView{init.indirectView}
-        , indirectIntervalDay{init.indirectIntervalDay} {}
-    VocableSR() : VocableSR(Init{}) {}
-    struct RepeatRange {
-        int daysMin;
-        int daysNormal;
-        int daysMax;
-    };
-    static constexpr int pause_time_minutes = 5;
-    using pair_t = std::pair<uint, VocableSR>;
-    static constexpr std::string_view s_id = "id";
-    static constexpr std::string_view s_ease_factor = "ease_factor";
-    static constexpr std::string_view s_interval_day = "interval_day";
-    static constexpr std::string_view s_last_seen = "last_seen";
-    static constexpr std::string_view s_indirect_view = "indirect_view";
-    static constexpr std::string_view s_indirect_interval_day = "indirect_interval_day";
-
-    void advanceByEase(Ease);
-    auto advanceIndirectly() -> bool;
-    [[nodiscard]] auto urgency() const -> float;
-    [[nodiscard]] auto pauseTimeOver() const -> bool;
-    [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
-    [[nodiscard]] auto isAgainVocable() const -> bool;
-    [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
-    [[nodiscard]] auto IntervalDay() const -> float { return intervalDay; }
-    [[nodiscard]] auto EaseFactor() const -> float { return easeFactor; }
-    [[nodiscard]] auto IndirectIntervalDay() const -> int { return indirectIntervalDay; }
-
-    static auto toJson(const pair_t&) -> nlohmann::json;
-    static auto fromJson(const nlohmann::json&) -> pair_t;
-
-private:
-    float easeFactor = 0.F;
-    float intervalDay = 0.F;
-    std::time_t lastSeen{};
-    std::time_t indirectView{};
-    int indirectIntervalDay = 0;
-};
-
-struct CardSR {
-    using pair_t = std::pair<uint, CardSR>;
-    static constexpr std::string_view s_id = "id";
-    static constexpr std::string_view s_last_seen = "last_seen";
-    static constexpr std::string_view s_view_count = "view_count";
-
-    std::time_t lastSeen{};
-    uint viewCount{};
-
-    void ViewNow();
-    static auto toJson(const pair_t&) -> nlohmann::json;
-    static auto fromJson(const nlohmann::json&) -> pair_t;
 };
 
 class SR_DataBase {
@@ -104,8 +40,8 @@ public:
     auto operator=(const SR_DataBase&) -> SR_DataBase = delete;
     ~SR_DataBase();
 
-    [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, CardSR>& { return id_cardSR; };
-    [[nodiscard]] auto Id_vocableSR() const -> const std::map<uint, VocableSR>& { return id_vocableSR; };
+    [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, Card>& { return id_cardSR; };
+    [[nodiscard]] auto Id_vocableSR() const -> const std::map<uint, Vocable>& { return id_vocableSR; };
     [[nodiscard]] auto Id_cardMeta() const -> const std::map<uint, CardMeta>& { return id_cardMeta; };
     [[nodiscard]] auto Id_vocableMeta() const -> const std::map<uint, VocableMeta>& {
         return id_vocableMeta;
@@ -149,8 +85,8 @@ private:
     // vocableId -> vocable (aka. ZH_dicItemVec)
     std::map<uint, ZH_dicItemVec> id_vocable;
 
-    std::map<uint, CardSR> id_cardSR;
-    std::map<uint, VocableSR> id_vocableSR;
+    std::map<uint, Card> id_cardSR;
+    std::map<uint, Vocable> id_vocableSR;
     std::map<uint, CardMeta> id_cardMeta;
     std::map<uint, VocableMeta> id_vocableMeta;
 

@@ -2,7 +2,7 @@
 #include <spdlog/spdlog.h>
 #include <algorithm>
 #include <functional>
-#include <gsl/gsl_util>
+#include <gsl/util>
 #include <ranges>
 #include <span>
 

@@ -49,10 +49,9 @@ public:
     using value_type = Word;
     using vocable_pronounciation_meaning_t = std::tuple<std::string, std::string, std::string>;
     // ToDo: move that function to TextCard
-    static auto textFromCard(const Card&) -> utl::StringU8;
 
-    Paragraph(std::unique_ptr<Card> card);
-    Paragraph(std::unique_ptr<Card> card, std::vector<uint>&& vocableIds);
+    Paragraph(std::unique_ptr<BaseCard> card);
+    Paragraph(std::unique_ptr<BaseCard> card, std::vector<uint>&& vocableIds);
     auto get() const -> std::string;
     auto getFragments() const -> std::vector<std::string>;
     auto getWordStartPosition(int pos, const std::vector<int>& positions) const -> int;
@@ -85,14 +84,12 @@ public:
         -> std::vector<std::pair<uint, Ease>>;
     auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<uint, Ease>;
 
-
 private:
     auto getAnnotationChunkFromPosition(size_t pos)
         -> std::optional<std::reference_wrapper<AnnotationChunk>>;
-    auto calculate_positions(size_t (Word::*len)() const) const
-        -> std::vector<int>;
+    auto calculate_positions(size_t (Word::*len)() const) const -> std::vector<int>;
 
-    std::unique_ptr<Card> card;
+    std::unique_ptr<BaseCard> card;
 
     struct WordState {
         std::size_t index;

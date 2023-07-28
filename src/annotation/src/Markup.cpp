@@ -91,22 +91,6 @@ auto Word::applyStyle(const std::string& str) const -> std::string {
     return str;
 }
 
-auto Paragraph::textFromCard(const Card& card) -> utl::StringU8 {
-    utl::StringU8 text;
-    if (const auto* dlgCard = dynamic_cast<const DialogueCard*>(&card)) {
-        for (const auto& dialogue : dlgCard->dialogue) {
-            text.append(dialogue.speaker);
-            text.append(std::string("~"));
-            text.append(dialogue.text);
-            text.append(std::string("~"));
-        }
-    }
-    if (const auto* textCard = dynamic_cast<const TextCard*>(&card)) {
-        text = textCard->text;
-    }
-    return text;
-}
-
 auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::vector<int> {
     std::vector<int> result;
     result.push_back(0);
@@ -119,11 +103,10 @@ auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::v
     return result;
 }
 
-Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
-    utl::StringU8 text = textFromCard(*card);
+Paragraph::Paragraph(std::unique_ptr<BaseCard> _card) : card(std::move(_card)) {
+    utl::StringU8 text = card->getText();
 
-    assert(card->zh_annotator.has_value());
-    const ZH_Annotator& zh_annotator = card->zh_annotator.value();
+    const ZH_Annotator& zh_annotator = card->getAnnotator();
     ranges::transform(zh_annotator.Items(),
                       std::back_inserter(words),
                       [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
@@ -165,7 +148,7 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
     }
 }
 
-Paragraph::Paragraph(std::unique_ptr<Card> card_in, std::vector<uint>&& vocableIds_in)
+Paragraph::Paragraph(std::unique_ptr<BaseCard> card_in, std::vector<uint>&& vocableIds_in)
     : Paragraph(std::move(card_in)) {
     vocableIds = std::move(vocableIds_in);
 }
@@ -212,9 +195,8 @@ auto Paragraph::fragmentStartPos(size_t fragment, const std::vector<int>& positi
 }
 
 void Paragraph::updateAnnotationColoring() {
-    assert(card->zh_annotator.has_value());
 
-    const auto& zh_annotator = card->zh_annotator.value();
+    const auto& zh_annotator = card->getAnnotator();
     const auto& chunks = zh_annotator.Chunks();
     const auto& items = zh_annotator.Items();
 
@@ -395,8 +377,7 @@ void Paragraph::undoChange() {
 
 auto Paragraph::wordFromPosition(int pos, const std::vector<int>& positions) const
     -> const ZH_Annotator::ZH_dicItemVec {
-    assert(card->zh_annotator.has_value());
-    const auto& zh_annotator = card->zh_annotator.value();
+    const auto& zh_annotator = card->getAnnotator();
 
     const std::size_t index = getWordIndex(pos, positions);
     if (index >= zh_annotator.Items().size())
@@ -408,7 +389,7 @@ auto Paragraph::wordFromPosition(int pos, const std::vector<int>& positions) con
 
 auto Paragraph::getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
     -> ZH_Dictionary::Entry {
-    const auto& zh_annotator = card->zh_annotator.value();
+    const auto& zh_annotator = card->getAnnotator();
     const std::size_t index = getWordIndex(pos, positions);
     if (index >= zh_annotator.Items().size())
         return {};
@@ -424,7 +405,7 @@ auto Paragraph::getVocableChoiceFromPosition(int pos, const std::vector<int>& po
         });
     assert(indexVocableChoice < vocableIds.size());
     size_t vocId = vocableIds[indexVocableChoice];
-    const ZH_Dictionary& zh_dictionary = *card->zh_annotator.value().Dictionary();
+    const ZH_Dictionary& zh_dictionary = *card->getAnnotator().Dictionary();
 
     return zh_dictionary.EntryFromPosition(vocId, zh_dictionary.Simplified());
 }
@@ -434,10 +415,9 @@ auto Paragraph::getVocables() const -> const std::vector<vocable_pronounciation_
 }
 
 void Paragraph::setupVocables(const std::map<uint, Ease>& ease) {
-    assert(card->zh_annotator.has_value());
-    const auto& zh_annotator = card->zh_annotator.value();
+    const auto& zh_annotator = card->getAnnotator();
 
-    const ZH_Dictionary& zh_dictionary = *card->zh_annotator.value().Dictionary();
+    const ZH_Dictionary& zh_dictionary = *card->getAnnotator().Dictionary();
     activeVocables.clear();
     ranges::copy(ease | std::views::keys, std::back_inserter(activeVocables));
     ranges::sort(activeVocables, std::less{}, [&](const auto& vocId) {

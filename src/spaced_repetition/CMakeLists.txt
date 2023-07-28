@@ -8,13 +8,18 @@ target_include_directories(zikhron_spaced_repetition
 )
 target_sources(zikhron_spaced_repetition
     PRIVATE
+        include/spaced_repetition/Card.h
         include/spaced_repetition/DataBase_deprecated.h
         include/spaced_repetition/TreeWalker.h
+        include/spaced_repetition/Vocable.h
         include/spaced_repetition/Vocabulary.h
+        src/Card.cpp
         src/DataBase_deprecated.cpp
+        src/Time.cpp
+        src/Time.h
         src/TreeWalker.cpp
+        src/Vocable.cpp
         src/Vocabulary.cpp
-        src/Vocabulary_misc.cpp
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC

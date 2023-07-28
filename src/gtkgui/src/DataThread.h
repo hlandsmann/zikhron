@@ -108,7 +108,7 @@ private:
     signal_paragraphFromIds send_paragraphFromIds;
 
     // message_card msg_card;
-    // message_annotation msg_annotation;
+    message_annotation msg_annotation;
 
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
     std::unique_ptr<VocabularySR> vocabularySR;

@@ -64,7 +64,7 @@ auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
         relevance += id_vocableMeta.at(vocId).cardIds.size();
     }
 
-    return float{relevance} / std::pow(std::abs(float(diff.size() - 2)) + 1.f, float(diff.size()));
+    return static_cast<float>(relevance) / std::pow(std::abs(float(diff.size() - 2)) + 1.F, float(diff.size()));
 }
 
 auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
@@ -228,7 +228,7 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::getNextCardChoice(std::optional<uint> preferedCardId)
-    -> std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt> {
+    -> std::tuple<std::unique_ptr<BaseCard>, VocableIds_vt, Id_Ease_vt> {
     sr_db.AdvanceFailedVocables();
     fmt::print("To Repeat: {}, Again: {}\n", ids_repeatTodayVoc.size(), ids_againVoc.size());
 
@@ -258,7 +258,7 @@ auto VocabularySR::getNextCardChoice(std::optional<uint> preferedCardId)
 }
 
 auto VocabularySR::getCardFromId(uint id) const
-    -> std::optional<std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>> {
+    -> std::optional<std::tuple<std::unique_ptr<BaseCard>, VocableIds_vt, Id_Ease_vt>> {
     if (cardDB->get().contains(id))
         return {{cardDB->get().at(id)->clone(), sr_db.GetVocableIdsInOrder(id), GetRelevantEase(id)}};
     else
@@ -269,7 +269,7 @@ auto VocabularySR::AddAnnotation(const ZH_Annotator::Combination& combination,
                                  const std::vector<utl::CharU8>& characterSequence) -> CardInformation {
     sr_db.AddAnnotation(combination, characterSequence, *activeCardId);
     const auto& card = cardDB->get().at(*activeCardId);
-    return {std::unique_ptr<Card>(card->clone()),
+    return {std::unique_ptr<BaseCard>(card->clone()),
             sr_db.GetVocableIdsInOrder(*activeCardId),
             GetRelevantEase(*activeCardId)};
 }
@@ -279,7 +279,7 @@ auto VocabularySR::AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdN
     sr_db.AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
 
     const auto& card = cardDB->get().at(*activeCardId);
-    return {std::unique_ptr<Card>(card->clone()),
+    return {std::unique_ptr<BaseCard>(card->clone()),
             sr_db.GetVocableIdsInOrder(*activeCardId),
             GetRelevantEase(*activeCardId)};
 }
@@ -301,7 +301,7 @@ auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
     Id_Ease_vt ease;
     ranges::transform(
         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
-            const VocableSR vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableSR();
+            const Vocable vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : Vocable();
             spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
                           zh_dictionary->EntryFromPosition(vocId, zh_dictionary->Simplified()).key,
                           vocSR.EaseFactor(),

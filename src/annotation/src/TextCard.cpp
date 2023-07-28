@@ -12,22 +12,26 @@
 #include <stdexcept>
 #include <string>
 namespace {
-auto cardFromJsonFile(const std::string &filename, uint cardId) -> std::unique_ptr<Card> {
+auto cardFromJsonFile(const std::string &filename, uint cardId) -> std::unique_ptr<BaseCard> {
     std::ifstream cardFile(filename, std::ios::in | std::ios::binary);
-    if (!cardFile)
+    if (!cardFile) {
         throw std::runtime_error("Failure to read file");
+    }
     auto jsonCard = nlohmann::json::parse(cardFile);
-    if (const auto &version = jsonCard.at("version"); version != "0.0")
+    if (const auto &version = jsonCard.at("version"); version != "0.0") {
         throw std::runtime_error(fmt::format("Supported version is '0.0', but got '{}'", version));
+    }
 
     if (jsonCard.at("type") == "dialogue") {
         const auto &dlg = jsonCard["content"];
-        if (not dlg.is_array())
+        if (not dlg.is_array()) {
             throw std::runtime_error("Expected an array");
+        }
         auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId);
         for (const auto &speakerTextPair : dlg) {
-            if (not speakerTextPair.size())
+            if (speakerTextPair.empty()) {
                 continue;
+            }
             const auto &item = *speakerTextPair.items().begin();
             dialogueCard->dialogue.emplace_back(icu::UnicodeString::fromUTF8(std::string(item.key())),
                                                 icu::UnicodeString::fromUTF8(std::string(item.value())));
@@ -81,6 +85,20 @@ auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString> {
         });
     return textVector;
 }
+
+auto DialogueCard::getText() const -> utl::StringU8 {
+    utl::StringU8 result;
+    for (const auto &monologue : dialogue) {
+        result.append(monologue.speaker);
+        result.append(std::string("~"));
+        result.append(monologue.text);
+        result.append(std::string("~"));
+    }
+    return result;
+}
+
 auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString> { return {text}; }
+
+auto TextCard::getText() const -> utl::StringU8 { return {text}; }
 
 auto CardDB::get() const -> const std::map<uint, CardPtr> & { return cards; }

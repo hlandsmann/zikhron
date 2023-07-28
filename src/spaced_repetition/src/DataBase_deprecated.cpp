@@ -151,14 +151,13 @@ void SR_DataBase::EraseVocabularyOfCard(uint cardId) {
 }
 
 void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& card) {
-    utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
-    card->zh_annotator.emplace(card_text, zh_dictionary, annotationChoices);
+    // utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
+    card->createAnnotator(zh_dictionary, annotationChoices);
 
     CardMeta& cm = id_cardMeta[cardId];
     const CardDB::CardPtr& cardPtr = cardDB->get().at(cardId);
     // if( not cardPtr.has_value()) return ;
-    assert(cardPtr->zh_annotator.has_value());
-    const ZH_Annotator& annotator = cardPtr->zh_annotator.value();
+    const ZH_Annotator& annotator = cardPtr->getAnnotator();
 
     // Its unfortunate, that we cannot simply use a view.... but we gotta live with that.
     // So lets create a temporary vector annotatorItems to represent that view.
@@ -191,7 +190,7 @@ void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& car
 }
 
 void SR_DataBase::SetEase(uint vocId, Ease ease) {
-    VocableSR& vocableSR = id_vocableSR[vocId];
+    Vocable& vocableSR = id_vocableSR[vocId];
 
     vocableSR.advanceByEase(ease);
     ids_nowVoc.erase(vocId);
@@ -241,8 +240,7 @@ void SR_DataBase::AdvanceFailedVocables() {
 
 auto SR_DataBase::GetVocableIdsInOrder(uint cardId) const -> std::vector<uint> {
     const CardDB::CardPtr& cardPtr = cardDB->get().at(cardId);
-    assert(cardPtr->zh_annotator.has_value());
-    const ZH_Annotator& annotator = cardPtr->zh_annotator.value();
+    const ZH_Annotator& annotator = cardPtr->getAnnotator();
     std::vector<uint> vocableIds;
     ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
                           return not item.dicItemVec.empty();
@@ -358,15 +356,15 @@ void SR_DataBase::AddAnnotation(const ZH_Annotator::Combination& combination,
     std::set<uint> cardsWithCharSeq;
 
     for (const auto& [id, cardPtr] : cardDB->get()) {
-        if (cardPtr->zh_annotator.value().ContainsCharacterSequence(characterSequence))
+        if (cardPtr->getAnnotator().ContainsCharacterSequence(characterSequence))
             cardsWithCharSeq.insert(id);
     }
     spdlog::debug("relevant cardIds: {}", fmt::join(cardsWithCharSeq, ","));
 
     for (uint cardId : cardsWithCharSeq) {
         auto& cardPtr = cardDB->get().at(cardId);
-        cardPtr->zh_annotator.value().SetAnnotationChoices(annotationChoices);
-        cardPtr->zh_annotator.value().Reannotate();
+        cardPtr->getAnnotator().SetAnnotationChoices(annotationChoices);
+        cardPtr->getAnnotator().Reannotate();
         EraseVocabularyOfCard(cardId);
         InsertVocabularyOfCard(cardId, cardPtr);
     }
