@@ -1,4 +1,4 @@
-#include <stddef.h>
+#include <cstddef>
 #include <iterator>
 
 namespace utl {
@@ -11,19 +11,15 @@ struct counting_iterator {
     using reference = int&;
     size_t count{};
     int ignore{};
-    counting_iterator& operator++() {
+    auto operator++()->counting_iterator& {
         ++count;
         return *this;
     }
-    counting_iterator operator++(int) {
+    auto operator++(int) ->counting_iterator {
         counting_iterator temp = *this;
         ++*this;
         return temp;
     }
-    int& operator*() { return ignore; }
-
-    struct black_hole {
-        void operator=(size_t) {}
-    };
+    auto operator*()->int& { return ignore; }
 };
 }  // namespace utl
