@@ -42,5 +42,5 @@ target_link_options(zikhron
         -static-libasan
 )
 
-target_compile_features(zikhron PRIVATE cxx_std_20)
+target_compile_features(zikhron PRIVATE cxx_std_23)
 target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)
