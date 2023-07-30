@@ -8,14 +8,15 @@ target_include_directories(zikhron_utils
 )
 target_sources(zikhron_utils
     PRIVATE
-        src/StringU8.cpp
-        src/Property.cpp
-        include/utils/min_element_val.h
-        include/utils/linear_set.h
-        include/utils/counting_iterator.h
-        include/utils/StringU8.h
-        include/utils/Property.h
         include/utils/Memoizer.h
+        include/utils/Property.h
+        include/utils/StringU8.h
+        include/utils/counting_iterator.h
+        include/utils/index_map.h
+        include/utils/linear_set.h
+        include/utils/min_element_val.h
+        src/Property.cpp
+        src/StringU8.cpp
 )
 pkg_search_module(ICU_UC REQUIRED icu-uc)
 pkg_search_module(ICU_IO REQUIRED icu-io)
