@@ -1,16 +1,21 @@
 #pragma once
 #include <annotation/ZH_Annotator.h>
-#include <sys/types.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
+
+#include <filesystem>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <vector>
 
-struct BaseCard {
-    BaseCard(std::string _filename, uint _id) : filename(std::move(_filename)), id(_id){};
+#include <sys/types.h>
+
+struct BaseCard
+{
+    BaseCard(std::string _filename, uint _id)
+        : filename(std::move(_filename)), id(_id){};
     BaseCard(const BaseCard&) = default;
     BaseCard(BaseCard&&) = default;
     virtual ~BaseCard() = default;
@@ -27,11 +32,13 @@ struct BaseCard {
     using Combination = std::vector<int>;
     auto createAnnotator(const std::shared_ptr<const ZH_Dictionary>& _dictionary,
                          const std::map<CharacterSequence, Combination>& _choices = {})
-        -> ZH_Annotator& {
+            -> ZH_Annotator&
+    {
         zh_annotator.emplace(getText(), _dictionary, _choices);
         return zh_annotator.value();
     }
-    auto getAnnotator() -> ZH_Annotator& {
+    auto getAnnotator() -> ZH_Annotator&
+    {
         if (not zh_annotator.has_value()) {
             zh_annotator.emplace();
         }
@@ -44,29 +51,36 @@ private:
     uint id;
 };
 
-template <typename Card_Type> struct Card_clone : public BaseCard {
+template<typename Card_Type>
+struct Card_clone : public BaseCard
+{
 public:
-    Card_clone(std::string _filename, uint _id) : BaseCard(std::move(_filename), _id){};
+    Card_clone(std::string _filename, uint _id)
+        : BaseCard(std::move(_filename), _id){};
     Card_clone(const Card_clone&) = default;
     Card_clone(Card_clone&&) = default;
     ~Card_clone() override = default;
     auto operator=(const Card_clone&) = delete;
     auto operator=(Card_clone&&) = delete;
 
-    [[nodiscard]] auto clone() const -> std::unique_ptr<BaseCard> override {
+    [[nodiscard]] auto clone() const -> std::unique_ptr<BaseCard> override
+    {
         return std::make_unique<Card_Type>(static_cast<Card_Type const&>(*this));
     }
 };
 
-struct DialogueCard : public Card_clone<DialogueCard> {
-    DialogueCard(const std::string& _filename, uint _id) : Card_clone<DialogueCard>(_filename, _id){};
+struct DialogueCard : public Card_clone<DialogueCard>
+{
+    DialogueCard(const std::string& _filename, uint _id)
+        : Card_clone<DialogueCard>(_filename, _id){};
     DialogueCard(const DialogueCard&) = default;
     DialogueCard(DialogueCard&&) = default;
     ~DialogueCard() override = default;
     auto operator=(const DialogueCard&) = delete;
     auto operator=(DialogueCard&&) = delete;
 
-    struct DialogueItem {
+    struct DialogueItem
+    {
         icu::UnicodeString speaker;
         icu::UnicodeString text;
     };
@@ -76,8 +90,10 @@ struct DialogueCard : public Card_clone<DialogueCard> {
     [[nodiscard]] auto getText() const -> utl::StringU8 override;
 };
 
-struct TextCard : public Card_clone<TextCard> {
-    TextCard(std::string _filename, uint _id) : Card_clone<TextCard>(std::move(_filename), _id){};
+struct TextCard : public Card_clone<TextCard>
+{
+    TextCard(std::string _filename, uint _id)
+        : Card_clone<TextCard>(std::move(_filename), _id){};
     TextCard(const TextCard&) = default;
     TextCard(TextCard&&) = default;
     ~TextCard() override = default;
@@ -89,12 +105,20 @@ struct TextCard : public Card_clone<TextCard> {
     [[nodiscard]] auto getText() const -> utl::StringU8 override;
 };
 
-class CardDB {
+class CardDB
+{
 public:
-    using CardPtr = std::unique_ptr<BaseCard>;
+    static constexpr std::string_view s_cardSubdirectory = "cards";
 
-    void loadFromSingleJson(std::string jsonFileName);
-    void loadFromDirectory(std::string directoryPath);
+    using CardPtr = std::unique_ptr<BaseCard>;
+    using CharacterSequence = std::vector<utl::CharU8>;
+    using Combination = std::vector<int>;
+
+    CardDB() = default;
+    CardDB(const std::filesystem::path& directoryPath,
+           const std::shared_ptr<const ZH_Dictionary>& dictionary,
+           const std::map<CharacterSequence, Combination>& choices);
+    void loadFromDirectory(const std::filesystem::path& directoryPath);
 
     [[nodiscard]] auto get() const -> const std::map<uint, CardPtr>&;
 

@@ -20,6 +20,7 @@ target_link_libraries(test_dictionary
 )
 target_compile_definitions(test_dictionary PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
 catch_discover_tests(test_dictionary)
+set_property(TARGET test_dictionary PROPERTY CXX_STANDARD 20)
 
 # #test treewalker
 # add_executable(test_sr_treewalker)
@@ -56,3 +57,4 @@ target_link_libraries(test_utils_linear_set
 )
 target_compile_definitions(test_utils_linear_set PRIVATE CATCH_CONFIG_ENABLE_BENCHMARKING)
 catch_discover_tests(test_utils_linear_set)
+set_property(TARGET test_utils_linear_set PROPERTY CXX_STANDARD 20)

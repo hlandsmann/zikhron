@@ -18,9 +18,10 @@ add_library(zikhron::warnings ALIAS zikhron-warnings)
 add_subdirectory(annotation)
 add_subdirectory(dictionary)
 add_subdirectory(gtkgui)
+add_subdirectory(misc)
+add_subdirectory(multimedia)
 add_subdirectory(spaced_repetition)
 add_subdirectory(utils)
-add_subdirectory(multimedia)
 
 add_executable(zikhron)
 set_target_properties(zikhron
@@ -42,5 +43,5 @@ target_link_options(zikhron
         -static-libasan
 )
 
-target_compile_features(zikhron PRIVATE cxx_std_23)
+set_property(TARGET zikhron PROPERTY CXX_STANDARD 23)
 target_link_options(zikhron PRIVATE LINKER:--gc-sections,--relax)

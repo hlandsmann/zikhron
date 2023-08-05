@@ -12,5 +12,5 @@ target_sources(zikhron_dictionary
     PUBLIC
         include/dictionary/ZH_Dictionary.h
 )
-target_compile_features(zikhron_dictionary PUBLIC cxx_std_20)
+set_property(TARGET zikhron_dictionary PROPERTY CXX_STANDARD 23)
 target_link_libraries(zikhron_dictionary PRIVATE zikhron::warnings)

@@ -53,14 +53,14 @@ auto extract(const nlohmann::json& json, const TypeOut& current, std::string_vie
 
 }  // namespace
 
-void ZikhronConfig::ConfigMain::fromJson(const nlohmann::json& json) {
+void Session::ConfigMain::fromJson(const nlohmann::json& json) {
     setDefault();
     lastVideoFile = extract<std::string, path>(json, lastVideoFile, s_last_video_file);
     lastAudioFile = extract<std::string, path>(json, lastAudioFile, s_last_audio_file);
     activePage = extract<int, int>(json, activePage, s_active_page);
 }
 
-auto ZikhronConfig::ConfigMain::toJson() const -> nlohmann::json {
+auto Session::ConfigMain::toJson() const -> nlohmann::json {
     nlohmann::json json;
     json[std::string(s_last_video_file)] = lastVideoFile;
     json[std::string(s_last_audio_file)] = lastAudioFile;
@@ -68,15 +68,15 @@ auto ZikhronConfig::ConfigMain::toJson() const -> nlohmann::json {
     return json;
 }
 
-ZikhronConfig::ZikhronConfig() { open(); }
+Session::Session() { open(); }
 
-ZikhronConfig::~ZikhronConfig() {
+Session::~Session() {
     if (save_config) {
         save();
     }
 }
 
-void ZikhronConfig::open() {
+void Session::open() {
     auto zikhron_config_file = zikhron_config_dir / config_file;
     if (fs::exists(zikhron_config_file)) {
         try {
@@ -94,7 +94,7 @@ void ZikhronConfig::open() {
     }
 }
 
-void ZikhronConfig::save() {
+void Session::save() {
     auto zikhron_config_file = zikhron_config_dir / config_file;
     auto json = cfgMain.toJson();
 
@@ -103,7 +103,7 @@ void ZikhronConfig::save() {
     ofs << json.dump(4);
 }
 
-auto ZikhronConfig::ConfigDir() -> path {
+auto Session::ConfigDir() -> path {
     std::string home = std::getenv("HOME");
     path config_dir = home.empty() ? path(home) / ".config" : "~/.config";
     return config_dir / "zikhron";

@@ -30,4 +30,4 @@ target_link_libraries(zikhron_utils
         spdlog::spdlog
 )
 
-target_compile_features(zikhron_utils PUBLIC cxx_std_20)
+set_property(TARGET zikhron_utils PROPERTY CXX_STANDARD 23)

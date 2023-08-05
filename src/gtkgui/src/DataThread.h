@@ -18,7 +18,7 @@
 #include <thread>
 #include <tuple>
 
-class ZikhronConfig {
+class Session {
     using path = std::filesystem::path;
 
 public:
@@ -31,7 +31,7 @@ public:
         int activePage{};
 
     private:
-        friend class ZikhronConfig;
+        friend class Session;
         void setDefault() {
             lastVideoFile = "";
             activePage = 0;
@@ -43,14 +43,14 @@ public:
 
 private:
     friend class DataThread;
-    ZikhronConfig();
-    ~ZikhronConfig();
+    Session();
+    ~Session();
     [[nodiscard]] static auto ConfigDir() -> path;
     void open();
     void save();
 
     path zikhron_config_dir = ConfigDir();
-    path config_file = "zikhron.json";
+    path config_file = "session.json";
 
     bool save_config = true;
 };
@@ -68,7 +68,7 @@ public:
     using signal_card = std::function<void(message_card&)>;
     using signal_annotation = std::function<void(message_annotation&)>;
     using signal_paragraphFromIds = std::function<void(message_paragraphFromIds&&)>;
-    ZikhronConfig zikhronCfg;
+    Session zikhronCfg;
 
     void requestCard(std::optional<uint> preferedCardId = {});
     void requestCardFromIds(std::vector<uint>&& ids);

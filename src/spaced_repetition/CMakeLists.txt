@@ -10,10 +10,12 @@ target_sources(zikhron_spaced_repetition
     PRIVATE
         include/spaced_repetition/Card.h
         include/spaced_repetition/DataBase_deprecated.h
+        include/spaced_repetition/DataBase.h
         include/spaced_repetition/TreeWalker.h
         include/spaced_repetition/Vocable.h
         include/spaced_repetition/Vocabulary.h
         src/Card.cpp
+        src/DataBase.cpp
         src/DataBase_deprecated.cpp
         src/Time.cpp
         src/Time.h
@@ -23,15 +25,16 @@ target_sources(zikhron_spaced_repetition
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC
+        nlohmann_json::nlohmann_json
         zikhron::annotation
         zikhron::dictionary
+        zikhron::miscellaneous
         zikhron::utils
-        nlohmann_json::nlohmann_json
     PRIVATE
         fmt::fmt
         spdlog::spdlog
         zikhron::warnings
 )
 
-target_compile_features(zikhron_spaced_repetition PUBLIC cxx_std_20)
+set_property(TARGET zikhron_spaced_repetition PROPERTY CXX_STANDARD 23)
 target_compile_definitions(zikhron_spaced_repetition PRIVATE spaced_repetition_internal_include=1)

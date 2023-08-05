@@ -38,4 +38,4 @@ target_link_libraries(zikhron_multimedia
         zikhron::warnings
 
 )
-target_compile_features(zikhron_multimedia PRIVATE cxx_std_20)
+set_property(TARGET zikhron_multimedia PROPERTY CXX_STANDARD 23)

@@ -10,6 +10,8 @@ target_link_libraries(sr_treewalker
         spdlog::spdlog
         zikhron::annotation
         zikhron::dictionary
+        zikhron::miscellaneous
         zikhron::spaced_repetition
         zikhron::warnings
 )
+set_property(TARGET sr_treewalker PROPERTY CXX_STANDARD 23)

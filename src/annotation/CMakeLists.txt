@@ -31,4 +31,4 @@ target_link_libraries(zikhron_annotation
         zikhron::warnings
 )
 
-target_compile_features(zikhron_annotation PUBLIC cxx_std_20)
+set_property(TARGET zikhron_annotation PROPERTY CXX_STANDARD 23)

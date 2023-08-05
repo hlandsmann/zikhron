@@ -10,3 +10,4 @@ target_link_libraries(bench_utils_linear_set
         benchmark::benchmark
         spdlog::spdlog
 )
+set_property(TARGET bench_utils_linear_set PROPERTY CXX_STANDARD 23)

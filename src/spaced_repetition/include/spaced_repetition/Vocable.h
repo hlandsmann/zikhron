@@ -1,14 +1,18 @@
 #pragma once
 
 #include <annotation/Ease.h>
+
 #include <cstdint>
 #include <ctime>
 #include <nlohmann/json_fwd.hpp>
 #include <string_view>
 #include <tuple>
-class Vocable {
+
+class Vocable
+{
 public:
-    struct Init {
+    struct Init
+    {
         float easeFactor = 0.F;
         float intervalDay = 0.F;
         std::time_t lastSeen{};
@@ -21,8 +25,10 @@ public:
         , lastSeen{init.lastSeen}
         , indirectView{init.indirectView}
         , indirectIntervalDay{init.indirectIntervalDay} {}
-    Vocable() : Vocable(Init{}) {}
-    struct RepeatRange {
+    Vocable()
+        : Vocable(Init{}) {}
+    struct RepeatRange
+    {
         int daysMin;
         int daysNormal;
         int daysMax;
