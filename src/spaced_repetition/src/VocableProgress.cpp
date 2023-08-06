@@ -1,9 +1,9 @@
-#include <Vocable.h>
+#include <VocableProgress.h>
 #include <nlohmann/json.hpp>
 #include "Time.h"
 using namespace spaced_repetition;
 
-void Vocable::advanceByEase(Ease ease) {
+void VocableProgress::advanceByEase(Ease ease) {
     lastSeen = std::time(nullptr);
     indirectView = std::time(nullptr);
 
@@ -13,7 +13,7 @@ void Vocable::advanceByEase(Ease ease) {
     indirectIntervalDay = progress.indirectIntervalDay;
 }
 
-auto Vocable::advanceIndirectly() -> bool {
+auto VocableProgress::advanceIndirectly() -> bool {
     if (isToBeRepeatedToday()) {
         return false;
     }
@@ -34,11 +34,11 @@ auto Vocable::advanceIndirectly() -> bool {
     return advanceIntervalDay;
 }
 
-auto Vocable::urgency() const -> float {
+auto VocableProgress::urgency() const -> float {
     return (easeFactor * intervalDay) + static_cast<float>(indirectIntervalDay);
 }
 
-auto Vocable::pauseTimeOver() const -> bool {
+auto VocableProgress::pauseTimeOver() const -> bool {
     std::tm last = *std::localtime(&lastSeen);
     last.tm_min += pause_time_minutes;
     std::time_t last_time = std::mktime(&last);
@@ -47,26 +47,26 @@ auto Vocable::pauseTimeOver() const -> bool {
     return last_time < now_time;
 }
 
-auto Vocable::fromJson(const nlohmann::json& jsonIn) -> pair_t {
-    Init init = {.easeFactor = jsonIn.at(std::string(Vocable::s_ease_factor)),
-                 .intervalDay = jsonIn.at(std::string(Vocable::s_interval_day)),
-                 .lastSeen = deserialize_time_t(jsonIn.at(std::string(Vocable::s_last_seen))),
-                 .indirectView = deserialize_time_t(jsonIn.at(std::string(Vocable::s_indirect_view))),
-                 .indirectIntervalDay = jsonIn.at(std::string(Vocable::s_indirect_interval_day))};
-    return {jsonIn.at(std::string(Vocable::s_id)), {init}};
+auto VocableProgress::fromJson(const nlohmann::json& jsonIn) -> pair_t {
+    Init init = {.easeFactor = jsonIn.at(std::string(VocableProgress::s_ease_factor)),
+                 .intervalDay = jsonIn.at(std::string(VocableProgress::s_interval_day)),
+                 .lastSeen = deserialize_time_t(jsonIn.at(std::string(VocableProgress::s_last_seen))),
+                 .indirectView = deserialize_time_t(jsonIn.at(std::string(VocableProgress::s_indirect_view))),
+                 .indirectIntervalDay = jsonIn.at(std::string(VocableProgress::s_indirect_interval_day))};
+    return {jsonIn.at(std::string(VocableProgress::s_id)), {init}};
 }
 
-auto Vocable::toJson(const pair_t& pair) -> nlohmann::json {
-    const Vocable& vocSR = pair.second;
-    return {{std::string(Vocable::s_id), pair.first},
-            {std::string(Vocable::s_ease_factor), vocSR.easeFactor},
-            {std::string(Vocable::s_interval_day), vocSR.intervalDay},
-            {std::string(Vocable::s_last_seen), serialize_time_t(vocSR.lastSeen)},
-            {std::string(Vocable::s_indirect_view), serialize_time_t(vocSR.indirectView)},
-            {std::string(Vocable::s_indirect_interval_day), vocSR.indirectIntervalDay}};
+auto VocableProgress::toJson(const pair_t& pair) -> nlohmann::json {
+    const VocableProgress& vocSR = pair.second;
+    return {{std::string(VocableProgress::s_id), pair.first},
+            {std::string(VocableProgress::s_ease_factor), vocSR.easeFactor},
+            {std::string(VocableProgress::s_interval_day), vocSR.intervalDay},
+            {std::string(VocableProgress::s_last_seen), serialize_time_t(vocSR.lastSeen)},
+            {std::string(VocableProgress::s_indirect_view), serialize_time_t(vocSR.indirectView)},
+            {std::string(VocableProgress::s_indirect_interval_day), vocSR.indirectIntervalDay}};
 }
 
-auto Vocable::isToBeRepeatedToday() const -> bool {
+auto VocableProgress::isToBeRepeatedToday() const -> bool {
     std::time_t todayMidnight = todayMidnightTime();
     std::time_t vocActiveTime = advanceTimeByDays(lastSeen,
                                                   intervalDay + static_cast<float>(indirectIntervalDay));
@@ -74,9 +74,9 @@ auto Vocable::isToBeRepeatedToday() const -> bool {
     return todayMidnight > vocActiveTime;
 }
 
-auto Vocable::isAgainVocable() const -> bool { return intervalDay == 0; };
+auto VocableProgress::isAgainVocable() const -> bool { return intervalDay == 0; };
 
-auto Vocable::getRepeatRange() const -> RepeatRange {
+auto VocableProgress::getRepeatRange() const -> RepeatRange {
     constexpr auto square = 2.F;
     float minFactor = std::pow(Ease::changeFactorHard, square);
     float maxFactor = easeFactor * Ease::changeFactorHard;

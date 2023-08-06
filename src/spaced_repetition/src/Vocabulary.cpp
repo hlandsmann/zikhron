@@ -39,7 +39,7 @@ auto VocabularySR::CountTotalNewVocablesInSet() -> size_t {
     return newVocables.size();
 }
 
-auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const
+auto VocabularySR::CalculateCardValueSingle(const CardMetaDeprecated& cm, const std::set<uint>& good) const
     -> float {
     std::set<uint> cardIdsSharedVoc;
     int count = 0;
@@ -55,7 +55,7 @@ auto VocabularySR::CalculateCardValueSingle(const CardMeta& cm, const std::set<u
     return float(count) / float(setVocIdThis.size());
 }
 
-auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMeta& cm,
+auto VocabularySR::CalculateCardValueSingleNewVoc(const CardMetaDeprecated& cm,
                                                   const std::set<uint>& neutral) const -> float {
     std::set<uint> diff;
     ranges::set_difference(cm.vocableIds, neutral, std::inserter(diff, diff.begin()));
@@ -222,7 +222,7 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
     const auto it_id_cm = ranges::max_element(id_cardMeta, ranges::less{}, calcValue);
     if (it_id_cm == id_cardMeta.end())
         return {};
-    const CardMeta& cm = it_id_cm->second;
+    const CardMetaDeprecated& cm = it_id_cm->second;
 
     return cm.cardId;
 }
@@ -286,7 +286,7 @@ auto VocabularySR::AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdN
 
 auto VocabularySR::GetActiveVocables(uint cardId) const -> std::set<uint> {
     std::set<uint> activeVocables;
-    const CardMeta& cm = id_cardMeta.at(cardId);
+    const CardMetaDeprecated& cm = id_cardMeta.at(cardId);
 
     auto vocableActive = [&](uint vocId) -> bool {
         return (not id_vocableSR.contains(vocId)) || id_vocableSR.at(vocId).isToBeRepeatedToday() ||
@@ -301,7 +301,7 @@ auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
     Id_Ease_vt ease;
     ranges::transform(
         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
-            const Vocable vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : Vocable();
+            const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
             spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
                           zh_dictionary->EntryFromPosition(vocId, zh_dictionary->Simplified()).key,
                           vocSR.EaseFactor(),

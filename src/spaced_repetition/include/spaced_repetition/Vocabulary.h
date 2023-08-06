@@ -40,9 +40,9 @@ public:
 
 private:
     auto CountTotalNewVocablesInSet() -> size_t;
-    [[nodiscard]] auto CalculateCardValueSingle(const CardMeta& cm, const std::set<uint>& good) const
+    [[nodiscard]] auto CalculateCardValueSingle(const CardMetaDeprecated& cm, const std::set<uint>& good) const
         -> float;
-    [[nodiscard]] auto CalculateCardValueSingleNewVoc(const CardMeta& cm,
+    [[nodiscard]] auto CalculateCardValueSingleNewVoc(const CardMetaDeprecated& cm,
                                                       const std::set<uint>& neutral) const -> float;
 
     // Get vocables that would need to be learned with this current cardId
@@ -63,9 +63,9 @@ private:
 
     const std::map<uint, Card>& id_cardSR = sr_db.Id_cardSR();
 
-    const std::map<uint, Vocable>& id_vocableSR = sr_db.Id_vocableSR();
-    const std::map<uint, CardMeta>& id_cardMeta = sr_db.Id_cardMeta();
-    const std::map<uint, VocableMeta>& id_vocableMeta = sr_db.Id_vocableMeta();
+    const std::map<uint, VocableProgress>& id_vocableSR = sr_db.Id_vocableSR();
+    const std::map<uint, CardMetaDeprecated>& id_cardMeta = sr_db.Id_cardMeta();
+    const std::map<uint, VocableMetaDeprecated>& id_vocableMeta = sr_db.Id_vocableMeta();
 
     /* ids for to be repeated vocables */
     const std::set<uint>& ids_repeatTodayVoc = sr_db.Ids_repeatTodayVoc();

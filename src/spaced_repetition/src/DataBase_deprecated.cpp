@@ -142,7 +142,7 @@ void SR_DataBase::GenerateFromCards() {
 }
 
 void SR_DataBase::EraseVocabularyOfCard(uint cardId) {
-    CardMeta& cm = id_cardMeta.at(cardId);
+    CardMetaDeprecated& cm = id_cardMeta.at(cardId);
     for (uint vocId : cm.vocableIds) {
         auto& vocable = id_vocableMeta.at(vocId);
         vocable.cardIds.erase(cardId);
@@ -154,7 +154,7 @@ void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& car
     // utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
     card->createAnnotator(zh_dictionary, annotationChoices);
 
-    CardMeta& cm = id_cardMeta[cardId];
+    CardMetaDeprecated& cm = id_cardMeta[cardId];
     const CardDB::CardPtr& cardPtr = cardDB->get().at(cardId);
     // if( not cardPtr.has_value()) return ;
     const ZH_Annotator& annotator = cardPtr->getAnnotator();
@@ -190,7 +190,7 @@ void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& car
 }
 
 void SR_DataBase::SetEase(uint vocId, Ease ease) {
-    Vocable& vocableSR = id_vocableSR[vocId];
+    VocableProgress& vocableSR = id_vocableSR[vocId];
 
     vocableSR.advanceByEase(ease);
     ids_nowVoc.erase(vocId);
@@ -325,7 +325,7 @@ void SR_DataBase::CleanUpVocables(std::set<uint> ignoreVocableIds) {
                  std::inserter(ignoreVocableIds, ignoreVocableIds.begin()));
 
     auto seenCards = id_cardMeta |
-                     std::views::filter([&ignoreVocableIds](std::pair<uint, CardMeta> id_cm) {
+                     std::views::filter([&ignoreVocableIds](std::pair<uint, CardMetaDeprecated> id_cm) {
                          return ranges::set_difference(
                                     id_cm.second.vocableIds, ignoreVocableIds, utl::counting_iterator{})
                                     .out.count == 0;

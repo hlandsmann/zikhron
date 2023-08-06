@@ -8,7 +8,7 @@
 #include <string_view>
 #include <tuple>
 
-class Vocable
+class VocableProgress
 {
 public:
     struct Init
@@ -19,14 +19,14 @@ public:
         std::time_t indirectView{};
         int indirectIntervalDay = 0;
     };
-    Vocable(Init init)
+    VocableProgress(Init init)
         : easeFactor{init.easeFactor}
         , intervalDay{init.intervalDay}
         , lastSeen{init.lastSeen}
         , indirectView{init.indirectView}
         , indirectIntervalDay{init.indirectIntervalDay} {}
-    Vocable()
-        : Vocable(Init{}) {}
+    VocableProgress()
+        : VocableProgress(Init{}) {}
     struct RepeatRange
     {
         int daysMin;
@@ -34,7 +34,7 @@ public:
         int daysMax;
     };
     static constexpr int pause_time_minutes = 5;
-    using pair_t = std::pair<unsigned, Vocable>;
+    using pair_t = std::pair<unsigned, VocableProgress>;
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_ease_factor = "ease_factor";
     static constexpr std::string_view s_interval_day = "interval_day";

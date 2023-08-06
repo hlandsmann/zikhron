@@ -9,14 +9,14 @@
 #include <set>
 #include <string_view>
 #include "Card.h"
-#include "Vocable.h"
+#include "VocableProgress.h"
 
-struct VocableMeta {
+struct VocableMetaDeprecated {
     // uint id = 0;
     std::set<uint> cardIds;
 };
 
-struct CardMeta {
+struct CardMetaDeprecated {
     float value = 0;
     std::set<uint> vocableIds;
 
@@ -41,9 +41,9 @@ public:
     ~SR_DataBase();
 
     [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, Card>& { return id_cardSR; };
-    [[nodiscard]] auto Id_vocableSR() const -> const std::map<uint, Vocable>& { return id_vocableSR; };
-    [[nodiscard]] auto Id_cardMeta() const -> const std::map<uint, CardMeta>& { return id_cardMeta; };
-    [[nodiscard]] auto Id_vocableMeta() const -> const std::map<uint, VocableMeta>& {
+    [[nodiscard]] auto Id_vocableSR() const -> const std::map<uint, VocableProgress>& { return id_vocableSR; };
+    [[nodiscard]] auto Id_cardMeta() const -> const std::map<uint, CardMetaDeprecated>& { return id_cardMeta; };
+    [[nodiscard]] auto Id_vocableMeta() const -> const std::map<uint, VocableMetaDeprecated>& {
         return id_vocableMeta;
     };
     [[nodiscard]] auto Ids_repeatTodayVoc() const -> const std::set<uint>& {
@@ -86,9 +86,9 @@ private:
     std::map<uint, ZH_dicItemVec> id_vocable;
 
     std::map<uint, Card> id_cardSR;
-    std::map<uint, Vocable> id_vocableSR;
-    std::map<uint, CardMeta> id_cardMeta;
-    std::map<uint, VocableMeta> id_vocableMeta;
+    std::map<uint, VocableProgress> id_vocableSR;
+    std::map<uint, CardMetaDeprecated> id_cardMeta;
+    std::map<uint, VocableMetaDeprecated> id_vocableMeta;
 
     /* ids for to be repeated vocables */
     std::set<uint> ids_repeatTodayVoc;

@@ -17,7 +17,29 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     , cardDB{std::make_shared<CardDB>(config->DatabaseDirectory() / CardDB::s_cardSubdirectory,
                                       zhDictionary,
                                       annotationChoices)}
+    , progressVocables{loadProgressVocables(config->DatabaseDirectory() / s_fn_metaVocableSR)}
+    , progressCards{loadProgressCards(config->DatabaseDirectory() / s_fn_metaCardSR)}
 {}
+
+auto DataBase::VocableChoices() const -> const std::map<unsigned, unsigned>&
+{
+    return vocableChoices;
+}
+
+auto DataBase::ProgressVocables() const -> const std::map<unsigned, VocableProgress>&
+{
+    return progressVocables;
+}
+
+auto DataBase::ProgressCards() const -> const std::map<unsigned, Card>&
+{
+    return progressCards;
+}
+
+auto DataBase::getCards() const -> const std::map<unsigned, CardDB::CardPtr>&
+{
+    return cardDB->get();
+}
 
 auto DataBase::loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json
 {
@@ -79,39 +101,25 @@ auto DataBase::loadVocableChoices(const std::filesystem::path& vocableChoicesPat
     return vocableChoices;
 }
 
-auto DataBase::createVocablesFromCardDB(
-        const std::shared_ptr<CardDB>& cardDB) -> utl::index_map<Vocable>
-{
-    std::map<unsigned, Vocable> id_vocableSR;
-    const std::map<unsigned, CardDB::CardPtr>& id_cards = cardDB->get();
-
-    for (const auto& card : id_cards | views::values) {
-    }
-    ranges::transform(id_cards | views::values, std::inserter(id_vocableSR, id_vocableSR.begin()),
-                      [](const auto& card) -> std::pair<unsigned, Vocable> {
-                          const ZH_Annotator& annotator = card->getAnnotator();
-                      });
-}
-
-auto DataBase::getVocableIdsInOrder(const CardDB::CardPtr& card,
-                                    std::map<unsigned, unsigned> vocableChoices) -> std::vector<uint>
-{
-    const ZH_Annotator& annotator = card->getAnnotator();
-    std::vector<uint> vocableIds;
-    ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
-                          return not item.dicItemVec.empty();
-                      }),
-                      std::back_inserter(vocableIds),
-                      [&vocableChoices](const ZH_Annotator::Item& item) -> uint {
-                          uint vocId = item.dicItemVec.front().id;
-                          if (const auto it = vocableChoices.find(vocId);
-                              it != vocableChoices.end()) {
-                              vocId = it->second;
-                          }
-                          return vocId;
-                      });
-    return vocableIds;
-}
+// auto DataBase::getVocableIdsInOrder(const CardDB::CardPtr& card,
+//                                     std::map<unsigned, unsigned> vocableChoices) -> std::vector<uint>
+// {
+//     const ZH_Annotator& annotator = card->getAnnotator();
+//     std::vector<uint> vocableIds;
+//     ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
+//                           return not item.dicItemVec.empty();
+//                       }),
+//                       std::back_inserter(vocableIds),
+//                       [&vocableChoices](const ZH_Annotator::Item& item) -> uint {
+//                           uint vocId = item.dicItemVec.front().id;
+//                           if (const auto it = vocableChoices.find(vocId);
+//                               it != vocableChoices.end()) {
+//                               vocId = it->second;
+//                           }
+//                           return vocId;
+//                       });
+//     return vocableIds;
+// }
 
 template<class mapped_value>
 auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<unsigned, mapped_value>
@@ -124,12 +132,12 @@ auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<unsigned, m
 }
 
 auto DataBase::loadProgressVocables(
-        const std::filesystem::path& progressVocablePath) -> std::map<unsigned, Vocable>
+        const std::filesystem::path& progressVocablePath) -> std::map<unsigned, VocableProgress>
 {
-    std::map<unsigned, Vocable> id_vocable;
+    std::map<unsigned, VocableProgress> id_vocable;
     try {
         nlohmann::json jsonVocable = loadJsonFromFile(progressVocablePath);
-        id_vocable = jsonToMap<Vocable>(jsonVocable);
+        id_vocable = jsonToMap<VocableProgress>(jsonVocable);
         spdlog::debug("Vocable SR file {} loaded!", s_fn_metaVocableSR);
     } catch (const std::exception& e) {
         spdlog::error("Vocabulary SR load for {} failed! Exception {}", progressVocablePath.c_str(), e.what());
