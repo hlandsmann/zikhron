@@ -6,8 +6,8 @@
 .fake
 .ionide
 Session.vim
-build
 build/
+build_modules/
 cards/
 compile_commands.json
 conversion/

@@ -8,6 +8,8 @@
 
 struct VocableMeta
 {
+  VocableProgress progress;
+
 };
 
 struct CardMeta

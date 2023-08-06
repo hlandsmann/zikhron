@@ -2,25 +2,18 @@ cmake_minimum_required(VERSION 3.19)
 project(zikhron)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/build_modules")
+include(cmake/CPM.cmake)
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:nlohmann/json@3.11.2")
+CPMAddPackage("gh:catchorg/Catch2@3.3.2")
+CPMAddPackage("gh:hanickadot/compile-time-regular-expressions#v3.8")
+CPMAddPackage("gh:microsoft/GSL@4.0.0")
+CPMAddPackage("gh:gabime/spdlog@1.11.0")
+
 include(FindPkgConfig)
-
-include(cmake/Conan.cmake)
-option(skip_run_conan OFF)
-
-run_conan()
-
-# regenerate build system if conanfile.py changes
-set_property(DIRECTORY
-             APPEND
-             PROPERTY CMAKE_CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/conanfile.py)
-
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_BINARY_DIR}")
-
-find_package(fmt REQUIRED)
-find_package(spdlog REQUIRED)
-find_package(ctre REQUIRED)
-find_package(Microsoft.GSL REQUIRED)
-find_package(nlohmann_json REQUIRED)
+find_package(folly REQUIRED)
 
 option(use_iwyu ON)
 
@@ -45,9 +38,4 @@ if(ENABLE_TESTING)
     add_subdirectory(test)
 endif()
 
-option(ENABLE_BENCHMARK "Enable Benchmarking" ON)
 
-if(ENABLE_BENCHMARK)
-    message("Building Benchmarks..")
-    add_subdirectory(benchmark)
-endif()

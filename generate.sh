@@ -10,6 +10,5 @@ mode="Debug"
 # mode="Release"
 cmake -B "$build_dir" \
     -DCMAKE_BUILD_TYPE=$mode \
-    -Dskip_run_conan=OFF \
     --preset=ninja
 (cd "$build_dir"||exit; cmake --build . -j"$(nproc)")
