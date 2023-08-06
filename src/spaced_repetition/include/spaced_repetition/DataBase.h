@@ -3,7 +3,7 @@
 #include "CardProgress.h"
 #include "VocableProgress.h"
 
-#include <annotation/TextCard.h>
+#include <annotation/Card.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <utils/StringU8.h>

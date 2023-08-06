@@ -1,4 +1,5 @@
 #pragma once
+#include "CardProgress.h"
 #include "DataBase.h"
 #include "VocableProgress.h"
 
@@ -9,12 +10,13 @@
 struct VocableMeta
 {
     VocableProgress progress;
-    folly::sorted_vector_set<unsigned> cardIndices;
+    folly::sorted_vector_set<std::size_t> cardIndices;
 };
 
 struct CardMeta
 {
-
+    CardProgress progress;
+    folly::sorted_vector_set<std::size_t> cardIndices;
 };
 
 class WalkableData
@@ -26,4 +28,7 @@ private:
     DataBase db;
     utl::index_map<VocableMeta> vocables;
     utl::index_map<CardMeta> cards;
+
+    void fillIndexMaps();
+    void insertVocabularyOfCard(const CardDB::CardPtr& card);
 };

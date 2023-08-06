@@ -1,7 +1,7 @@
 #pragma once
 
 #include <annotation/Ease.h>
-#include <annotation/TextCard.h>
+#include <annotation/Card.h>
 #include <utils/StringU8.h>
 #include <functional>
 #include <iosfwd>

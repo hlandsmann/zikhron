@@ -1,8 +1,8 @@
-#include "spaced_repetition/DataBase.h"
-#include <annotation/TextCard.h>
+#include <annotation/Card.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <spaced_repetition/TreeWalker.h>
+#include <spaced_repetition/WalkableData.h>
 #include <spdlog/spdlog.h>
 
 #include <chrono>
@@ -26,32 +26,10 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     // return nlohmann::json::parse(ifs);
 }
 
-auto loadCardDB(const fs::path& card_db_path) -> std::shared_ptr<CardDB>
-{
-    auto cardDB = std::make_shared<CardDB>();
-    try {
-        cardDB->loadFromDirectory(card_db_path / "cards");
-    } catch (const std::exception& e) {
-        spdlog::error("Exception: {}", e.what());
-        std::quick_exit(1);
-    } catch (...) {
-        spdlog::error("Unknown Error, load Card Database failed!");
-        std::quick_exit(1);
-    }
-    return cardDB;
-}
-
 auto main() -> int
 {
     auto zikhron_cfg = get_zikhron_cfg();
-    auto database = std::make_shared<DataBase>(zikhron_cfg);
-    // fs::path dictionary_fn = zikhron_cfg["dictionary"];
-    // fs::path card_db_path = zikhron_cfg["database_directory"];
-    //
-    // auto zh_dictionary = std::make_shared<ZH_Dictionary>(dictionary_fn);
-    // auto cardDB = loadCardDB(card_db_path);
-    // spdlog::info("CardDB size: {}", cardDB->get().size());
-    // TreeWalker treeWalker{cardDB, zh_dictionary};
+    auto walkableData = std::make_shared<WalkableData>(zikhron_cfg);
     return 0;
 }
 

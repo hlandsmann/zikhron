@@ -11,13 +11,13 @@ target_sources(zikhron_annotation
     PRIVATE
         src/Ease.cpp
         src/Markup.cpp
-        src/TextCard.cpp
+        src/Card.cpp
         src/ZH_Annotator.cpp
     PUBLIC
         include/annotation/Ease.h
         include/annotation/Markup.h
         include/annotation/ZH_Annotator.h
-        include/annotation/TextCard.h
+        include/annotation/Card.h
 )
 target_link_libraries(zikhron_annotation
     PUBLIC

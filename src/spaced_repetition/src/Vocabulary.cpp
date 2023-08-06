@@ -1,6 +1,6 @@
 #include <Vocabulary.h>
 #include <annotation/Markup.h>
-#include <annotation/TextCard.h>
+#include <annotation/Card.h>
 #include <annotation/ZH_Annotator.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>

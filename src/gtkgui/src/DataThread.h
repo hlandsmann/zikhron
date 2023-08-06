@@ -2,7 +2,7 @@
 
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
-#include <annotation/TextCard.h>
+#include <annotation/Card.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <gtkmm.h>
 #include <spaced_repetition/Vocabulary.h>

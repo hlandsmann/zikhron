@@ -1,7 +1,7 @@
 #pragma once
 
 #include <annotation/Ease.h>
-#include <annotation/TextCard.h>
+#include <annotation/Card.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <ctime>

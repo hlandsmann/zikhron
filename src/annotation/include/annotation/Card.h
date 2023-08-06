@@ -31,19 +31,8 @@ struct Card
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
     auto createAnnotator(const std::shared_ptr<const ZH_Dictionary>& _dictionary,
-                         const std::map<CharacterSequence, Combination>& _choices = {})
-            -> ZH_Annotator&
-    {
-        zh_annotator.emplace(getText(), _dictionary, _choices);
-        return zh_annotator.value();
-    }
-    auto getAnnotator() -> ZH_Annotator&
-    {
-        if (not zh_annotator.has_value()) {
-            zh_annotator.emplace();
-        }
-        return zh_annotator.value();
-    }
+                         const std::map<CharacterSequence, Combination>& _choices = {}) -> ZH_Annotator&;
+    auto getAnnotator() -> ZH_Annotator&;
 
 private:
     std::optional<ZH_Annotator> zh_annotator;

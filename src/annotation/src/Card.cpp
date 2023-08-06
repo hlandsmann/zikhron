@@ -1,4 +1,4 @@
-#include <TextCard.h>
+#include <Card.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
@@ -51,6 +51,21 @@ auto cardFromJsonFile(const std::string& filename, uint cardId) -> std::unique_p
     throw std::runtime_error("Invalid file format for card json-file");
 }
 } // namespace
+
+auto Card::createAnnotator(const std::shared_ptr<const ZH_Dictionary>& _dictionary,
+                           const std::map<CharacterSequence, Combination>& _choices = {}) -> ZH_Annotator&
+{
+    zh_annotator.emplace(getText(), _dictionary, _choices);
+    return zh_annotator.value();
+}
+
+auto Card::getAnnotator() -> ZH_Annotator&
+{
+    if (not zh_annotator.has_value()) {
+        zh_annotator.emplace();
+    }
+    return zh_annotator.value();
+}
 
 CardDB::CardDB(const std::filesystem::path& directoryPath,
                const std::shared_ptr<const ZH_Dictionary>& dictionary,
