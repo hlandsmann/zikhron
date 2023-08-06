@@ -1,19 +1,20 @@
 #pragma once
-
 #include "DataBase.h"
 #include "VocableProgress.h"
 
+#include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <utils/index_map.h>
 
 struct VocableMeta
 {
-  VocableProgress progress;
-
+    VocableProgress progress;
+    folly::sorted_vector_set<unsigned> cardIndices;
 };
 
 struct CardMeta
 {
+
 };
 
 class WalkableData
@@ -23,6 +24,6 @@ public:
 
 private:
     DataBase db;
-    utl::index_map<VocableProgress> vocables;
+    utl::index_map<VocableMeta> vocables;
     utl::index_map<CardMeta> cards;
 };

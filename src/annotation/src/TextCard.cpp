@@ -13,7 +13,7 @@
 #include <stdexcept>
 #include <string>
 namespace {
-auto cardFromJsonFile(const std::string& filename, uint cardId) -> std::unique_ptr<BaseCard>
+auto cardFromJsonFile(const std::string& filename, uint cardId) -> std::unique_ptr<Card>
 {
     std::ifstream cardFile(filename, std::ios::in | std::ios::binary);
     if (!cardFile) {

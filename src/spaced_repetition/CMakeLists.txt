@@ -8,14 +8,14 @@ target_include_directories(zikhron_spaced_repetition
 )
 target_sources(zikhron_spaced_repetition
     PRIVATE
-        include/spaced_repetition/Card.h
+        include/spaced_repetition/CardProgress.h
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/DataBase_deprecated.h
         include/spaced_repetition/TreeWalker.h
         include/spaced_repetition/VocableProgress.h
         include/spaced_repetition/Vocabulary.h
         include/spaced_repetition/WalkableData.h
-        src/Card.cpp
+        src/CardProgress.cpp
         src/DataBase.cpp
         src/DataBase_deprecated.cpp
         src/Time.cpp
@@ -27,6 +27,7 @@ target_sources(zikhron_spaced_repetition
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC
+        folly
         nlohmann_json::nlohmann_json
         zikhron::annotation
         zikhron::dictionary

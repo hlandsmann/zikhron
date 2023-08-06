@@ -8,7 +8,7 @@
 #include <nlohmann/json_fwd.hpp>
 #include <set>
 #include <string_view>
-#include "Card.h"
+#include "CardProgress.h"
 #include "VocableProgress.h"
 
 struct VocableMetaDeprecated {
@@ -40,7 +40,7 @@ public:
     auto operator=(const SR_DataBase&) -> SR_DataBase = delete;
     ~SR_DataBase();
 
-    [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, Card>& { return id_cardSR; };
+    [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, CardProgress>& { return id_cardSR; };
     [[nodiscard]] auto Id_vocableSR() const -> const std::map<uint, VocableProgress>& { return id_vocableSR; };
     [[nodiscard]] auto Id_cardMeta() const -> const std::map<uint, CardMetaDeprecated>& { return id_cardMeta; };
     [[nodiscard]] auto Id_vocableMeta() const -> const std::map<uint, VocableMetaDeprecated>& {
@@ -85,7 +85,7 @@ private:
     // vocableId -> vocable (aka. ZH_dicItemVec)
     std::map<uint, ZH_dicItemVec> id_vocable;
 
-    std::map<uint, Card> id_cardSR;
+    std::map<uint, CardProgress> id_cardSR;
     std::map<uint, VocableProgress> id_vocableSR;
     std::map<uint, CardMetaDeprecated> id_cardMeta;
     std::map<uint, VocableMetaDeprecated> id_vocableMeta;

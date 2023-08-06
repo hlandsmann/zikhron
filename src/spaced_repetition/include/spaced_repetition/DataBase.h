@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Card.h"
+#include "CardProgress.h"
 #include "VocableProgress.h"
 
 #include <annotation/TextCard.h>
@@ -26,7 +26,7 @@ public:
     DataBase(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto VocableChoices() const -> const std::map<unsigned, unsigned>&;
     [[nodiscard]] auto ProgressVocables() const -> const std::map<unsigned, VocableProgress>&;
-    [[nodiscard]] auto ProgressCards() const -> const std::map<unsigned, Card>&;
+    [[nodiscard]] auto ProgressCards() const -> const std::map<unsigned, CardProgress>&;
     [[nodiscard]] auto getCards() const -> const std::map<unsigned, CardDB::CardPtr>&;
 
 private:
@@ -41,7 +41,7 @@ private:
     std::map<unsigned, unsigned> vocableChoices;
     std::shared_ptr<CardDB> cardDB;
     std::map<unsigned, VocableProgress> progressVocables;
-    std::map<unsigned, Card> progressCards;
+    std::map<unsigned, CardProgress> progressCards;
 
     static void saveJsonToFile(const std::filesystem::path& fn, const nlohmann::json& js);
     static auto loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json;
@@ -55,5 +55,5 @@ private:
     static auto loadProgressVocables(
             const std::filesystem::path& progressVocablePath) -> std::map<unsigned, VocableProgress>;
     static auto loadProgressCards(
-            const std::filesystem::path& progressCardsPath) -> std::map<unsigned, Card>;
+            const std::filesystem::path& progressCardsPath) -> std::map<unsigned, CardProgress>;
 };

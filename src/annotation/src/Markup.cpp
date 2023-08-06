@@ -103,7 +103,7 @@ auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::v
     return result;
 }
 
-Paragraph::Paragraph(std::unique_ptr<BaseCard> _card) : card(std::move(_card)) {
+Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
     utl::StringU8 text = card->getText();
 
     const ZH_Annotator& zh_annotator = card->getAnnotator();
@@ -148,7 +148,7 @@ Paragraph::Paragraph(std::unique_ptr<BaseCard> _card) : card(std::move(_card)) {
     }
 }
 
-Paragraph::Paragraph(std::unique_ptr<BaseCard> card_in, std::vector<uint>&& vocableIds_in)
+Paragraph::Paragraph(std::unique_ptr<Card> card_in, std::vector<uint>&& vocableIds_in)
     : Paragraph(std::move(card_in)) {
     vocableIds = std::move(vocableIds_in);
 }

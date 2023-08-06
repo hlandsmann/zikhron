@@ -31,7 +31,7 @@ auto DataBase::ProgressVocables() const -> const std::map<unsigned, VocableProgr
     return progressVocables;
 }
 
-auto DataBase::ProgressCards() const -> const std::map<unsigned, Card>&
+auto DataBase::ProgressCards() const -> const std::map<unsigned, CardProgress>&
 {
     return progressCards;
 }
@@ -146,12 +146,12 @@ auto DataBase::loadProgressVocables(
 }
 
 auto DataBase::loadProgressCards(
-        const std::filesystem::path& progressCardsPath) -> std::map<unsigned, Card>
+        const std::filesystem::path& progressCardsPath) -> std::map<unsigned, CardProgress>
 {
-    std::map<unsigned, Card> id_card;
+    std::map<unsigned, CardProgress> id_card;
     try {
         nlohmann::json jsonCardSR = loadJsonFromFile(progressCardsPath);
-        id_card = jsonToMap<Card>(jsonCardSR);
+        id_card = jsonToMap<CardProgress>(jsonCardSR);
         spdlog::debug("Card SR file {} loaded!", s_fn_metaCardSR);
     } catch (const std::exception& e) {
         spdlog::error("Card SR load for {} failed! Exception {}", progressCardsPath.c_str(), e.what());

@@ -4,8 +4,8 @@
 #include <ctime>
 #include <nlohmann/json_fwd.hpp>
 
-struct Card {
-    using pair_t = std::pair<unsigned, Card>;
+struct CardProgress {
+    using pair_t = std::pair<unsigned, CardProgress>;
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_last_seen = "last_seen";
     static constexpr std::string_view s_view_count = "view_count";

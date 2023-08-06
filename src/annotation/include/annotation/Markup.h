@@ -50,8 +50,8 @@ public:
     using vocable_pronounciation_meaning_t = std::tuple<std::string, std::string, std::string>;
     // ToDo: move that function to TextCard
 
-    Paragraph(std::unique_ptr<BaseCard> card);
-    Paragraph(std::unique_ptr<BaseCard> card, std::vector<uint>&& vocableIds);
+    Paragraph(std::unique_ptr<Card> card);
+    Paragraph(std::unique_ptr<Card> card, std::vector<uint>&& vocableIds);
     auto get() const -> std::string;
     auto getFragments() const -> std::vector<std::string>;
     auto getWordStartPosition(int pos, const std::vector<int>& positions) const -> int;
@@ -89,7 +89,7 @@ private:
         -> std::optional<std::reference_wrapper<AnnotationChunk>>;
     auto calculate_positions(size_t (Word::*len)() const) const -> std::vector<int>;
 
-    std::unique_ptr<BaseCard> card;
+    std::unique_ptr<Card> card;
 
     struct WordState {
         std::size_t index;

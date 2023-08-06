@@ -15,7 +15,7 @@
 #endif
 
 class CardDB;
-struct Card;
+struct CardProgress;
 
 class VocabularySR {
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
@@ -30,7 +30,7 @@ public:
 
     using VocableIds_vt = std::vector<uint>;
     using Id_Ease_vt = std::map<uint, Ease>;
-    using CardInformation = std::tuple<std::unique_ptr<BaseCard>, VocableIds_vt, Id_Ease_vt>;
+    using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getNextCardChoice(std::optional<uint> preferedCardId = {}) -> CardInformation;
     [[nodiscard]] auto getCardFromId(uint id) const -> std::optional<CardInformation>;
     auto AddAnnotation(const ZH_Annotator::Combination& combination,
@@ -61,7 +61,7 @@ private:
 
     SR_DataBase sr_db;
 
-    const std::map<uint, Card>& id_cardSR = sr_db.Id_cardSR();
+    const std::map<uint, CardProgress>& id_cardSR = sr_db.Id_cardSR();
 
     const std::map<uint, VocableProgress>& id_vocableSR = sr_db.Id_vocableSR();
     const std::map<uint, CardMetaDeprecated>& id_cardMeta = sr_db.Id_cardMeta();

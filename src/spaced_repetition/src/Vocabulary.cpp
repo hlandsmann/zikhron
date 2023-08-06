@@ -228,7 +228,7 @@ auto VocabularySR::GetCardNewVoc() -> std::optional<uint> {
 }
 
 auto VocabularySR::getNextCardChoice(std::optional<uint> preferedCardId)
-    -> std::tuple<std::unique_ptr<BaseCard>, VocableIds_vt, Id_Ease_vt> {
+    -> std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt> {
     sr_db.AdvanceFailedVocables();
     fmt::print("To Repeat: {}, Again: {}\n", ids_repeatTodayVoc.size(), ids_againVoc.size());
 
@@ -258,7 +258,7 @@ auto VocabularySR::getNextCardChoice(std::optional<uint> preferedCardId)
 }
 
 auto VocabularySR::getCardFromId(uint id) const
-    -> std::optional<std::tuple<std::unique_ptr<BaseCard>, VocableIds_vt, Id_Ease_vt>> {
+    -> std::optional<std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>> {
     if (cardDB->get().contains(id))
         return {{cardDB->get().at(id)->clone(), sr_db.GetVocableIdsInOrder(id), GetRelevantEase(id)}};
     else
@@ -269,7 +269,7 @@ auto VocabularySR::AddAnnotation(const ZH_Annotator::Combination& combination,
                                  const std::vector<utl::CharU8>& characterSequence) -> CardInformation {
     sr_db.AddAnnotation(combination, characterSequence, *activeCardId);
     const auto& card = cardDB->get().at(*activeCardId);
-    return {std::unique_ptr<BaseCard>(card->clone()),
+    return {std::unique_ptr<Card>(card->clone()),
             sr_db.GetVocableIdsInOrder(*activeCardId),
             GetRelevantEase(*activeCardId)};
 }
@@ -279,7 +279,7 @@ auto VocabularySR::AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdN
     sr_db.AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
 
     const auto& card = cardDB->get().at(*activeCardId);
-    return {std::unique_ptr<BaseCard>(card->clone()),
+    return {std::unique_ptr<Card>(card->clone()),
             sr_db.GetVocableIdsInOrder(*activeCardId),
             GetRelevantEase(*activeCardId)};
 }

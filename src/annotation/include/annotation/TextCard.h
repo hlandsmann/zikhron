@@ -12,17 +12,17 @@
 
 #include <sys/types.h>
 
-struct BaseCard
+struct Card
 {
-    BaseCard(std::string _filename, uint _id)
+    Card(std::string _filename, uint _id)
         : filename(std::move(_filename)), id(_id){};
-    BaseCard(const BaseCard&) = default;
-    BaseCard(BaseCard&&) = default;
-    virtual ~BaseCard() = default;
-    auto operator=(const BaseCard&) = delete;
-    auto operator=(BaseCard&&) = delete;
+    Card(const Card&) = default;
+    Card(Card&&) = default;
+    virtual ~Card() = default;
+    auto operator=(const Card&) = delete;
+    auto operator=(Card&&) = delete;
 
-    [[nodiscard]] virtual auto clone() const -> std::unique_ptr<BaseCard> = 0;
+    [[nodiscard]] virtual auto clone() const -> std::unique_ptr<Card> = 0;
 
     [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     [[nodiscard]] auto getId() const -> unsigned { return id; }
@@ -52,18 +52,18 @@ private:
 };
 
 template<typename Card_Type>
-struct Card_clone : public BaseCard
+struct Card_clone : public Card
 {
 public:
     Card_clone(std::string _filename, uint _id)
-        : BaseCard(std::move(_filename), _id){};
+        : Card(std::move(_filename), _id){};
     Card_clone(const Card_clone&) = default;
     Card_clone(Card_clone&&) = default;
     ~Card_clone() override = default;
     auto operator=(const Card_clone&) = delete;
     auto operator=(Card_clone&&) = delete;
 
-    [[nodiscard]] auto clone() const -> std::unique_ptr<BaseCard> override
+    [[nodiscard]] auto clone() const -> std::unique_ptr<Card> override
     {
         return std::make_unique<Card_Type>(static_cast<Card_Type const&>(*this));
     }
@@ -110,7 +110,7 @@ class CardDB
 public:
     static constexpr std::string_view s_cardSubdirectory = "cards";
 
-    using CardPtr = std::unique_ptr<BaseCard>;
+    using CardPtr = std::unique_ptr<Card>;
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
 

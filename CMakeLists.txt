@@ -5,15 +5,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/build_modules")
 include(cmake/CPM.cmake)
-CPMAddPackage("gh:fmtlib/fmt#9.1.0")
-CPMAddPackage("gh:nlohmann/json@3.11.2")
 CPMAddPackage("gh:catchorg/Catch2@3.3.2")
+CPMAddPackage("gh:facebook/folly@2023.07.24.00")
+CPMAddPackage("gh:fmtlib/fmt#9.1.0")
+CPMAddPackage("gh:gabime/spdlog@1.11.0")
 CPMAddPackage("gh:hanickadot/compile-time-regular-expressions#v3.8")
 CPMAddPackage("gh:microsoft/GSL@4.0.0")
-CPMAddPackage("gh:gabime/spdlog@1.11.0")
-
+CPMAddPackage("gh:nlohmann/json@3.11.2")
 include(FindPkgConfig)
-find_package(folly REQUIRED)
 
 option(use_iwyu ON)
 
