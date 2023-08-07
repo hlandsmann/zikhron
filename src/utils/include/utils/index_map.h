@@ -3,7 +3,7 @@
 #include <functional>
 #include <iterator>
 #include <map>
-#include <ranges>
+#include <optional>
 #include <tuple>
 #include <vector>
 
@@ -60,12 +60,15 @@ public:
     [[nodiscard]] auto size() const -> std::size_t;
     [[nodiscard]] auto empty() const -> bool;
     [[nodiscard]] auto at_id(unsigned id) const -> std::pair<std::size_t /* index */, T&>;
+    [[nodiscard]] auto optional_index(unsigned id) const -> std::optional<std::size_t>;
+    [[nodiscard]] auto contains(unsigned id) const -> bool;
     [[nodiscard]] auto operator[](std::size_t index) const -> T&;
 
-    void push_back(const T& value);
-    void push_back(T&& value);
+    void push_back(std::pair<unsigned, const T&> id_value);
+    void push_back(std::pair<unsigned, T&&> id_value);
+
     template<class... Args>
-    auto emplace_back(Args&&... args) -> reference;
+    auto emplace(unsigned id, Args&&... args) -> reference;
 
 private:
     std::map<unsigned, std::size_t> id_index;
@@ -116,28 +119,63 @@ auto index_map<T>::at_id(unsigned id) const -> std::pair<std::size_t, T&>
 }
 
 template<class T>
+auto index_map<T>::optional_index(unsigned id) const -> std::optional<std::size_t>
+{
+    const auto it = id_index.find(id);
+    if (it == id_index.end()) {
+        return {};
+    }
+    return {it->second};
+}
+
+template<class T>
+auto index_map<T>::contains(unsigned id) const -> bool
+{
+    return id_index.contains(id);
+}
+
+template<class T>
 auto index_map<T>::operator[](std::size_t index) const -> T&
 {
     return data[index];
 }
 
 template<class T>
-void index_map<T>::push_back(const T& value)
+void index_map<T>::push_back(std::pair<unsigned, const T&> id_value)
 {
-    data.push_back(value);
+    const auto& [id, value] = id_value;
+    if (not id_index.contains(id)) {
+        data.push_back(value);
+        id_index[id] = data.size();
+    } else {
+        data[id_index.at(id)] = value;
+    }
 }
 
 template<class T>
-void index_map<T>::push_back(T&& value)
+void index_map<T>::push_back(std::pair<unsigned, T&&> id_value)
 {
-    data.push_back(std::move(value));
+    auto&& [id, value] = id_value;
+    if (not id_index.contains(id)) {
+        data.push_back(std::move(value));
+        id_index[id] = data.size();
+    } else {
+        data[id_index.at(id)] = std::move(value);
+    }
 }
 
 template<class T>
 template<class... Args>
-auto index_map<T>::emplace_back(Args&&... args) -> reference
+auto index_map<T>::emplace(unsigned id, Args&&... args) -> reference
 {
-    return data.emplace_back(std::forward<Args>(args)...);
+    if (not id_index.contains(id)) {
+        reference ref = data.emplace_back(std::forward<Args>(args)...);
+        id_index[id] = data.size();
+        return ref;
+    }
+    std::size_t index = id_index.at(id);
+    auto it = std::next(data.begin(), index);
+    return *data.emplace(it, std::forward<Args>(args)...);
 }
 
 template<class T>
@@ -190,7 +228,7 @@ auto index_map_iterator<T>::operator==(const index_map_iterator& it) const -> bo
 template<class T>
 auto index_map_iterator<T>::operator!=(const index_map_iterator& it) const -> bool
 {
-    return not (*this == it);
+    return not(*this == it);
 }
 
 } // namespace utl
