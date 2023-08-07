@@ -24,8 +24,8 @@ struct Card
 
     [[nodiscard]] virtual auto clone() const -> std::unique_ptr<Card> = 0;
 
+    [[nodiscard]] auto Id() const -> unsigned;
     [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
-    [[nodiscard]] auto getId() const -> unsigned { return id; }
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
 
     using CharacterSequence = std::vector<utl::CharU8>;
@@ -37,7 +37,7 @@ struct Card
 private:
     std::optional<ZH_Annotator> zh_annotator;
     std::string filename;
-    uint id;
+    unsigned id;
 };
 
 template<typename Card_Type>

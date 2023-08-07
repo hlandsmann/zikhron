@@ -303,7 +303,7 @@ auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
             const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
             spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
-                          zh_dictionary->EntryFromPosition(vocId, zh_dictionary->Simplified()).key,
+                          zh_dictionary->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
                           vocSR.EaseFactor(),
                           vocSR.IntervalDay(),
                           vocId);

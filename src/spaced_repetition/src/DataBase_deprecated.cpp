@@ -172,7 +172,7 @@ void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& car
 
     std::vector<uint> vocableIds = GetVocableIdsInOrder(cardId);
     for (const auto& [vocId, dicItemVec] : boost::combine(vocableIds, annotatorItems)) {
-        const auto& dicEntry = zh_dictionary->EntryFromPosition(vocId, zh_dictionary->Simplified());
+        const auto& dicEntry = zh_dictionary->EntryFromPosition(vocId, CharacterSetType::Simplified);
         const auto& key = dicEntry.key;
 
         if (auto it = zhdic_vocableMeta.find(key); it != zhdic_vocableMeta.end()) {

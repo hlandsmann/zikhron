@@ -53,7 +53,7 @@ auto cardFromJsonFile(const std::string& filename, uint cardId) -> std::unique_p
 } // namespace
 
 auto Card::createAnnotator(const std::shared_ptr<const ZH_Dictionary>& _dictionary,
-                           const std::map<CharacterSequence, Combination>& _choices = {}) -> ZH_Annotator&
+                           const std::map<CharacterSequence, Combination>& _choices) -> ZH_Annotator&
 {
     zh_annotator.emplace(getText(), _dictionary, _choices);
     return zh_annotator.value();
@@ -65,6 +65,44 @@ auto Card::getAnnotator() -> ZH_Annotator&
         zh_annotator.emplace();
     }
     return zh_annotator.value();
+}
+
+auto Card::Id() const -> unsigned
+{
+    return id;
+}
+
+auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString>
+{
+    std::vector<icu::UnicodeString> textVector;
+    textVector.reserve(dialogue.size());
+    std::transform(
+            dialogue.begin(), dialogue.end(), std::back_inserter(textVector), [](const auto& item) {
+                return item.text;
+            });
+    return textVector;
+}
+
+auto DialogueCard::getText() const -> utl::StringU8
+{
+    utl::StringU8 result;
+    for (const auto& monologue : dialogue) {
+        result.append(monologue.speaker);
+        result.append(std::string("~"));
+        result.append(monologue.text);
+        result.append(std::string("~"));
+    }
+    return result;
+}
+
+auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>
+{
+    return {text};
+}
+
+auto TextCard::getText() const -> utl::StringU8
+{
+    return {text};
 }
 
 CardDB::CardDB(const std::filesystem::path& directoryPath,
@@ -101,39 +139,6 @@ void CardDB::loadFromDirectory(const std::filesystem::path& directoryPath)
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
     }
-}
-
-auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString>
-{
-    std::vector<icu::UnicodeString> textVector;
-    textVector.reserve(dialogue.size());
-    std::transform(
-            dialogue.begin(), dialogue.end(), std::back_inserter(textVector), [](const auto& item) {
-                return item.text;
-            });
-    return textVector;
-}
-
-auto DialogueCard::getText() const -> utl::StringU8
-{
-    utl::StringU8 result;
-    for (const auto& monologue : dialogue) {
-        result.append(monologue.speaker);
-        result.append(std::string("~"));
-        result.append(monologue.text);
-        result.append(std::string("~"));
-    }
-    return result;
-}
-
-auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>
-{
-    return {text};
-}
-
-auto TextCard::getText() const -> utl::StringU8
-{
-    return {text};
 }
 
 auto CardDB::get() const -> const std::map<uint, CardPtr>&

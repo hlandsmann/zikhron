@@ -31,4 +31,7 @@ private:
 
     void fillIndexMaps();
     void insertVocabularyOfCard(const CardDB::CardPtr& card);
+
+    static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
+                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<uint>;
 };

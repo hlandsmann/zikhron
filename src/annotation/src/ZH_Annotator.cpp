@@ -1,4 +1,5 @@
 #include "ZH_Annotator.h"
+#include "dictionary/ZH_Dictionary.h"
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <unicode/unistr.h>
@@ -17,12 +18,12 @@ namespace ranges = std::ranges;
 namespace {
 
 auto GetCandidates(const utl::StringU8& text,
-                   const std::span<const ZH_Dictionary::Key>& characterSet,
+                   const CharacterSetType characterSet,
                    const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> {
     std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> candidates;
     candidates.reserve(text.length());
     for (size_t indexBegin = 0; indexBegin < text.length(); indexBegin++) {
-        const auto span_lower = ZH_Dictionary::Lower_bound(text.substr(indexBegin, 1), characterSet);
+        const auto span_lower = ZH_Dictionary::Lower_bound(text.substr(indexBegin, 1), dict.Simplified());
         const auto span_now = ZH_Dictionary::Upper_bound(text.substr(indexBegin, 1), span_lower);
 
         std::vector<ZH_Annotator::ZH_dicItemVec> Items;
@@ -177,8 +178,7 @@ auto ZH_Annotator::Dictionary() const -> const std::shared_ptr<const ZH_Dictiona
 void ZH_Annotator::annotate() {
     using utl::StringU8;
 
-    const auto keys = dictionary->Simplified();
-    candidates = GetCandidates(text, keys, *dictionary);
+    candidates = GetCandidates(text, CharacterSetType::Simplified, *dictionary);
     chunks = GetChunks(candidates);
 
     namespace ranges = std::ranges;

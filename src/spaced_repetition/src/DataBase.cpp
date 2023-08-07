@@ -21,6 +21,16 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     , progressCards{loadProgressCards(config->DatabaseDirectory() / s_fn_metaCardSR)}
 {}
 
+auto DataBase::Dictionary() const -> std::shared_ptr<const ZH_Dictionary>
+{
+    return zhDictionary;
+}
+
+// auto DataBase::AnnotationChoices() const -> const AnnotationChoiceMap&
+// {
+//     return annotationChoices;
+// }
+
 auto DataBase::VocableChoices() const -> const std::map<unsigned, unsigned>&
 {
     return vocableChoices;
@@ -100,26 +110,6 @@ auto DataBase::loadVocableChoices(const std::filesystem::path& vocableChoicesPat
     }
     return vocableChoices;
 }
-
-// auto DataBase::getVocableIdsInOrder(const CardDB::CardPtr& card,
-//                                     std::map<unsigned, unsigned> vocableChoices) -> std::vector<uint>
-// {
-//     const ZH_Annotator& annotator = card->getAnnotator();
-//     std::vector<uint> vocableIds;
-//     ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
-//                           return not item.dicItemVec.empty();
-//                       }),
-//                       std::back_inserter(vocableIds),
-//                       [&vocableChoices](const ZH_Annotator::Item& item) -> uint {
-//                           uint vocId = item.dicItemVec.front().id;
-//                           if (const auto it = vocableChoices.find(vocId);
-//                               it != vocableChoices.end()) {
-//                               vocId = it->second;
-//                           }
-//                           return vocId;
-//                       });
-//     return vocableIds;
-// }
 
 template<class mapped_value>
 auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<unsigned, mapped_value>

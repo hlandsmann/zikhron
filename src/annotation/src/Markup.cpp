@@ -407,7 +407,7 @@ auto Paragraph::getVocableChoiceFromPosition(int pos, const std::vector<int>& po
     size_t vocId = vocableIds[indexVocableChoice];
     const ZH_Dictionary& zh_dictionary = *card->getAnnotator().Dictionary();
 
-    return zh_dictionary.EntryFromPosition(vocId, zh_dictionary.Simplified());
+    return zh_dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified);
 }
 
 auto Paragraph::getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>& {
@@ -422,7 +422,7 @@ void Paragraph::setupVocables(const std::map<uint, Ease>& ease) {
     ranges::copy(ease | std::views::keys, std::back_inserter(activeVocables));
     ranges::sort(activeVocables, std::less{}, [&](const auto& vocId) {
         return ranges::find_if(zh_annotator.Items(), [&](const auto& item) -> bool {
-            const auto& key = zh_dictionary.EntryFromPosition(vocId, zh_dictionary.Simplified()).key;
+            const auto& key = zh_dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified).key;
             return std::string(item.text) == key;
         });
     });
@@ -437,7 +437,7 @@ void Paragraph::setupVocables(const std::map<uint, Ease>& ease) {
     for (uint colorIndex = 0; colorIndex < activeVocables.size(); colorIndex++) {
         uint vocId = activeVocables[colorIndex];
         const ZH_Dictionary::Entry& voc = zh_dictionary.EntryFromPosition(vocId,
-                                                                          zh_dictionary.Simplified());
+                                                                          CharacterSetType::Simplified);
 
         for (boost::tuple<Word&, const ZH_Annotator::Item&> p : boost::combine(words, items)) {
             auto& word = p.get<0>();
@@ -454,7 +454,7 @@ void Paragraph::setupVocables(const std::map<uint, Ease>& ease) {
         std::back_inserter(vocables),
         [&, colorIndex = 0](uint vocId) mutable -> vocable_pronounciation_meaning_t {
             const ZH_Dictionary::Entry& zhEntry = zh_dictionary.EntryFromPosition(
-                vocId, zh_dictionary.Simplified());
+                vocId, CharacterSetType::Simplified);
             uint32_t color = colors[colorIndex++ % colors.size()];
             std::string style = fmt::format(" color=\"#{:06x}\"", color);
 
