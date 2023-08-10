@@ -3,8 +3,10 @@
 #include <functional>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <optional>
 #include <tuple>
+#include <type_traits>
 #include <vector>
 
 namespace utl {
@@ -17,8 +19,12 @@ public:
     using difference_type = std::ptrdiff_t;
     using pointer = value_type*;
     using reference = value_type&;
+    using non_cv_T = std::remove_cv<T>::type;
+    using vector_T = std::conditional<std::is_same<T, typename std::remove_const<T>::type>::value,
+                                      std::vector<non_cv_T>,
+                                      const std::vector<non_cv_T>>::type;
 
-    index_map_iterator(std::vector<T>& data, std::size_t index);
+    index_map_iterator(vector_T& data, std::size_t index);
 
     auto operator*() const -> reference;
     auto operator++() -> index_map_iterator&;
@@ -29,7 +35,8 @@ public:
     auto operator!=(const index_map_iterator& it) const -> bool;
 
 private:
-    std::reference_wrapper<std::vector<T>> refData;
+    // using non_const_T = T;
+    std::reference_wrapper<vector_T> refData;
     std::size_t index;
 };
 
@@ -42,18 +49,18 @@ public:
     using value_type = std::pair<key_type, mapped_type>;
     using size_type = std::size_t;
     using difference_type = std::ptrdiff_t;
-    using reference = value_type&;
-    using const_reference = const value_type&;
-    using pointer = value_type*;
-    using const_pointer = const value_type*;
+    using reference = mapped_type&;
+    using const_reference = const mapped_type&;
+    using pointer = mapped_type*;
+    using const_pointer = const mapped_type*;
     using iterator = index_map_iterator<T>;
     using const_iterator = index_map_iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
     index_map() = default;
-    [[nodiscard]] auto begin() const -> iterator;
-    [[nodiscard]] auto end() const -> iterator;
+    [[nodiscard]] auto begin() -> iterator;
+    [[nodiscard]] auto end() -> iterator;
     [[nodiscard]] auto cbegin() const -> const_iterator;
     [[nodiscard]] auto cend() const -> const_iterator;
 
@@ -62,27 +69,27 @@ public:
     [[nodiscard]] auto at_id(unsigned id) const -> std::pair<std::size_t /* index */, T&>;
     [[nodiscard]] auto optional_index(unsigned id) const -> std::optional<std::size_t>;
     [[nodiscard]] auto contains(unsigned id) const -> bool;
-    [[nodiscard]] auto operator[](std::size_t index) const -> T&;
+    [[nodiscard]] auto operator[](std::size_t index) -> T&;
 
     void push_back(std::pair<unsigned, const T&> id_value);
     void push_back(std::pair<unsigned, T&&> id_value);
 
     template<class... Args>
-    auto emplace(unsigned id, Args&&... args) -> reference;
+    auto emplace(unsigned id, Args&&... args) -> std::pair<std::size_t, std::reference_wrapper<T>>;
 
 private:
-    std::map<unsigned, std::size_t> id_index;
+    std::map<key_type, std::size_t> id_index;
     std::vector<T> data;
 };
 
 template<class T>
-auto index_map<T>::begin() const -> iterator
+auto index_map<T>::begin() -> iterator
 {
     return {data, 0};
 }
 
 template<class T>
-auto index_map<T>::end() const -> iterator
+auto index_map<T>::end() -> iterator
 {
     return {data, data.size()};
 }
@@ -135,7 +142,7 @@ auto index_map<T>::contains(unsigned id) const -> bool
 }
 
 template<class T>
-auto index_map<T>::operator[](std::size_t index) const -> T&
+auto index_map<T>::operator[](std::size_t index) -> T&
 {
     return data[index];
 }
@@ -166,27 +173,29 @@ void index_map<T>::push_back(std::pair<unsigned, T&&> id_value)
 
 template<class T>
 template<class... Args>
-auto index_map<T>::emplace(unsigned id, Args&&... args) -> reference
+auto index_map<T>::emplace(unsigned id, Args&&... args) -> std::pair<std::size_t, std::reference_wrapper<T>>
 {
     if (not id_index.contains(id)) {
+        std::size_t index = data.size();
         reference ref = data.emplace_back(std::forward<Args>(args)...);
-        id_index[id] = data.size();
-        return ref;
+        id_index[id] = index;
+        return {index, ref};
     }
     std::size_t index = id_index.at(id);
     auto it = std::next(data.begin(), index);
-    return *data.emplace(it, std::forward<Args>(args)...);
+    return {index, *data.emplace(it, std::forward<Args>(args)...)};
 }
 
 template<class T>
-index_map_iterator<T>::index_map_iterator(std::vector<T>& data, std::size_t _index)
+index_map_iterator<T>::index_map_iterator(vector_T& data, std::size_t _index)
     : refData{data}, index{_index}
 {}
 
 template<class T>
 auto index_map_iterator<T>::operator*() const -> reference
 {
-    return &refData[index];
+    auto& data = refData.get();
+    return data[index];
 }
 
 template<class T>
@@ -222,7 +231,7 @@ auto index_map_iterator<T>::operator--(int) -> index_map_iterator
 template<class T>
 auto index_map_iterator<T>::operator==(const index_map_iterator& it) const -> bool
 {
-    return (refData == it.refData && index == it.index);
+    return (std::addressof(refData.get()) == std::addressof(it.refData.get()) && index == it.index);
 }
 
 template<class T>
