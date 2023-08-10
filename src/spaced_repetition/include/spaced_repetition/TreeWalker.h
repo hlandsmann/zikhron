@@ -1,16 +1,12 @@
 #pragma once
 
-#include <annotation/Card.h>
-#include "DataBase_deprecated.h"
-
 #include <memory>
+#include "WalkableData.h"
 
 class TreeWalker {
 public:
-    TreeWalker(std::shared_ptr<CardDB>, std::shared_ptr<ZH_Dictionary>);
+    TreeWalker(std::shared_ptr<WalkableData>);
 
 private:
-    std::shared_ptr<CardDB> cardDB;
-    std::shared_ptr<ZH_Dictionary> zh_dictionary;
-    SR_DataBase sr_db;
+    std::shared_ptr<WalkableData> walkableData;
 };

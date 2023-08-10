@@ -15,14 +15,54 @@ VocableMeta::VocableMeta(VocableProgress _progress,
     , cardIndices{std::move(_cardIndices)}
     , dicItemVec{std::move(_dicItemVec)} {}
 
-CardMeta::CardMeta(CardProgress _progress, folly::sorted_vector_set<std::size_t> _cardIndices)
+auto VocableMeta::Progress() const -> VocableProgress
+{
+    return progress;
+}
+
+auto VocableMeta::CardIndices() const -> folly::sorted_vector_set<std::size_t>
+{
+    return cardIndices;
+}
+
+CardMeta::CardMeta(CardProgress _progress, folly::sorted_vector_set<std::size_t> _vocableIndices)
     : progress{std::move(_progress)}
-    , vocableIndices{std::move(_cardIndices)} {}
+    , vocableIndices{std::move(_vocableIndices)} {}
+
+auto CardMeta::Progress() const -> CardProgress
+{
+    return progress;
+}
+
+auto CardMeta::VocableIndices() const -> folly::sorted_vector_set<std::size_t>
+{
+    return vocableIndices;
+}
 
 WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
     : db{std::move(config)}
 {
     fillIndexMaps();
+}
+
+auto WalkableData::Vocables() const -> utl::index_map<VocableMeta>
+{
+    return vocables;
+}
+
+auto WalkableData::Cards() const -> utl::index_map<CardMeta>
+{
+    return cards;
+}
+
+auto WalkableData::timingAndNVocables(
+        const CardMeta& card,
+        const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndValue
+{
+}
+auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndValue
+{
+    return timingAndNVocables(card, {});
 }
 
 void WalkableData::fillIndexMaps()
@@ -32,12 +72,6 @@ void WalkableData::fillIndexMaps()
     }
     spdlog::info("number of vocables: {}", vocables.size());
     spdlog::info("number of cards: {}", cards.size());
-    for(const auto& voc:vocables){
-      spdlog::info("card num: {}", voc.cardIndices.size());
-    }
-    std::for_each(vocables.cbegin(), vocables.cend(), [](const auto& voc) {
-        spdlog::info("card num: {}", voc.cardIndices.size());
-    });
 }
 
 void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
