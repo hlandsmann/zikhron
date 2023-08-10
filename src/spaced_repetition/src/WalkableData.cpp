@@ -1,12 +1,23 @@
 #include <WalkableData.h>
-#include <boost/range/combine.hpp>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <boost/range/combine.hpp>
 #include <ranges>
 
 namespace ranges = std::ranges;
 namespace views = std::views;
+
+VocableMeta::VocableMeta(VocableProgress _progress,
+                         folly::sorted_vector_set<std::size_t> _cardIndices,
+                         ZH_Annotator::ZH_dicItemVec _dicItemVec)
+    : progress{std::move(_progress)}
+    , cardIndices{std::move(_cardIndices)}
+    , dicItemVec{std::move(_dicItemVec)} {}
+
+CardMeta::CardMeta(CardProgress _progress, folly::sorted_vector_set<std::size_t> _cardIndices)
+    : progress{std::move(_progress)}
+    , vocableIndices{std::move(_cardIndices)} {}
 
 WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
     : db{std::move(config)}
@@ -16,16 +27,24 @@ WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
 
 void WalkableData::fillIndexMaps()
 {
-    for (const auto& [_, card] : db.getCards()) {
+    for (const auto& [_, card] : db.getCards() /* | views::take(10) */) {
         insertVocabularyOfCard(card);
     }
+    spdlog::info("number of vocables: {}", vocables.size());
+    spdlog::info("number of cards: {}", cards.size());
+    for(const auto& voc:vocables){
+      spdlog::info("card num: {}", voc.cardIndices.size());
+    }
+    std::for_each(vocables.cbegin(), vocables.cend(), [](const auto& voc) {
+        spdlog::info("card num: {}", voc.cardIndices.size());
+    });
 }
 
 void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
 {
     const ZH_Annotator& annotator = card->getAnnotator();
-
-    // Its unfortunate, that we cannot siDictionarymply use a view.... but we gotta live with that.
+    std::map<std::string, uint> zhdic_vocableMeta;
+    // Its unfortunate, that we cannot simply use a view.... but we gotta live with that.
     // So lets create a temporary vector annotatorItems to represent that view.
     std::vector<std::reference_wrapper<const ZH_Annotator::ZH_dicItemVec>> annotatorItems;
     ranges::transform(annotator.Items() | views::filter([](const ZH_Annotator::Item& item) {
@@ -36,28 +55,42 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
                           return item.dicItemVec;
                       });
 
+    const auto& progressCards = db.ProgressCards();
+    auto itCard = progressCards.find(card->Id());
+    auto [card_index, cardMetaRef] = cards.emplace(card->Id(),
+                                                   (itCard != progressCards.end())
+                                                           ? itCard->second
+                                                           : CardProgress{},
+                                                   folly::sorted_vector_set<std::size_t>{});
+    auto& cardMeta = cardMetaRef.get();
     std::vector<uint> vocableIds = getVocableIdsInOrder(card, db.VocableChoices());
     for (const auto& [vocId, dicItemVec] : boost::combine(vocableIds, annotatorItems)) {
-        const auto& dicEntry = db.Dictionary()->EntryFromPosition(vocId, CharacterSetType::Simplified);
-        const auto& key = dicEntry.key;
-        //
-        // if (auto it = zhdic_vocableMeta.find(key); it != zhdic_vocableMeta.end()) {
-        //     auto& vocableMeta = id_vocableMeta[vocId];
-        //     vocableMeta.cardIds.insert(cardId);
-        //     cm.vocableIds.insert(vocId);
-        // } else {
-        //     id_vocableMeta[vocId] = {.cardIds = {cardId}};
-        //     zhdic_vocableMeta[key] = vocId;
-        //     id_vocable[vocId] = ZH_dicItemVec{dicItemVec};
-        //     cm.vocableIds.insert(vocId);
-        // }
+        const auto& optionalIndex = vocables.optional_index(vocId);
+        if (optionalIndex.has_value()) {
+            auto& vocable = vocables[*optionalIndex];
+            vocable.cardIndices.insert(card_index);
+            cardMeta.vocableIndices.insert(*optionalIndex);
+        } else {
+            const auto& progressVocables = db.ProgressVocables();
+            auto itVoc = progressVocables.find(vocId);
+            const auto& [vocable_index, _] = vocables.emplace(vocId,
+                                                              (itVoc != progressVocables.end())
+                                                                      ? itVoc->second
+                                                                      : VocableProgress{},
+                                                              folly::sorted_vector_set<std::size_t>{card->Id()},
+                                                              dicItemVec);
+
+            cardMeta.vocableIndices.insert(vocable_index);
+        }
     }
-    // cm.cardId = cardId;
+    // spdlog::info("voc: {}, dic: {}", vocableIds.size(), annotatorItems.size());
 }
 
 auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,
-                                    const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<uint>
+                                        const std::map<unsigned, unsigned>& vocableChoices)
+        -> std::vector<uint>
 {
+    std::map<std::string, uint> zhdic_vocableMeta;
     const ZH_Annotator& annotator = card->getAnnotator();
     std::vector<uint> vocableIds;
     ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {

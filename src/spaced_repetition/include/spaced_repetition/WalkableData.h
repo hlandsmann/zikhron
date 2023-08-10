@@ -3,20 +3,26 @@
 #include "DataBase.h"
 #include "VocableProgress.h"
 
+#include <annotation/ZH_Annotator.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <utils/index_map.h>
 
 struct VocableMeta
 {
+    VocableMeta(VocableProgress _progress,
+                folly::sorted_vector_set<std::size_t> _cardIndices,
+                ZH_Annotator::ZH_dicItemVec dicItemVec);
     VocableProgress progress;
     folly::sorted_vector_set<std::size_t> cardIndices;
+    ZH_Annotator::ZH_dicItemVec dicItemVec;
 };
 
 struct CardMeta
 {
+    CardMeta(CardProgress progress, folly::sorted_vector_set<std::size_t> cardIndices);
     CardProgress progress;
-    folly::sorted_vector_set<std::size_t> cardIndices;
+    folly::sorted_vector_set<std::size_t> vocableIndices;
 };
 
 class WalkableData
