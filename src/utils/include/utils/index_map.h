@@ -10,6 +10,10 @@
 #include <vector>
 
 namespace utl {
+
+template<typename T>
+concept is_mutable = std::is_same_v<std::remove_const_t<T>, T>;
+
 template<class T>
 class index_map_iterator
 {
@@ -57,6 +61,7 @@ public:
     using const_iterator = index_map_iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using non_const_T = std::remove_const<T>::type;
 
     index_map() = default;
     [[nodiscard]] auto begin() -> iterator;
@@ -69,7 +74,9 @@ public:
     [[nodiscard]] auto at_id(unsigned id) const -> std::pair<std::size_t /* index */, T&>;
     [[nodiscard]] auto optional_index(unsigned id) const -> std::optional<std::size_t>;
     [[nodiscard]] auto contains(unsigned id) const -> bool;
-    [[nodiscard]] auto operator[](std::size_t index) -> T&;
+    [[nodiscard]] auto operator[](std::size_t index) const -> const non_const_T&;
+    [[nodiscard]] auto operator[](std::size_t index) -> T&
+        requires is_mutable<T>;
 
     void push_back(std::pair<unsigned, const T&> id_value);
     void push_back(std::pair<unsigned, T&&> id_value);
@@ -142,7 +149,14 @@ auto index_map<T>::contains(unsigned id) const -> bool
 }
 
 template<class T>
+auto index_map<T>::operator[](std::size_t index) const -> const non_const_T&
+{
+    return data[index];
+}
+
+template<class T>
 auto index_map<T>::operator[](std::size_t index) -> T&
+    requires is_mutable<T>
 {
     return data[index];
 }
