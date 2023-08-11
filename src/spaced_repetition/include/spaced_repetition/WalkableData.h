@@ -17,6 +17,7 @@ struct VocableMeta
                 ZH_Annotator::ZH_dicItemVec dicItemVec);
     [[nodiscard]] auto Progress() const -> VocableProgress;
     [[nodiscard]] auto CardIndices() const -> folly::sorted_vector_set<std::size_t>;
+    void cardIndices_insert(std::size_t cardIndex);
 
 private:
     VocableProgress progress;
@@ -29,6 +30,7 @@ struct CardMeta
     CardMeta(CardProgress progress, folly::sorted_vector_set<std::size_t> _vocableIndices);
     [[nodiscard]] auto Progress() const -> CardProgress;
     [[nodiscard]] auto VocableIndices() const -> folly::sorted_vector_set<std::size_t>;
+    void vocableIndices_insert(std::size_t vocableIndex);
 
 private:
     CardProgress progress;
@@ -42,15 +44,15 @@ public:
     [[nodiscard]] auto Vocables() const -> utl::index_map<VocableMeta>;
     [[nodiscard]] auto Cards() const -> utl::index_map<CardMeta>;
 
-    struct TimingAndValue
+    struct TimingAndNVocables
     {
         int timing;
         std::size_t nVocables;
     };
     [[nodiscard]] auto timingAndNVocables(
             const CardMeta& card,
-            const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndValue;
-    [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndValue;
+            const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndNVocables;
+    [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndNVocables;
 
 private:
     DataBase db;

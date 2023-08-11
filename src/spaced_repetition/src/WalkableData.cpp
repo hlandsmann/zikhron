@@ -1,4 +1,5 @@
 #include <WalkableData.h>
+#include <bits/ranges_algo.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
@@ -25,6 +26,11 @@ auto VocableMeta::CardIndices() const -> folly::sorted_vector_set<std::size_t>
     return cardIndices;
 }
 
+void VocableMeta::cardIndices_insert(std::size_t cardIndex)
+{
+    cardIndices.insert(cardIndex);
+}
+
 CardMeta::CardMeta(CardProgress _progress, folly::sorted_vector_set<std::size_t> _vocableIndices)
     : progress{std::move(_progress)}
     , vocableIndices{std::move(_vocableIndices)} {}
@@ -37,6 +43,11 @@ auto CardMeta::Progress() const -> CardProgress
 auto CardMeta::VocableIndices() const -> folly::sorted_vector_set<std::size_t>
 {
     return vocableIndices;
+}
+
+void CardMeta::vocableIndices_insert(std::size_t vocableIndex)
+{
+    vocableIndices.insert(vocableIndex);
 }
 
 WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
@@ -57,17 +68,22 @@ auto WalkableData::Cards() const -> utl::index_map<CardMeta>
 
 auto WalkableData::timingAndNVocables(
         const CardMeta& card,
-        const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndValue
+        const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndNVocables
 {
+    folly::sorted_vector_set<std::size_t> lifeVocables;
+    ranges::set_difference(card.VocableIndices(), deadVocables, std::inserter(lifeVocables, lifeVocables.begin()));
+    // auto progress = lifeVocables | views::transform([this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); });
+    auto progress = lifeVocables | views::transform(&vocables.operator[]);
+    return {0, 0};
 }
-auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndValue
+auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndNVocables
 {
     return timingAndNVocables(card, {});
 }
 
 void WalkableData::fillIndexMaps()
 {
-    for (const auto& [_, card] : db.getCards() /* | views::take(10) */) {
+    for (const auto& [_, card] : db.getCards()) {
         insertVocabularyOfCard(card);
     }
     spdlog::info("number of vocables: {}", vocables.size());
@@ -102,8 +118,8 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
         const auto& optionalIndex = vocables.optional_index(vocId);
         if (optionalIndex.has_value()) {
             auto& vocable = vocables[*optionalIndex];
-            vocable.cardIndices.insert(card_index);
-            cardMeta.vocableIndices.insert(*optionalIndex);
+            vocable.cardIndices_insert(card_index);
+            cardMeta.vocableIndices_insert(*optionalIndex);
         } else {
             const auto& progressVocables = db.ProgressVocables();
             auto itVoc = progressVocables.find(vocId);
@@ -114,10 +130,9 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
                                                               folly::sorted_vector_set<std::size_t>{card->Id()},
                                                               dicItemVec);
 
-            cardMeta.vocableIndices.insert(vocable_index);
+            cardMeta.vocableIndices_insert(vocable_index);
         }
     }
-    // spdlog::info("voc: {}, dic: {}", vocableIds.size(), annotatorItems.size());
 }
 
 auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,
