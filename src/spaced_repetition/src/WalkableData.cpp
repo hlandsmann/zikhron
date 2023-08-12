@@ -72,8 +72,8 @@ auto WalkableData::timingAndNVocables(
 {
     folly::sorted_vector_set<std::size_t> lifeVocables;
     ranges::set_difference(card.VocableIndices(), deadVocables, std::inserter(lifeVocables, lifeVocables.begin()));
-    // auto progress = lifeVocables | views::transform([this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); });
-    auto progress = lifeVocables | views::transform(&vocables.operator[]);
+    auto progresses = lifeVocables | views::transform(vocable_progress);
+
     return {0, 0};
 }
 auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndNVocables
