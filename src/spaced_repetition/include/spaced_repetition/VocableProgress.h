@@ -2,6 +2,7 @@
 
 #include <annotation/Ease.h>
 
+#include <compare>
 #include <cstdint>
 #include <ctime>
 #include <nlohmann/json_fwd.hpp>
@@ -32,6 +33,7 @@ public:
         int daysMin;
         int daysNormal;
         int daysMax;
+        auto operator<=>(const RepeatRange&) const -> std::weak_ordering;
     };
     static constexpr int pause_time_minutes = 5;
     using pair_t = std::pair<unsigned, VocableProgress>;
