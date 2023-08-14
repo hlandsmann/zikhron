@@ -6,12 +6,17 @@
 #include <ranges>
 
 namespace ranges = std::ranges;
+namespace views = std::ranges::views;
 
 namespace {
 void walk(const std::shared_ptr<WalkableData>& walkableData)
 {
     const auto& cards = walkableData->Cards();
-    const auto& vocables = walkableData->Vocables(); 
+    const auto& vocables = walkableData->Vocables();
+    int cardIndex = 0;
+    for (const auto& card : cards) {
+        spdlog::info("Card: {}, activeVocs:{}", cardIndex++, walkableData->timingAndNVocables(card).nVocables);
+    }
 }
 
 } // namespace

@@ -61,11 +61,13 @@ public:
     using const_iterator = index_map_iterator<const T>;
     using reverse_iterator = std::reverse_iterator<iterator>;
     using const_reverse_iterator = std::reverse_iterator<const_iterator>;
-    using non_const_T = std::remove_const<T>::type;
+    using non_const_T = std::remove_const_t<T>;
 
     index_map() = default;
     [[nodiscard]] auto begin() -> iterator;
-    [[nodiscard]] auto end() -> iterator;
+    [[nodiscard]] auto end()  -> iterator;
+    [[nodiscard]] auto begin() const -> const_iterator;
+    [[nodiscard]] auto end() const -> const_iterator;
     [[nodiscard]] auto cbegin() const -> const_iterator;
     [[nodiscard]] auto cend() const -> const_iterator;
 
@@ -97,6 +99,18 @@ auto index_map<T>::begin() -> iterator
 
 template<class T>
 auto index_map<T>::end() -> iterator
+{
+    return {data, data.size()};
+}
+
+template<class T>
+auto index_map<T>::begin() const -> const_iterator
+{
+    return {data, 0};
+}
+
+template<class T>
+auto index_map<T>::end() const -> const_iterator
 {
     return {data, data.size()};
 }

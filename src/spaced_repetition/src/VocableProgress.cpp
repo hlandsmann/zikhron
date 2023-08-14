@@ -5,6 +5,11 @@
 #include "Time.h"
 using namespace spaced_repetition;
 
+auto VocableProgress::RepeatRange::implies(const RepeatRange& other) const -> bool
+{
+    return std::max(0, daysMax) >= other.daysMin;
+}
+
 auto VocableProgress::RepeatRange::operator<=>(const RepeatRange& other) const -> std::weak_ordering
 {
     if (daysNormal < other.daysNormal) {

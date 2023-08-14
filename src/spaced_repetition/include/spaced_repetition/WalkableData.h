@@ -46,8 +46,8 @@ public:
 
     struct TimingAndNVocables
     {
-        int timing;
-        std::size_t nVocables;
+        int timing{};
+        std::size_t nVocables{};
     };
     [[nodiscard]] auto timingAndNVocables(
             const CardMeta& card,
@@ -59,14 +59,34 @@ private:
     utl::index_map<VocableMeta> vocables;
     utl::index_map<CardMeta> cards;
 
-    std::function<VocableProgress(std::size_t)>
-            vocable_progress = [this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
-    std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
-            vocable_cardIndices = [this](std::size_t vocableIndex) { return vocables[vocableIndex].CardIndices(); };
-    std::function<CardProgress(std::size_t)>
-            card_progress = [this](std::size_t cardIndex) { return cards[cardIndex].Progress(); };
-    std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
-            card_vocableIndices = [this](std::size_t cardIndex) { return cards[cardIndex].VocableIndices(); };
+    // std::function<VocableProgress(std::size_t)>
+    //         vocable_progress = [this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
+    // std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
+    //         vocable_cardIndices = [this](std::size_t vocableIndex) { return vocables[vocableIndex].CardIndices(); };
+    // std::function<CardProgress(std::size_t)>
+    //         card_progress = [this](std::size_t cardIndex) { return cards[cardIndex].Progress(); };
+    // std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
+    //         card_vocableIndices = [this](std::size_t cardIndex) { return cards[cardIndex].VocableIndices(); };
+    std::function<std::pair<std::size_t, VocableProgress>(std::size_t)>
+            vocable_progress = [this](std::size_t vocableIndex)
+            -> std::pair<std::size_t, VocableProgress> {
+        return {vocableIndex, vocables[vocableIndex].Progress()};
+    };
+    std::function<std::pair<std::size_t, folly::sorted_vector_set<std::size_t>>(std::size_t)>
+            vocable_cardIndices = [this](std::size_t vocableIndex)
+            -> std::pair<std::size_t, folly::sorted_vector_set<std::size_t>> {
+        return {vocableIndex, vocables[vocableIndex].CardIndices()};
+    };
+    std::function<std::pair<std::size_t, CardProgress>(std::size_t)>
+            card_progress = [this](std::size_t cardIndex)
+            -> std::pair<std::size_t, CardProgress> {
+        return {cardIndex, cards[cardIndex].Progress()};
+    };
+    std::function<std::pair<std::size_t, folly::sorted_vector_set<std::size_t>>(std::size_t)>
+            card_vocableIndices = [this](std::size_t cardIndex)
+            -> std::pair<std::size_t, folly::sorted_vector_set<std::size_t>> {
+        return {cardIndex, cards[cardIndex].VocableIndices()};
+    };
     void fillIndexMaps();
     void insertVocabularyOfCard(const CardDB::CardPtr& card);
 

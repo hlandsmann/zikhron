@@ -1,9 +1,13 @@
+#include "VocableProgress.h"
+
 #include <WalkableData.h>
 #include <bits/ranges_algo.h>
 #include <spdlog/spdlog.h>
+#include <utils/min_element_val.h>
 
 #include <algorithm>
 #include <boost/range/combine.hpp>
+#include <functional>
 #include <ranges>
 
 namespace ranges = std::ranges;
@@ -72,10 +76,28 @@ auto WalkableData::timingAndNVocables(
 {
     folly::sorted_vector_set<std::size_t> lifeVocables;
     ranges::set_difference(card.VocableIndices(), deadVocables, std::inserter(lifeVocables, lifeVocables.begin()));
-    auto progresses = lifeVocables | views::transform(vocable_progress);
+    if (lifeVocables.empty()) {
+        return {};
+    }
+    auto vocindex_progresses = lifeVocables | views::transform(vocable_progress);
+    auto progresses = vocindex_progresses | views::values;
+    auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
+    auto [_, threshHoldProgress] = *minIt.base();
 
-    return {0, 0};
+    folly::sorted_vector_set<std::size_t> nextActiveVocables;
+    ranges::copy_if(lifeVocables, std::inserter(nextActiveVocables, nextActiveVocables.begin()),
+                    [&, this](const auto& vocableIndex) {
+                        auto getRepeatRange = vocables[vocableIndex].Progress().getRepeatRange();
+                        return threshHoldProgress.getRepeatRange().implies(getRepeatRange);
+                    });
+
+    // auto minIt = utl::min_element_val(progresses, std::less{}, &VocableProgress::getRepeatRange);
+    // auto x = minIt.getRepeatRange();
+    // for (const auto& [vocableIndex, progress] : progresses) {
+    // }
+    return {0, nextActiveVocables.size()};
 }
+
 auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndNVocables
 {
     return timingAndNVocables(card, {});

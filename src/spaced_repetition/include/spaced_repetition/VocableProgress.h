@@ -3,11 +3,10 @@
 #include <annotation/Ease.h>
 
 #include <compare>
-#include <cstdint>
 #include <ctime>
 #include <nlohmann/json_fwd.hpp>
 #include <string_view>
-#include <tuple>
+#include <utility>
 
 class VocableProgress
 {
@@ -33,6 +32,7 @@ public:
         int daysMin;
         int daysNormal;
         int daysMax;
+        [[nodiscard]] auto implies(const RepeatRange&) const -> bool;
         auto operator<=>(const RepeatRange&) const -> std::weak_ordering;
     };
     static constexpr int pause_time_minutes = 5;

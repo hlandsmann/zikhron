@@ -2,12 +2,10 @@
 
 #include <algorithm>
 #include <array>
-#include <concepts>
 #include <cstddef>
 #include <fstream>
 #include <functional>
 #include <iterator>
-#include <memory>
 #include <ranges>
 #include <stdexcept>
 #include <tuple>
@@ -272,8 +270,9 @@ auto ZH_Dictionary::EntryFromPosition(size_t pos, CharacterSetType characterSet)
         return EntryFromPosition(pos, simplified);
     case CharacterSetType::Traditional:
         return EntryFromPosition(pos, traditional);
+    default:
+        std::unreachable();
     }
-    __builtin_unreachable();
 }
 
 auto ZH_Dictionary::Entry::operator<=>(const Entry& other) const -> std::weak_ordering
