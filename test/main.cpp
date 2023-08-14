@@ -18,5 +18,6 @@ auto main() -> int
 {
     auto zikhron_cfg = get_zikhron_cfg();
     auto walkableData = std::make_shared<WalkableData>(zikhron_cfg);
+    auto treeWalker = std::make_shared<TreeWalker>(walkableData);
     return 0;
 }
