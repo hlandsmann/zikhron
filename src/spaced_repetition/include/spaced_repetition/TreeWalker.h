@@ -1,12 +1,16 @@
 #pragma once
 
-#include <memory>
 #include "WalkableData.h"
 
-class TreeWalker {
+#include <memory>
+
+namespace sr {
+class TreeWalker
+{
 public:
     TreeWalker(std::shared_ptr<WalkableData>);
 
 private:
     std::shared_ptr<WalkableData> walkableData;
 };
+} // namespace sr

@@ -4,53 +4,61 @@
 #include <multimedia/MediaPlayer.h>
 #include <utils/Property.h>
 
-enum class media { start, stop, pause };
+enum class media {
+    start,
+    stop,
+    pause
+};
 
-class MediaButton : public Gtk::Box {
+class MediaButton : public Gtk::Box
+{
 public:
-    MediaButton(MediaPlayer&, Gtk::Orientation orientation);
-    MediaButton(MediaPlayer&);
-    virtual ~MediaButton() = default;
+    MediaButton(std::shared_ptr<MediaPlayer>, Gtk::Orientation orientation);
+    MediaButton(std::shared_ptr<MediaPlayer>);
+    ~MediaButton() override = default;
     utl::Property<media> action;
 
-    void signal_start_connect(std::function<void(MediaPlayer&)>);
-    void signal_pause_connect(std::function<void(MediaPlayer&)>);
-    void signal_stop_connect(std::function<void(MediaPlayer&)>);
+    void signal_start_connect(std::function<void(std::shared_ptr<MediaPlayer>)>);
+    void signal_pause_connect(std::function<void(std::shared_ptr<MediaPlayer>)>);
+    void signal_stop_connect(std::function<void(std::shared_ptr<MediaPlayer>)>);
 
 protected:
     void onBtnClick();
     virtual void onBtnClick_post(){};
-    MediaPlayer& mediaPlayer;
+    std::shared_ptr<MediaPlayer> mediaPlayer;
     media nextAction = media::start;
     Gtk::Button button;
     utl::ObserverCollection observers;
 
-    std::function<void(MediaPlayer&)> signal_start;
-    std::function<void(MediaPlayer&)> signal_pause;
-    std::function<void(MediaPlayer&)> signal_stop;
+    std::function<void(std::shared_ptr<MediaPlayer>)> signal_start;
+    std::function<void(std::shared_ptr<MediaPlayer>)> signal_pause;
+    std::function<void(std::shared_ptr<MediaPlayer>)> signal_stop;
 };
 
-class PlayStopButton : public MediaButton {
+class PlayStopButton : public MediaButton
+{
 public:
-    PlayStopButton(MediaPlayer&);
-    void signal_pause_connect(std::function<void(MediaPlayer&)>) = delete;
+    PlayStopButton(std::shared_ptr<MediaPlayer>);
+    void signal_pause_connect(std::function<void(std::shared_ptr<MediaPlayer>)>) = delete;
 
 private:
     void onBtnClick_post();
     std::shared_ptr<utl::ObserverBase> observer_stopped;
 };
 
-class PlayPauseButton : public MediaButton {
+class PlayPauseButton : public MediaButton
+{
 public:
-    PlayPauseButton(MediaPlayer&);
-    void signal_stop_connect(std::function<void(MediaPlayer&)>) = delete;
+    PlayPauseButton(std::shared_ptr<MediaPlayer>);
+    void signal_stop_connect(std::function<void(std::shared_ptr<MediaPlayer>)>) = delete;
 
 private:
     void onBtnClick_post();
     std::shared_ptr<utl::ObserverBase> observer_paused;
 };
 
-class BtnGrpForwardBackward : public Gtk::Box {
+class BtnGrpForwardBackward : public Gtk::Box
+{
 public:
     BtnGrpForwardBackward();
     void setSensitive(bool sensitive = true);

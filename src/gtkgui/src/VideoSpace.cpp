@@ -1,6 +1,7 @@
 #include <DataThread.h>
 #include <VideoSpace.h>
 #include <spdlog/spdlog.h>
+
 #include <filesystem>
 #ifdef GDK_WINDOWING_X11
 #include <epoxy/glx.h>
@@ -17,7 +18,11 @@
 
 namespace fs = std::filesystem;
 
-VideoSpace::VideoSpace(Gtk::Overlay &ov) : overlay(ov) {
+VideoSpace::VideoSpace(Gtk::Overlay& ov)
+    : mediaPlayer{std::make_shared<MediaPlayer>()}
+
+    , overlay(ov)
+{
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     set_spacing(16);
@@ -26,7 +31,8 @@ VideoSpace::VideoSpace(Gtk::Overlay &ov) : overlay(ov) {
     createSubtitleOverlay();
 }
 
-void VideoSpace::createGlArea() {
+void VideoSpace::createGlArea()
+{
     glArea->set_expand(false);
     glArea->set_size_request(1280, 720);
     glArea->set_auto_render(true);
@@ -40,7 +46,8 @@ void VideoSpace::createGlArea() {
     // videoBox.set_expand();
 }
 
-void VideoSpace::createControlButtons() {
+void VideoSpace::createControlButtons()
+{
     controlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
     btnOpenFile.set_label("Open Video");
     btnOpenFile.signal_clicked().connect([this]() { createFileChooserDialog(); });
@@ -48,8 +55,8 @@ void VideoSpace::createControlButtons() {
     controlBtnBox.append(separator1);
     separator1.set_expand();
 
-    btnPlayPause.signal_start_connect([this](MediaPlayer & /*mediaPlayer*/) { mediaPlayer.play(); });
-    btnPlayPause.signal_pause_connect([this](MediaPlayer & /*mediaPlayer*/) { mediaPlayer.pause(); });
+    btnPlayPause.signal_start_connect([this](const std::shared_ptr<MediaPlayer>& /*mediaPlayer*/) { mediaPlayer->play(); });
+    btnPlayPause.signal_pause_connect([this](const std::shared_ptr<MediaPlayer>& /*mediaPlayer*/) { mediaPlayer->pause(); });
     btnPlayPause.set_halign(Gtk::Align::CENTER);
 
     controlBtnBox.append(btnPlayPause);
@@ -66,21 +73,24 @@ void VideoSpace::createControlButtons() {
     controlBtnBox.set_valign(Gtk::Align::END);
 }
 
-void VideoSpace::createSubtitleOverlay() {
+void VideoSpace::createSubtitleOverlay()
+{
     subtitleOverlay = std::make_unique<SubtitleOverlay>();
     overlay.add_overlay(*subtitleOverlay);
     auto active_sub_observer = active.observe([this](auto _active) {
         subtitleOverlay->set_visible(_active);
-        if (!_active)
-            mediaPlayer.pause();
+        if (!_active) {
+            mediaPlayer->pause();
+        }
     });
 
     observers.push(active_sub_observer);
 }
 
-void VideoSpace::createFileChooserDialog() {
-    auto dialog = new Gtk::FileChooserDialog("Please choose a file", Gtk::FileChooser::Action::OPEN);
-    Gtk::Window *parent = dynamic_cast<Gtk::Window *>(this->get_root());
+void VideoSpace::createFileChooserDialog()
+{
+    auto* dialog = new Gtk::FileChooserDialog("Please choose a file", Gtk::FileChooser::Action::OPEN);
+    auto* parent = dynamic_cast<Gtk::Window*>(this->get_root());
     dialog->set_transient_for(*parent);
 
     if (auto videoFile = DataThread::get().zikhronCfg.cfgMain.lastVideoFile;
@@ -89,7 +99,7 @@ void VideoSpace::createFileChooserDialog() {
     }
     dialog->set_modal(true);
     dialog->signal_response().connect(
-        sigc::bind(sigc::mem_fun(*this, &VideoSpace::on_file_dialog_response), dialog));
+            sigc::bind(sigc::mem_fun(*this, &VideoSpace::on_file_dialog_response), dialog));
 
     // Add response buttons to the dialog:
     dialog->add_button("_Cancel", Gtk::ResponseType::CANCEL);
@@ -110,7 +120,8 @@ void VideoSpace::createFileChooserDialog() {
     dialog->show();
 }
 
-void VideoSpace::on_file_dialog_response(int response_id, Gtk::FileChooserDialog *dialog) {
+void VideoSpace::on_file_dialog_response(int response_id, Gtk::FileChooserDialog* dialog)
+{
     switch (response_id) {
     case Gtk::ResponseType::OK: {
         filename = dialog->get_file()->get_path();
@@ -124,41 +135,49 @@ void VideoSpace::on_file_dialog_response(int response_id, Gtk::FileChooserDialog
     delete dialog;
 }
 
-void VideoSpace::switchPage(bool active_in) { active = active_in; }
+void VideoSpace::switchPage(bool active_in)
+{
+    active = active_in;
+}
 
-bool VideoSpace::signal_render(const Glib::RefPtr<Gdk::GLContext> &context) {
+auto VideoSpace::signal_render(const Glib::RefPtr<Gdk::GLContext>& context) -> bool
+{
     bool result = false;
-    result = mediaPlayer.render(context);
-    if (result)
+    result = mediaPlayer->render(context);
+    if (result) {
         glFlush();
+    }
 
     return result;
 }
 
-void VideoSpace::signal_realize() {
-    mediaPlayer.initGL(glArea);
+void VideoSpace::signal_realize()
+{
+    mediaPlayer->initGL(glArea);
     filename = DataThread::get().zikhronCfg.cfgMain.lastVideoFile.string();
-    auto filenameObserver = filename.observe([this](const std::string &_filename) {
+    auto filenameObserver = filename.observe([this](const std::string& _filename) {
         DataThread::get().zikhronCfg.cfgMain.lastVideoFile = _filename;
         spdlog::info("Video file selected: {}", _filename);
-        mediaPlayer.openFile(_filename);
+        mediaPlayer->openFile(_filename);
         subtitleDecoder = std::make_shared<SubtitleDecoder>(_filename);
         auto progressObserver = subtitleDecoder->observeProgress(
-            [this](double progress) { progressBar.set_fraction(progress); });
+                [this](double progress) { progressBar.set_fraction(progress); });
         auto finishedObserver = subtitleDecoder->observeFinished(
-            [this](bool finished) { subtitleLoading_callback(finished); });
+                [this](bool finished) { subtitleLoading_callback(finished); });
         observers.push(progressObserver);
         observers.push(finishedObserver);
     });
     observers.push(filenameObserver);
 }
 
-void VideoSpace::signal_resize(int width, int height) {
+void VideoSpace::signal_resize(int width, int height)
+{
     controlBtnBox.queue_draw();
     spdlog::warn("width: {}, height: {}", width, height);
 }
 
-void VideoSpace::subtitleLoading_callback(bool finished) {
+void VideoSpace::subtitleLoading_callback(bool finished)
+{
     if (finished) {
         separator2.set_visible(true);
         progressBar.set_visible(false);

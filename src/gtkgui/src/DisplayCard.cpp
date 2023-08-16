@@ -1,13 +1,19 @@
 #include <DataThread.h>
 #include <DisplayCard.h>
 #include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <ranges>
 
 namespace ranges = std::ranges;
 
 DisplayCard::DisplayCard(Gtk::Overlay& ov)
-    : overlay(ov), cardDraw(ov), cardAnnotation(ov), grp_single_group("single", "group") {
+    : overlay(ov)
+    , cardDraw(ov)
+    , cardAnnotation(ov)
+    , mediaPlayer{std::make_shared<MediaPlayer>()}
+    , grp_single_group("single", "group")
+{
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     set_spacing(64);
@@ -17,11 +23,12 @@ DisplayCard::DisplayCard(Gtk::Overlay& ov)
     createControlButtons();
     DataThread::get().signal_card_connect([this](auto& msg_card) { receive_card(msg_card); });
     DataThread::get().signal_annotation_connect(
-        [this](auto& msg_annotation) { receive_annotation(msg_annotation); });
+            [this](auto& msg_annotation) { receive_annotation(msg_annotation); });
     DataThread::get().requestCard();
 }
 
-void DisplayCard::receive_card(DataThread::message_card& msg_card) {
+void DisplayCard::receive_card(DataThread::message_card& msg_card)
+{
     std::tie(paragraph, easeList, cardId) = std::move(msg_card);
 
     vocableList.setParagraph(paragraph, easeList);
@@ -37,11 +44,11 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card) {
     scale_mediaProgress.setProgress(0);
     separator1.set_visible(!studyAudioFragment.has_value());
     if (studyAudioFragment.has_value()) {
-        mediaPlayer.openFile(studyAudioFragment.value().audioFile);
+        mediaPlayer->openFile(studyAudioFragment.value().audioFile);
     } else {
         grp_single_group.setActive(static_cast<uint>(StudyMode::SingleCard));
     }
-    mediaPlayer.pause();
+    mediaPlayer->pause();
     controlBtnBox.set_visible(true);
 
     grp_single_group.setSensitive(studyAudioFragment.has_value());
@@ -50,7 +57,8 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card) {
     }
 }
 
-void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotation) {
+void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotation)
+{
     annotation = std::move(msg_annotation);
     annotation->updateAnnotationColoring();
     cardAnnotation.setParagraph(std::move(annotation));
@@ -58,28 +66,30 @@ void DisplayCard::receive_annotation(DataThread::message_annotation& msg_annotat
     cardAnnotation.setAnnotationMode();
 };
 
-void DisplayCard::createControlButtons() {
+void DisplayCard::createControlButtons()
+{
     controlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
     controlBtnBox.set_spacing(24);
 
     playBox.set_orientation(Gtk::Orientation::HORIZONTAL);
     playBox.append(btn_playCard);
-    btn_playCard.signal_start_connect([this](MediaPlayer& /*_mediaPlayer*/) {
+    btn_playCard.signal_start_connect([this](const std::shared_ptr<MediaPlayer>& /*_mediaPlayer*/) {
         double progress = scale_mediaProgress.getProgress() > 0.99 ? 0.
                                                                    : scale_mediaProgress.getProgress();
         playFromRelativeProgress(progress);
     });
-    btn_playCard.signal_pause_connect([this](MediaPlayer& _mediaPlayer) { _mediaPlayer.pause(); });
+    btn_playCard.signal_pause_connect([](const std::shared_ptr<MediaPlayer>& _mediaPlayer) { _mediaPlayer->pause(); });
     scale_mediaProgress.set_expand();
     scale_mediaProgress.signal_clickProgress_connect(
-        [this](double progress) { playFromRelativeProgress(progress); });
-    observers.push(mediaPlayer.property_timePos().observe([this](double val) {
+            [this](double progress) { playFromRelativeProgress(progress); });
+    observers.push(mediaPlayer->property_timePos().observe([this](double val) {
         const StudyAudioFragment& saf = studyAudioFragment.value_or(StudyAudioFragment{});
 
         double relative_progress = val - saf.start;
         double length = saf.end - saf.start;
-        if (length == 0)
+        if (length == 0) {
             return;
+        }
 
         scale_mediaProgress.setProgress(std::clamp(relative_progress / length, 0., 1.));
     }));
@@ -103,17 +113,23 @@ void DisplayCard::createControlButtons() {
                 const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
                 const auto nextCardId = cardAudioDB.seekForward(cardId);
                 DataThread::get().requestCard(nextCardId);
-                if (!nextCardId.has_value())
+                if (!nextCardId.has_value()) {
                     grp_single_group.setActive(static_cast<uint>(StudyMode::SingleCard));
-            } else
+                }
+            } else {
                 DataThread::get().requestCard();
+            }
         }
         displayVocabulary = not displayVocabulary;
     });
     grp_single_group.observe_active([this](uint active) {
         switch (static_cast<StudyMode>(active)) {
-        case StudyMode::SingleCard: btnGrp_forwardBackward.setSensitive(false); break;
-        case StudyMode::Group: updateBackwardForwardButton(); break;
+        case StudyMode::SingleCard:
+            btnGrp_forwardBackward.setSensitive(false);
+            break;
+        case StudyMode::Group:
+            updateBackwardForwardButton();
+            break;
         }
     });
     grp_single_group.setActive(static_cast<uint>(StudyMode::SingleCard));
@@ -121,10 +137,11 @@ void DisplayCard::createControlButtons() {
     btnAnnotate.set_label("Annotate");
     btnAnnotate.set_halign(Gtk::Align::END);
     btnAnnotate.signal_clicked().connect([this]() {
-        if (btnAnnotate.property_active())
+        if (btnAnnotate.property_active()) {
             annotation_start();
-        else
+        } else {
             annotation_end();
+        }
     });
 
     btnGrp_forwardBackward.setSensitive(false);
@@ -163,12 +180,14 @@ void DisplayCard::createControlButtons() {
     controlBtnBox.set_expand();
 }
 
-void DisplayCard::submitChoiceOfEase() {
+void DisplayCard::submitChoiceOfEase()
+{
     auto id_ease = paragraph->getRestoredOrderOfEaseList(vocableList.getChoiceOfEase());
     DataThread::get().submitEase(id_ease);
 }
 
-void DisplayCard::annotation_start() {
+void DisplayCard::annotation_start()
+{
     if (not annotation) {
         spdlog::error("No annotation was sent!");
         btnAnnotate.property_active() = false;
@@ -181,23 +200,27 @@ void DisplayCard::annotation_start() {
     cardAnnotation.set_visible(true);
 }
 
-void DisplayCard::annotation_end() {
+void DisplayCard::annotation_end()
+{
     btnNextReveal.set_visible(true);
     cardDraw.set_visible(true);
     vocableList.set_visible(displayVocabulary);
     cardAnnotation.set_visible(false);
 }
 
-void DisplayCard::playFromRelativeProgress(double progress) {
-    if (not studyAudioFragment.has_value())
+void DisplayCard::playFromRelativeProgress(double progress)
+{
+    if (not studyAudioFragment.has_value()) {
         return;
+    }
     const StudyAudioFragment& saf = *studyAudioFragment;
     double length = saf.end - saf.start;
     double start = saf.start + length * progress;
-    mediaPlayer.play_fragment(start, saf.end);
+    mediaPlayer->play_fragment(start, saf.end);
 }
 
-void DisplayCard::updateBackwardForwardButton() {
+void DisplayCard::updateBackwardForwardButton()
+{
     const CardAudioGroupDB& cardAudioDB = CardAudioGroupDB::get();
 
     btnGrp_forwardBackward.setIndividualSensitivity(cardAudioDB.skipBackward(cardId).has_value(),

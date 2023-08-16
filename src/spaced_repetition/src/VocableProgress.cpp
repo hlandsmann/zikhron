@@ -12,16 +12,16 @@ auto VocableProgress::RepeatRange::implies(const RepeatRange& other) const -> bo
 
 auto VocableProgress::RepeatRange::operator<=>(const RepeatRange& other) const -> std::weak_ordering
 {
-    if (daysNormal < other.daysNormal) {
-        return std::weak_ordering::less;
-    }
-    if (daysNormal > other.daysNormal) {
-        return std::weak_ordering::greater;
-    }
     if (daysMax < other.daysMax) {
         return std::weak_ordering::less;
     }
     if (daysMax > other.daysMax) {
+        return std::weak_ordering::greater;
+    }
+    if (daysNormal < other.daysNormal) {
+        return std::weak_ordering::less;
+    }
+    if (daysNormal > other.daysNormal) {
         return std::weak_ordering::greater;
     }
     if (daysMin < other.daysMin) {

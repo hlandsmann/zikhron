@@ -2,6 +2,7 @@
 #include <SupplyAudio.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -14,7 +15,9 @@ namespace ranges = std::ranges;
 namespace fs = std::filesystem;
 
 /* SpinBtnBox ************************************************************************************/
-template <class Value_t> SpinBtnBox<Value_t>::SpinBtnBox() {
+template<class Value_t>
+SpinBtnBox<Value_t>::SpinBtnBox()
+{
     set_orientation(Gtk::Orientation::VERTICAL);
     set_vexpand();
     adjustment = Gtk::Adjustment::create(0, 0, 0);
@@ -27,46 +30,58 @@ template <class Value_t> SpinBtnBox<Value_t>::SpinBtnBox() {
     currentValue = get_value();
 }
 
-template <class Value_t> auto SpinBtnBox<Value_t>::get_value() const -> Value_t {
+template<class Value_t>
+auto SpinBtnBox<Value_t>::get_value() const -> Value_t
+{
     if constexpr (std::is_integral_v<Value_t>)
         return spinButton.get_value_as_int();
     else
         return spinButton.get_value();
 }
 
-template <class Value_t>
-void SpinBtnBox<Value_t>::observe_value(const std::function<void(Value_t)>& observer) {
+template<class Value_t>
+void SpinBtnBox<Value_t>::observe_value(const std::function<void(Value_t)>& observer)
+{
     auto currentValue_observer = currentValue.observe(observer);
     observers.push(currentValue_observer);
 }
 
-template <class Value_t>
+template<class Value_t>
 void SpinBtnBox<Value_t>::configure(double value,
                                     double lower,
                                     double upper,
                                     double step_increment,
                                     double page_increment,
-                                    double page_size) {
+                                    double page_size)
+{
     adjustment->configure(value, lower, upper, step_increment, page_increment, page_size);
     spinButton.set_adjustment(adjustment);
 }
 
-template <class Value_t> void SpinBtnBox<Value_t>::set_value(Value_t value) {
+template<class Value_t>
+void SpinBtnBox<Value_t>::set_value(Value_t value)
+{
     changeBySetValue = true;
     spinButton.set_value(value);
 }
 
-template <class Value_t> void SpinBtnBox<Value_t>::set_digits(int digits) {
+template<class Value_t>
+void SpinBtnBox<Value_t>::set_digits(int digits)
+{
     spinButton.set_digits(digits);
 }
 
-SpinBtnBoxCards::SpinBtnBoxCards(const std::string& label_str) : label(label_str, Gtk::Align::START) {
+SpinBtnBoxCards::SpinBtnBoxCards(const std::string& label_str)
+    : label(label_str, Gtk::Align::START)
+{
     adjustment->configure(0, 0, 65536, 1.0, 5.0, 0.0);
     prepend(label);
 }
 
 /* PlayBox ***************************************************************************************/
-PlayBox::PlayBox(MediaPlayer& _mediaPlayer) : mediaPlayer(_mediaPlayer), playBtn(_mediaPlayer) {
+PlayBox::PlayBox(std::shared_ptr<MediaPlayer> _mediaPlayer)
+    : mediaPlayer(_mediaPlayer), playBtn(_mediaPlayer)
+{
     set_orientation(Gtk::Orientation::HORIZONTAL);
     set_expand();
     append(grid);
@@ -78,26 +93,28 @@ PlayBox::PlayBox(MediaPlayer& _mediaPlayer) : mediaPlayer(_mediaPlayer), playBtn
     slider.set_expand();
     slider.setSpacing(3);
 
-    observers.push(mediaPlayer.property_timePos().observe([this](double val) {
-        double length = mediaPlayer.property_duration();
+    observers.push(mediaPlayer->property_timePos().observe([this](double val) {
+        double length = mediaPlayer->property_duration();
         if (length == 0.)
             return;
         slider.setProgress(val / length);
         lbl_timePos.set_label(fmt::format("{:.2f}", val + 0.001));
     }));
     slider.signal_clickProgress_connect([this](double progress) {
-        mediaPlayer.play_fragment(mediaPlayer.property_duration() * progress,
-                                  mediaPlayer.property_duration());
+        mediaPlayer->play_fragment(mediaPlayer->property_duration() * progress,
+                                   mediaPlayer->property_duration());
     });
-    playBtn.signal_start_connect([](MediaPlayer& mediaPlayer_in) {
-        mediaPlayer_in.play_fragment(mediaPlayer_in.property_timePos(),
-                                     mediaPlayer_in.property_duration());
+    playBtn.signal_start_connect([](std::shared_ptr<MediaPlayer> mediaPlayer_in) {
+        mediaPlayer_in->play_fragment(mediaPlayer_in->property_timePos(),
+                                      mediaPlayer_in->property_duration());
     });
-    playBtn.signal_pause_connect([](MediaPlayer& mediaPlayer_in) { mediaPlayer_in.pause(); });
+    playBtn.signal_pause_connect([](std::shared_ptr<MediaPlayer> mediaPlayer_in) { mediaPlayer_in->pause(); });
 }
 
 /* FragmentPlayBox *******************************************************************************/
-FragmentPlayBox::FragmentPlayBox(MediaPlayer& _mediaPlayer) : mediaPlayer(_mediaPlayer) {
+FragmentPlayBox::FragmentPlayBox(std::shared_ptr<MediaPlayer> _mediaPlayer)
+    : mediaPlayer(std::move(_mediaPlayer))
+{
     set_spacing(8);
     set_orientation(Gtk::Orientation::HORIZONTAL);
     // set_hexpand();
@@ -110,35 +127,35 @@ FragmentPlayBox::FragmentPlayBox(MediaPlayer& _mediaPlayer) : mediaPlayer(_media
 
         if (val < prev->value_end) {
             spinBtn_playStart.set_value(
-                std::max<double>(mediaPlayer.property_timePos(), prev->value_end));
+                    std::max<double>(mediaPlayer->property_timePos(), prev->value_end));
         }
     }));
     observers.push(spinBtn_playEnd.currentValue.observe([this](double val) {
         if (val < value_start) {
-            spinBtn_playEnd.set_value(std::max<double>(mediaPlayer.property_timePos(), value_start));
+            spinBtn_playEnd.set_value(std::max<double>(mediaPlayer->property_timePos(), value_start));
         }
     }));
     spinBtn_playStart.set_digits(2);
     spinBtn_playEnd.set_digits(2);
 
-    btn_playFirstFragment.signal_start_connect([this](MediaPlayer& player) {
+    btn_playFirstFragment.signal_start_connect([this](std::shared_ptr<MediaPlayer> player) {
         double startValue = spinBtn_playStart.currentValue;
-        player.play_fragment(startValue, startValue + 3.);
+        player->play_fragment(startValue, startValue + 3.);
     });
-    btn_playFirstFragment.signal_stop_connect([](MediaPlayer& player) { player.pause(); });
-    btn_playLastFragment.signal_start_connect([this](MediaPlayer& player) {
+    btn_playFirstFragment.signal_stop_connect([](std::shared_ptr<MediaPlayer> player) { player->pause(); });
+    btn_playLastFragment.signal_start_connect([this](std::shared_ptr<MediaPlayer> player) {
         double startValue = std::max<double>(spinBtn_playEnd.currentValue - 1.7,
                                              spinBtn_playStart.currentValue);
         double endValue = spinBtn_playEnd.currentValue;
-        player.play_fragment(startValue, endValue);
+        player->play_fragment(startValue, endValue);
     });
-    btn_playLastFragment.signal_stop_connect([](MediaPlayer& player) { player.pause(); });
-    btn_play.signal_start_connect([this](MediaPlayer& player) {
+    btn_playLastFragment.signal_stop_connect([](std::shared_ptr<MediaPlayer> player) { player->pause(); });
+    btn_play.signal_start_connect([this](std::shared_ptr<MediaPlayer> player) {
         double startValue = spinBtn_playStart.currentValue;
         double endValue = spinBtn_playEnd.currentValue;
-        player.play_fragment(startValue, endValue);
+        player->play_fragment(startValue, endValue);
     });
-    btn_play.signal_stop_connect([](MediaPlayer& player) { player.pause(); });
+    btn_play.signal_stop_connect([](std::shared_ptr<MediaPlayer> player) { player->pause(); });
     append(btn_playFirstFragment);
     append(spinBtn_playStart);
     append(btn_playLastFragment);
@@ -146,26 +163,43 @@ FragmentPlayBox::FragmentPlayBox(MediaPlayer& _mediaPlayer) : mediaPlayer(_media
     append(btn_play);
 }
 
-auto FragmentPlayBox::get_start() const -> double { return spinBtn_playStart.currentValue; }
-auto FragmentPlayBox::get_end() const -> double { return spinBtn_playEnd.currentValue; }
-void FragmentPlayBox::set_minimum(double min) { set_minmax(min, upper); }
-void FragmentPlayBox::set_maximum(double max) { set_minmax(lower, max); }
-void FragmentPlayBox::set_minmax(double min, double max) {
+auto FragmentPlayBox::get_start() const -> double
+{
+    return spinBtn_playStart.currentValue;
+}
+auto FragmentPlayBox::get_end() const -> double
+{
+    return spinBtn_playEnd.currentValue;
+}
+void FragmentPlayBox::set_minimum(double min)
+{
+    set_minmax(min, upper);
+}
+void FragmentPlayBox::set_maximum(double max)
+{
+    set_minmax(lower, max);
+}
+void FragmentPlayBox::set_minmax(double min, double max)
+{
     lower = min;
     upper = max;
     configure();
 }
-void FragmentPlayBox::set_stepSize(double stepSize_in) {
+void FragmentPlayBox::set_stepSize(double stepSize_in)
+{
     stepSize = stepSize_in;
     configure();
 }
-void FragmentPlayBox::configure() {
+void FragmentPlayBox::configure()
+{
     spinBtn_playStart.configure(value_start, lower, upper, stepSize, stepSize * 5, 0.0);
     spinBtn_playEnd.configure(value_end, lower, upper, stepSize, stepSize * 5, 0.0);
 }
 
 /* SupplyAudio ***********************************************************************************/
-SupplyAudio::SupplyAudio() {
+SupplyAudio::SupplyAudio()
+    : mediaPlayer{std::make_shared<MediaPlayer>()}
+{
     set_column_spacing(16);
     createMainCtrlBtnBox();
     DataThread::get().signal_paragraphFromIds_connect([this](auto&& paragraphs) {
@@ -176,13 +210,14 @@ SupplyAudio::SupplyAudio() {
     attach(mainCtrlBtnBox, 0, 0, 4);
     cfgAudioFileObserver();
 
-    observers.push(mediaPlayer.property_duration().observe([this](double /*duration*/) {
+    observers.push(mediaPlayer->property_duration().observe([this](double /*duration*/) {
         fragment_adjust_min_max();
         setUpFragmentPlayBoxes(spinBtn_audioGroup.currentValue);
     }));
 }
 
-void SupplyAudio::clearPage() {
+void SupplyAudio::clearPage()
+{
     for (const auto& textDraw : textDrawContainer) {
         remove(*textDraw);
     }
@@ -193,7 +228,8 @@ void SupplyAudio::clearPage() {
     fragmentPlayBoxesVisible.clear();
 }
 
-void SupplyAudio::fillPage(std::vector<DataThread::paragraph_optional>&& paragraphs) {
+void SupplyAudio::fillPage(std::vector<DataThread::paragraph_optional>&& paragraphs)
+{
     uint cardId = spinBtn_firstCard.currentValue;
     for (int row{1}; const auto& p : paragraphs) {
         if (p.has_value()) {
@@ -214,18 +250,20 @@ void SupplyAudio::fillPage(std::vector<DataThread::paragraph_optional>&& paragra
     fragment_adjacent_connect();
 }
 
-void SupplyAudio::cfgAudioFileObserver() {
+void SupplyAudio::cfgAudioFileObserver()
+{
     audioFile = DataThread::get().zikhronCfg.cfgMain.lastAudioFile.string();
     auto filenameObserver = audioFile.observe([this](const std::string& _filename) {
         if (!_filename.empty())
             DataThread::get().zikhronCfg.cfgMain.lastAudioFile = _filename;
         spdlog::info("Audio file selected: {}", _filename);
-        mediaPlayer.openFile(_filename);
+        mediaPlayer->openFile(_filename);
     });
     observers.push(filenameObserver);
 }
 
-auto SupplyAudio::addCard(const std::shared_ptr<markup::Paragraph>& paragraph, int row) -> int {
+auto SupplyAudio::addCard(const std::shared_ptr<markup::Paragraph>& paragraph, int row) -> int
+{
     int textDrawIndex = 0;
     if (paragraph->getFragments().size() == 1)
         textDrawIndex++;
@@ -237,7 +275,8 @@ auto SupplyAudio::addCard(const std::shared_ptr<markup::Paragraph>& paragraph, i
     return row;
 }
 
-void SupplyAudio::addTextDraw(int column, int row, const std::string& markup) {
+void SupplyAudio::addTextDraw(int column, int row, const std::string& markup)
+{
     auto textDraw = std::make_unique<TextDraw>();
     textDraw->setFontSize(textFontSize);
     textDraw->setSpacing(textSpacing);
@@ -247,7 +286,8 @@ void SupplyAudio::addTextDraw(int column, int row, const std::string& markup) {
     textDrawContainer.push_back(std::move(textDraw));
 }
 
-void SupplyAudio::createMainCtrlBtnBox() {
+void SupplyAudio::createMainCtrlBtnBox()
+{
     mainCtrlBtnBox.set_orientation(Gtk::Orientation::HORIZONTAL);
     mainCtrlBtnBox.set_hexpand();
     mainCtrlBtnBox.set_vexpand(false);
@@ -320,26 +360,29 @@ void SupplyAudio::createMainCtrlBtnBox() {
     mainCtrlBtnBox.append(playBox);
 }
 
-void SupplyAudio::requestCards() {
+void SupplyAudio::requestCards()
+{
     std::vector<uint> ids;
     ids.resize(spinBtn_lastCard.currentValue - spinBtn_firstCard.currentValue + 1);
     ranges::generate(ids, [n = int(spinBtn_firstCard.currentValue)]() mutable { return n++; });
     DataThread::get().requestCardFromIds(std::move(ids));
 }
 
-void SupplyAudio::createFileChooserDialog() {
-    auto dialog = new Gtk::FileChooserDialog("Please choose a file", Gtk::FileChooser::Action::OPEN);
-    Gtk::Window* parent = dynamic_cast<Gtk::Window*>(this->get_root());
+void SupplyAudio::createFileChooserDialog()
+{
+    auto* dialog = new Gtk::FileChooserDialog("Please choose a file", Gtk::FileChooser::Action::OPEN);
+    auto* parent = dynamic_cast<Gtk::Window*>(this->get_root());
     dialog->set_transient_for(*parent);
     if (fs::path audioFilePath = std::string(audioFile);
         not audioFilePath.empty() && fs::exists(audioFilePath)) {
         dialog->set_current_folder(Gio::File::create_for_path(audioFilePath.parent_path().string()));
-    } else if (not oldValidAudiofilePath.empty())
+    } else if (not oldValidAudiofilePath.empty()) {
         dialog->set_current_folder(
-            Gio::File::create_for_path(oldValidAudiofilePath.parent_path().string()));
+                Gio::File::create_for_path(oldValidAudiofilePath.parent_path().string()));
+    }
     dialog->set_modal(true);
     dialog->signal_response().connect(
-        sigc::bind(sigc::mem_fun(*this, &SupplyAudio::on_file_dialog_response), dialog));
+            sigc::bind(sigc::mem_fun(*this, &SupplyAudio::on_file_dialog_response), dialog));
 
     // Add response buttons to the dialog:
     dialog->add_button("_Cancel", Gtk::ResponseType::CANCEL);
@@ -360,7 +403,8 @@ void SupplyAudio::createFileChooserDialog() {
     dialog->show();
 }
 
-void SupplyAudio::on_file_dialog_response(int response_id, Gtk::FileChooserDialog* dialog) {
+void SupplyAudio::on_file_dialog_response(int response_id, Gtk::FileChooserDialog* dialog)
+{
     switch (response_id) {
     case Gtk::ResponseType::OK: {
         audioFile = dialog->get_file()->get_path();
@@ -374,7 +418,8 @@ void SupplyAudio::on_file_dialog_response(int response_id, Gtk::FileChooserDialo
     delete dialog;
 }
 
-auto SupplyAudio::getCurrentAudioGroup() const -> CardAudioGroup {
+auto SupplyAudio::getCurrentAudioGroup() const -> CardAudioGroup
+{
     const auto first = first_fragmentPlayBox();
     const auto last = last_fragmentPlayBox();
     CardAudioGroup cardAudio;
@@ -391,7 +436,8 @@ auto SupplyAudio::getCurrentAudioGroup() const -> CardAudioGroup {
     return cardAudio;
 }
 
-void SupplyAudio::setUpCardAudioGroup(uint groupId) {
+void SupplyAudio::setUpCardAudioGroup(uint groupId)
+{
     spinBtn_audioGroup.set_value(groupId);
 
     auto cardAudioGroup = cardAudioGroupDB.get_cardAudioGroup(groupId);
@@ -410,7 +456,8 @@ void SupplyAudio::setUpCardAudioGroup(uint groupId) {
     setUpFragmentPlayBoxes(groupId);
 }
 
-void SupplyAudio::setUpFragmentPlayBoxes(uint groupId) {
+void SupplyAudio::setUpFragmentPlayBoxes(uint groupId)
+{
     auto cardAudioGroup = cardAudioGroupDB.get_cardAudioGroup(groupId);
     const auto& cardId_audioFragments = cardAudioGroup.cardId_audioFragment;
 
@@ -423,41 +470,47 @@ void SupplyAudio::setUpFragmentPlayBoxes(uint groupId) {
     }
 }
 
-void SupplyAudio::createNewAudioCardGroup() {
+void SupplyAudio::createNewAudioCardGroup()
+{
     uint groupId = cardAudioGroupDB.newCardAudioGroup();
     spinBtn_audioGroup.set_value(groupId);
 }
 
-void SupplyAudio::fragment_adjust_min_max() {
+void SupplyAudio::fragment_adjust_min_max()
+{
     for_each_fragmentPlayBox([this](const FragmentPlayBoxPtr& fragmentPlayBox) {
         fragmentPlayBox->set_minimum(0.0);
-        fragmentPlayBox->set_maximum(mediaPlayer.property_duration());
+        fragmentPlayBox->set_maximum(mediaPlayer->property_duration());
     });
 }
 
-void SupplyAudio::fragment_adjust_stepsize(uint digits) {
+void SupplyAudio::fragment_adjust_stepsize(uint digits)
+{
     for_each_fragmentPlayBox([this, digits](const FragmentPlayBoxPtr& fragmentPlayBox) {
         fragmentPlayBox->set_stepSize(std::pow(0.1, digits));
     });
 }
 
-auto SupplyAudio::first_fragmentPlayBox() const -> decltype(ranges::begin(fragmentPlayBoxes)) {
+auto SupplyAudio::first_fragmentPlayBox() const -> decltype(ranges::begin(fragmentPlayBoxes))
+{
     auto first = ranges::find_if(
-        fragmentPlayBoxes,
-        [this](uint cardId) { return cardId >= spinBtn_firstCard.currentValue; },
-        &decltype(fragmentPlayBoxes)::value_type::first);
+            fragmentPlayBoxes,
+            [this](uint cardId) { return cardId >= spinBtn_firstCard.currentValue; },
+            &decltype(fragmentPlayBoxes)::value_type::first);
     return first;
 }
 
-auto SupplyAudio::last_fragmentPlayBox() const -> decltype(std::ranges::begin(fragmentPlayBoxes)) {
+auto SupplyAudio::last_fragmentPlayBox() const -> decltype(std::ranges::begin(fragmentPlayBoxes))
+{
     auto last = ranges::find_if(
-        fragmentPlayBoxes,
-        [this](uint cardId) { return cardId > spinBtn_lastCard.currentValue; },
-        &decltype(fragmentPlayBoxes)::value_type::first);
+            fragmentPlayBoxes,
+            [this](uint cardId) { return cardId > spinBtn_lastCard.currentValue; },
+            &decltype(fragmentPlayBoxes)::value_type::first);
     return last;
 }
 
-void SupplyAudio::fragment_adjacent_connect() {
+void SupplyAudio::fragment_adjacent_connect()
+{
     FragmentPlayBoxPtr prev;
     for (auto& fragmentPlayBox : fragmentPlayBoxesVisible) {
         fragmentPlayBox->prev_fragmentPlayBox = prev;
@@ -465,7 +518,8 @@ void SupplyAudio::fragment_adjacent_connect() {
     }
 }
 
-void SupplyAudio::for_each_fragmentPlayBox(std::function<void(FragmentPlayBoxPtr)> fun) {
+void SupplyAudio::for_each_fragmentPlayBox(std::function<void(FragmentPlayBoxPtr)> fun)
+{
     const auto first = first_fragmentPlayBox();
     const auto last = last_fragmentPlayBox();
     ranges::for_each(first, last, fun, &decltype(fragmentPlayBoxes)::value_type::second);

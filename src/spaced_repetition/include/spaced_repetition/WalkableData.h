@@ -9,7 +9,8 @@
 #include <utils/index_map.h>
 
 #include <cstddef>
-
+namespace sr {
+using index_set = folly::sorted_vector_set<std::size_t>;
 struct VocableMeta
 {
     VocableMeta(VocableProgress _progress,
@@ -44,46 +45,47 @@ public:
     [[nodiscard]] auto Vocables() const -> utl::index_map<VocableMeta>;
     [[nodiscard]] auto Cards() const -> utl::index_map<CardMeta>;
 
-    struct TimingAndNVocables
+    struct TimingAndVocables
     {
         int timing{};
-        std::size_t nVocables{};
+        index_set vocables{};
     };
     [[nodiscard]] auto timingAndNVocables(
             const CardMeta& card,
-            const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndNVocables;
-    [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndNVocables;
+            const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables;
+    [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndVocables;
 
 private:
     DataBase db;
     utl::index_map<VocableMeta> vocables;
     utl::index_map<CardMeta> cards;
 
-    // std::function<VocableProgress(std::size_t)>
-    //         vocable_progress = [this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
-    // std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
-    //         vocable_cardIndices = [this](std::size_t vocableIndex) { return vocables[vocableIndex].CardIndices(); };
-    // std::function<CardProgress(std::size_t)>
-    //         card_progress = [this](std::size_t cardIndex) { return cards[cardIndex].Progress(); };
-    // std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
-    //         card_vocableIndices = [this](std::size_t cardIndex) { return cards[cardIndex].VocableIndices(); };
+    std::function<VocableProgress(std::size_t)>
+            vocable_progress = [this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
+    std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
+            vocable_cardIndices = [this](std::size_t vocableIndex) { return vocables[vocableIndex].CardIndices(); };
+    std::function<CardProgress(std::size_t)>
+            card_progress = [this](std::size_t cardIndex) { return cards[cardIndex].Progress(); };
+    std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
+            card_vocableIndices = [this](std::size_t cardIndex) { return cards[cardIndex].VocableIndices(); };
+
     std::function<std::pair<std::size_t, VocableProgress>(std::size_t)>
-            vocable_progress = [this](std::size_t vocableIndex)
+            index_vocableProgress = [this](std::size_t vocableIndex)
             -> std::pair<std::size_t, VocableProgress> {
         return {vocableIndex, vocables[vocableIndex].Progress()};
     };
     std::function<std::pair<std::size_t, folly::sorted_vector_set<std::size_t>>(std::size_t)>
-            vocable_cardIndices = [this](std::size_t vocableIndex)
+            index_vocableCardIndices = [this](std::size_t vocableIndex)
             -> std::pair<std::size_t, folly::sorted_vector_set<std::size_t>> {
         return {vocableIndex, vocables[vocableIndex].CardIndices()};
     };
     std::function<std::pair<std::size_t, CardProgress>(std::size_t)>
-            card_progress = [this](std::size_t cardIndex)
+            index_cardProgress = [this](std::size_t cardIndex)
             -> std::pair<std::size_t, CardProgress> {
         return {cardIndex, cards[cardIndex].Progress()};
     };
     std::function<std::pair<std::size_t, folly::sorted_vector_set<std::size_t>>(std::size_t)>
-            card_vocableIndices = [this](std::size_t cardIndex)
+            index_cardVocableIndices = [this](std::size_t cardIndex)
             -> std::pair<std::size_t, folly::sorted_vector_set<std::size_t>> {
         return {cardIndex, cards[cardIndex].VocableIndices()};
     };
@@ -93,3 +95,4 @@ private:
     static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
                                      const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<uint>;
 };
+} // namespace sr

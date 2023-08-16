@@ -8,11 +8,12 @@
 #include <algorithm>
 #include <boost/range/combine.hpp>
 #include <functional>
+#include <iterator>
 #include <ranges>
 
 namespace ranges = std::ranges;
 namespace views = std::views;
-
+namespace sr {
 VocableMeta::VocableMeta(VocableProgress _progress,
                          folly::sorted_vector_set<std::size_t> _cardIndices,
                          ZH_Annotator::ZH_dicItemVec _dicItemVec)
@@ -72,17 +73,23 @@ auto WalkableData::Cards() const -> utl::index_map<CardMeta>
 
 auto WalkableData::timingAndNVocables(
         const CardMeta& card,
-        const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndNVocables
+        const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables
 {
     folly::sorted_vector_set<std::size_t> lifeVocables;
     ranges::set_difference(card.VocableIndices(), deadVocables, std::inserter(lifeVocables, lifeVocables.begin()));
     if (lifeVocables.empty()) {
         return {};
     }
-    auto vocindex_progresses = lifeVocables | views::transform(vocable_progress);
-    auto progresses = vocindex_progresses | views::values;
+    auto vocindex_progresses = lifeVocables | views::transform(index_vocableProgress);
+    // auto progresses = vocindex_progresses | views::values;
+    auto progresses = lifeVocables | views::transform(vocable_progress);
     auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
-    auto [_, threshHoldProgress] = *minIt.base();
+    progresses.size();
+    // auto minIt = ranges::min_element(lifeVocables | views::transform(vocable_progress), std::less{}, &VocableProgress::getRepeatRange);
+    // auto [_, threshHoldProgress] = *minIt.base();
+    auto threshHoldProgress = *minIt;
+    // const auto& minr = threshHoldProgress.getRepeatRange();
+    // spdlog::info("00000 --- min: {}, n: {}, max: {}",  minr.daysMin, minr.daysNormal, minr.daysMax);
 
     folly::sorted_vector_set<std::size_t> nextActiveVocables;
     ranges::copy_if(lifeVocables, std::inserter(nextActiveVocables, nextActiveVocables.begin()),
@@ -91,14 +98,35 @@ auto WalkableData::timingAndNVocables(
                         return threshHoldProgress.getRepeatRange().implies(getRepeatRange);
                     });
 
+    auto progressesNextActive = nextActiveVocables | views::transform(vocable_progress);
+    auto nextActiveIt = ranges::max_element(
+            progressesNextActive,
+            [](const auto& range1, const auto& range2) -> bool {
+                // spdlog::info("min: {}, n: {}, max: {}", range1.daysMin, range1.daysNormal, range1.daysMax);
+                return range1.daysMin < range2.daysMin;
+            },
+            &VocableProgress::getRepeatRange);
+    const auto& nextActiveProgress = *nextActiveIt;
+    // const auto& nar = nextActiveProgress.getRepeatRange();
+    // spdlog::info("00000 --- min: {}, n: {}, max: {}",  nar.daysMin, nar.daysNormal, nar.daysMax);
+
+    // std::vector<std::size_t> testv;
+    // ranges::copy(nextActiveVocables, std::back_inserter(testv));
+    // ranges::sort(testv, std::less{}, [this](std::size_t index) { return vocable_progress(index).getRepeatRange(); });
+    // for (const auto& [index, prog] : testv | views::transform(index_vocableProgress)) {
+    //     const auto& range = prog.getRepeatRange();
+    //     spdlog::info("i: {:04d} --- min: {}, n: {}, max: {}", index, range.daysMin, range.daysNormal, range.daysMax);
+    // }
+
     // auto minIt = utl::min_element_val(progresses, std::less{}, &VocableProgress::getRepeatRange);
     // auto x = minIt.getRepeatRange();
     // for (const auto& [vocableIndex, progress] : progresses) {
     // }
-    return {0, nextActiveVocables.size()};
+    return {.timing = nextActiveProgress.getRepeatRange().daysMin,
+            .vocables = nextActiveVocables};
 }
 
-auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndNVocables
+auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndVocables
 {
     return timingAndNVocables(card, {});
 }
@@ -178,3 +206,4 @@ auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,
                       });
     return vocableIds;
 }
+} // namespace sr

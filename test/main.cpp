@@ -17,7 +17,7 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 auto main() -> int
 {
     auto zikhron_cfg = get_zikhron_cfg();
-    auto walkableData = std::make_shared<WalkableData>(zikhron_cfg);
-    auto treeWalker = std::make_shared<TreeWalker>(walkableData);
+    auto walkableData = std::make_shared<sr::WalkableData>(zikhron_cfg);
+    auto treeWalker = std::make_shared<sr::TreeWalker>(walkableData);
     return 0;
 }

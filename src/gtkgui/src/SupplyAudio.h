@@ -10,14 +10,17 @@
 #include <multimedia/CardAudioGroup.h>
 #include <multimedia/MediaPlayer.h>
 #include <utils/Property.h>
+
 #include <filesystem>
 #include <functional>
 #include <ranges>
 
-template <class Value_t> class SpinBtnBox : public Gtk::Box {
+template<class Value_t>
+class SpinBtnBox : public Gtk::Box
+{
 public:
     SpinBtnBox();
-    virtual ~SpinBtnBox() = default;
+    ~SpinBtnBox() override = default;
     void configure(double value,
                    double lower,
                    double upper,
@@ -39,7 +42,8 @@ protected:
     Glib::RefPtr<Gtk::Adjustment> adjustment;
 };
 
-class SpinBtnBoxCards : public SpinBtnBox<uint> {
+class SpinBtnBoxCards : public SpinBtnBox<uint>
+{
 public:
     SpinBtnBoxCards(const std::string& label_str);
 
@@ -47,27 +51,30 @@ private:
     Gtk::Label label;
 };
 
-class SpinBtnBoxPlay : public SpinBtnBox<double> {
+class SpinBtnBoxPlay : public SpinBtnBox<double>
+{
 public:
     SpinBtnBoxPlay() = default;
 };
 
-class PlayBox : public Gtk::Box {
+class PlayBox : public Gtk::Box
+{
 public:
-    PlayBox(MediaPlayer&);
+    PlayBox(std::shared_ptr<MediaPlayer>);
 
 private:
     utl::ObserverCollection observers;
-    MediaPlayer& mediaPlayer;
+    std::shared_ptr<MediaPlayer> mediaPlayer;
     Gtk::Grid grid;
     PlayPauseButton playBtn;
     MediaSlider slider;
     Gtk::Label lbl_timePos;
 };
 
-class FragmentPlayBox : public Gtk::Box {
+class FragmentPlayBox : public Gtk::Box
+{
 public:
-    FragmentPlayBox(MediaPlayer& mediaPlayer);
+    FragmentPlayBox(std::shared_ptr<MediaPlayer> mediaPlayer);
     void set_minmax(double min, double max);
     void set_minimum(double min);
     void set_maximum(double max);
@@ -77,7 +84,7 @@ public:
 
 private:
     void configure();
-    MediaPlayer& mediaPlayer;
+    std::shared_ptr<MediaPlayer> mediaPlayer;
 
     SpinBtnBoxPlay spinBtn_playStart;
     SpinBtnBoxPlay spinBtn_playEnd;
@@ -96,7 +103,9 @@ public:
     utl::Property<double>& value_end = spinBtn_playEnd.currentValue;
 };
 
-class SupplyAudio : public Gtk::Grid, public NotebookPage {
+class SupplyAudio : public Gtk::Grid
+    , public NotebookPage
+{
     using TextDrawPtr = std::unique_ptr<TextDraw>;
     using FragmentPlayBoxPtr = std::shared_ptr<FragmentPlayBox>;
     constexpr static int textFontSize = 20;
@@ -134,9 +143,9 @@ private:
     std::vector<TextDrawPtr> textDrawContainer;
     std::vector<FragmentPlayBoxPtr> fragmentPlayBoxesVisible;
 
-    std::filesystem::path oldValidAudiofilePath;  // configuring file chooser dialogue
+    std::filesystem::path oldValidAudiofilePath; // configuring file chooser dialogue
 
-    MediaPlayer mediaPlayer{};
+    std::shared_ptr<MediaPlayer> mediaPlayer;
     Gtk::Button btnSave;
     Gtk::Button btnStudyGroup;
     Gtk::Button btnOpenAudioFile;

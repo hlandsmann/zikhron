@@ -8,9 +8,12 @@
 #include <multimedia/MediaPlayer.h>
 #include <multimedia/Subtitles.h>
 #include <utils/Property.h>
+
 #include <list>
 
-class VideoSpace : public Gtk::Box, public NotebookPage {
+class VideoSpace : public Gtk::Box
+    , public NotebookPage
+{
 public:
     VideoSpace(Gtk::Overlay&);
     void switchPage(bool);
@@ -21,12 +24,11 @@ private:
     void createSubtitleOverlay();
     void createFileChooserDialog();
     void on_file_dialog_response(int response_id, Gtk::FileChooserDialog* dialog);
-    bool signal_render(const Glib::RefPtr<Gdk::GLContext>& context);
+    auto signal_render(const Glib::RefPtr<Gdk::GLContext>& context) -> bool;
     void signal_realize();
     void signal_resize(int width, int height);
     void subtitleLoading_callback(bool finished);
-    MediaPlayer mediaPlayer{};
-
+    std::shared_ptr<MediaPlayer> mediaPlayer;
 
     Gtk::Overlay& overlay;
     utl::ObserverCollection observers;

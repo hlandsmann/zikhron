@@ -36,7 +36,7 @@ private:
     Gtk::Overlay& overlay;
     CardDraw cardDraw;
     CardDraw cardAnnotation;
-    MediaPlayer mediaPlayer;
+    std::shared_ptr<MediaPlayer> mediaPlayer;
     PlayPauseButton btn_playCard{mediaPlayer};
     MediaSlider scale_mediaProgress;
     std::optional<StudyAudioFragment> studyAudioFragment;
