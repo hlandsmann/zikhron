@@ -37,6 +37,11 @@ void MediaButton::signal_stop_connect(std::function<void(std::shared_ptr<MediaPl
     signal_stop = signal_fun;
 }
 
+auto MediaButton::getMediaPlayer() const -> const std::shared_ptr<MediaPlayer>&
+{
+    return mediaPlayer;
+}
+
 void MediaButton::onBtnClick()
 {
     switch (action) {
@@ -64,7 +69,7 @@ void MediaButton::onBtnClick()
 PlayStopButton::PlayStopButton(std::shared_ptr<MediaPlayer> _mediaPlayer)
     : MediaButton(_mediaPlayer)
 {
-    observer_stopped = mediaPlayer->property_paused().observe([this](bool paused) {
+    observer_stopped = getMediaPlayer()->property_paused().observe([this](bool paused) {
         if (paused) {
             action = media::start;
         } else {
@@ -79,7 +84,7 @@ void PlayStopButton::onBtnClick_post() {}
 PlayPauseButton::PlayPauseButton(std::shared_ptr<MediaPlayer> _mediaPlayer)
     : MediaButton(_mediaPlayer)
 {
-    observer_paused = mediaPlayer->property_paused().observe([this](bool paused) {
+    observer_paused = getMediaPlayer()->property_paused().observe([this](bool paused) {
         if (paused) {
             action = media::start;
         } else {

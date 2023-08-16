@@ -23,13 +23,15 @@ public:
     void signal_stop_connect(std::function<void(std::shared_ptr<MediaPlayer>)>);
 
 protected:
+    auto getMediaPlayer() const -> const std::shared_ptr<MediaPlayer>&;
     void onBtnClick();
     virtual void onBtnClick_post(){};
+
+private:
     std::shared_ptr<MediaPlayer> mediaPlayer;
     media nextAction = media::start;
     Gtk::Button button;
     utl::ObserverCollection observers;
-
     std::function<void(std::shared_ptr<MediaPlayer>)> signal_start;
     std::function<void(std::shared_ptr<MediaPlayer>)> signal_pause;
     std::function<void(std::shared_ptr<MediaPlayer>)> signal_stop;
@@ -42,7 +44,7 @@ public:
     void signal_pause_connect(std::function<void(std::shared_ptr<MediaPlayer>)>) = delete;
 
 private:
-    void onBtnClick_post();
+    void onBtnClick_post() final;
     std::shared_ptr<utl::ObserverBase> observer_stopped;
 };
 
@@ -53,7 +55,7 @@ public:
     void signal_stop_connect(std::function<void(std::shared_ptr<MediaPlayer>)>) = delete;
 
 private:
-    void onBtnClick_post();
+    void onBtnClick_post() final;
     std::shared_ptr<utl::ObserverBase> observer_paused;
 };
 
