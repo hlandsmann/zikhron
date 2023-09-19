@@ -1,6 +1,7 @@
 #include <DataThread.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -10,30 +11,38 @@
 namespace ranges = std::ranges;
 namespace fs = std::filesystem;
 
-template <> struct fmt::formatter<fs::path> {
-    template <typename ParseContext> constexpr auto parse(ParseContext& ctx) { return ctx.begin(); }
-    template <typename FormatContext> auto format(const fs::path& path, FormatContext& ctx) {
+template<>
+struct fmt::formatter<fs::path>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+    template<typename FormatContext>
+    auto format(const fs::path& path, FormatContext& ctx)
+    {
         return fmt::format_to(ctx.out(), "{}", path.string());
     }
 };
 
 namespace {
-auto loadCardDB(const std::string& path_to_cardDB) -> std::unique_ptr<CardDB> {
+auto loadCardDB(const std::string& path_to_cardDB) -> std::unique_ptr<CardDB>
+{
     auto cardDB = std::make_unique<CardDB>();
     try {
         cardDB->loadFromDirectory(path_to_cardDB);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error(e.what());
-    }
-    catch (...) {
+    } catch (...) {
         spdlog::error("Unknown Error, load Card Database failed!");
     }
     return cardDB;
 }
 
-template <class JsonType, class TypeOut>
-auto extract(const nlohmann::json& json, const TypeOut& current, std::string_view key) -> TypeOut {
+template<class JsonType, class TypeOut>
+auto extract(const nlohmann::json& json, const TypeOut& current, std::string_view key) -> TypeOut
+{
     auto valueIt = json.find(std::string(key));
     auto correctType = [](decltype(valueIt)& it) {
         if constexpr (std::is_same_v<JsonType, std::string>) {
@@ -45,22 +54,23 @@ auto extract(const nlohmann::json& json, const TypeOut& current, std::string_vie
     };
     if (valueIt != json.end() && correctType(valueIt)) {
         return JsonType(*valueIt);
-    } else {
-        spdlog::info("in main config: key \"{}\" was set to {}", key, current);
-        return current;
     }
+    spdlog::info("in main config: key \"{}\" was set to {}", key, current);
+    return current;
 }
 
-}  // namespace
+} // namespace
 
-void Session::ConfigMain::fromJson(const nlohmann::json& json) {
+void Session::ConfigMain::fromJson(const nlohmann::json& json)
+{
     setDefault();
     lastVideoFile = extract<std::string, path>(json, lastVideoFile, s_last_video_file);
     lastAudioFile = extract<std::string, path>(json, lastAudioFile, s_last_audio_file);
     activePage = extract<int, int>(json, activePage, s_active_page);
 }
 
-auto Session::ConfigMain::toJson() const -> nlohmann::json {
+auto Session::ConfigMain::toJson() const -> nlohmann::json
+{
     nlohmann::json json;
     json[std::string(s_last_video_file)] = lastVideoFile;
     json[std::string(s_last_audio_file)] = lastAudioFile;
@@ -68,24 +78,28 @@ auto Session::ConfigMain::toJson() const -> nlohmann::json {
     return json;
 }
 
-Session::Session() { open(); }
+Session::Session()
+{
+    open();
+}
 
-Session::~Session() {
+Session::~Session()
+{
     if (save_config) {
         save();
     }
 }
 
-void Session::open() {
+void Session::open()
+{
     auto zikhron_config_file = zikhron_config_dir / config_file;
     if (fs::exists(zikhron_config_file)) {
         try {
             std::ifstream ifs(zikhron_config_file);
             cfgMain.fromJson(nlohmann::json::parse(ifs));
-        }
-        catch (const std::exception& e) {
-            save_config = false;  // if the user edits a config file and creates a syntax error, the file
-                                  // will not be overwritten
+        } catch (const std::exception& e) {
+            save_config = false; // if the user edits a config file and creates a syntax error, the file
+                                 // will not be overwritten
             spdlog::error("Failed to parse zikhron config file: \"{}\"", e.what());
         }
     } else {
@@ -94,7 +108,8 @@ void Session::open() {
     }
 }
 
-void Session::save() {
+void Session::save()
+{
     auto zikhron_config_file = zikhron_config_dir / config_file;
     auto json = cfgMain.toJson();
 
@@ -103,13 +118,15 @@ void Session::save() {
     ofs << json.dump(4);
 }
 
-auto Session::ConfigDir() -> path {
+auto Session::ConfigDir() -> path
+{
     std::string home = std::getenv("HOME");
     path config_dir = home.empty() ? path(home) / ".config" : "~/.config";
     return config_dir / "zikhron";
 }
 
-auto DataThread::get() -> DataThread& {
+auto DataThread::get() -> DataThread&
+{
     static std::unique_ptr<DataThread> dataThread;
     if (!dataThread) {
         dataThread = std::unique_ptr<DataThread>(new DataThread());
@@ -117,7 +134,8 @@ auto DataThread::get() -> DataThread& {
     return *dataThread;
 }
 
-DataThread::DataThread() {
+DataThread::DataThread()
+{
     utl::PropertyServer::get().setSignalUpdate([dispatch = std::weak_ptr(propertyUpdate)]() {
         if (auto update = dispatch.lock(); update != nullptr) {
             update->emit();
@@ -134,13 +152,15 @@ DataThread::DataThread() {
     worker = std::jthread([this](std::stop_token token) { worker_thread(std::move(token)); });
 }
 
-DataThread::~DataThread() {
+DataThread::~DataThread()
+{
     worker.request_stop();
     worker.join();
     zikhronCfg.save();
 }
 
-void DataThread::worker_thread(std::stop_token token) {
+void DataThread::worker_thread(std::stop_token token)
+{
     std::unique_lock lock(condition_mutex);
 
     while (!token.stop_requested()) {
@@ -161,7 +181,8 @@ void DataThread::worker_thread(std::stop_token token) {
     spdlog::info("DataThread is exiting..");
 }
 
-void DataThread::dispatcher_fun() {
+void DataThread::dispatcher_fun()
+{
     std::lock_guard<std::mutex> lock(condition_mutex);
     while (not dispatch_queue.empty()) {
         dispatch_queue.front()();
@@ -169,7 +190,8 @@ void DataThread::dispatcher_fun() {
     }
 }
 
-void DataThread::requestCard(std::optional<uint> preferedCardId) {
+void DataThread::requestCard(std::optional<uint> preferedCardId)
+{
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, preferedCardId]() {
@@ -180,13 +202,14 @@ void DataThread::requestCard(std::optional<uint> preferedCardId) {
     condition.notify_one();
 }
 
-void DataThread::requestCardFromIds(std::vector<uint>&& _ids) {
+void DataThread::requestCardFromIds(std::vector<uint>&& _ids)
+{
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, ids = std::move(_ids)]() {
             std::vector<paragraph_optional> paragraphs;
             ranges::transform(
-                ids, std::back_inserter(paragraphs), [this](auto id) { return getCardFromId(id); });
+                    ids, std::back_inserter(paragraphs), [this](auto id) { return getCardFromId(id); });
             dispatch_queue.emplace([this, paragraphs = std::move(paragraphs)]() mutable {
                 if (send_card) {
                     send_paragraphFromIds(std::move(paragraphs));
@@ -197,33 +220,39 @@ void DataThread::requestCardFromIds(std::vector<uint>&& _ids) {
     condition.notify_one();
 }
 
-void DataThread::submitEase(const VocabularySR::Id_Ease_vt& ease) {
+void DataThread::submitEase(const VocabularySR::Id_Ease_vt& ease)
+{
     std::lock_guard<std::mutex> lock(condition_mutex);
     vocabularySR->setEaseLastCard(ease);
 }
 
-void DataThread::signal_annotation_connect(const signal_annotation& signal) {
+void DataThread::signal_annotation_connect(const signal_annotation& signal)
+{
     std::lock_guard<std::mutex> lock(condition_mutex);
     send_annotation = signal;
 }
 
-void DataThread::signal_card_connect(const signal_card& signal) {
+void DataThread::signal_card_connect(const signal_card& signal)
+{
     std::lock_guard<std::mutex> lock(condition_mutex);
     send_card = signal;
 }
 
-void DataThread::signal_paragraphFromIds_connect(const signal_paragraphFromIds& signal) {
+void DataThread::signal_paragraphFromIds_connect(const signal_paragraphFromIds& signal)
+{
     std::lock_guard<std::mutex> lock(condition_mutex);
     send_paragraphFromIds = signal;
 }
 
-void DataThread::dispatch_arbitrary(const std::function<void()>& fun) {
+void DataThread::dispatch_arbitrary(const std::function<void()>& fun)
+{
     std::lock_guard<std::mutex> lock(condition_mutex);
     dispatch_queue.push(fun);
     dispatcher.emit();
 }
 
-auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<markup::Paragraph>> {
+auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<markup::Paragraph>>
+{
     auto opt_cardInformation = vocabularySR->getCardFromId(id);
     if (!opt_cardInformation.has_value()) {
         return {};
@@ -235,7 +264,8 @@ auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<m
     return {std::move(paragraph)};
 }
 
-void DataThread::sendActiveCard(CardInformation& cardInformation) {
+void DataThread::sendActiveCard(CardInformation& cardInformation)
+{
     auto [current_card, vocableIds, ease] = std::move(cardInformation);
     uint cardId = current_card->Id();
     auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
@@ -247,11 +277,11 @@ void DataThread::sendActiveCard(CardInformation& cardInformation) {
     ranges::copy(orderedEase | std::views::values, std::back_inserter(vocEaseList));
 
     dispatch_queue.emplace(
-        [this, msg_card = message_card(std::move(paragraph), std::move(vocEaseList), cardId)]() mutable {
-            if (send_card) {
-                send_card(msg_card);
-            }
-        });
+            [this, msg_card = message_card(std::move(paragraph), std::move(vocEaseList), cardId)]() mutable {
+                if (send_card) {
+                    send_card(msg_card);
+                }
+            });
     dispatch_queue.emplace([this, msg_annotation = std::move(paragraph_annotation)]() mutable {
         if (send_annotation != nullptr) {
             send_annotation(msg_annotation);
@@ -260,7 +290,8 @@ void DataThread::sendActiveCard(CardInformation& cardInformation) {
 }
 
 void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
-                                  const ZH_Annotator::CharacterSequence& characterSequence) {
+                                  const ZH_Annotator::CharacterSequence& characterSequence)
+{
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, combination, characterSequence]() {
@@ -271,7 +302,8 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
     condition.notify_one();
 }
 
-void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) {
+void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice)
+{
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, vocId, vocIdOldChoice, vocIdNewChoice]() {
