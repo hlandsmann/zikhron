@@ -1,7 +1,10 @@
 #include <TreeWalker.h>
+#include <bits/ranges_algo.h>
 #include <spdlog/spdlog.h>
+#include <utils/counting_iterator.h>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <ranges>
 
@@ -31,8 +34,28 @@ void walk(const std::shared_ptr<sr::WalkableData>& walkableData)
 } // namespace
 
 namespace sr {
+Node::Node(std::shared_ptr<WalkableData> _walkableData)
+    : walkableData{std::move(_walkableData)} {}
+
+void Node::push(uint cardIndex)
+{
+    const auto& card = walkableData->Cards()[cardIndex];
+    const auto& tnv = walkableData->timingAndNVocables(card);
+    if (tnv.timing > 0) {
+        return;
+    }
+    // index_set intersection;
+    // ranges::set_intersection(tnv.vocables, vocables, std::inserter(intersection, intersection.begin()));
+    size_t intersectionCount = ranges::set_intersection(
+                                       tnv.vocables, vocables, utl::counting_iterator{})
+                                       .out.count;
+    if (intersectionCount == 0) {
+    }
+}
+
 TreeWalker::TreeWalker(std::shared_ptr<WalkableData> _walkableData)
     : walkableData{std::move(_walkableData)}
+    , root{walkableData}
 {
     walk(walkableData);
 }

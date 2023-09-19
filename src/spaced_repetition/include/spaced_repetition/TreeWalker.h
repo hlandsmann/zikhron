@@ -1,10 +1,29 @@
 #pragma once
-
 #include "WalkableData.h"
 
 #include <memory>
+#include <optional>
+#include <vector>
 
 namespace sr {
+class Node
+{
+public:
+    Node(std::shared_ptr<WalkableData> walkableData);
+    void push(uint cardIndex);
+
+private:
+    void pushDown(uint cardIndex);
+
+    Node* parent{nullptr};
+    index_set vocables;
+    std::vector<Node> nodes;
+
+    std::optional<uint> cardIndex;
+    bool active{false};
+    std::shared_ptr<WalkableData> walkableData;
+};
+
 class TreeWalker
 {
 public:
@@ -12,5 +31,6 @@ public:
 
 private:
     std::shared_ptr<WalkableData> walkableData;
+    Node root;
 };
 } // namespace sr
