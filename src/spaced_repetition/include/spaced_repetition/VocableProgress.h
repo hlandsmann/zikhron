@@ -4,7 +4,7 @@
 
 #include <compare>
 #include <ctime>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <string_view>
 #include <utility>
 
@@ -46,6 +46,7 @@ public:
 
     void advanceByEase(Ease);
     auto advanceIndirectly() -> bool;
+    [[nodiscard]] auto recent() const -> float;
     [[nodiscard]] auto urgency() const -> float;
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;

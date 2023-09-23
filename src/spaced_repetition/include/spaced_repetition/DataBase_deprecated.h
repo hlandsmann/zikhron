@@ -1,29 +1,38 @@
 #pragma once
-
-#include <annotation/Ease.h>
 #include <annotation/Card.h>
+#include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
-#include <ctime>
-#include <nlohmann/json_fwd.hpp>
-#include <set>
-#include <string_view>
+#include <utils/StringU8.h>
+
+#include <map>
+#include <memory>
+#include <string>
+#include <vector>
+// #include <ctime>
 #include "CardProgress.h"
 #include "VocableProgress.h"
 
-struct VocableMetaDeprecated {
+#include <nlohmann/json_fwd.hpp>
+#include <set>
+#include <string_view>
+
+struct VocableMetaDeprecated
+{
     // uint id = 0;
-    std::set<uint> cardIds;
+    std::set<unsigned> cardIds;
 };
 
-struct CardMetaDeprecated {
+struct CardMetaDeprecated
+{
     float value = 0;
-    std::set<uint> vocableIds;
+    std::set<unsigned> vocableIds;
 
-    uint cardId = 0;
+    unsigned cardId = 0;
 };
 
-class SR_DataBase {
+class SR_DataBase
+{
     static constexpr std::string_view s_content = "content";
 
     static constexpr std::string_view s_path_meta = "/home/harmen/zikhron";
@@ -40,27 +49,29 @@ public:
     auto operator=(const SR_DataBase&) -> SR_DataBase = delete;
     ~SR_DataBase();
 
-    [[nodiscard]] auto Id_cardSR() const -> const std::map<uint, CardProgress>& { return id_cardSR; };
-    [[nodiscard]] auto Id_vocableSR() const -> const std::map<uint, VocableProgress>& { return id_vocableSR; };
-    [[nodiscard]] auto Id_cardMeta() const -> const std::map<uint, CardMetaDeprecated>& { return id_cardMeta; };
-    [[nodiscard]] auto Id_vocableMeta() const -> const std::map<uint, VocableMetaDeprecated>& {
+    [[nodiscard]] auto Id_cardSR() const -> const std::map<unsigned, CardProgress>& { return id_cardSR; };
+    [[nodiscard]] auto Id_vocableSR() const -> const std::map<unsigned, VocableProgress>& { return id_vocableSR; };
+    [[nodiscard]] auto Id_cardMeta() const -> const std::map<unsigned, CardMetaDeprecated>& { return id_cardMeta; };
+    [[nodiscard]] auto Id_vocableMeta() const -> const std::map<unsigned, VocableMetaDeprecated>&
+    {
         return id_vocableMeta;
     };
-    [[nodiscard]] auto Ids_repeatTodayVoc() const -> const std::set<uint>& {
+    [[nodiscard]] auto Ids_repeatTodayVoc() const -> const std::set<unsigned>&
+    {
         return ids_repeatTodayVoc;
     };
-    [[nodiscard]] auto Ids_againVoc() const -> const std::set<uint>& { return ids_againVoc; };
-    [[nodiscard]] auto Ids_nowVoc() const -> const std::set<uint>& { return ids_nowVoc; };
+    [[nodiscard]] auto Ids_againVoc() const -> const std::set<unsigned>& { return ids_againVoc; };
+    [[nodiscard]] auto Ids_nowVoc() const -> const std::set<unsigned>& { return ids_nowVoc; };
 
-    [[nodiscard]] auto GetVocableIdsInOrder(uint cardId) const -> std::vector<uint>;
-    void SetEase(uint vocId, Ease ease);
-    void ViewCard(uint cardId);
-    void AdvanceIndirectlySeenVocables(uint cardId);
+    [[nodiscard]] auto GetVocableIdsInOrder(unsigned cardId) const -> std::vector<unsigned>;
+    void SetEase(unsigned vocId, Ease ease);
+    void ViewCard(unsigned cardId);
+    void AdvanceIndirectlySeenVocables(unsigned cardId);
     void AdvanceFailedVocables();
     void AddAnnotation(const ZH_Annotator::Combination& combination,
                        const std::vector<utl::CharU8>& characterSequence,
-                       uint activeCardId);
-    void AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
+                       unsigned activeCardId);
+    void AddVocableChoice(unsigned vocId, unsigned vocIdOldChoice, unsigned vocIdNewChoice);
 
 private:
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
@@ -72,36 +83,36 @@ private:
     void LoadVocableChoices();
     void SaveVocableChoices() const;
     void GenerateFromCards();
-    void EraseVocabularyOfCard(uint cardId);
-    void InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& card);
+    void EraseVocabularyOfCard(unsigned cardId);
+    void InsertVocabularyOfCard(unsigned cardId, const CardDB::CardPtr& card);
     void LoadProgress();
     void SaveProgress() const;
     void GenerateToRepeatWorkload();
-    void CleanUpVocables(std::set<uint> ignoreVocableIds);
+    void CleanUpVocables(std::set<unsigned> ignoreVocableIds);
 
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<const ZH_Dictionary> zh_dictionary;
 
     // vocableId -> vocable (aka. ZH_dicItemVec)
-    std::map<uint, ZH_dicItemVec> id_vocable;
+    std::map<unsigned, ZH_dicItemVec> id_vocable;
 
-    std::map<uint, CardProgress> id_cardSR;
-    std::map<uint, VocableProgress> id_vocableSR;
-    std::map<uint, CardMetaDeprecated> id_cardMeta;
-    std::map<uint, VocableMetaDeprecated> id_vocableMeta;
+    std::map<unsigned, CardProgress> id_cardSR;
+    std::map<unsigned, VocableProgress> id_vocableSR;
+    std::map<unsigned, CardMetaDeprecated> id_cardMeta;
+    std::map<unsigned, VocableMetaDeprecated> id_vocableMeta;
 
     /* ids for to be repeated vocables */
-    std::set<uint> ids_repeatTodayVoc;
+    std::set<unsigned> ids_repeatTodayVoc;
     /* ids for vocables the student failed */
-    std::set<uint> ids_againVoc;
+    std::set<unsigned> ids_againVoc;
     /* ids for vocables that are to be repeated NOW! - they get moved out of againVoc */
-    std::set<uint> ids_nowVoc;
+    std::set<unsigned> ids_nowVoc;
 
-    std::map<uint, uint> id_id_vocableChoices;
+    std::map<unsigned, unsigned> id_id_vocableChoices;
 
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
     std::map<CharacterSequence, Combination> annotationChoices;
 
-    std::map<std::string, uint> zhdic_vocableMeta;
+    std::map<std::string, unsigned> zhdic_vocableMeta;
 };

@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
+#include <memory>
 
 namespace fs = std::filesystem;
 

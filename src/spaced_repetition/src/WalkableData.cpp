@@ -1,15 +1,23 @@
 #include "VocableProgress.h"
+#include <misc/Config.h>
 
+#include <CardProgress.h>
 #include <WalkableData.h>
+#include <annotation/ZH_Annotator.h>
 #include <bits/ranges_algo.h>
+#include <folly/sorted_vector_types.h>
 #include <spdlog/spdlog.h>
+#include <utils/index_map.h>
 #include <utils/min_element_val.h>
 
 #include <algorithm>
 #include <boost/range/combine.hpp>
+#include <cstddef>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <ranges>
+#include <utility>
 
 namespace ranges = std::ranges;
 namespace views = std::views;
@@ -26,7 +34,7 @@ auto VocableMeta::Progress() const -> VocableProgress
     return progress;
 }
 
-auto VocableMeta::CardIndices() const -> folly::sorted_vector_set<std::size_t>
+auto VocableMeta::CardIndices() const -> const folly::sorted_vector_set<std::size_t>&
 {
     return cardIndices;
 }
@@ -45,7 +53,7 @@ auto CardMeta::Progress() const -> CardProgress
     return progress;
 }
 
-auto CardMeta::VocableIndices() const -> folly::sorted_vector_set<std::size_t>
+auto CardMeta::VocableIndices() const -> const folly::sorted_vector_set<std::size_t>&
 {
     return vocableIndices;
 }
@@ -61,12 +69,12 @@ WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
     fillIndexMaps();
 }
 
-auto WalkableData::Vocables() const -> utl::index_map<VocableMeta>
+auto WalkableData::Vocables() const -> const utl::index_map<VocableMeta>&
 {
     return vocables;
 }
 
-auto WalkableData::Cards() const -> utl::index_map<CardMeta>
+auto WalkableData::Cards() const -> const utl::index_map<CardMeta>&
 {
     return cards;
 }

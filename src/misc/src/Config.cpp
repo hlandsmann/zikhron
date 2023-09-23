@@ -1,8 +1,12 @@
 #include <Config.h>
 #include <spdlog/spdlog.h>
 
+#include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <string>
+#include <utility>
 
 namespace zikhron {
 Config::Config()

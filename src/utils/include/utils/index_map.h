@@ -1,11 +1,12 @@
 #pragma once
 
 #include <functional>
+#include <cstddef>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
-#include <tuple>
+#include <utility>
 #include <type_traits>
 #include <vector>
 
@@ -23,10 +24,10 @@ public:
     using difference_type = std::ptrdiff_t;
     using pointer = value_type*;
     using reference = value_type&;
-    using non_cv_T = std::remove_cv<T>::type;
-    using vector_T = std::conditional<std::is_same<T, typename std::remove_const<T>::type>::value,
+    using non_cv_T = std::remove_cv_t<T>;
+    using vector_T = std::conditional_t<std::is_same_v<T, typename std::remove_const_t<T>>,
                                       std::vector<non_cv_T>,
-                                      const std::vector<non_cv_T>>::type;
+                                      const std::vector<non_cv_T>>;
 
     index_map_iterator(vector_T& data, std::size_t index);
 

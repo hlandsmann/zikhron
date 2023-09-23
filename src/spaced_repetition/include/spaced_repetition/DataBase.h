@@ -9,8 +9,11 @@
 #include <utils/StringU8.h>
 
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
+#include <string_view>
+#include <vector>
 
 class DataBase
 {

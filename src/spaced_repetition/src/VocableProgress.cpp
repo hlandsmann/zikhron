@@ -1,6 +1,12 @@
 #include <VocableProgress.h>
+#include <annotation/Ease.h>
 
+#include <algorithm>
+#include <cmath>
+#include <compare>
+#include <ctime>
 #include <nlohmann/json.hpp>
+#include <string>
 
 #include "Time.h"
 using namespace spaced_repetition;
@@ -64,6 +70,11 @@ auto VocableProgress::advanceIndirectly() -> bool
 
     indirectIntervalDay += advanceIntervalDay ? 1 : 0;
     return advanceIntervalDay;
+}
+
+auto VocableProgress::recent() const -> float
+{
+    return (easeFactor * intervalDay) + static_cast<float>(daysFromNow(lastSeen, 0));
 }
 
 auto VocableProgress::urgency() const -> float

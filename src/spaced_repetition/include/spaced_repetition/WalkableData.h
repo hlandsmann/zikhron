@@ -3,21 +3,28 @@
 #include "DataBase.h"
 #include "VocableProgress.h"
 
+#include <annotation/Card.h>
 #include <annotation/ZH_Annotator.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <utils/index_map.h>
 
 #include <cstddef>
+#include <functional>
+#include <map>
+#include <memory>
+#include <utility>
+#include <vector>
 namespace sr {
 using index_set = folly::sorted_vector_set<std::size_t>;
+
 struct VocableMeta
 {
     VocableMeta(VocableProgress _progress,
                 folly::sorted_vector_set<std::size_t> _cardIndices,
                 ZH_Annotator::ZH_dicItemVec dicItemVec);
     [[nodiscard]] auto Progress() const -> VocableProgress;
-    [[nodiscard]] auto CardIndices() const -> folly::sorted_vector_set<std::size_t>;
+    [[nodiscard]] auto CardIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void cardIndices_insert(std::size_t cardIndex);
 
 private:
@@ -30,20 +37,19 @@ struct CardMeta
 {
     CardMeta(CardProgress progress, folly::sorted_vector_set<std::size_t> _vocableIndices);
     [[nodiscard]] auto Progress() const -> CardProgress;
-    [[nodiscard]] auto VocableIndices() const -> folly::sorted_vector_set<std::size_t>;
+    [[nodiscard]] auto VocableIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void vocableIndices_insert(std::size_t vocableIndex);
 
 private:
     CardProgress progress;
     folly::sorted_vector_set<std::size_t> vocableIndices;
 };
-
 class WalkableData
 {
 public:
     WalkableData(std::shared_ptr<zikhron::Config> config);
-    [[nodiscard]] auto Vocables() const -> utl::index_map<VocableMeta>;
-    [[nodiscard]] auto Cards() const -> utl::index_map<CardMeta>;
+    [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableMeta>&;
+    [[nodiscard]] auto Cards() const -> const utl::index_map<CardMeta>&;
 
     struct TimingAndVocables
     {
@@ -93,6 +99,6 @@ private:
     void insertVocabularyOfCard(const CardDB::CardPtr& card);
 
     static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
-                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<uint>;
+                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<unsigned>;
 };
 } // namespace sr

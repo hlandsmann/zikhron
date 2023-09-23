@@ -5,6 +5,8 @@
 #include <optional>
 #include <vector>
 
+#include <sys/types.h>
+
 namespace sr {
 class Node
 {

@@ -28,10 +28,10 @@ struct CardAudioGroup {
     bool onFileSystem = false;
 
 private:
-    static constexpr std::string_view s_audioFile = "audio_file";
-    static constexpr std::string_view s_fragments = "fragments";
-    static constexpr std::string_view s_start = "start";
-    static constexpr std::string_view s_end = "end";
+    static constexpr std::string s_audioFile = "audio_file";
+    static constexpr std::string s_fragments = "fragments";
+    static constexpr std::string s_start = "start";
+    static constexpr std::string s_end = "end";
 };
 
 class CardAudioGroupDB {

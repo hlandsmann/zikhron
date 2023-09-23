@@ -1,4 +1,6 @@
 #include <Vocabulary.h>
+#include <dictionary/ZH_Dictionary.h>
+#include <sys/types.h>
 #include <annotation/Markup.h>
 #include <annotation/Card.h>
 #include <annotation/ZH_Annotator.h>
@@ -8,11 +10,9 @@
 #include <utils/min_element_val.h>
 #include <algorithm>
 #include <boost/range/combine.hpp>
-#include <chrono>
 #include <cmath>
+#include <memory>
 #include <ctime>
-#include <filesystem>
-#include <fstream>
 #include <functional>
 #include <map>
 #include <nlohmann/json.hpp>
