@@ -8,22 +8,38 @@
 #include <sys/types.h>
 
 namespace sr {
+
+class Path
+{
+public:
+private:
+    uint steps{};
+    uint eliminateCount{};
+    uint cardIndex;
+};
+
 class Node
 {
 public:
     Node(std::shared_ptr<WalkableData> walkableData);
-    void push(uint cardIndex);
 
 private:
-    void pushDown(uint cardIndex);
+    std::vector<uint> cardsLessVocables;
+    std::vector<uint> cardsLessVocablesPulled;
+    std::vector<uint> cardsMoreVocables;
 
-    Node* parent{nullptr};
-    index_set vocables;
-    std::vector<Node> nodes;
-
-    std::optional<uint> cardIndex;
-    bool active{false};
     std::shared_ptr<WalkableData> walkableData;
+    std::vector<Path> paths;
+};
+
+class Tree
+{
+public:
+private:
+    std::vector<std::optional<std::shared_ptr<Node>>> nodes;
+    std::shared_ptr<Node> root;
+    uint vocableIndex;
+    uint cardIndex;
 };
 
 class TreeWalker
@@ -32,7 +48,11 @@ public:
     TreeWalker(std::shared_ptr<WalkableData>);
 
 private:
+    void createTree();
+
+
     std::shared_ptr<WalkableData> walkableData;
-    Node root;
+    std::shared_ptr<Tree> tree;
 };
+
 } // namespace sr

@@ -1,11 +1,12 @@
 #include "VocableProgress.h"
-#include <misc/Config.h>
 
 #include <CardProgress.h>
 #include <WalkableData.h>
+#include <annotation/Card.h>
 #include <annotation/ZH_Annotator.h>
 #include <bits/ranges_algo.h>
 #include <folly/sorted_vector_types.h>
+#include <misc/Config.h>
 #include <spdlog/spdlog.h>
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
@@ -15,9 +16,14 @@
 #include <cstddef>
 #include <functional>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <ranges>
+#include <string>
 #include <utility>
+#include <vector>
+
+#include <sys/types.h>
 
 namespace ranges = std::ranges;
 namespace views = std::views;
@@ -185,7 +191,7 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
                                                               (itVoc != progressVocables.end())
                                                                       ? itVoc->second
                                                                       : VocableProgress{},
-                                                              folly::sorted_vector_set<std::size_t>{card->Id()},
+                                                              folly::sorted_vector_set<std::size_t>{card_index},
                                                               dicItemVec);
 
             cardMeta.vocableIndices_insert(vocable_index);

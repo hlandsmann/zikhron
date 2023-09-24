@@ -72,9 +72,9 @@ auto VocableProgress::advanceIndirectly() -> bool
     return advanceIntervalDay;
 }
 
-auto VocableProgress::recent() const -> float
+auto VocableProgress::recency() const -> float
 {
-    return (easeFactor * intervalDay) + static_cast<float>(daysFromNow(lastSeen, 0));
+    return (easeFactor * intervalDay) - static_cast<float>(daysFromNow(lastSeen, 0));
 }
 
 auto VocableProgress::urgency() const -> float

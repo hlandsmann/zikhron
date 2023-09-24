@@ -46,7 +46,7 @@ public:
 
     void advanceByEase(Ease);
     auto advanceIndirectly() -> bool;
-    [[nodiscard]] auto recent() const -> float;
+    [[nodiscard]] auto recency() const -> float;
     [[nodiscard]] auto urgency() const -> float;
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
