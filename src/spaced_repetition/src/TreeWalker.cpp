@@ -9,6 +9,8 @@
 #include <functional>
 #include <iterator>
 #include <memory>
+#include <optional>
+#include <vector>
 // #include <ranges>
 #include <ranges>
 #include <utility>
@@ -36,7 +38,7 @@ void walk(const std::shared_ptr<sr::WalkableData>& walkableData)
         if (tnv.timing <= 0) {
             todayVocablesIndices.insert(tnv.vocables.begin(), tnv.vocables.end());
         }
-        spdlog::info("Card: {}, when{}, activeVocs:{}", cardIndex++, tnv.timing, tnv.vocables.size());
+        // spdlog::info("Card: {}, when{}, activeVocs:{}", cardIndex++, tnv.timing, tnv.vocables.size());
         // }
     }
     spdlog::info("Vocables to study: {}", todayVocablesIndices.size());
@@ -63,8 +65,32 @@ void walk(const std::shared_ptr<sr::WalkableData>& walkableData)
 } // namespace
 
 namespace sr {
-Node::Node(std::shared_ptr<WalkableData> _walkableData)
-    : walkableData{std::move(_walkableData)} {}
+Node::Node(std::shared_ptr<WalkableData> _walkableData,
+           std::vector<std::optional<std::shared_ptr<Node>>>& nodes,
+           size_t _cardIndex)
+    : walkableData{std::move(_walkableData)}
+    , cardIndex{_cardIndex}
+    , subCards{collectSubCards()}
+{
+    spdlog::info("Subcards size {}", subCards.size());
+}
+
+auto Node::collectSubCards() const -> index_set
+{
+    index_set subCardsResult;
+
+    const auto& card = walkableData->Cards()[cardIndex];
+    const auto& tnv = walkableData->timingAndNVocables(card);
+    const auto& vocables = walkableData->Vocables();
+    const auto& containedVocables = tnv.vocables
+                                    | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
+                                          return vocables[index];
+                                      });
+    for (const auto& vocableMeta : containedVocables) {
+        ranges::copy(vocableMeta.CardIndices(), std::inserter(subCardsResult, subCardsResult.begin()));
+    }
+    return subCardsResult;
+}
 
 // void Node::push(uint cardIndex)
 // {
@@ -82,10 +108,63 @@ Node::Node(std::shared_ptr<WalkableData> _walkableData)
 //     }
 // }
 
+Tree::Tree(std::shared_ptr<WalkableData> _walkableData, size_t _vocableIndex, size_t _cardIndex)
+    : walkableData{std::move(_walkableData)}
+    , vocableIndex{_vocableIndex}
+    , cardIndex{_cardIndex}
+{
+    nodes.resize(walkableData->Cards().size());
+    root = std::make_shared<Node>(walkableData, nodes, cardIndex);
+    nodes[cardIndex] = root;
+}
+
 TreeWalker::TreeWalker(std::shared_ptr<WalkableData> _walkableData)
     : walkableData{std::move(_walkableData)}
-    , root{walkableData}
 {
     walk(walkableData);
+    createTree();
 }
+
+auto TreeWalker::getTodayVocables() const -> index_set
+{
+    const auto& cards = walkableData->Cards();
+    sr::index_set todayVocables;
+    for (const auto& card : cards) {
+        auto tnv = walkableData->timingAndNVocables(card);
+        if (tnv.timing <= 0) {
+            todayVocables.insert(tnv.vocables.begin(), tnv.vocables.end());
+        }
+    }
+    return todayVocables;
+}
+
+auto TreeWalker::getNextTargetVocable() const -> std::optional<size_t>
+{
+    const auto& vocables = walkableData->Vocables();
+    sr::index_set todayVocables = getTodayVocables();
+    if (todayVocables.empty()) {
+        return {};
+    }
+    auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
+    size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
+
+    return {targetVocable};
+}
+
+auto TreeWalker::getNextTargetCard(size_t vocableIndex) const -> size_t
+{
+    const auto& vocables = walkableData->Vocables();
+    return *vocables[vocableIndex].CardIndices().begin();
+}
+
+void TreeWalker::createTree()
+{
+    auto optionalTargetVocable = getNextTargetVocable();
+    if (!optionalTargetVocable.has_value()) {
+        return;
+    }
+    auto cardIndex = getNextTargetCard(optionalTargetVocable.value());
+    tree = std::make_unique<Tree>(walkableData, optionalTargetVocable.value(), cardIndex);
+}
+
 } // namespace sr
