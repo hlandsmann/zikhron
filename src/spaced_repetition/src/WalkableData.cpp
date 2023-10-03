@@ -140,6 +140,12 @@ auto WalkableData::timingAndNVocables(
             .vocables = nextActiveVocables};
 }
 
+auto WalkableData::timingAndNVocables(size_t cardIndex) const -> TimingAndVocables
+{
+    const CardMeta& card = cards[cardIndex];
+    return timingAndNVocables(card);
+}
+
 auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndVocables
 {
     return timingAndNVocables(card, {});

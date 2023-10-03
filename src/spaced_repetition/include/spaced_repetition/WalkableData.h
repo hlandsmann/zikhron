@@ -60,6 +60,7 @@ public:
             const CardMeta& card,
             const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables;
     [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndVocables;
+    [[nodiscard]] auto timingAndNVocables(size_t cardIndex) const -> TimingAndVocables;
 
 private:
     DataBase db;
