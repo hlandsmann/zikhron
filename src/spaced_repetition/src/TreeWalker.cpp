@@ -5,6 +5,7 @@
 #include <utils/counting_iterator.h>
 
 #include <algorithm>
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -66,13 +67,56 @@ void walk(const std::shared_ptr<sr::WalkableData>& walkableData)
 
 namespace sr {
 Node::Node(std::shared_ptr<WalkableData> _walkableData,
-           std::vector<std::optional<std::shared_ptr<Node>>>& nodes,
+           std::shared_ptr<node_vector> _nodes,
            size_t _cardIndex)
     : walkableData{std::move(_walkableData)}
+    , nodes{std::move(_nodes)}
     , cardIndex{_cardIndex}
     , subCards{collectSubCards()}
 {
     spdlog::info("Subcards size {}", subCards.size());
+}
+
+auto Node::lowerOrder(size_t order) -> Path
+{
+    const auto preferedQuantity = [](size_t a, size_t b) -> bool {
+        const std::array quantity = {4, 3, 5, 2, 6};
+        const auto* a_it = ranges::find(quantity, a);
+        const auto* b_it = ranges::find(quantity, b);
+        if (a_it != b_it) {
+            return a_it < b_it;
+        }
+        return a < b;
+    };
+    const auto& thisTnv = walkableData->timingAndNVocables(cardIndex);
+    ranges::copy(subCards | views::filter([this, &thisTnv, order](size_t index) -> bool {
+                     const auto& tnv = walkableData->timingAndNVocables(index);
+                     return tnv.timing <= 0 && tnv.vocables.size() < thisTnv.vocables.size();
+                     // return walkableData->Cards()[index].VocableIndices().size() < order;
+                 }),
+                 std::back_inserter(cardsLessVocables));
+    if (cardsLessVocables.empty()) {
+        return {};
+    }
+    ranges::sort(cardsLessVocables, [&, this](size_t index_a, size_t index_b) -> bool {
+        const auto& tnv_a = walkableData->timingAndNVocables(index_a);
+        const auto& tnv_b = walkableData->timingAndNVocables(index_b);
+        if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
+            return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
+        }
+        size_t countIntersect_a = ranges::set_intersection(
+                                          thisTnv.vocables, tnv_a.vocables, utl::counting_iterator{})
+                                          .out.count;
+        size_t countIntersect_b = ranges::set_intersection(
+                                          thisTnv.vocables, tnv_b.vocables, utl::counting_iterator{})
+                                          .out.count;
+        return countIntersect_a > countIntersect_b;
+    });
+    spdlog::info("lowerOrder subCards size: {}", cardsLessVocables.size());
+    spdlog::info("smallCard size:{}, index: {}",
+                 walkableData->timingAndNVocables(cardsLessVocables[0]).vocables.size(),
+                 cardsLessVocables[0]);
+    return {};
 }
 
 auto Node::collectSubCards() const -> index_set
@@ -110,12 +154,22 @@ auto Node::collectSubCards() const -> index_set
 
 Tree::Tree(std::shared_ptr<WalkableData> _walkableData, size_t _vocableIndex, size_t _cardIndex)
     : walkableData{std::move(_walkableData)}
+    , nodes{std::make_shared<node_vector>()}
     , vocableIndex{_vocableIndex}
     , cardIndex{_cardIndex}
 {
-    nodes.resize(walkableData->Cards().size());
-    root = std::make_shared<Node>(walkableData, nodes, cardIndex);
-    nodes[cardIndex] = root;
+    nodes->resize(walkableData->Cards().size());
+    (*nodes)[cardIndex].emplace(walkableData, nodes, cardIndex);
+}
+
+void Tree::build()
+{
+    auto optionalRoot = (*nodes)[cardIndex];
+    if (!optionalRoot.has_value()) {
+        return;
+    }
+    auto& root = optionalRoot.value();
+    auto path = root.lowerOrder(0);
 }
 
 TreeWalker::TreeWalker(std::shared_ptr<WalkableData> _walkableData)
@@ -165,6 +219,7 @@ void TreeWalker::createTree()
     }
     auto cardIndex = getNextTargetCard(optionalTargetVocable.value());
     tree = std::make_unique<Tree>(walkableData, optionalTargetVocable.value(), cardIndex);
+    tree->build();
 }
 
 } // namespace sr
