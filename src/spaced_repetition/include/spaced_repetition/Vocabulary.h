@@ -1,12 +1,23 @@
 #pragma once
+#include "VocableProgress.h"
 
+#include <annotation/Card.h>
 #include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
-#include <iosfwd>
+
+#include <cstddef>
+#include <map>
+#include <memory>
 #include <optional>
-#include <thread>
+#include <set>
+#include <string>
+#include <string_view>
+#include <tuple>
+#include <vector>
+
+#include <sys/types.h>
 
 #ifdef spaced_repetition_internal_include
 #include "DataBase_deprecated.h"
@@ -17,7 +28,8 @@
 class CardDB;
 struct CardProgress;
 
-class VocabularySR {
+class VocabularySR
+{
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
     static constexpr std::string_view s_fn_metaCardSR = "metaCardSR.json";
@@ -41,14 +53,14 @@ public:
 private:
     auto CountTotalNewVocablesInSet() -> size_t;
     [[nodiscard]] auto CalculateCardValueSingle(const CardMetaDeprecated& cm, const std::set<uint>& good) const
-        -> float;
+            -> float;
     [[nodiscard]] auto CalculateCardValueSingleNewVoc(const CardMetaDeprecated& cm,
                                                       const std::set<uint>& neutral) const -> float;
 
     // Get vocables that would need to be learned with this current cardId
     // auto GetActiveVocables_dicEntry(uint cardId) const -> Item_Id_vt;
     [[nodiscard]] auto GetActiveVocables(uint cardId) const -> std::set<uint>;
-     auto GetRelevantEase(uint cardId) const -> Id_Ease_vt;
+    [[nodiscard]] auto GetRelevantEase(uint cardId) const -> Id_Ease_vt;
 
     // Calculate which Cards to learn next
     auto GetCardRepeatedVoc() -> std::optional<uint>;
