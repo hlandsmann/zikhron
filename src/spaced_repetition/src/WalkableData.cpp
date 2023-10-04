@@ -6,6 +6,7 @@
 #include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <bits/ranges_algo.h>
+#include <dictionary/ZH_Dictionary.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <spdlog/spdlog.h>
@@ -190,16 +191,19 @@ auto WalkableData::getRelevantEase(uint cardId) const -> std::map<uint, Ease>
 {
     std::set<uint> activeVocables = getActiveVocables(cardId);
     std::map<uint, Ease> ease;
-    // ranges::transform(
-    //         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
-    //             const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
-    //             spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
-    //                           zh_dictionary->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
-    //                           vocSR.EaseFactor(),
-    //                           vocSR.IntervalDay(),
-    //                           vocId);
-    //             return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
-    //         });
+    ranges::transform(
+            activeVocables,
+            std::inserter(ease, ease.begin()),
+            [&, this](uint vocId) -> std::pair<uint, Ease> {
+                const VocableProgress& vocSR = vocables.at_id(vocId).second.Progress();
+                // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
+                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
+                              db.Dictionary()->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
+                              vocSR.EaseFactor(),
+                              vocSR.IntervalDay(),
+                              vocId);
+                return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
+            });
     return ease;
 }
 
