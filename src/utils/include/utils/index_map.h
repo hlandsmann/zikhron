@@ -14,7 +14,7 @@
 namespace utl {
 
 template<typename T>
-concept is_mutable = std::is_same_v<std::remove_const_t<T>, T>;
+concept is_mutable = std::is_same_v<T, typename std::remove_const_t<T>>;
 
 template<class T>
 class index_map_iterator
@@ -26,7 +26,7 @@ public:
     using pointer = value_type*;
     using reference = value_type&;
     using non_cv_T = std::remove_cv_t<T>;
-    using vector_T = std::conditional_t<std::is_same_v<T, typename std::remove_const_t<T>>,
+    using vector_T = std::conditional_t<is_mutable<T>,
                                         std::vector<non_cv_T>,
                                         const std::vector<non_cv_T>>;
 
@@ -46,10 +46,11 @@ private:
     std::size_t index;
 };
 
-template<class T, class key_type>
+template<class T, class KeyType>
 class index_map
 {
 public:
+    using key_type = KeyType;
     using mapped_type = T;
     using value_type = std::pair<key_type, mapped_type>;
     using size_type = std::size_t;
@@ -93,63 +94,63 @@ private:
     std::vector<T> data;
 };
 
-template<class T, class key_type>
-auto index_map<T, key_type>::begin() -> iterator
+template<class T, class KeyType>
+auto index_map<T, KeyType>::begin() -> iterator
 {
     return {data, 0};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::end() -> iterator
+template<class T, class KeyType>
+auto index_map<T, KeyType>::end() -> iterator
 {
     return {data, data.size()};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::begin() const -> const_iterator
+template<class T, class KeyType>
+auto index_map<T, KeyType>::begin() const -> const_iterator
 {
     return {data, 0};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::end() const -> const_iterator
+template<class T, class KeyType>
+auto index_map<T, KeyType>::end() const -> const_iterator
 {
     return {data, data.size()};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::cbegin() const -> const_iterator
+template<class T, class KeyType>
+auto index_map<T, KeyType>::cbegin() const -> const_iterator
 {
     return {data, 0};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::cend() const -> const_iterator
+template<class T, class KeyType>
+auto index_map<T, KeyType>::cend() const -> const_iterator
 {
     return {data, data.size()};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::size() const -> std::size_t
+template<class T, class KeyType>
+auto index_map<T, KeyType>::size() const -> std::size_t
 {
     return data.size();
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::empty() const -> bool
+template<class T, class KeyType>
+auto index_map<T, KeyType>::empty() const -> bool
 {
     return data.empty();
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::at_id(key_type id) const -> std::pair<std::size_t, T&>
+template<class T, class KeyType>
+auto index_map<T, KeyType>::at_id(key_type id) const -> std::pair<std::size_t, T&>
 {
     std::size_t index = id_index.at(id);
     return {index, data[index]};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::optional_index(key_type id) const -> std::optional<std::size_t>
+template<class T, class KeyType>
+auto index_map<T, KeyType>::optional_index(key_type id) const -> std::optional<std::size_t>
 {
     const auto it = id_index.find(id);
     if (it == id_index.end()) {
@@ -158,8 +159,8 @@ auto index_map<T, key_type>::optional_index(key_type id) const -> std::optional<
     return {it->second};
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::id_from_index(std::size_t index) const -> key_type
+template<class T, class KeyType>
+auto index_map<T, KeyType>::id_from_index(std::size_t index) const -> key_type
 {
     const auto it = std::find_if(id_index.begin(), id_index.end(),
                                  [index](const auto& element) {
@@ -171,27 +172,27 @@ auto index_map<T, key_type>::id_from_index(std::size_t index) const -> key_type
     return it->first;
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::contains(key_type id) const -> bool
+template<class T, class KeyType>
+auto index_map<T, KeyType>::contains(key_type id) const -> bool
 {
     return id_index.contains(id);
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::operator[](std::size_t index) const -> const non_const_T&
+template<class T, class KeyType>
+auto index_map<T, KeyType>::operator[](std::size_t index) const -> const non_const_T&
 {
     return data[index];
 }
 
-template<class T, class key_type>
-auto index_map<T, key_type>::operator[](std::size_t index) -> T&
+template<class T, class KeyType>
+auto index_map<T, KeyType>::operator[](std::size_t index) -> T&
     requires is_mutable<T>
 {
     return data[index];
 }
 
-template<class T, class key_type>
-void index_map<T, key_type>::push_back(std::pair<unsigned, const T&> id_value)
+template<class T, class KeyType>
+void index_map<T, KeyType>::push_back(std::pair<unsigned, const T&> id_value)
 {
     const auto& [id, value] = id_value;
     if (not id_index.contains(id)) {
@@ -202,8 +203,8 @@ void index_map<T, key_type>::push_back(std::pair<unsigned, const T&> id_value)
     }
 }
 
-template<class T, class key_type>
-void index_map<T, key_type>::push_back(std::pair<unsigned, T&&> id_value)
+template<class T, class KeyType>
+void index_map<T, KeyType>::push_back(std::pair<unsigned, T&&> id_value)
 {
     auto&& [id, value] = id_value;
     if (not id_index.contains(id)) {
@@ -214,9 +215,9 @@ void index_map<T, key_type>::push_back(std::pair<unsigned, T&&> id_value)
     }
 }
 
-template<class T, class key_type>
+template<class T, class KeyType>
 template<class... Args>
-auto index_map<T, key_type>::emplace(key_type id, Args&&... args)
+auto index_map<T, KeyType>::emplace(key_type id, Args&&... args)
         -> std::pair<std::size_t, std::reference_wrapper<T>>
 {
     if (not id_index.contains(id)) {
