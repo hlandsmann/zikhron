@@ -1,28 +1,42 @@
 #pragma once
-
+#include <annotation/Card.h>
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
-#include <annotation/Card.h>
+#include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <glibmm/dispatcher.h>
 #include <gtkmm.h>
+#include <misc/Config.h>
+#include <spaced_repetition/TreeWalker.h>
 #include <spaced_repetition/Vocabulary.h>
 #include <utils/Property.h>
+
+#include <queue>
+
 #include <condition_variable>
 #include <filesystem>
 #include <functional>
+#include <map>
 #include <memory>
+#include <mutex>
 #include <nlohmann/json_fwd.hpp>
 #include <optional>
-#include <queue>
+#include <stop_token>
 #include <string_view>
 #include <thread>
 #include <tuple>
+#include <utility>
+#include <vector>
 
-class Session {
+#include <sys/types.h>
+
+class Session
+{
     using path = std::filesystem::path;
 
 public:
-    struct ConfigMain {
+    struct ConfigMain
+    {
         static constexpr std::string_view s_last_video_file = "last_video_file";
         static constexpr std::string_view s_last_audio_file = "last_audio_file";
         static constexpr std::string_view s_active_page = "active_page";
@@ -32,7 +46,8 @@ public:
 
     private:
         friend class Session;
-        void setDefault() {
+        void setDefault()
+        {
             lastVideoFile = "";
             activePage = 0;
         }
@@ -55,7 +70,8 @@ private:
     bool save_config = true;
 };
 
-class DataThread {
+class DataThread
+{
     DataThread();
 
 public:
@@ -84,7 +100,7 @@ public:
 
 private:
     static constexpr std::string_view path_to_dictionary =
-        "/home/harmen/src/zikhron/dictionaries/cedict_ts.u8";
+            "/home/harmen/src/zikhron/dictionaries/cedict_ts.u8";
     static constexpr std::string_view path_to_cardDB = "/home/harmen/zikhron/cards";
 
     using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, uint>>;
@@ -96,6 +112,8 @@ private:
     void sendActiveCard(CardInformation& cardInformation);
 
     [[nodiscard]] auto getCardFromId(uint id) const -> paragraph_optional;
+    std::shared_ptr<zikhron::Config> config;
+    std::shared_ptr<sr::TreeWalker> treeWalker;
 
     std::jthread worker;
     std::condition_variable_any condition;
@@ -108,7 +126,7 @@ private:
     signal_paragraphFromIds send_paragraphFromIds;
 
     // message_card msg_card;
-    message_annotation msg_annotation;
+    // message_annotation msg_annotation;
 
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
     std::unique_ptr<VocabularySR> vocabularySR;

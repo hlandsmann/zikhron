@@ -1,13 +1,36 @@
 #include <DataThread.h>
+#include <annotation/Card.h>
+#include <annotation/Ease.h>
+#include <annotation/Markup.h>
+#include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <spaced_repetition/TreeWalker.h>
+#include <spaced_repetition/Vocabulary.h>
 #include <spdlog/spdlog.h>
+#include <utils/Property.h>
 
 #include <algorithm>
+#include <cstdlib>
+#include <exception>
 #include <filesystem>
 #include <fstream>
+#include <functional>
+#include <iterator>
+#include <memory>
+#include <mutex>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
+#include <optional>
 #include <ranges>
+#include <stop_token>
+#include <string>
+#include <string_view>
+#include <thread>
 #include <type_traits>
+#include <utility>
+#include <vector>
+
+#include <sys/types.h>
 namespace ranges = std::ranges;
 namespace fs = std::filesystem;
 
@@ -27,6 +50,14 @@ struct fmt::formatter<fs::path>
 };
 
 namespace {
+
+auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
+{
+    auto path_to_exe = fs::read_symlink("/proc/self/exe");
+    auto zikhron_cfg_json = path_to_exe.parent_path() / "config.json";
+    return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
+}
+
 auto loadCardDB(const std::string& path_to_cardDB) -> std::unique_ptr<CardDB>
 {
     auto cardDB = std::make_unique<CardDB>();
@@ -142,6 +173,9 @@ DataThread::DataThread()
         }
     });
     job_queue.emplace([this]() {
+        config = get_zikhron_cfg();
+        auto walkableData = std::make_shared<sr::WalkableData>(config);
+        treeWalker = std::make_shared<sr::TreeWalker>(walkableData);
         cardDB = loadCardDB(std::string{path_to_cardDB});
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
         vocabularySR = std::make_unique<VocabularySR>(cardDB, zh_dictionary);
