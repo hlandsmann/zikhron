@@ -1,13 +1,14 @@
 #pragma once
 
-#include <functional>
 #include <cstddef>
+#include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
-#include <utility>
+#include <stdexcept>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 namespace utl {
@@ -26,8 +27,8 @@ public:
     using reference = value_type&;
     using non_cv_T = std::remove_cv_t<T>;
     using vector_T = std::conditional_t<std::is_same_v<T, typename std::remove_const_t<T>>,
-                                      std::vector<non_cv_T>,
-                                      const std::vector<non_cv_T>>;
+                                        std::vector<non_cv_T>,
+                                        const std::vector<non_cv_T>>;
 
     index_map_iterator(vector_T& data, std::size_t index);
 
@@ -66,7 +67,7 @@ public:
 
     index_map() = default;
     [[nodiscard]] auto begin() -> iterator;
-    [[nodiscard]] auto end()  -> iterator;
+    [[nodiscard]] auto end() -> iterator;
     [[nodiscard]] auto begin() const -> const_iterator;
     [[nodiscard]] auto end() const -> const_iterator;
     [[nodiscard]] auto cbegin() const -> const_iterator;
@@ -76,6 +77,7 @@ public:
     [[nodiscard]] auto empty() const -> bool;
     [[nodiscard]] auto at_id(unsigned id) const -> std::pair<std::size_t /* index */, T&>;
     [[nodiscard]] auto optional_index(unsigned id) const -> std::optional<std::size_t>;
+    [[nodiscard]] auto id_from_index(std::size_t index) const -> key_type;
     [[nodiscard]] auto contains(unsigned id) const -> bool;
     [[nodiscard]] auto operator[](std::size_t index) const -> const non_const_T&;
     [[nodiscard]] auto operator[](std::size_t index) -> T&
@@ -155,6 +157,19 @@ auto index_map<T>::optional_index(unsigned id) const -> std::optional<std::size_
         return {};
     }
     return {it->second};
+}
+
+template<class T>
+auto index_map<T>::id_from_index(std::size_t index) const -> key_type
+{
+    const auto it = std::find_if(id_index.begin(), id_index.end(),
+                                 [index](const auto& element) {
+      const auto& [_, tempIndex] = element;
+      return tempIndex == index; });
+    if (it == id_index.end()) {
+        throw std::out_of_range("index_map, id_from_index");
+    }
+    return it->first;
 }
 
 template<class T>

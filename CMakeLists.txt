@@ -27,6 +27,8 @@ if(use_iwyu)
     set(CMAKE_C_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
 endif(use_iwyu)
 
+include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
+gen_cfg_json()
 add_subdirectory(src)
 
 option(ENABLE_TESTING "Enable Test Builds" ON)

@@ -4,6 +4,7 @@
 #include "VocableProgress.h"
 
 #include <annotation/Card.h>
+#include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
@@ -13,8 +14,11 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <utility>
 #include <vector>
+
+#include <sys/types.h>
 namespace sr {
 using index_set = folly::sorted_vector_set<std::size_t>;
 
@@ -44,6 +48,7 @@ private:
     CardProgress progress;
     folly::sorted_vector_set<std::size_t> vocableIndices;
 };
+
 class WalkableData
 {
 public:
@@ -61,6 +66,10 @@ public:
             const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables;
     [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndVocables;
     [[nodiscard]] auto timingAndNVocables(size_t cardIndex) const -> TimingAndVocables;
+    [[nodiscard]] auto getActiveVocables(size_t cardIndex) const -> std::set<uint>;
+
+    [[nodiscard]] auto getVocableIdsInOrder(uint cardId) const -> std::vector<uint>;
+    [[nodiscard]] auto getRelevantEase(uint cardId) const -> std::map<uint, Ease>;
 
 private:
     DataBase db;

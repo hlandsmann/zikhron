@@ -3,6 +3,7 @@
 #include <CardProgress.h>
 #include <WalkableData.h>
 #include <annotation/Card.h>
+#include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <bits/ranges_algo.h>
 #include <folly/sorted_vector_types.h>
@@ -19,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <ranges>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -149,6 +151,56 @@ auto WalkableData::timingAndNVocables(size_t cardIndex) const -> TimingAndVocabl
 auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndVocables
 {
     return timingAndNVocables(card, {});
+}
+
+auto WalkableData::getVocableIdsInOrder(uint cardId) const -> std::vector<uint>
+{
+    const CardDB::CardPtr& cardPtr = db.getCards().at(cardId);
+    const auto& vocableChoices = db.VocableChoices();
+    const ZH_Annotator& annotator = cardPtr->getAnnotator();
+    std::vector<uint> vocableIds;
+    ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
+                          return not item.dicItemVec.empty();
+                      }),
+                      std::back_inserter(vocableIds),
+                      [&](const ZH_Annotator::Item& item) -> uint {
+                          uint vocId = item.dicItemVec.front().id;
+                          if (const auto it = vocableChoices.find(vocId);
+                              it != vocableChoices.end()) {
+                              vocId = it->second;
+                          }
+                          return vocId;
+                      });
+    return vocableIds;
+}
+
+auto WalkableData::getActiveVocables(size_t cardIndex) const -> std::set<uint>
+{
+    const auto& activeVocableIndices = timingAndNVocables(cardIndex).vocables;
+    std::set<uint> activeVocableIds;
+    ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
+                      [this](size_t vocableIndex) -> uint {
+                          return vocables.id_from_index(vocableIndex);
+                      });
+
+    return activeVocableIds;
+}
+
+auto WalkableData::getRelevantEase(uint cardId) const -> std::map<uint, Ease>
+{
+    std::set<uint> activeVocables = getActiveVocables(cardId);
+    std::map<uint, Ease> ease;
+    // ranges::transform(
+    //         activeVocables, std::inserter(ease, ease.begin()), [&](uint vocId) -> Id_Ease_vt::value_type {
+    //             const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
+    //             spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
+    //                           zh_dictionary->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
+    //                           vocSR.EaseFactor(),
+    //                           vocSR.IntervalDay(),
+    //                           vocId);
+    //             return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
+    //         });
+    return ease;
 }
 
 void WalkableData::fillIndexMaps()

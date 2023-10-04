@@ -211,6 +211,10 @@ auto TreeWalker::getNextTargetCard(size_t vocableIndex) const -> size_t
     return *vocables[vocableIndex].CardIndices().begin();
 }
 
+auto TreeWalker::getNextCardChoice(std::optional<uint> preferedCardId) -> CardInformation
+{
+}
+
 void TreeWalker::createTree()
 {
     auto optionalTargetVocable = getNextTargetVocable();
