@@ -1,6 +1,6 @@
-#include "VocableProgress.h"
-
 #include <CardProgress.h>
+#include <Identifier.h>
+#include <VocableProgress.h>
 #include <WalkableData.h>
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
@@ -78,12 +78,12 @@ WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
     fillIndexMaps();
 }
 
-auto WalkableData::Vocables() const -> const utl::index_map<VocableMeta>&
+auto WalkableData::Vocables() const -> const utl::index_map<VocableMeta, VocableId>&
 {
     return vocables;
 }
 
-auto WalkableData::Cards() const -> const utl::index_map<CardMeta>&
+auto WalkableData::Cards() const -> const utl::index_map<CardMeta, CardId>&
 {
     return cards;
 }
@@ -154,55 +154,58 @@ auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndVo
     return timingAndNVocables(card, {});
 }
 
-auto WalkableData::getVocableIdsInOrder(uint cardId) const -> std::vector<uint>
+auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>
 {
+    uint cardId = cards.id_from_index(cardIndex);
     const CardDB::CardPtr& cardPtr = db.getCards().at(cardId);
     const auto& vocableChoices = db.VocableChoices();
     const ZH_Annotator& annotator = cardPtr->getAnnotator();
-    std::vector<uint> vocableIds;
+    std::vector<VocableId> vocableIds;
     ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
                           return not item.dicItemVec.empty();
                       }),
                       std::back_inserter(vocableIds),
-                      [&](const ZH_Annotator::Item& item) -> uint {
-                          uint vocId = item.dicItemVec.front().id;
+                      [&](const ZH_Annotator::Item& item) -> VocableId {
+                          // TODO remove static_cast
+                          VocableId vocId = static_cast<VocableId>(item.dicItemVec.front().id);
                           if (const auto it = vocableChoices.find(vocId);
                               it != vocableChoices.end()) {
-                              vocId = it->second;
+                              // TODO remove static_cast
+                              vocId = static_cast<VocableId>(it->second);
                           }
                           return vocId;
                       });
     return vocableIds;
 }
 
-auto WalkableData::getActiveVocables(size_t cardIndex) const -> std::set<uint>
+auto WalkableData::getActiveVocables(size_t cardIndex) const -> std::set<VocableId>
 {
     const auto& activeVocableIndices = timingAndNVocables(cardIndex).vocables;
-    std::set<uint> activeVocableIds;
+    std::set<VocableId> activeVocableIds;
     ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
-                      [this](size_t vocableIndex) -> uint {
+                      [this](size_t vocableIndex) -> VocableId {
                           return vocables.id_from_index(vocableIndex);
                       });
 
     return activeVocableIds;
 }
 
-auto WalkableData::getRelevantEase(uint cardId) const -> std::map<uint, Ease>
+auto WalkableData::getRelevantEase(size_t cardIndex) const -> std::map<VocableId, Ease>
 {
-    std::set<uint> activeVocables = getActiveVocables(cardId);
-    std::map<uint, Ease> ease;
+    std::set<VocableId> activeVocables = getActiveVocables(cardIndex);
+    std::map<VocableId, Ease> ease;
     ranges::transform(
             activeVocables,
             std::inserter(ease, ease.begin()),
-            [&, this](uint vocId) -> std::pair<uint, Ease> {
-                const VocableProgress& vocSR = vocables.at_id(vocId).second.Progress();
-                // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
-                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
-                              db.Dictionary()->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
-                              vocSR.EaseFactor(),
-                              vocSR.IntervalDay(),
-                              vocId);
-                return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
+            [&, this](VocableId vocId) -> std::pair<VocableId, Ease> {
+                // const VocableProgress& vocSR = vocables.at_id(vocId).second.Progress();
+                // // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
+                // spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
+                //               db.Dictionary()->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
+                //               vocSR.EaseFactor(),
+                //               vocSR.IntervalDay(),
+                //               vocId);
+                // return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
             });
     return ease;
 }
@@ -233,13 +236,13 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
 
     const auto& progressCards = db.ProgressCards();
     auto itCard = progressCards.find(card->Id());
-    auto [card_index, cardMetaRef] = cards.emplace(card->Id(),
+    auto [card_index, cardMetaRef] = cards.emplace(static_cast<CardId>(card->Id()),
                                                    (itCard != progressCards.end())
                                                            ? itCard->second
                                                            : CardProgress{},
                                                    folly::sorted_vector_set<std::size_t>{});
     auto& cardMeta = cardMetaRef.get();
-    std::vector<uint> vocableIds = getVocableIdsInOrder(card, db.VocableChoices());
+    std::vector<VocableId> vocableIds = getVocableIdsInOrder(card, db.VocableChoices());
     for (const auto& [vocId, dicItemVec] : boost::combine(vocableIds, annotatorItems)) {
         const auto& optionalIndex = vocables.optional_index(vocId);
         if (optionalIndex.has_value()) {
@@ -263,20 +266,22 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
 
 auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,
                                         const std::map<unsigned, unsigned>& vocableChoices)
-        -> std::vector<uint>
+        -> std::vector<VocableId>
 {
     std::map<std::string, uint> zhdic_vocableMeta;
     const ZH_Annotator& annotator = card->getAnnotator();
-    std::vector<uint> vocableIds;
+    std::vector<VocableId> vocableIds;
     ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
                           return not item.dicItemVec.empty();
                       }),
                       std::back_inserter(vocableIds),
-                      [&vocableChoices](const ZH_Annotator::Item& item) -> uint {
-                          uint vocId = item.dicItemVec.front().id;
+                      [&vocableChoices](const ZH_Annotator::Item& item) -> VocableId {
+                          // TODO remove static_cast
+                          VocableId vocId = static_cast<VocableId>(item.dicItemVec.front().id);
                           if (const auto it = vocableChoices.find(vocId);
                               it != vocableChoices.end()) {
-                              vocId = it->second;
+                              // TODO remove static_cast
+                              vocId = static_cast<VocableId>(it->second);
                           }
                           return vocId;
                       });

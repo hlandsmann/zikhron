@@ -1,6 +1,7 @@
 #pragma once
 #include "CardProgress.h"
 #include "DataBase.h"
+#include "Identifier.h"
 #include "VocableProgress.h"
 
 #include <annotation/Card.h>
@@ -53,8 +54,8 @@ class WalkableData
 {
 public:
     WalkableData(std::shared_ptr<zikhron::Config> config);
-    [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableMeta>&;
-    [[nodiscard]] auto Cards() const -> const utl::index_map<CardMeta>&;
+    [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableMeta, VocableId>&;
+    [[nodiscard]] auto Cards() const -> const utl::index_map<CardMeta, CardId>&;
 
     struct TimingAndVocables
     {
@@ -66,15 +67,15 @@ public:
             const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables;
     [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndVocables;
     [[nodiscard]] auto timingAndNVocables(size_t cardIndex) const -> TimingAndVocables;
-    [[nodiscard]] auto getActiveVocables(size_t cardIndex) const -> std::set<uint>;
+    [[nodiscard]] auto getActiveVocables(size_t cardIndex) const -> std::set<VocableId>;
 
-    [[nodiscard]] auto getVocableIdsInOrder(uint cardId) const -> std::vector<uint>;
-    [[nodiscard]] auto getRelevantEase(uint cardId) const -> std::map<uint, Ease>;
+    [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;
+    [[nodiscard]] auto getRelevantEase(size_t cardIndex) const -> std::map<VocableId, Ease>;
 
 private:
     DataBase db;
-    utl::index_map<VocableMeta> vocables;
-    utl::index_map<CardMeta> cards;
+    utl::index_map<VocableMeta, VocableId> vocables;
+    utl::index_map<CardMeta, CardId> cards;
 
     std::function<VocableProgress(std::size_t)>
             vocable_progress = [this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
@@ -109,6 +110,6 @@ private:
     void insertVocabularyOfCard(const CardDB::CardPtr& card);
 
     static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
-                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<unsigned>;
+                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<VocableId>;
 };
 } // namespace sr
