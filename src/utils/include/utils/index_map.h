@@ -75,7 +75,9 @@ public:
 
     [[nodiscard]] auto size() const -> std::size_t;
     [[nodiscard]] auto empty() const -> bool;
-    [[nodiscard]] auto at_id(key_type id) const -> std::pair<std::size_t /* index */, T&>;
+    [[nodiscard]] auto at_id(key_type id) const -> std::pair<std::size_t /* index */, const non_const_T&>;
+    [[nodiscard]] auto at_id(key_type id) -> std::pair<std::size_t /* index */, T&>
+        requires is_mutable<T>;
     [[nodiscard]] auto optional_index(key_type id) const -> std::optional<std::size_t>;
     [[nodiscard]] auto id_from_index(std::size_t index) const -> key_type;
     [[nodiscard]] auto contains(key_type id) const -> bool;
@@ -143,7 +145,16 @@ auto index_map<T, KeyType>::empty() const -> bool
 }
 
 template<class T, class KeyType>
-auto index_map<T, KeyType>::at_id(key_type id) const -> std::pair<std::size_t, T&>
+auto index_map<T, KeyType>::at_id(key_type id) const
+        -> std::pair<std::size_t, const non_const_T&>
+{
+    std::size_t index = id_index.at(id);
+    return {index, data[index]};
+}
+
+template<class T, class KeyType>
+auto index_map<T, KeyType>::at_id(key_type id) -> std::pair<std::size_t /* index */, T&>
+    requires is_mutable<T>
 {
     std::size_t index = id_index.at(id);
     return {index, data[index]};
