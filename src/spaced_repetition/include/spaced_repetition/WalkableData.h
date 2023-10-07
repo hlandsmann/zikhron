@@ -55,10 +55,9 @@ class WalkableData
 {
 public:
     WalkableData(std::shared_ptr<zikhron::Config> config);
-    [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableMeta, VocableId>&;
-    [[nodiscard]] auto Cards() const -> const utl::index_map<CardMeta, CardId>&;
+    [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
+    [[nodiscard]] auto Cards() const -> const utl::index_map<CardId, CardMeta>&;
     [[nodiscard]] auto getCardCopy(size_t cardIndex) const -> CardDB::CardPtr;
-
 
     struct TimingAndVocables
     {
@@ -77,9 +76,16 @@ public:
     void setEaseVocable(VocableId, Ease);
 
 private:
+    void fillIndexMaps();
+    void insertVocabularyOfCard(const CardDB::CardPtr& card);
+    [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
+
+    static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
+                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<VocableId>;
+
     DataBase db;
-    utl::index_map<VocableMeta, VocableId> vocables;
-    utl::index_map<CardMeta, CardId> cards;
+    utl::index_map<VocableId, VocableMeta> vocables;
+    utl::index_map<CardId, CardMeta> cards;
 
     std::function<VocableProgress(std::size_t)>
             vocable_progress = [this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
@@ -110,10 +116,5 @@ private:
             -> std::pair<std::size_t, folly::sorted_vector_set<std::size_t>> {
         return {cardIndex, cards[cardIndex].VocableIndices()};
     };
-    void fillIndexMaps();
-    void insertVocabularyOfCard(const CardDB::CardPtr& card);
-
-    static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
-                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<VocableId>;
 };
 } // namespace sr

@@ -83,12 +83,12 @@ WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
     fillIndexMaps();
 }
 
-auto WalkableData::Vocables() const -> const utl::index_map<VocableMeta, VocableId>&
+auto WalkableData::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 {
     return vocables;
 }
 
-auto WalkableData::Cards() const -> const utl::index_map<CardMeta, CardId>&
+auto WalkableData::Cards() const -> const utl::index_map<CardId, CardMeta>&
 {
     return cards;
 }
@@ -281,6 +281,13 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
             cardMeta.vocableIndices_insert(vocable_index);
         }
     }
+}
+
+auto WalkableData::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
+{
+    std::map<VocableId, VocableProgress> id_progress;
+    // ranges::transform(vocables, std::inserter(id_progress, id_progress.begin()), [](auto& element) -> std::pair<VocableId, VocableProgress> {});
+    return id_progress;
 }
 
 auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,

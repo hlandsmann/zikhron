@@ -46,7 +46,7 @@ private:
     std::size_t index;
 };
 
-template<class T, class KeyType>
+template<class KeyType, class T>
 class index_map
 {
 public:
@@ -96,72 +96,72 @@ private:
     std::vector<T> data;
 };
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::begin() -> iterator
+template<class KeyType, class T>
+auto index_map<KeyType, T>::begin() -> iterator
 {
     return {data, 0};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::end() -> iterator
+template<class KeyType, class T>
+auto index_map<KeyType, T>::end() -> iterator
 {
     return {data, data.size()};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::begin() const -> const_iterator
+template<class KeyType, class T>
+auto index_map<KeyType, T>::begin() const -> const_iterator
 {
     return {data, 0};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::end() const -> const_iterator
+template<class KeyType, class T>
+auto index_map<KeyType, T>::end() const -> const_iterator
 {
     return {data, data.size()};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::cbegin() const -> const_iterator
+template<class KeyType, class T>
+auto index_map<KeyType, T>::cbegin() const -> const_iterator
 {
     return {data, 0};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::cend() const -> const_iterator
+template<class KeyType, class T>
+auto index_map<KeyType, T>::cend() const -> const_iterator
 {
     return {data, data.size()};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::size() const -> std::size_t
+template<class KeyType, class T>
+auto index_map<KeyType, T>::size() const -> std::size_t
 {
     return data.size();
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::empty() const -> bool
+template<class KeyType, class T>
+auto index_map<KeyType, T>::empty() const -> bool
 {
     return data.empty();
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::at_id(key_type id) const
+template<class KeyType, class T>
+auto index_map<KeyType, T>::at_id(key_type id) const
         -> std::pair<std::size_t, const non_const_T&>
 {
     std::size_t index = id_index.at(id);
     return {index, data[index]};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::at_id(key_type id) -> std::pair<std::size_t /* index */, T&>
+template<class KeyType, class T>
+auto index_map<KeyType, T>::at_id(key_type id) -> std::pair<std::size_t /* index */, T&>
     requires is_mutable<T>
 {
     std::size_t index = id_index.at(id);
     return {index, data[index]};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::optional_index(key_type id) const -> std::optional<std::size_t>
+template<class KeyType, class T>
+auto index_map<KeyType, T>::optional_index(key_type id) const -> std::optional<std::size_t>
 {
     const auto it = id_index.find(id);
     if (it == id_index.end()) {
@@ -170,8 +170,8 @@ auto index_map<T, KeyType>::optional_index(key_type id) const -> std::optional<s
     return {it->second};
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::id_from_index(std::size_t index) const -> key_type
+template<class KeyType, class T>
+auto index_map<KeyType, T>::id_from_index(std::size_t index) const -> key_type
 {
     const auto it = std::find_if(id_index.begin(), id_index.end(),
                                  [index](const auto& element) {
@@ -183,27 +183,27 @@ auto index_map<T, KeyType>::id_from_index(std::size_t index) const -> key_type
     return it->first;
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::contains(key_type id) const -> bool
+template<class KeyType, class T>
+auto index_map<KeyType, T>::contains(key_type id) const -> bool
 {
     return id_index.contains(id);
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::operator[](std::size_t index) const -> const non_const_T&
+template<class KeyType, class T>
+auto index_map<KeyType, T>::operator[](std::size_t index) const -> const non_const_T&
 {
     return data[index];
 }
 
-template<class T, class KeyType>
-auto index_map<T, KeyType>::operator[](std::size_t index) -> T&
+template<class KeyType, class T>
+auto index_map<KeyType, T>::operator[](std::size_t index) -> T&
     requires is_mutable<T>
 {
     return data[index];
 }
 
-template<class T, class KeyType>
-void index_map<T, KeyType>::push_back(std::pair<unsigned, const T&> id_value)
+template<class KeyType, class T>
+void index_map<KeyType, T>::push_back(std::pair<unsigned, const T&> id_value)
 {
     const auto& [id, value] = id_value;
     if (not id_index.contains(id)) {
@@ -214,8 +214,8 @@ void index_map<T, KeyType>::push_back(std::pair<unsigned, const T&> id_value)
     }
 }
 
-template<class T, class KeyType>
-void index_map<T, KeyType>::push_back(std::pair<unsigned, T&&> id_value)
+template<class KeyType, class T>
+void index_map<KeyType, T>::push_back(std::pair<unsigned, T&&> id_value)
 {
     auto&& [id, value] = id_value;
     if (not id_index.contains(id)) {
@@ -226,9 +226,9 @@ void index_map<T, KeyType>::push_back(std::pair<unsigned, T&&> id_value)
     }
 }
 
-template<class T, class KeyType>
+template<class KeyType, class T>
 template<class... Args>
-auto index_map<T, KeyType>::emplace(key_type id, Args&&... args)
+auto index_map<KeyType, T>::emplace(key_type id, Args&&... args)
         -> std::pair<std::size_t, std::reference_wrapper<T>>
 {
     if (not id_index.contains(id)) {
