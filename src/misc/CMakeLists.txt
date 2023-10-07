@@ -3,14 +3,15 @@ add_library(zikhron::miscellaneous ALIAS zikhron_miscellaneous)
 
 target_sources(zikhron_miscellaneous
     PRIVATE
-        src/Config.cpp
         include/misc/Config.h
+        include/misc/Identifier.h
+        src/Config.cpp
 )
 
 target_include_directories(zikhron_miscellaneous
     PRIVATE
-        src
         include/misc
+        src
     INTERFACE
         include
 )

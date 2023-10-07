@@ -1,7 +1,6 @@
 #pragma once
 #include "CardProgress.h"
 #include "DataBase.h"
-#include "Identifier.h"
 #include "VocableProgress.h"
 
 #include <annotation/Card.h>
@@ -9,6 +8,7 @@
 #include <annotation/ZH_Annotator.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 #include <utils/index_map.h>
 
 #include <cstddef>
@@ -56,6 +56,7 @@ public:
     WalkableData(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableMeta, VocableId>&;
     [[nodiscard]] auto Cards() const -> const utl::index_map<CardMeta, CardId>&;
+    [[nodiscard]] auto getCardCopy(size_t cardIndex) const -> CardDB::CardPtr;
 
     struct TimingAndVocables
     {

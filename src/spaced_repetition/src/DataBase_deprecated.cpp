@@ -1,8 +1,11 @@
+#include "misc/Identifier.h"
+
 #include <DataBase_deprecated.h>
 #include <annotation/Markup.h>
 #include <annotation/ZH_Annotator.h>
 #include <spdlog/spdlog.h>
 #include <utils/counting_iterator.h>
+
 #include <algorithm>
 #include <boost/range/combine.hpp>
 #include <filesystem>
@@ -13,7 +16,8 @@ namespace ranges = std::ranges;
 
 SR_DataBase::SR_DataBase(const std::shared_ptr<CardDB>& cardDB_in,
                          const std::shared_ptr<ZH_Dictionary>& zh_dictionary_in)
-    : cardDB(cardDB_in), zh_dictionary(zh_dictionary_in) {
+    : cardDB(cardDB_in), zh_dictionary(zh_dictionary_in)
+{
     LoadAnnotationChoices();
     LoadVocableChoices();
     GenerateFromCards();
@@ -22,32 +26,35 @@ SR_DataBase::SR_DataBase(const std::shared_ptr<CardDB>& cardDB_in,
     CleanUpVocables(std::set<uint>());
 }
 
-SR_DataBase::~SR_DataBase() {
+SR_DataBase::~SR_DataBase()
+{
     try {
         SaveVocableChoices();
         SaveAnnotationChoices();
         SaveProgress();
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error(e.what());
     }
 }
 
-auto SR_DataBase::LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json {
+auto SR_DataBase::LoadJsonFromFile(const std::string_view& fn) -> nlohmann::json
+{
     namespace fs = std::filesystem;
     fs::path fn_metaFile = fs::path(s_path_meta) / fn;
     std::ifstream ifs(fn_metaFile);
     return nlohmann::json::parse(ifs);
 }
 
-void SR_DataBase::SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js) {
+void SR_DataBase::SaveJsonToFile(const std::string_view& fn, const nlohmann::json& js)
+{
     namespace fs = std::filesystem;
     fs::path fn_metaFile = fs::path(s_path_meta) / fn;
     std::ofstream ofs(fn_metaFile);
     ofs << js.dump(4);
 }
 
-void SR_DataBase::LoadAnnotationChoices() {
+void SR_DataBase::LoadAnnotationChoices()
+{
     try {
         nlohmann::json choicesJson = LoadJsonFromFile(s_fn_annotationChoices);
         ranges::transform(choicesJson,
@@ -67,13 +74,13 @@ void SR_DataBase::LoadAnnotationChoices() {
                                                 [](const nlohmann::json& c) -> int { return c; });
                               return {char_seq, combination};
                           });
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error("Load of AnnotationChoice file failed, Error: {}", e.what());
     }
 }
 
-void SR_DataBase::SaveAnnotationChoices() const {
+void SR_DataBase::SaveAnnotationChoices() const
+{
     try {
         nlohmann::json array = nlohmann::json::array();
         ranges::transform(annotationChoices,
@@ -82,13 +89,13 @@ void SR_DataBase::SaveAnnotationChoices() const {
                               return {{"char_seq", choice.first}, {"combination", choice.second}};
                           });
         SaveJsonToFile(s_fn_annotationChoices, array);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error("Saving annotation choices failed with Error: {}", e.what());
     }
 }
 
-void SR_DataBase::LoadVocableChoices() {
+void SR_DataBase::LoadVocableChoices()
+{
     try {
         nlohmann::json choicesJson = LoadJsonFromFile(s_fn_vocableChoices);
         ranges::transform(choicesJson,
@@ -99,13 +106,13 @@ void SR_DataBase::LoadVocableChoices() {
 
                               return {uint_id, uint_map_id};
                           });
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error("Load of vocable choice file failed, Error: {}", e.what());
     }
 }
 
-void SR_DataBase::SaveVocableChoices() const {
+void SR_DataBase::SaveVocableChoices() const
+{
     try {
         nlohmann::json array = nlohmann::json::array();
         ranges::transform(id_id_vocableChoices,
@@ -114,13 +121,13 @@ void SR_DataBase::SaveVocableChoices() const {
                               return {{"id", choice.first}, {"map_id", choice.second}};
                           });
         SaveJsonToFile(s_fn_vocableChoices, array);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error("Saving vocable choices failed with Error: {}", e.what());
     }
 }
 
-void SR_DataBase::GenerateFromCards() {
+void SR_DataBase::GenerateFromCards()
+{
     const std::map<uint, CardDB::CardPtr>& cards = cardDB->get();
 
     for (const auto& [cardId, card] : cards) {
@@ -141,7 +148,8 @@ void SR_DataBase::GenerateFromCards() {
     spdlog::info("VocableSize: {}", zhdic_vocableMeta.size());
 }
 
-void SR_DataBase::EraseVocabularyOfCard(uint cardId) {
+void SR_DataBase::EraseVocabularyOfCard(uint cardId)
+{
     CardMetaDeprecated& cm = id_cardMeta.at(cardId);
     for (uint vocId : cm.vocableIds) {
         auto& vocable = id_vocableMeta.at(vocId);
@@ -150,7 +158,8 @@ void SR_DataBase::EraseVocabularyOfCard(uint cardId) {
     cm.vocableIds.clear();
 }
 
-void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& card) {
+void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& card)
+{
     // utl::StringU8 card_text = markup::Paragraph::textFromCard(*card);
     card->createAnnotator(zh_dictionary, annotationChoices);
 
@@ -170,7 +179,7 @@ void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& car
                           return item.dicItemVec;
                       });
 
-    std::vector<uint> vocableIds = GetVocableIdsInOrder(cardId);
+    std::vector<VocableId> vocableIds = GetVocableIdsInOrder(cardId);
     for (const auto& [vocId, dicItemVec] : boost::combine(vocableIds, annotatorItems)) {
         const auto& dicEntry = zh_dictionary->EntryFromPosition(vocId, CharacterSetType::Simplified);
         const auto& key = dicEntry.key;
@@ -189,7 +198,8 @@ void SR_DataBase::InsertVocabularyOfCard(uint cardId, const CardDB::CardPtr& car
     cm.cardId = cardId;
 }
 
-void SR_DataBase::SetEase(uint vocId, Ease ease) {
+void SR_DataBase::SetEase(uint vocId, Ease ease)
+{
     VocableProgress& vocableSR = id_vocableSR[vocId];
 
     vocableSR.advanceByEase(ease);
@@ -208,9 +218,13 @@ void SR_DataBase::SetEase(uint vocId, Ease ease) {
                   vocableSR.EaseFactor());
 }
 
-void SR_DataBase::ViewCard(uint cardId) { id_cardSR[cardId].ViewNow(); }
+void SR_DataBase::ViewCard(uint cardId)
+{
+    id_cardSR[cardId].ViewNow();
+}
 
-void SR_DataBase::AdvanceIndirectlySeenVocables(uint cardId) {
+void SR_DataBase::AdvanceIndirectlySeenVocables(uint cardId)
+{
     std::vector<std::string> advancedVocables;
     std::vector<std::string> unchangedVocables;
     for (uint vocId : id_cardMeta.at(cardId).vocableIds)
@@ -225,7 +239,8 @@ void SR_DataBase::AdvanceIndirectlySeenVocables(uint cardId) {
     spdlog::debug("Unchanged are: {}", fmt::join(unchangedVocables, ", "));
 }
 
-void SR_DataBase::AdvanceFailedVocables() {
+void SR_DataBase::AdvanceFailedVocables()
+{
     std::set<uint> toRepeatVoc;
     ranges::copy_if(ids_againVoc, std::inserter(toRepeatVoc, toRepeatVoc.begin()), [&](uint id) {
         return id_vocableSR.at(id).pauseTimeOver();
@@ -238,25 +253,27 @@ void SR_DataBase::AdvanceFailedVocables() {
     }
 }
 
-auto SR_DataBase::GetVocableIdsInOrder(uint cardId) const -> std::vector<uint> {
+auto SR_DataBase::GetVocableIdsInOrder(uint cardId) const -> std::vector<VocableId>
+{
     const CardDB::CardPtr& cardPtr = cardDB->get().at(cardId);
     const ZH_Annotator& annotator = cardPtr->getAnnotator();
-    std::vector<uint> vocableIds;
+    std::vector<VocableId> vocableIds;
     ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
                           return not item.dicItemVec.empty();
                       }),
                       std::back_inserter(vocableIds),
-                      [this](const ZH_Annotator::Item& item) -> uint {
-                          uint vocId = item.dicItemVec.front().id;
+                      [this](const ZH_Annotator::Item& item) -> VocableId {
+                          VocableId vocId = static_cast<VocableId>(item.dicItemVec.front().id);
                           if (const auto it = id_id_vocableChoices.find(vocId);
                               it != id_id_vocableChoices.end())
-                              vocId = it->second;
+                              vocId = static_cast<VocableId>(it->second);
                           return vocId;
                       });
     return vocableIds;
 }
 
-void SR_DataBase::LoadProgress() {
+void SR_DataBase::LoadProgress()
+{
     auto jsonToMap = [](auto& map, const nlohmann::json& jsonMeta) {
         const auto& content = jsonMeta.at(std::string(s_content));
         using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
@@ -266,23 +283,22 @@ void SR_DataBase::LoadProgress() {
         nlohmann::json jsonVocSR = LoadJsonFromFile(s_fn_metaVocableSR);
         jsonToMap(id_vocableSR, jsonVocSR);
         spdlog::debug("Vocable SR file {} loaded!", s_fn_metaVocableSR);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error("Vocabulary SR load for {} failed! Exception {}", s_fn_metaVocableSR, e.what());
     }
     try {
         nlohmann::json jsonCardSR = LoadJsonFromFile(s_fn_metaCardSR);
         jsonToMap(id_cardSR, jsonCardSR);
         spdlog::debug("Card SR file {} loaded!", s_fn_metaCardSR);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error("Card SR load for {} failed! Exception {}", s_fn_metaCardSR, e.what());
     }
 
     spdlog::info("Vocables studied so far: {}, Cards viewed: {}", id_vocableSR.size(), id_cardSR.size());
 }
 
-void SR_DataBase::SaveProgress() const {
+void SR_DataBase::SaveProgress() const
+{
     auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
         nlohmann::json jsonMeta = nlohmann::json::object();
         auto& content = jsonMeta[std::string(s_content)];
@@ -302,13 +318,13 @@ void SR_DataBase::SaveProgress() const {
         // save file for CardSR -----------------------------------------------
         nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
         SaveJsonToFile(s_fn_metaCardSR, jsonCardSR);
-    }
-    catch (const std::exception& e) {
+    } catch (const std::exception& e) {
         spdlog::error("Saving of meta files failed. Error: {}", e.what());
     }
 }
 
-void SR_DataBase::GenerateToRepeatWorkload() {
+void SR_DataBase::GenerateToRepeatWorkload()
+{
     for (const auto& [id, vocSR] : id_vocableSR) {
         if (vocSR.isToBeRepeatedToday())
             ids_repeatTodayVoc.insert(id);
@@ -317,18 +333,19 @@ void SR_DataBase::GenerateToRepeatWorkload() {
     }
 }
 
-void SR_DataBase::CleanUpVocables(std::set<uint> ignoreVocableIds) {
+void SR_DataBase::CleanUpVocables(std::set<uint> ignoreVocableIds)
+{
     std::set<uint> badVocableIds;
     std::set<uint> activeVocableIds;
 
     ranges::copy(id_vocableSR | std::views::keys,
                  std::inserter(ignoreVocableIds, ignoreVocableIds.begin()));
 
-    auto seenCards = id_cardMeta |
-                     std::views::filter([&ignoreVocableIds](std::pair<uint, CardMetaDeprecated> id_cm) {
+    auto seenCards = id_cardMeta | std::views::filter([&ignoreVocableIds](std::pair<uint, CardMetaDeprecated> id_cm) {
                          return ranges::set_difference(
-                                    id_cm.second.vocableIds, ignoreVocableIds, utl::counting_iterator{})
-                                    .out.count == 0;
+                                        id_cm.second.vocableIds, ignoreVocableIds, utl::counting_iterator{})
+                                        .out.count
+                                == 0;
                      });
     for (const auto& [id, card] : seenCards) {
         activeVocableIds.insert(card.vocableIds.begin(), card.vocableIds.end());
@@ -350,7 +367,8 @@ void SR_DataBase::CleanUpVocables(std::set<uint> ignoreVocableIds) {
 
 void SR_DataBase::AddAnnotation(const ZH_Annotator::Combination& combination,
                                 const std::vector<utl::CharU8>& characterSequence,
-                                uint activeCardId) {
+                                uint activeCardId)
+{
     annotationChoices[characterSequence] = combination;
 
     std::set<uint> cardsWithCharSeq;
@@ -371,7 +389,8 @@ void SR_DataBase::AddAnnotation(const ZH_Annotator::Combination& combination,
     CleanUpVocables(id_cardMeta.at(activeCardId).vocableIds);
 }
 
-void SR_DataBase::AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice) {
+void SR_DataBase::AddVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice)
+{
     if (vocIdOldChoice == vocIdNewChoice) {
         return;
     }

@@ -11,7 +11,6 @@ target_sources(zikhron_spaced_repetition
         include/spaced_repetition/CardProgress.h
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/DataBase_deprecated.h
-        include/spaced_repetition/Identifier.h
         include/spaced_repetition/TreeWalker.h
         include/spaced_repetition/VocableProgress.h
         include/spaced_repetition/Vocabulary.h

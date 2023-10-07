@@ -1,4 +1,5 @@
 #pragma once
+#include <misc/Identifier.h>
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
@@ -63,7 +64,7 @@ public:
     [[nodiscard]] auto Ids_againVoc() const -> const std::set<unsigned>& { return ids_againVoc; };
     [[nodiscard]] auto Ids_nowVoc() const -> const std::set<unsigned>& { return ids_nowVoc; };
 
-    [[nodiscard]] auto GetVocableIdsInOrder(unsigned cardId) const -> std::vector<unsigned>;
+    [[nodiscard]] auto GetVocableIdsInOrder(unsigned cardId) const -> std::vector<VocableId>;
     void SetEase(unsigned vocId, Ease ease);
     void ViewCard(unsigned cardId);
     void AdvanceIndirectlySeenVocables(unsigned cardId);

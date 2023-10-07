@@ -22,6 +22,7 @@ target_sources(zikhron_annotation
 target_link_libraries(zikhron_annotation
     PUBLIC
         zikhron::dictionary
+        zikhron::miscellaneous
     PRIVATE
         Microsoft.GSL::GSL
         ctre::ctre

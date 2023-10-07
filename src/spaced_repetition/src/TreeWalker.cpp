@@ -213,6 +213,12 @@ auto TreeWalker::getNextTargetCard(size_t vocableIndex) const -> size_t
 
 auto TreeWalker::getNextCardChoice(std::optional<uint> preferedCardId) -> CardInformation
 {
+    constexpr size_t activeCardIndex = 332;
+    auto card = walkableData->getCardCopy(activeCardIndex);
+
+    return {std::move(card),
+            walkableData->getVocableIdsInOrder(activeCardIndex),
+            walkableData->getRelevantEase(activeCardIndex)};
 }
 
 void TreeWalker::createTree()

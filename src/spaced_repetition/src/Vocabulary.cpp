@@ -307,7 +307,7 @@ auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
                           vocSR.EaseFactor(),
                           vocSR.IntervalDay(),
                           vocId);
-            return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
+            return {static_cast<VocableId>(vocId), {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
         });
     return ease;
 }
