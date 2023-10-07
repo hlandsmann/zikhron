@@ -1,5 +1,5 @@
 #include <CardProgress.h>
-#include <Identifier.h>
+#include <misc/Identifier.h>
 #include <VocableProgress.h>
 #include <WalkableData.h>
 #include <annotation/Card.h>
@@ -88,6 +88,13 @@ auto WalkableData::Cards() const -> const utl::index_map<CardMeta, CardId>&
     return cards;
 }
 
+auto WalkableData::getCardCopy(size_t cardIndex) const -> CardDB::CardPtr
+{
+    CardId cardId = cards.id_from_index(cardIndex);
+    const CardDB::CardPtr& cardPtr = db.getCards().at(cardId);
+    return cardPtr->clone();
+}
+
 auto WalkableData::timingAndNVocables(
         const CardMeta& card,
         const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables
@@ -156,7 +163,7 @@ auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndVo
 
 auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>
 {
-    uint cardId = cards.id_from_index(cardIndex);
+    CardId cardId = cards.id_from_index(cardIndex);
     const CardDB::CardPtr& cardPtr = db.getCards().at(cardId);
     const auto& vocableChoices = db.VocableChoices();
     const ZH_Annotator& annotator = cardPtr->getAnnotator();
@@ -198,14 +205,14 @@ auto WalkableData::getRelevantEase(size_t cardIndex) const -> std::map<VocableId
             activeVocables,
             std::inserter(ease, ease.begin()),
             [&, this](VocableId vocId) -> std::pair<VocableId, Ease> {
-                // const VocableProgress& vocSR = vocables.at_id(vocId).second.Progress();
-                // // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
-                // spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
-                //               db.Dictionary()->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
-                //               vocSR.EaseFactor(),
-                //               vocSR.IntervalDay(),
-                //               vocId);
-                // return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
+                const VocableProgress& vocSR = vocables.at_id(vocId).second.Progress();
+                // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
+                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
+                              db.Dictionary()->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
+                              vocSR.EaseFactor(),
+                              vocSR.IntervalDay(),
+                              vocId);
+                return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
             });
     return ease;
 }

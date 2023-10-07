@@ -7,6 +7,7 @@
 #include <glibmm/dispatcher.h>
 #include <gtkmm.h>
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 #include <spaced_repetition/TreeWalker.h>
 #include <spaced_repetition/Vocabulary.h>
 #include <utils/Property.h>
@@ -103,9 +104,9 @@ private:
             "/home/harmen/src/zikhron/dictionaries/cedict_ts.u8";
     static constexpr std::string_view path_to_cardDB = "/home/harmen/zikhron/cards";
 
-    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, uint>>;
-    using Id_Ease_vt = std::map<uint, Ease>;
-    using CardInformation = VocabularySR::CardInformation;
+    using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, VocableId>>;
+    using Id_Ease_vt = std::map<VocableId, Ease>;
+    using CardInformation = sr::TreeWalker::CardInformation;
 
     void worker_thread(std::stop_token);
     void dispatcher_fun();

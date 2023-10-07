@@ -229,7 +229,7 @@ void DataThread::requestCard(std::optional<uint> preferedCardId)
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, preferedCardId]() {
-            auto cardInformation = vocabularySR->getNextCardChoice(preferedCardId);
+            auto cardInformation = treeWalker->getNextCardChoice(preferedCardId);
             sendActiveCard(cardInformation);
         });
     }
@@ -330,7 +330,8 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, combination, characterSequence]() {
             auto cardInformation = vocabularySR->AddAnnotation(combination, characterSequence);
-            sendActiveCard(cardInformation);
+            //TODO reactivate
+            // sendActiveCard(cardInformation);
         });
     }
     condition.notify_one();
@@ -342,7 +343,8 @@ void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocId
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, vocId, vocIdOldChoice, vocIdNewChoice]() {
             auto cardInformation = vocabularySR->AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
-            sendActiveCard(cardInformation);
+            //TODO reactivate
+            // sendActiveCard(cardInformation);
         });
     }
     condition.notify_one();
