@@ -44,7 +44,7 @@ public:
     static constexpr std::string_view s_indirect_view = "indirect_view";
     static constexpr std::string_view s_indirect_interval_day = "indirect_interval_day";
 
-    void advanceByEase(Ease);
+    void advanceByEase(const Ease&);
     auto advanceIndirectly() -> bool;
     [[nodiscard]] auto recency() const -> float;
     [[nodiscard]] auto urgency() const -> float;

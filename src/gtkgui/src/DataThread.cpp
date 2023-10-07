@@ -1,3 +1,4 @@
+#include "spaced_repetition/WalkableData.h"
 #include <DataThread.h>
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
@@ -257,7 +258,7 @@ void DataThread::requestCardFromIds(std::vector<uint>&& _ids)
 void DataThread::submitEase(const VocabularySR::Id_Ease_vt& ease)
 {
     std::lock_guard<std::mutex> lock(condition_mutex);
-    vocabularySR->setEaseLastCard(ease);
+    treeWalker->setEaseLastCard(ease);
 }
 
 void DataThread::signal_annotation_connect(const signal_annotation& signal)

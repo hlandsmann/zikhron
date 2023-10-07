@@ -24,43 +24,43 @@ namespace views = std::ranges::views;
 namespace {
 void walk(const std::shared_ptr<sr::WalkableData>& walkableData)
 {
-    const auto& cards = walkableData->Cards();
-    const auto& vocables = walkableData->Vocables();
-    sr::index_set todayVocablesIndices;
-
-    auto todayVocables = todayVocablesIndices
-                         | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
-                               return vocables[index];
-                           });
-    int cardIndex = 0;
-    for (const auto& card : cards) {
-        // if (cardIndex++ == 1200) {
-        auto tnv = walkableData->timingAndNVocables(card);
-        if (tnv.timing <= 0) {
-            todayVocablesIndices.insert(tnv.vocables.begin(), tnv.vocables.end());
-        }
-        // spdlog::info("Card: {}, when{}, activeVocs:{}", cardIndex++, tnv.timing, tnv.vocables.size());
-        // }
-    }
-    spdlog::info("Vocables to study: {}", todayVocablesIndices.size());
-
-    auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
-
-    size_t vocable = *ranges::min_element(todayVocablesIndices, std::less{}, recency);
-    spdlog::info("voc_index: {}, recency: {}", vocable, vocables[vocable].Progress().recency());
-    for (size_t cIndex : vocables[vocable].CardIndices()) {
-        auto tnv = walkableData->timingAndNVocables(cards[cIndex]);
-        spdlog::info("+ cindex: {}, size: {}, time: {}", cIndex, tnv.vocables.size(), tnv.timing);
-        for (size_t vIndex : tnv.vocables) {
-            spdlog::info("| + vindex: {}, size: {}, recency: {}",
-                         vIndex, vocables[vIndex].CardIndices().size(), vocables[vIndex].Progress().recency());
-        }
-        spdlog::info("...");
-        for (size_t vIndex : cards[cIndex].VocableIndices()) {
-            spdlog::info("| + vindex: {}, size: {}, recency: {}",
-                         vIndex, vocables[vIndex].CardIndices().size(), vocables[vIndex].Progress().recency());
-        }
-    }
+    // const auto& cards = walkableData->Cards();
+    // const auto& vocables = walkableData->Vocables();
+    // sr::index_set todayVocablesIndices;
+    //
+    // auto todayVocables = todayVocablesIndices
+    //                      | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
+    //                            return vocables[index];
+    //                        });
+    // int cardIndex = 0;
+    // for (const auto& card : cards) {
+    //     // if (cardIndex++ == 1200) {
+    //     auto tnv = walkableData->timingAndNVocables(card);
+    //     if (tnv.timing <= 0) {
+    //         todayVocablesIndices.insert(tnv.vocables.begin(), tnv.vocables.end());
+    //     }
+    //     // spdlog::info("Card: {}, when{}, activeVocs:{}", cardIndex++, tnv.timing, tnv.vocables.size());
+    //     // }
+    // }
+    // spdlog::info("Vocables to study: {}", todayVocablesIndices.size());
+    //
+    // auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
+    //
+    // size_t vocable = *ranges::min_element(todayVocablesIndices, std::less{}, recency);
+    // spdlog::info("voc_index: {}, recency: {}", vocable, vocables[vocable].Progress().recency());
+    // for (size_t cIndex : vocables[vocable].CardIndices()) {
+    //     auto tnv = walkableData->timingAndNVocables(cards[cIndex]);
+    //     spdlog::info("+ cindex: {}, size: {}, time: {}", cIndex, tnv.vocables.size(), tnv.timing);
+    //     for (size_t vIndex : tnv.vocables) {
+    //         spdlog::info("| + vindex: {}, size: {}, recency: {}",
+    //                      vIndex, vocables[vIndex].CardIndices().size(), vocables[vIndex].Progress().recency());
+    //     }
+    //     spdlog::info("...");
+    //     for (size_t vIndex : cards[cIndex].VocableIndices()) {
+    //         spdlog::info("| + vindex: {}, size: {}, recency: {}",
+    //                      vIndex, vocables[vIndex].CardIndices().size(), vocables[vIndex].Progress().recency());
+    //     }
+    // }
 }
 
 } // namespace
@@ -77,7 +77,7 @@ Node::Node(std::shared_ptr<WalkableData> _walkableData,
     spdlog::info("Subcards size {}", subCards.size());
 }
 
-auto Node::lowerOrder(size_t order) -> Path
+auto Node::lowerOrder(size_t order) -> std::optional<Path>
 {
     const auto preferedQuantity = [](size_t a, size_t b) -> bool {
         const std::array quantity = {4, 3, 5, 2, 6};
@@ -116,7 +116,7 @@ auto Node::lowerOrder(size_t order) -> Path
     spdlog::info("smallCard size:{}, index: {}",
                  walkableData->timingAndNVocables(cardsLessVocables[0]).vocables.size(),
                  cardsLessVocables[0]);
-    return {};
+    return {{.cardIndex = cardsLessVocables[0]}};
 }
 
 auto Node::collectSubCards() const -> index_set
@@ -169,14 +169,27 @@ void Tree::build()
         return;
     }
     auto& root = optionalRoot.value();
-    auto path = root.lowerOrder(0);
+    auto optionalPath = root.lowerOrder(0);
+    if (optionalPath.has_value()) {
+        paths.push_back(*optionalPath);
+    }
+}
+
+auto Tree::Paths() const -> const std::vector<Path>&
+{
+    return paths;
+}
+
+auto Tree::getRoot() const -> size_t
+{
+    return cardIndex;
 }
 
 TreeWalker::TreeWalker(std::shared_ptr<WalkableData> _walkableData)
     : walkableData{std::move(_walkableData)}
 {
-    walk(walkableData);
-    createTree();
+    // walk(walkableData);
+    // createTree();
 }
 
 auto TreeWalker::getTodayVocables() const -> index_set
@@ -213,12 +226,26 @@ auto TreeWalker::getNextTargetCard(size_t vocableIndex) const -> size_t
 
 auto TreeWalker::getNextCardChoice(std::optional<uint> preferedCardId) -> CardInformation
 {
-    constexpr size_t activeCardIndex = 332;
+    createTree();
+    const auto& paths = tree->Paths();
+    size_t activeCardIndex{};
+    if (!paths.empty()) {
+        activeCardIndex = tree->Paths().front().cardIndex;
+    } else {
+        activeCardIndex = tree->getRoot();
+    }
     auto card = walkableData->getCardCopy(activeCardIndex);
 
     return {std::move(card),
             walkableData->getVocableIdsInOrder(activeCardIndex),
             walkableData->getRelevantEase(activeCardIndex)};
+}
+
+void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
+{
+    for (auto [vocId, ease] : id_ease) {
+        walkableData->setEaseVocable(vocId, ease);
+    }
 }
 
 void TreeWalker::createTree()
@@ -228,6 +255,9 @@ void TreeWalker::createTree()
         return;
     }
     auto cardIndex = getNextTargetCard(optionalTargetVocable.value());
+
+    spdlog::info("TargetVocable: {}, cardSize: {}", optionalTargetVocable.value(),
+                 walkableData->timingAndNVocables(cardIndex).vocables.size());
     tree = std::make_unique<Tree>(walkableData, optionalTargetVocable.value(), cardIndex);
     tree->build();
 }

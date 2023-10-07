@@ -1,5 +1,4 @@
 #include <CardProgress.h>
-#include <misc/Identifier.h>
 #include <VocableProgress.h>
 #include <WalkableData.h>
 #include <annotation/Card.h>
@@ -9,6 +8,7 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
@@ -38,7 +38,7 @@ VocableMeta::VocableMeta(VocableProgress _progress,
     , cardIndices{std::move(_cardIndices)}
     , dicItemVec{std::move(_dicItemVec)} {}
 
-auto VocableMeta::Progress() const -> VocableProgress
+auto VocableMeta::Progress() const -> const VocableProgress&
 {
     return progress;
 }
@@ -46,6 +46,11 @@ auto VocableMeta::Progress() const -> VocableProgress
 auto VocableMeta::CardIndices() const -> const folly::sorted_vector_set<std::size_t>&
 {
     return cardIndices;
+}
+
+void VocableMeta::advanceByEase(Ease ease)
+{
+    progress.advanceByEase(ease);
 }
 
 void VocableMeta::cardIndices_insert(std::size_t cardIndex)
@@ -57,7 +62,7 @@ CardMeta::CardMeta(CardProgress _progress, folly::sorted_vector_set<std::size_t>
     : progress{std::move(_progress)}
     , vocableIndices{std::move(_vocableIndices)} {}
 
-auto CardMeta::Progress() const -> CardProgress
+auto CardMeta::Progress() const -> const CardProgress&
 {
     return progress;
 }
@@ -215,6 +220,12 @@ auto WalkableData::getRelevantEase(size_t cardIndex) const -> std::map<VocableId
                 return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
             });
     return ease;
+}
+
+void WalkableData::setEaseVocable(VocableId vocId, Ease ease)
+{
+    VocableMeta& vocable = vocables.at_id(vocId).second;
+    vocable.advanceByEase(ease);
 }
 
 void WalkableData::fillIndexMaps()

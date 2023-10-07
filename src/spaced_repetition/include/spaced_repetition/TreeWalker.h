@@ -16,13 +16,11 @@
 
 namespace sr {
 
-class Path
+struct Path
 {
-public:
-private:
-    uint steps{};
-    uint eliminateCount{};
     uint cardIndex;
+    // uint steps{};
+    // uint eliminateCount{};
 };
 
 class Node;
@@ -35,7 +33,7 @@ public:
     Node(std::shared_ptr<WalkableData> walkableData,
          std::shared_ptr<node_vector> nodes,
          size_t cardIndex);
-    [[nodiscard]] auto lowerOrder(size_t order) -> Path;
+    [[nodiscard]] auto lowerOrder(size_t order) -> std::optional<Path>;
     [[nodiscard]] auto lowerOrderPulled() -> Path;
 
 private:
@@ -56,10 +54,13 @@ class Tree
 public:
     Tree(std::shared_ptr<WalkableData> walkableData, size_t vocableIndex, size_t cardIndex);
     void build();
+    [[nodiscard]] auto Paths() const -> const std::vector<Path>&;
+    [[nodiscard]] auto getRoot() const -> size_t;
 
 private:
     std::shared_ptr<WalkableData> walkableData;
     std::shared_ptr<node_vector> nodes;
+    std::vector<Path> paths;
     size_t vocableIndex;
     size_t cardIndex;
 };
@@ -72,6 +73,7 @@ public:
     using Id_Ease_vt = std::map<VocableId, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getNextCardChoice(std::optional<uint> preferedCardId = {}) -> CardInformation;
+    void setEaseLastCard(const Id_Ease_vt& id_ease);
 
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;

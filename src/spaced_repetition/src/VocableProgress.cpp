@@ -39,7 +39,7 @@ auto VocableProgress::RepeatRange::operator<=>(const RepeatRange& other) const -
     return std::weak_ordering::equivalent;
 }
 
-void VocableProgress::advanceByEase(Ease ease)
+void VocableProgress::advanceByEase(const Ease& ease)
 {
     lastSeen = std::time(nullptr);
     indirectView = std::time(nullptr);

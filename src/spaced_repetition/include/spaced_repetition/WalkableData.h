@@ -28,8 +28,9 @@ struct VocableMeta
     VocableMeta(VocableProgress _progress,
                 folly::sorted_vector_set<std::size_t> _cardIndices,
                 ZH_Annotator::ZH_dicItemVec dicItemVec);
-    [[nodiscard]] auto Progress() const -> VocableProgress;
+    [[nodiscard]] auto Progress() const -> const VocableProgress&;
     [[nodiscard]] auto CardIndices() const -> const folly::sorted_vector_set<std::size_t>&;
+    void advanceByEase(Ease);
     void cardIndices_insert(std::size_t cardIndex);
 
 private:
@@ -41,7 +42,7 @@ private:
 struct CardMeta
 {
     CardMeta(CardProgress progress, folly::sorted_vector_set<std::size_t> _vocableIndices);
-    [[nodiscard]] auto Progress() const -> CardProgress;
+    [[nodiscard]] auto Progress() const -> const CardProgress&;
     [[nodiscard]] auto VocableIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void vocableIndices_insert(std::size_t vocableIndex);
 
@@ -58,6 +59,7 @@ public:
     [[nodiscard]] auto Cards() const -> const utl::index_map<CardMeta, CardId>&;
     [[nodiscard]] auto getCardCopy(size_t cardIndex) const -> CardDB::CardPtr;
 
+
     struct TimingAndVocables
     {
         int timing{};
@@ -72,6 +74,7 @@ public:
 
     [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;
     [[nodiscard]] auto getRelevantEase(size_t cardIndex) const -> std::map<VocableId, Ease>;
+    void setEaseVocable(VocableId, Ease);
 
 private:
     DataBase db;
