@@ -283,13 +283,6 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
     }
 }
 
-auto WalkableData::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
-{
-    std::map<VocableId, VocableProgress> id_progress;
-    // ranges::transform(vocables, std::inserter(id_progress, id_progress.begin()), [](auto& element) -> std::pair<VocableId, VocableProgress> {});
-    return id_progress;
-}
-
 auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,
                                         const std::map<unsigned, unsigned>& vocableChoices)
         -> std::vector<VocableId>
@@ -312,5 +305,23 @@ auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,
                           return vocId;
                       });
     return vocableIds;
+}
+
+auto WalkableData::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
+{
+    std::map<VocableId, VocableProgress> id_progress;
+    ranges::transform(vocables.id_index_view(),
+                      std::inserter(id_progress, id_progress.begin()),
+                      [this](const auto& id_index) -> std::pair<VocableId, VocableProgress> {
+                          const auto [vocableId, index] = id_index;
+                          return {vocableId, vocables[index].Progress()};
+                      });
+    return id_progress;
+}
+
+void WalkableData::saveProgress() const
+{
+    spdlog::info("Saving Progress..");
+    db.SaveProgressVocables(generateVocableIdProgressMap());
 }
 } // namespace sr

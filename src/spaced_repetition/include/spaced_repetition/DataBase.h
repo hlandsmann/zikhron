@@ -19,7 +19,6 @@ class DataBase
 {
     static constexpr std::string_view s_content = "content";
 
-    static constexpr std::string_view s_path_meta = "/home/harmen/zikhron";
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
     static constexpr std::string_view s_fn_metaCardSR = "metaCardSR.json";
     static constexpr std::string_view s_fn_annotationChoices = "annotationChoices.json";
@@ -37,6 +36,7 @@ public:
     [[nodiscard]] auto ProgressVocables() const -> const std::map<VocableId, VocableProgress>&;
     [[nodiscard]] auto ProgressCards() const -> const std::map<CardId, CardProgress>&;
     [[nodiscard]] auto getCards() const -> const std::map<unsigned, CardDB::CardPtr>&;
+    void SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const;
 
 private:
     std::shared_ptr<zikhron::Config> config;

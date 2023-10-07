@@ -138,15 +138,36 @@ auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<key_type, m
 auto DataBase::loadProgressVocables(
         const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>
 {
-    std::map<VocableId, VocableProgress> id_vocable;
+    std::map<VocableId, VocableProgress> id_progress;
     try {
         nlohmann::json jsonVocable = loadJsonFromFile(progressVocablePath);
-        id_vocable = jsonToMap<VocableId, VocableProgress>(jsonVocable);
+        id_progress = jsonToMap<VocableId, VocableProgress>(jsonVocable);
         spdlog::debug("Vocable SR file {} loaded!", s_fn_metaVocableSR);
     } catch (const std::exception& e) {
         spdlog::error("Vocabulary SR load for {} failed! Exception {}", progressVocablePath.c_str(), e.what());
     }
-    return id_vocable;
+    return id_progress;
+}
+
+void DataBase::SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const
+{
+    auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
+        nlohmann::json jsonMeta = nlohmann::json::object();
+        auto& content = jsonMeta[std::string(s_content)];
+        content = nlohmann::json::array();
+
+        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
+        ranges::transform(map, std::back_inserter(content), &sr_t::toJson);
+        return jsonMeta;
+    };
+    std::filesystem::create_directory(config->DatabaseDirectory());
+
+    try {
+        nlohmann::json jsonVocSR = generateJsonFromMap(id_progress);
+        saveJsonToFile(config->DatabaseDirectory() / s_fn_metaVocableSR, jsonVocSR);
+    } catch (const std::exception& e) {
+        spdlog::error("Saving of vocable progress failed. Error: {}", e.what());
+    }
 }
 
 auto DataBase::loadProgressCards(

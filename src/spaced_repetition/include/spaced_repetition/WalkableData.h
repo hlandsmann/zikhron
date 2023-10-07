@@ -74,14 +74,14 @@ public:
     [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;
     [[nodiscard]] auto getRelevantEase(size_t cardIndex) const -> std::map<VocableId, Ease>;
     void setEaseVocable(VocableId, Ease);
+    void saveProgress() const;
 
 private:
     void fillIndexMaps();
     void insertVocabularyOfCard(const CardDB::CardPtr& card);
-    [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
-
     static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
                                      const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<VocableId>;
+    [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
 
     DataBase db;
     utl::index_map<VocableId, VocableMeta> vocables;

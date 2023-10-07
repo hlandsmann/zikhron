@@ -91,6 +91,8 @@ public:
     template<class... Args>
     auto emplace(key_type id, Args&&... args) -> std::pair<std::size_t, std::reference_wrapper<T>>;
 
+    auto id_index_view() const -> const std::map<key_type, std::size_t>&;
+
 private:
     std::map<key_type, std::size_t> id_index;
     std::vector<T> data;
@@ -240,6 +242,12 @@ auto index_map<KeyType, T>::emplace(key_type id, Args&&... args)
     std::size_t index = id_index.at(id);
     auto it = std::next(data.begin(), index);
     return {index, *data.emplace(it, std::forward<Args>(args)...)};
+}
+
+template<class KeyType, class T>
+auto index_map<KeyType, T>::id_index_view() const -> const std::map<key_type, std::size_t>&
+{
+    return id_index;
 }
 
 template<class T>

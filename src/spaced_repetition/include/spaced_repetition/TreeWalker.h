@@ -74,6 +74,7 @@ public:
     using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
     auto getNextCardChoice(std::optional<uint> preferedCardId = {}) -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt& id_ease);
+    void saveProgress() const;
 
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;

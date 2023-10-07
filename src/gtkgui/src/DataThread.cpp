@@ -192,6 +192,7 @@ DataThread::~DataThread()
     worker.request_stop();
     worker.join();
     zikhronCfg.save();
+    treeWalker->saveProgress();
 }
 
 void DataThread::worker_thread(std::stop_token token)

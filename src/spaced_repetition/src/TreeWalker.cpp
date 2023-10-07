@@ -262,4 +262,8 @@ void TreeWalker::createTree()
     tree->build();
 }
 
+void TreeWalker::saveProgress() const
+{
+    walkableData->saveProgress();
+}
 } // namespace sr
