@@ -312,28 +312,28 @@ void SR_DataBase::LoadProgress()
 
 void SR_DataBase::SaveProgress() const
 {
-    auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
-        nlohmann::json jsonMeta = nlohmann::json::object();
-        auto& content = jsonMeta[std::string(s_content)];
-        content = nlohmann::json::array();
-
-        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
-        ranges::transform(map, std::back_inserter(content), &sr_t::toJson);
-        return jsonMeta;
-    };
-    std::filesystem::create_directory(s_path_meta);
-
-    try {
-        // save file for VocableSR --------------------------------------------
-        nlohmann::json jsonVocSR = generateJsonFromMap(id_vocableSR);
-        SaveJsonToFile(s_fn_metaVocableSR, jsonVocSR);
-
-        // save file for CardSR -----------------------------------------------
-        nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
-        SaveJsonToFile(s_fn_metaCardSR, jsonCardSR);
-    } catch (const std::exception& e) {
-        spdlog::error("Saving of meta files failed. Error: {}", e.what());
-    }
+    // auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
+    //     nlohmann::json jsonMeta = nlohmann::json::object();
+    //     auto& content = jsonMeta[std::string(s_content)];
+    //     content = nlohmann::json::array();
+    //
+    //     using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
+    //     ranges::transform(map, std::back_inserter(content), &sr_t::toJson);
+    //     return jsonMeta;
+    // };
+    // std::filesystem::create_directory(s_path_meta);
+    //
+    // try {
+    //     // save file for VocableSR --------------------------------------------
+    //     nlohmann::json jsonVocSR = generateJsonFromMap(id_vocableSR);
+    //     SaveJsonToFile(s_fn_metaVocableSR, jsonVocSR);
+    //
+    //     // save file for CardSR -----------------------------------------------
+    //     nlohmann::json jsonCardSR = generateJsonFromMap(id_cardSR);
+    //     SaveJsonToFile(s_fn_metaCardSR, jsonCardSR);
+    // } catch (const std::exception& e) {
+    //     spdlog::error("Saving of meta files failed. Error: {}", e.what());
+    // }
 }
 
 void SR_DataBase::GenerateToRepeatWorkload()

@@ -253,7 +253,8 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
                       });
 
     const auto& progressCards = db.ProgressCards();
-    auto itCard = progressCards.find(card->Id());
+    // TODO remove static cast
+    auto itCard = progressCards.find(static_cast<CardId>(card->Id()));
     auto [card_index, cardMetaRef] = cards.emplace(static_cast<CardId>(card->Id()),
                                                    (itCard != progressCards.end())
                                                            ? itCard->second

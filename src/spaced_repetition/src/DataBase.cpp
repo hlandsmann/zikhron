@@ -4,6 +4,7 @@
 #include <annotation/Card.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
 
@@ -49,12 +50,12 @@ auto DataBase::VocableChoices() const -> const std::map<unsigned, unsigned>&
     return vocableChoices;
 }
 
-auto DataBase::ProgressVocables() const -> const std::map<unsigned, VocableProgress>&
+auto DataBase::ProgressVocables() const -> const std::map<VocableId, VocableProgress>&
 {
     return progressVocables;
 }
 
-auto DataBase::ProgressCards() const -> const std::map<unsigned, CardProgress>&
+auto DataBase::ProgressCards() const -> const std::map<CardId, CardProgress>&
 {
     return progressCards;
 }
@@ -124,10 +125,10 @@ auto DataBase::loadVocableChoices(const std::filesystem::path& vocableChoicesPat
     return vocableChoices;
 }
 
-template<class mapped_value>
-auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<unsigned, mapped_value>
+template<class key_type, class mapped_value>
+auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<key_type, mapped_value>
 {
-    std::map<unsigned, mapped_value> map;
+    std::map<key_type, mapped_value> map;
     const auto& content = jsonMeta.at(std::string(s_content));
     using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
     ranges::transform(content, std::inserter(map, map.begin()), &sr_t::fromJson);
@@ -135,12 +136,12 @@ auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<unsigned, m
 }
 
 auto DataBase::loadProgressVocables(
-        const std::filesystem::path& progressVocablePath) -> std::map<unsigned, VocableProgress>
+        const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>
 {
-    std::map<unsigned, VocableProgress> id_vocable;
+    std::map<VocableId, VocableProgress> id_vocable;
     try {
         nlohmann::json jsonVocable = loadJsonFromFile(progressVocablePath);
-        id_vocable = jsonToMap<VocableProgress>(jsonVocable);
+        id_vocable = jsonToMap<VocableId, VocableProgress>(jsonVocable);
         spdlog::debug("Vocable SR file {} loaded!", s_fn_metaVocableSR);
     } catch (const std::exception& e) {
         spdlog::error("Vocabulary SR load for {} failed! Exception {}", progressVocablePath.c_str(), e.what());
@@ -149,12 +150,12 @@ auto DataBase::loadProgressVocables(
 }
 
 auto DataBase::loadProgressCards(
-        const std::filesystem::path& progressCardsPath) -> std::map<unsigned, CardProgress>
+        const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>
 {
-    std::map<unsigned, CardProgress> id_card;
+    std::map<CardId, CardProgress> id_card;
     try {
         nlohmann::json jsonCardSR = loadJsonFromFile(progressCardsPath);
-        id_card = jsonToMap<CardProgress>(jsonCardSR);
+        id_card = jsonToMap<CardId, CardProgress>(jsonCardSR);
         spdlog::debug("Card SR file {} loaded!", s_fn_metaCardSR);
     } catch (const std::exception& e) {
         spdlog::error("Card SR load for {} failed! Exception {}", progressCardsPath.c_str(), e.what());

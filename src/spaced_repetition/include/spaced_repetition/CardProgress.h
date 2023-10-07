@@ -1,11 +1,12 @@
 #pragma once
-#include <tuple>
+#include <utility>
+#include <misc/Identifier.h>
 #include <string_view>
 #include <ctime>
 #include <nlohmann/json_fwd.hpp>
 
 struct CardProgress {
-    using pair_t = std::pair<unsigned, CardProgress>;
+    using pair_t = std::pair<CardId, CardProgress>;
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_last_seen = "last_seen";
     static constexpr std::string_view s_view_count = "view_count";

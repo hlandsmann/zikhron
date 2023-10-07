@@ -1,6 +1,6 @@
 #pragma once
-
 #include <annotation/Ease.h>
+#include <misc/Identifier.h>
 
 #include <compare>
 #include <ctime>
@@ -36,7 +36,7 @@ public:
         auto operator<=>(const RepeatRange&) const -> std::weak_ordering;
     };
     static constexpr int pause_time_minutes = 5;
-    using pair_t = std::pair<unsigned, VocableProgress>;
+    using pair_t = std::pair<VocableId, VocableProgress>;
     static constexpr std::string_view s_id = "id";
     static constexpr std::string_view s_ease_factor = "ease_factor";
     static constexpr std::string_view s_interval_day = "interval_day";
