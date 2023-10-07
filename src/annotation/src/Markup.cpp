@@ -1,39 +1,65 @@
 #include "Markup.h"
+
+#include <Card.h>
+#include <Ease.h>
+#include <ZH_Annotator.h>
 #include <fmt/format.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/Memoizer.h>
+#include <utils/StringU8.h>
+
 #include <algorithm>
 #include <boost/range/combine.hpp>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <format>
+#include <functional>
+#include <iterator>
 #include <limits>
+#include <map>
+#include <memory>
 #include <numeric>
 #include <ranges>
 #include <span>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <sys/types.h>
 
 namespace ranges = std::ranges;
 
 namespace markup {
 
-auto Word::joinCharactersNonBreakable(const utl::StringU8& word) const -> std::string {
+auto Word::joinCharactersNonBreakable(const utl::StringU8& word) const -> std::string
+{
     std::string result = std::accumulate(
-        word.cbegin(), std::prev(word.cend()), std::string{}, [](std::string&& a, const std::string& b) {
-            return a += (b + "&#8288;");
-        });
+            word.cbegin(), std::prev(word.cend()), std::string{}, [](std::string&& a, const std::string& b) {
+                return a += (b + "&#8288;");
+            });
     result += word.back();
     return result;
 }
 
-auto Word::utf8ByteLengthOfWord(const utl::StringU8& word) const -> size_t {
+auto Word::utf8ByteLengthOfWord(const utl::StringU8& word) const -> size_t
+{
     size_t result = std::accumulate(
-        word.cbegin(), std::prev(word.cend()), size_t{}, [](size_t acc, const std::string& str) {
-            return acc + str.length() + 3;  // 3 is the utf8 length of the non breakable character &#8288
-        });
+            word.cbegin(), std::prev(word.cend()), size_t{}, [](size_t acc, const std::string& str) {
+                return acc + str.length() + 3; // 3 is the utf8 length of the non breakable character &#8288
+            });
     result += std::string(word.back()).length();
     return result;
 }
 
-auto Word::lengthOfWord(const utl::StringU8& word) const -> size_t { return word.vlength() * 2 - 1; }
+auto Word::lengthOfWord(const utl::StringU8& word) const -> size_t
+{
+    return word.vlength() * 2 - 1;
+}
 
-Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor) {
+Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor)
+{
     if (word.front().isMarkup()) {
         markup = true;
         rawWord = word;
@@ -50,48 +76,64 @@ Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor
     }
 }
 
-Word::Word(const utl::StringU8& word) : Word(word, /*color*/ 0, /* background_color*/ 0) {}
+Word::Word(const utl::StringU8& word)
+    : Word(word, /*color*/ 0, /* background_color*/ 0) {}
 
-Word& Word::operator=(const Word&& word) {
+auto Word::operator=(const Word&& word) noexcept -> Word&
+{
     this->~Word();
     new (this) Word(std::move(word));
     return *this;
 }
 
-Word::operator std::string() const { return styledWord; }
+Word::operator std::string() const
+{
+    return styledWord;
+}
 
-void Word::setColor(uint32_t _color) {
-    if (markup)
+void Word::setColor(uint32_t _color)
+{
+    if (markup) {
         return;
-    if (color == _color)
+    }
+    if (color == _color) {
         return;
+    }
     color = _color;
     styledWord = applyStyle(rawWord);
 }
 
-void Word::setBackgroundColor(uint32_t _backgroundColor) {
-    if (markup)
+void Word::setBackgroundColor(uint32_t _backgroundColor)
+{
+    if (markup) {
         return;
-    if (backGroundColor == _backgroundColor)
+    }
+    if (backGroundColor == _backgroundColor) {
         return;
+    }
     backGroundColor = _backgroundColor;
     styledWord = applyStyle(rawWord);
 }
 
-auto Word::applyStyle(const std::string& str) const -> std::string {
+auto Word::applyStyle(const std::string& str) const -> std::string
+{
     constexpr uint32_t colorMask = 0x00FFFFFF;
 
-    std::string style = "";
-    if ((colorMask & color) != 0)
-        style = fmt::format("{} color=\"#{:06x}\"", style, (colorMask & color));
-    if ((colorMask & backGroundColor) != 0)
-        style = fmt::format("{} background=\"#{:06x}\"", style, (colorMask & backGroundColor));
-    if (not style.empty())
-        return fmt::format("<span{}>{}</span>", style, str);
+    std::string style{};
+    if ((colorMask & color) != 0) {
+        style = std::format("{} color=\"#{:06x}\"", style, (colorMask & color));
+    }
+    if ((colorMask & backGroundColor) != 0) {
+        style = std::format("{} background=\"#{:06x}\"", style, (colorMask & backGroundColor));
+    }
+    if (not style.empty()) {
+        return std::format("<span{}>{}</span>", style, str);
+    }
     return str;
 }
 
-auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::vector<int> {
+auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::vector<int>
+{
     std::vector<int> result;
     result.push_back(0);
     ranges::transform(words,
@@ -103,7 +145,9 @@ auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::v
     return result;
 }
 
-Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
+Paragraph::Paragraph(std::unique_ptr<Card> _card)
+    : card(std::move(_card))
+{
     utl::StringU8 text = card->getText();
 
     const ZH_Annotator& zh_annotator = card->getAnnotator();
@@ -115,7 +159,7 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
     bytePositions = calculate_positions(&Word::byteLength);
 
     fragments.clear();
-    if (const DialogueCard* dlgCard = dynamic_cast<const DialogueCard*>(card.get())) {
+    if (const auto* dlgCard = dynamic_cast<const DialogueCard*>(card.get())) {
         std::vector<size_t> fragmentPositions;
         size_t fragmentPos = 0;
         for (const auto& dialogue : dlgCard->dialogue) {
@@ -132,8 +176,9 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
             currentLength += utl::StringU8(item.text).length();
             wordIndex++;
 
-            if (fragmentIndex >= fragmentPositions.size())
+            if (fragmentIndex >= fragmentPositions.size()) {
                 break;
+            }
             if (currentLength == fragmentPositions[fragmentIndex]) {
                 fragments.emplace_back(words.begin() + firstWordIndex, words.begin() + wordIndex);
                 firstWordIndex = wordIndex + 1;
@@ -148,16 +193,19 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card) : card(std::move(_card)) {
     }
 }
 
-Paragraph::Paragraph(std::unique_ptr<Card> card_in, std::vector<uint>&& vocableIds_in)
-    : Paragraph(std::move(card_in)) {
+Paragraph::Paragraph(std::unique_ptr<Card> card_in, std::vector<VocableId>&& vocableIds_in)
+    : Paragraph(std::move(card_in))
+{
     vocableIds = std::move(vocableIds_in);
 }
 
-auto Paragraph::get() const -> std::string {
+auto Paragraph::get() const -> std::string
+{
     return std::accumulate(words.begin(), words.end(), std::string{}, utl::stringPlusT<Word>);
 }
 
-auto Paragraph::getFragments() const -> std::vector<std::string> {
+auto Paragraph::getFragments() const -> std::vector<std::string>
+{
     std::vector<std::string> result;
     ranges::transform(fragments, std::back_inserter(result), [](const std::span<const Word>& fragment) {
         return std::accumulate(fragment.begin(), fragment.end(), std::string{}, utl::stringPlusT<Word>);
@@ -165,37 +213,41 @@ auto Paragraph::getFragments() const -> std::vector<std::string> {
     return result;
 }
 
-auto Paragraph::getWordStartPosition(int pos, const std::vector<int>& positions) const -> int {
+auto Paragraph::getWordStartPosition(int pos, const std::vector<int>& positions) const -> int
+{
     std::size_t index = getWordIndex(pos, positions);
     if (index >= positions.size())
         return -1;
     return positions[index];
 }
 
-auto Paragraph::getWordIndex(int pos, const std::vector<int>& positions) const -> std::size_t {
+auto Paragraph::getWordIndex(int pos, const std::vector<int>& positions) const -> std::size_t
+{
     auto posIt = std::adjacent_find(positions.begin(), positions.end(), [pos](int posA, int posB) {
         return posA <= pos && posB > pos;
     });
     if (posIt == positions.end()) {
-        if (pos > positions.back() || pos < 0)
+        if (pos > positions.back() || pos < 0) {
             return std::numeric_limits<std::size_t>::max();
+        }
         posIt = std::prev(positions.end());
     }
     return std::max<size_t>(0, std::distance(positions.begin(), posIt));
 }
 
-auto Paragraph::fragmentStartPos(size_t fragment, const std::vector<int>& positions) const -> int {
+auto Paragraph::fragmentStartPos(size_t fragment, const std::vector<int>& positions) const -> int
+{
     if (fragment >= fragments.size())
         throw std::out_of_range(
-            fmt::format("Only {} fragments, fragment #{} requested", fragments.size(), fragment));
+                fmt::format("Only {} fragments, fragment #{} requested", fragments.size(), fragment));
     ptrdiff_t dist = std::distance(std::span<const Word>(words).begin(), fragments[fragment].begin());
 
     int result = positions[dist];
     return result;
 }
 
-void Paragraph::updateAnnotationColoring() {
-
+void Paragraph::updateAnnotationColoring()
+{
     const auto& zh_annotator = card->getAnnotator();
     const auto& chunks = zh_annotator.Chunks();
     const auto& items = zh_annotator.Items();
@@ -211,14 +263,12 @@ void Paragraph::updateAnnotationColoring() {
 
     auto lengthOfChunk = utl::Single_memoinize(+[](decltype(chunks.begin()) chunkIt) -> size_t {
         return std::accumulate(
-            chunkIt->begin(),
-            chunkIt->end(),
-            0,
-            [n = 0](int val, const std::vector<int>& itemSizes) mutable -> int {
-                return val +
-                       std::max(0,
-                                (itemSizes.empty() ? 0 : *ranges::max_element(itemSizes)) - (val - n++));
-            });
+                chunkIt->begin(),
+                chunkIt->end(),
+                0,
+                [n = 0](int val, const std::vector<int>& itemSizes) mutable -> int {
+                    return val + std::max(0, (itemSizes.empty() ? 0 : *ranges::max_element(itemSizes)) - (val - n++));
+                });
     });
 
     auto numberOfCombinations = utl::Single_memoinize(+[](decltype(chunks.begin()) chunkIt) -> size_t {
@@ -233,11 +283,13 @@ void Paragraph::updateAnnotationColoring() {
             annotationChunk.posBegin = currentPos;
             continue;
         }
-        while (chunkIt != chunks.end() && (chunkIt->empty() || chunkIt->front().empty()))
+        while (chunkIt != chunks.end() && (chunkIt->empty() || chunkIt->front().empty())) {
             chunkIt++;
+        }
 
-        if (chunkIt == chunks.end())
+        if (chunkIt == chunks.end()) {
             break;
+        }
 
         currentPos += word.byteLength();
 
@@ -273,59 +325,69 @@ void Paragraph::updateAnnotationColoring() {
     }
 }
 
-void Paragraph::highlightWordAtPosition(int pos, const std::vector<int>& positions) {
-    if (positions.empty())
+void Paragraph::highlightWordAtPosition(int pos, const std::vector<int>& positions)
+{
+    if (positions.empty()) {
         return;
+    }
     size_t index = getWordIndex(pos, positions);
 
-    if (index >= words.size())
+    if (index >= words.size()) {
         return;
-    if (words[index].isMarkup())
+    }
+    if (words[index].isMarkup()) {
         return;
+    }
 
     preChanges.push({.index = index, .word{words[index]}});
 
     const ZH_Annotator::ZH_dicItemVec clickedItem = wordFromPosition(pos, positions);
-    if (clickedItem.empty())
+    if (clickedItem.empty()) {
         return;
+    }
     Word& word = words[index];
     word.setBackgroundColor(0x227722);
     word.setColor(0xFFFFFF);
 }
 
 auto Paragraph::getAnnotationChunkFromPosition(size_t pos)
-    -> std::optional<std::reference_wrapper<AnnotationChunk>> {
+        -> std::optional<std::reference_wrapper<AnnotationChunk>>
+{
     auto annoIt = ranges::find_if(annotationChunks, [pos](const AnnotationChunk& annotationChunk) {
         return annotationChunk.posBegin <= pos && pos < annotationChunk.posEnd;
     });
-    if (annoIt == annotationChunks.end())
+    if (annoIt == annotationChunks.end()) {
         return {};
+    }
     return *annoIt;
 }
 
-void Paragraph::highlightAnnotationAtPosition(int pos) {
+void Paragraph::highlightAnnotationAtPosition(int pos)
+{
     auto annotation = getAnnotationChunkFromPosition(pos);
-    if (not annotation.has_value())
+    if (not annotation.has_value()) {
         return;
+    }
     AnnotationChunk& annotationChunk = annotation.value().get();
     const auto& colors = markingColors_blue;
     int cw = 0;
     for (auto& word : annotationChunk.words) {
         preChanges.push(
-            {.index = static_cast<size_t>(std::distance(words.data(), &word.get())), .word = word});
+                {.index = static_cast<size_t>(std::distance(words.data(), &word.get())), .word = word});
         word.get().setBackgroundColor(colors[cw++ % 2]);
     }
 }
 
-auto Paragraph::getAnnotationPossibilities(int pos) -> AnnotationPossibilities {
+auto Paragraph::getAnnotationPossibilities(int pos) -> AnnotationPossibilities
+{
     auto annotation = getAnnotationChunkFromPosition(pos);
-    if (not annotation.has_value())
+    if (not annotation.has_value()) {
         return {};
+    }
     AnnotationChunk& annotationChunk = annotation.value().get();
-    const auto& markingColors = std::distance(&(*std::begin(annotationChunks)), &annotationChunk) % 2 ==
-                                        0
-                                    ? markingColors_red
-                                    : markingColors_green;
+    const auto& markingColors = std::distance(&(*std::begin(annotationChunks)), &annotationChunk) % 2 == 0
+                                        ? markingColors_red
+                                        : markingColors_green;
 
     std::vector<std::string> marked;
     std::vector<std::string> unmarked;
@@ -365,9 +427,11 @@ auto Paragraph::getAnnotationPossibilities(int pos) -> AnnotationPossibilities {
             .characters = annotationChunk.characters};
 }
 
-void Paragraph::undoChange() {
-    if (preChanges.empty())
+void Paragraph::undoChange()
+{
+    if (preChanges.empty()) {
         return;
+    }
     while (not preChanges.empty()) {
         WordState preChange = preChanges.top();
         preChanges.pop();
@@ -376,33 +440,37 @@ void Paragraph::undoChange() {
 }
 
 auto Paragraph::wordFromPosition(int pos, const std::vector<int>& positions) const
-    -> const ZH_Annotator::ZH_dicItemVec {
+        -> const ZH_Annotator::ZH_dicItemVec
+{
     const auto& zh_annotator = card->getAnnotator();
 
     const std::size_t index = getWordIndex(pos, positions);
-    if (index >= zh_annotator.Items().size())
+    if (index >= zh_annotator.Items().size()) {
         return {};
+    }
 
     const ZH_Annotator::Item& item = zh_annotator.Items().at(index);
     return item.dicItemVec;
 }
 
 auto Paragraph::getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
-    -> ZH_Dictionary::Entry {
+        -> ZH_Dictionary::Entry
+{
     const auto& zh_annotator = card->getAnnotator();
     const std::size_t index = getWordIndex(pos, positions);
-    if (index >= zh_annotator.Items().size())
+    if (index >= zh_annotator.Items().size()) {
         return {};
+    }
     size_t indexVocableChoice = std::accumulate(
-        zh_annotator.Items().begin(),
-        zh_annotator.Items().begin() + index,
-        size_t{},
-        [](size_t start, const ZH_Annotator::Item& annotatorItem) {
-            if (!annotatorItem.dicItemVec.empty())
-                return start + 1;
-            else
+            zh_annotator.Items().begin(),
+            zh_annotator.Items().begin() + index,
+            size_t{},
+            [](size_t start, const ZH_Annotator::Item& annotatorItem) {
+                if (!annotatorItem.dicItemVec.empty()) {
+                    return start + 1;
+                }
                 return start;
-        });
+            });
     assert(indexVocableChoice < vocableIds.size());
     size_t vocId = vocableIds[indexVocableChoice];
     const ZH_Dictionary& zh_dictionary = *card->getAnnotator().Dictionary();
@@ -410,11 +478,13 @@ auto Paragraph::getVocableChoiceFromPosition(int pos, const std::vector<int>& po
     return zh_dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified);
 }
 
-auto Paragraph::getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>& {
+auto Paragraph::getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>&
+{
     return vocables;
 }
 
-void Paragraph::setupVocables(const std::map<uint, Ease>& ease) {
+void Paragraph::setupVocables(const std::map<VocableId, Ease>& ease)
+{
     const auto& zh_annotator = card->getAnnotator();
 
     const ZH_Dictionary& zh_dictionary = *card->getAnnotator().Dictionary();
@@ -450,39 +520,42 @@ void Paragraph::setupVocables(const std::map<uint, Ease>& ease) {
         }
     }
     ranges::transform(
-        activeVocables,
-        std::back_inserter(vocables),
-        [&, colorIndex = 0](uint vocId) mutable -> vocable_pronounciation_meaning_t {
-            const ZH_Dictionary::Entry& zhEntry = zh_dictionary.EntryFromPosition(
-                vocId, CharacterSetType::Simplified);
-            uint32_t color = colors[colorIndex++ % colors.size()];
-            std::string style = fmt::format(" color=\"#{:06x}\"", color);
+            activeVocables,
+            std::back_inserter(vocables),
+            [&, colorIndex = 0](uint vocId) mutable -> vocable_pronounciation_meaning_t {
+                const ZH_Dictionary::Entry& zhEntry = zh_dictionary.EntryFromPosition(
+                        vocId, CharacterSetType::Simplified);
+                uint32_t color = colors[colorIndex++ % colors.size()];
+                std::string style = fmt::format(" color=\"#{:06x}\"", color);
 
-            std::string vocable = fmt::format("<span{}>{}</span>", style, zhEntry.key);
-            std::string pronounciation = fmt::format("<span{}>{}</span>", style, zhEntry.pronounciation);
-            std::string meaning = fmt::format("<span{}>{}</span>", style, zhEntry.meanings.at(0));
-            return {vocable, pronounciation, meaning};
-        });
+                std::string vocable = fmt::format("<span{}>{}</span>", style, zhEntry.key);
+                std::string pronounciation = fmt::format("<span{}>{}</span>", style, zhEntry.pronounciation);
+                std::string meaning = fmt::format("<span{}>{}</span>", style, zhEntry.meanings.at(0));
+                return {vocable, pronounciation, meaning};
+            });
 }
 
-auto Paragraph::getRelativeOrderedEaseList(const std::map<uint, Ease>& ease_in) const
-    -> std::vector<std::pair<uint, Ease>> {
-    std::vector<std::pair<uint, Ease>> ease_out;
+auto Paragraph::getRelativeOrderedEaseList(const std::map<VocableId, Ease>& ease_in) const
+        -> std::vector<std::pair<VocableId, Ease>>
+{
+    std::vector<std::pair<VocableId, Ease>> ease_out;
 
-    for (uint vocId : vocableIds) {
+    for (VocableId vocId : vocableIds) {
         const auto itEase_in = ease_in.find(vocId);
-        const auto itEase_out = ranges::find(ease_out, vocId, &std::pair<uint, Ease>::first);
-        if (itEase_in != ease_in.end() && itEase_out == ease_out.end())
+        const auto itEase_out = ranges::find(ease_out, vocId, &std::pair<VocableId, Ease>::first);
+        if (itEase_in != ease_in.end() && itEase_out == ease_out.end()) {
             ease_out.emplace_back(vocId, itEase_in->second);
+        }
     }
     return ease_out;
 };
 
 auto Paragraph::getRestoredOrderOfEaseList(const std::vector<Ease>& ease_in) const
-    -> std::map<uint, Ease> {
+        -> std::map<VocableId, Ease>
+{
     assert(ease_in.size() == activeVocables.size());
 
-    std::map<uint, Ease> ease_out;
+    std::map<VocableId, Ease> ease_out;
     for (const auto& [vocId, ease] : boost::combine(activeVocables, ease_in)) {
         ease_out.insert({vocId, ease});
     }
@@ -490,4 +563,4 @@ auto Paragraph::getRestoredOrderOfEaseList(const std::vector<Ease>& ease_in) con
     return ease_out;
 }
 
-}  // namespace markup
+} // namespace markup

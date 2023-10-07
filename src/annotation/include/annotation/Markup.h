@@ -1,21 +1,34 @@
 #pragma once
-
-#include <annotation/Ease.h>
 #include <annotation/Card.h>
-#include <utils/StringU8.h>
-#include <functional>
-#include <iosfwd>
-#include <stack>
-
+#include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <misc/Identifier.h>
+#include <utils/StringU8.h>
+
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <iosfwd>
+#include <map>
+#include <memory>
+#include <optional>
+#include <span>
+#include <stack>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <sys/types.h>
 namespace markup {
 
-class Word {
+class Word
+{
     std::string rawWord;
-    auto joinCharactersNonBreakable(const utl::StringU8& word) const -> std::string;
-    auto utf8ByteLengthOfWord(const utl::StringU8& word) const -> size_t;
-    auto lengthOfWord(const utl::StringU8& word) const -> size_t;
+    [[nodiscard]] auto joinCharactersNonBreakable(const utl::StringU8& word) const -> std::string;
+    [[nodiscard]] auto utf8ByteLengthOfWord(const utl::StringU8& word) const -> size_t;
+    [[nodiscard]] auto lengthOfWord(const utl::StringU8& word) const -> size_t;
 
 public:
     Word(const utl::StringU8& word, uint32_t color, uint32_t backGroundColor);
@@ -23,17 +36,17 @@ public:
     Word(const Word&) = default;
     Word(Word&&) = default;
 
-    Word& operator=(const Word&& word);
+    auto operator=(const Word&& word) noexcept -> Word&;
     operator std::string() const;
 
     void setColor(uint32_t color);
     void setBackgroundColor(uint32_t backgroundColor);
-    auto vLength() const -> size_t { return virtualLength; }
-    auto byteLength() const -> size_t { return utf8ByteLength; }
-    auto isMarkup() const -> bool { return markup; }
+    [[nodiscard]] auto vLength() const -> size_t { return virtualLength; }
+    [[nodiscard]] auto byteLength() const -> size_t { return utf8ByteLength; }
+    [[nodiscard]] auto isMarkup() const -> bool { return markup; }
 
 private:
-    auto applyStyle(const std::string& str) const -> std::string;
+    [[nodiscard]] auto applyStyle(const std::string& str) const -> std::string;
     size_t virtualLength = 0;
     size_t utf8ByteLength = 0;
     bool markup = false;
@@ -42,7 +55,8 @@ private:
     std::string styledWord;
 };
 
-class Paragraph {
+class Paragraph
+{
     struct AnnotationChunk;
 
 public:
@@ -51,20 +65,21 @@ public:
     // ToDo: move that function to TextCard
 
     Paragraph(std::unique_ptr<Card> card);
-    Paragraph(std::unique_ptr<Card> card, std::vector<uint>&& vocableIds);
+    Paragraph(std::unique_ptr<Card> card, std::vector<VocableId>&& vocableIds);
     auto get() const -> std::string;
-    auto getFragments() const -> std::vector<std::string>;
-    auto getWordStartPosition(int pos, const std::vector<int>& positions) const -> int;
-    auto getWordIndex(int pos, const std::vector<int>& positions) const -> std::size_t;
-    auto BytePositions() const -> const std::vector<int>& { return bytePositions; };
-    auto Utf8Positions() const -> const std::vector<int>& { return utf8Positions; };
-    auto fragmentStartPos(size_t fragment, const std::vector<int>& positions) const -> int;
+    [[nodiscard]] auto getFragments() const -> std::vector<std::string>;
+    [[nodiscard]] auto getWordStartPosition(int pos, const std::vector<int>& positions) const -> int;
+    [[nodiscard]] auto getWordIndex(int pos, const std::vector<int>& positions) const -> std::size_t;
+    [[nodiscard]] auto BytePositions() const -> const std::vector<int>& { return bytePositions; };
+    [[nodiscard]] auto Utf8Positions() const -> const std::vector<int>& { return utf8Positions; };
+    [[nodiscard]] auto fragmentStartPos(size_t fragment, const std::vector<int>& positions) const -> int;
 
     void updateAnnotationColoring();
     void highlightWordAtPosition(int pos, const std::vector<int>& positions);
     void highlightAnnotationAtPosition(int pos);
 
-    struct AnnotationPossibilities {
+    struct AnnotationPossibilities
+    {
         std::string activeChoice;
         std::vector<std::string> unmarked;
         std::vector<std::string> marked;
@@ -74,35 +89,38 @@ public:
     };
     auto getAnnotationPossibilities(int pos) -> AnnotationPossibilities;
     void undoChange();
-    auto wordFromPosition(int pos, const std::vector<int>& positions) const
-        -> const ZH_Annotator::ZH_dicItemVec;
-    auto getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
-        -> ZH_Dictionary::Entry;
-    void setupVocables(const std::map<uint, Ease>&);
-    auto getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>&;
-    auto getRelativeOrderedEaseList(const std::map<uint, Ease>&) const
-        -> std::vector<std::pair<uint, Ease>>;
-    auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<uint, Ease>;
+    [[nodiscard]] auto wordFromPosition(int pos, const std::vector<int>& positions) const
+            -> const ZH_Annotator::ZH_dicItemVec;
+    [[nodiscard]] auto getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
+            -> ZH_Dictionary::Entry;
+    void setupVocables(const std::map<VocableId, Ease>&);
+    [[nodiscard]] auto getVocables() const -> const std::vector<vocable_pronounciation_meaning_t>&;
+    [[nodiscard]] auto getRelativeOrderedEaseList(const std::map<VocableId, Ease>&) const
+            -> std::vector<std::pair<VocableId, Ease>>;
+    [[nodiscard]] auto getRestoredOrderOfEaseList(const std::vector<Ease>&) const -> std::map<VocableId, Ease>;
 
 private:
     auto getAnnotationChunkFromPosition(size_t pos)
-        -> std::optional<std::reference_wrapper<AnnotationChunk>>;
-    auto calculate_positions(size_t (Word::*len)() const) const -> std::vector<int>;
+            -> std::optional<std::reference_wrapper<AnnotationChunk>>;
+    [[nodiscard]] auto calculate_positions(size_t (Word::*len)() const) const -> std::vector<int>;
 
     std::unique_ptr<Card> card;
 
-    struct WordState {
+    struct WordState
+    {
         std::size_t index;
         Word word;
     };
 
-    struct AnnotationChunk {
+    struct AnnotationChunk
+    {
         std::vector<std::reference_wrapper<Word>> words;
         std::vector<utl::CharU8> characters;
         std::vector<std::vector<int>> chunk;
         size_t posBegin = 0;
         size_t posEnd = 0;
-        void clear() {
+        void clear()
+        {
             words.clear();
             characters.clear();
             chunk.clear();
@@ -119,8 +137,8 @@ private:
     std::vector<int> bytePositions;
     std::vector<std::span<const Word>> fragments;
 
-    std::vector<uint> vocableIds;
-    std::vector<uint> activeVocables;
+    std::vector<VocableId> vocableIds;
+    std::vector<VocableId> activeVocables;
 
     // std::vector<std::pair<ZH_Dictionary::Entry, uint>> vocables_id;
 
@@ -128,13 +146,15 @@ private:
     constexpr static std::array markingColors_green = {0x227722, 0x77AA77};
     constexpr static std::array markingColors_blue = {0x222277, 0x7777AA};
 };
-}  // namespace markup
+} // namespace markup
 
-inline std::ostream& operator<<(std::ostream& os, const markup::Word& word) {
+inline auto operator<<(std::ostream& os, const markup::Word& word) -> std::ostream&
+{
     os << std::string(word);
     return os;
 }
 
-inline std::string operator+(std::string&& str, const markup::Word& word) {
+inline auto operator+(std::string&& str, const markup::Word& word) -> std::string
+{
     return str + std::string(word);
 }
