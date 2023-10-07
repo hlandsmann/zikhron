@@ -1,10 +1,23 @@
+#include <CardProgress.h>
 #include <DataBase.h>
+#include <VocableProgress.h>
+#include <annotation/Card.h>
+#include <dictionary/ZH_Dictionary.h>
+#include <misc/Config.h>
 #include <spdlog/spdlog.h>
+#include <utils/StringU8.h>
 
 #include <algorithm>
+#include <exception>
+#include <filesystem>
 #include <fstream>
+#include <iterator>
+#include <map>
+#include <memory>
 #include <nlohmann/json.hpp>
-#include <ranges>
+#include <string>
+#include <type_traits>
+#include <utility>
 
 namespace ranges = std::ranges;
 namespace views = std::views;
