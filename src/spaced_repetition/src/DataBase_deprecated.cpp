@@ -1,8 +1,15 @@
 #include "misc/Identifier.h"
 
+#include <set>
+#include <exception>
+#include <string_view>
 #include <DataBase_deprecated.h>
+#include <VocableProgress.h>
+#include <annotation/Card.h>
+#include <annotation/Ease.h>
 #include <annotation/Markup.h>
 #include <annotation/ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
 #include <spdlog/spdlog.h>
 #include <utils/counting_iterator.h>
 
@@ -10,8 +17,13 @@
 #include <boost/range/combine.hpp>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <ranges>
+#include <string>
+#include <vector>
+
+#include <sys/types.h>
 namespace ranges = std::ranges;
 
 SR_DataBase::SR_DataBase(const std::shared_ptr<CardDB>& cardDB_in,
@@ -29,9 +41,9 @@ SR_DataBase::SR_DataBase(const std::shared_ptr<CardDB>& cardDB_in,
 SR_DataBase::~SR_DataBase()
 {
     try {
-        SaveVocableChoices();
-        SaveAnnotationChoices();
-        SaveProgress();
+        // SaveVocableChoices();
+        // SaveAnnotationChoices();
+        // SaveProgress();
     } catch (const std::exception& e) {
         spdlog::error(e.what());
     }
@@ -205,10 +217,11 @@ void SR_DataBase::SetEase(uint vocId, Ease ease)
     vocableSR.advanceByEase(ease);
     ids_nowVoc.erase(vocId);
 
-    if (ease.ease == EaseVal::again)
+    if (ease.ease == EaseVal::again) {
         ids_againVoc.insert(vocId);
-    else
+    } else {
         ids_againVoc.erase(vocId);
+    }
 
     ids_repeatTodayVoc.erase(vocId);
     spdlog::debug("Ease of {} is {}, intervalDay {:.2f}, easeFactor {:.2f}",
