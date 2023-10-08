@@ -15,6 +15,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
 #include <utility>
 #include <vector>
@@ -39,16 +40,27 @@ private:
     ZH_Annotator::ZH_dicItemVec dicItemVec;
 };
 
+struct TimingAndVocables
+{
+    int timing{};
+    index_set vocables{};
+};
+
 struct CardMeta
 {
-    CardMeta(CardProgress progress, folly::sorted_vector_set<std::size_t> _vocableIndices);
-    [[nodiscard]] auto Progress() const -> const CardProgress&;
+    CardMeta(folly::sorted_vector_set<std::size_t> _vocableIndices,
+             std::reference_wrapper<utl::index_map<VocableId, VocableMeta>> _refVocables);
     [[nodiscard]] auto VocableIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void vocableIndices_insert(std::size_t vocableIndex);
+    [[nodiscard]] auto getTimingAndVocables(bool pull = false) const -> const TimingAndVocables&;
+    void resetTimingAndVocables();
 
 private:
-    CardProgress progress;
+    [[nodiscard]] auto generateTimingAndVocables(bool pull) const -> TimingAndVocables;
     folly::sorted_vector_set<std::size_t> vocableIndices;
+    mutable std::optional<TimingAndVocables> timingAndVocables;
+    mutable std::optional<TimingAndVocables> timingAndVocablesPulled;
+    std::reference_wrapper<utl::index_map<VocableId, VocableMeta>> refVocables;
 };
 
 class WalkableData
@@ -56,24 +68,20 @@ class WalkableData
 public:
     WalkableData(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
-    [[nodiscard]] auto Cards() const -> const utl::index_map<CardId, CardMeta>&;
+    [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
     [[nodiscard]] auto getCardCopy(size_t cardIndex) const -> CardDB::CardPtr;
 
-    struct TimingAndVocables
-    {
-        int timing{};
-        index_set vocables{};
-    };
-    [[nodiscard]] auto timingAndVocables(const CardMeta& card, bool pull) const -> TimingAndVocables;
-    [[nodiscard]] auto timingAndVocables(const CardMeta& card) const -> TimingAndVocables;
-    [[nodiscard]] auto timingAndVocables(size_t cardIndex, bool pull) const -> TimingAndVocables;
-    [[nodiscard]] auto timingAndVocables(size_t cardIndex) const -> TimingAndVocables;
+    // [[nodiscard]] auto timingAndVocables(const CardMeta& card, bool pull) const -> TimingAndVocables;
+    // [[nodiscard]] auto timingAndVocables(const CardMeta& card) const -> TimingAndVocables;
+    // [[nodiscard]] auto timingAndVocables(size_t cardIndex, bool pull) const -> TimingAndVocables;
+    // [[nodiscard]] auto timingAndVocables(size_t cardIndex) const -> TimingAndVocables;
 
-    [[nodiscard]] auto getActiveVocables(size_t cardIndex) const -> std::set<VocableId>;
+    [[nodiscard]] auto getActiveVocables(size_t cardIndex) -> std::set<VocableId>;
 
     [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;
-    [[nodiscard]] auto getRelevantEase(size_t cardIndex) const -> std::map<VocableId, Ease>;
+    [[nodiscard]] auto getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>;
     void setEaseVocable(VocableId, Ease);
+    void resetCardsContainingVocable(VocableId vocId);
     void saveProgress() const;
 
 private:
@@ -91,8 +99,8 @@ private:
             vocable_progress = [this](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
     std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
             vocable_cardIndices = [this](std::size_t vocableIndex) { return vocables[vocableIndex].CardIndices(); };
-    std::function<CardProgress(std::size_t)>
-            card_progress = [this](std::size_t cardIndex) { return cards[cardIndex].Progress(); };
+    // std::function<CardProgress(std::size_t)>
+    //         card_progress = [this](std::size_t cardIndex) { return cards[cardIndex].Progress(); };
     std::function<folly::sorted_vector_set<std::size_t>(std::size_t)>
             card_vocableIndices = [this](std::size_t cardIndex) { return cards[cardIndex].VocableIndices(); };
 
@@ -106,11 +114,11 @@ private:
             -> std::pair<std::size_t, folly::sorted_vector_set<std::size_t>> {
         return {vocableIndex, vocables[vocableIndex].CardIndices()};
     };
-    std::function<std::pair<std::size_t, CardProgress>(std::size_t)>
-            index_cardProgress = [this](std::size_t cardIndex)
-            -> std::pair<std::size_t, CardProgress> {
-        return {cardIndex, cards[cardIndex].Progress()};
-    };
+    // std::function<std::pair<std::size_t, CardProgress>(std::size_t)>
+    //         index_cardProgress = [this](std::size_t cardIndex)
+    //         -> std::pair<std::size_t, CardProgress> {
+    //     return {cardIndex, cards[cardIndex].Progress()};
+    // };
     std::function<std::pair<std::size_t, folly::sorted_vector_set<std::size_t>>(std::size_t)>
             index_cardVocableIndices = [this](std::size_t cardIndex)
             -> std::pair<std::size_t, folly::sorted_vector_set<std::size_t>> {

@@ -58,14 +58,11 @@ void VocableMeta::cardIndices_insert(std::size_t cardIndex)
     cardIndices.insert(cardIndex);
 }
 
-CardMeta::CardMeta(CardProgress _progress, folly::sorted_vector_set<std::size_t> _vocableIndices)
-    : progress{std::move(_progress)}
-    , vocableIndices{std::move(_vocableIndices)} {}
-
-auto CardMeta::Progress() const -> const CardProgress&
-{
-    return progress;
-}
+CardMeta::CardMeta(folly::sorted_vector_set<std::size_t> _vocableIndices,
+                   std::reference_wrapper<utl::index_map<VocableId, VocableMeta>> _refVocables)
+    : vocableIndices{std::move(_vocableIndices)}
+    , refVocables{_refVocables}
+{}
 
 auto CardMeta::VocableIndices() const -> const folly::sorted_vector_set<std::size_t>&
 {
@@ -77,42 +74,40 @@ void CardMeta::vocableIndices_insert(std::size_t vocableIndex)
     vocableIndices.insert(vocableIndex);
 }
 
-WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
-    : db{std::move(config)}
+auto CardMeta::getTimingAndVocables(bool pull) const -> const TimingAndVocables&
 {
-    fillIndexMaps();
+    auto& tav = pull ? timingAndVocablesPulled : timingAndVocables;
+    if (tav.has_value()) {
+        return *tav;
+    }
+    return tav.emplace(generateTimingAndVocables(pull));
 }
 
-auto WalkableData::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
+void CardMeta::resetTimingAndVocables()
 {
-    return vocables;
+    timingAndVocablesPulled.reset();
+    timingAndVocables.reset();
 }
 
-auto WalkableData::Cards() const -> const utl::index_map<CardId, CardMeta>&
+auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
 {
-    return cards;
-}
-
-auto WalkableData::getCardCopy(size_t cardIndex) const -> CardDB::CardPtr
-{
-    CardId cardId = cards.id_from_index(cardIndex);
-    const CardDB::CardPtr& cardPtr = db.getCards().at(cardId);
-    return cardPtr->clone();
-}
-
-auto WalkableData::timingAndVocables(const CardMeta& card, bool pull) const -> TimingAndVocables
-{
-    auto vocindex_progresses = card.VocableIndices() | views::transform(index_vocableProgress);
+    const auto& vocables = refVocables.get();
+    // auto vocindex_progresses = vocableIndices
+    //                            | views::transform([&vocables](std::size_t vocableIndex)
+    //                                                       -> std::pair<std::size_t, VocableProgress> {
+    //                                  return {vocableIndex, vocables[vocableIndex].Progress()};
+    //                              });
+    auto vocable_progress = [&vocables](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
 
     VocableProgress threshHoldProgress{};
     if (not pull) {
-        auto progresses = card.VocableIndices() | views::transform(vocable_progress);
+        auto progresses = vocableIndices | views::transform(vocable_progress);
         auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
         threshHoldProgress = *minIt;
     }
     folly::sorted_vector_set<std::size_t> nextActiveVocables;
-    ranges::copy_if(card.VocableIndices(), std::inserter(nextActiveVocables, nextActiveVocables.begin()),
-                    [&, this](const auto& vocableIndex) {
+    ranges::copy_if(vocableIndices, std::inserter(nextActiveVocables, nextActiveVocables.begin()),
+                    [&](const auto& vocableIndex) {
                         auto getRepeatRange = vocables[vocableIndex].Progress().getRepeatRange();
                         return threshHoldProgress.getRepeatRange().implies(getRepeatRange);
                     });
@@ -133,21 +128,44 @@ auto WalkableData::timingAndVocables(const CardMeta& card, bool pull) const -> T
             .vocables = nextActiveVocables};
 }
 
-auto WalkableData::timingAndVocables(size_t cardIndex, bool pull) const -> TimingAndVocables
+WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
+    : db{std::move(config)}
 {
-    const CardMeta& card = cards[cardIndex];
-    return timingAndVocables(card, pull);
+    fillIndexMaps();
 }
 
-auto WalkableData::timingAndVocables(const CardMeta& card) const -> TimingAndVocables
+auto WalkableData::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 {
-    return timingAndVocables(card, false);
+    return vocables;
 }
 
-auto WalkableData::timingAndVocables(size_t cardIndex) const -> TimingAndVocables
+auto WalkableData::Cards() -> utl::index_map<CardId, CardMeta>&
 {
-    return timingAndVocables(cardIndex, false);
+    return cards;
 }
+
+auto WalkableData::getCardCopy(size_t cardIndex) const -> CardDB::CardPtr
+{
+    CardId cardId = cards.id_from_index(cardIndex);
+    const CardDB::CardPtr& cardPtr = db.getCards().at(cardId);
+    return cardPtr->clone();
+}
+
+// auto WalkableData::timingAndVocables(size_t cardIndex, bool pull) const -> TimingAndVocables
+// {
+//     const CardMeta& card = cards[cardIndex];
+//     return timingAndVocables(card, pull);
+// }
+//
+// auto WalkableData::timingAndVocables(const CardMeta& card) const -> TimingAndVocables
+// {
+//     return timingAndVocables(card, false);
+// }
+//
+// auto WalkableData::timingAndVocables(size_t cardIndex) const -> TimingAndVocables
+// {
+//     return timingAndVocables(cardIndex, false);
+// }
 
 auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>
 {
@@ -173,9 +191,9 @@ auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<V
     return vocableIds;
 }
 
-auto WalkableData::getActiveVocables(size_t cardIndex) const -> std::set<VocableId>
+auto WalkableData::getActiveVocables(size_t cardIndex) -> std::set<VocableId>
 {
-    const auto& activeVocableIndices = timingAndVocables(cardIndex).vocables;
+    const auto& activeVocableIndices = cards[cardIndex].getTimingAndVocables().vocables;
     std::set<VocableId> activeVocableIds;
     ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
                       [this](size_t vocableIndex) -> VocableId {
@@ -185,7 +203,7 @@ auto WalkableData::getActiveVocables(size_t cardIndex) const -> std::set<Vocable
     return activeVocableIds;
 }
 
-auto WalkableData::getRelevantEase(size_t cardIndex) const -> std::map<VocableId, Ease>
+auto WalkableData::getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>
 {
     std::set<VocableId> activeVocables = getActiveVocables(cardIndex);
     std::map<VocableId, Ease> ease;
@@ -209,6 +227,16 @@ void WalkableData::setEaseVocable(VocableId vocId, Ease ease)
 {
     VocableMeta& vocable = vocables.at_id(vocId).second;
     vocable.advanceByEase(ease);
+}
+
+void WalkableData::resetCardsContainingVocable(VocableId vocId)
+{
+    const auto& [_, vocable] = vocables.at_id(vocId);
+    const auto& cardIndices = vocable.CardIndices();
+    for (size_t card_index : cardIndices) {
+        auto& card = cards[card_index];
+        card.resetTimingAndVocables();
+    }
 }
 
 void WalkableData::fillIndexMaps()
@@ -237,12 +265,9 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
 
     const auto& progressCards = db.ProgressCards();
     // TODO remove static cast
-    auto itCard = progressCards.find(static_cast<CardId>(card->Id()));
     auto [card_index, cardMetaRef] = cards.emplace(static_cast<CardId>(card->Id()),
-                                                   (itCard != progressCards.end())
-                                                           ? itCard->second
-                                                           : CardProgress{},
-                                                   folly::sorted_vector_set<std::size_t>{});
+                                                   CardMeta{folly::sorted_vector_set<std::size_t>{},
+                                                            std::ref(vocables)});
     auto& cardMeta = cardMetaRef.get();
     std::vector<VocableId> vocableIds = getVocableIdsInOrder(card, db.VocableChoices());
     for (const auto& [vocId, dicItemVec] : boost::combine(vocableIds, annotatorItems)) {
