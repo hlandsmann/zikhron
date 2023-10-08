@@ -1,15 +1,20 @@
 #include <DataThread.h>
 #include <SupplyAudio.h>
 #include <fmt/format.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <ranges>
 #include <span>
 #include <type_traits>
+#include <vector>
+
+#include <sys/types.h>
 
 namespace ranges = std::ranges;
 namespace fs = std::filesystem;
@@ -33,10 +38,11 @@ SpinBtnBox<Value_t>::SpinBtnBox()
 template<class Value_t>
 auto SpinBtnBox<Value_t>::get_value() const -> Value_t
 {
-    if constexpr (std::is_integral_v<Value_t>)
-        return spinButton.get_value_as_int();
-    else
+    if constexpr (std::is_integral_v<Value_t> || std::is_enum_v<Value_t>) {
+        return static_cast<Value_t>(spinButton.get_value_as_int());
+    } else {
         return spinButton.get_value();
+    }
 }
 
 template<class Value_t>
@@ -230,11 +236,12 @@ void SupplyAudio::clearPage()
 
 void SupplyAudio::fillPage(std::vector<DataThread::paragraph_optional>&& paragraphs)
 {
-    uint cardId = spinBtn_firstCard.currentValue;
+    CardId cardId = spinBtn_firstCard.currentValue;
     for (int row{1}; const auto& p : paragraphs) {
         if (p.has_value()) {
-            if (!fragmentPlayBoxes[cardId])
+            if (!fragmentPlayBoxes[cardId]) {
                 fragmentPlayBoxes[cardId] = std::make_shared<FragmentPlayBox>(mediaPlayer);
+            }
             attach(*fragmentPlayBoxes[cardId], 3, row);
             fragmentPlayBoxesVisible.push_back(fragmentPlayBoxes[cardId]);
             row = addCard(p.value(), row);
@@ -243,7 +250,8 @@ void SupplyAudio::fillPage(std::vector<DataThread::paragraph_optional>&& paragra
                 fragmentPlayBoxes.erase(cardId);
             }
         }
-        cardId++;
+        // cardId++;
+        cardId = static_cast<CardId>(1 + static_cast<unsigned>(cardId));
     }
     fragment_adjust_min_max();
     fragment_adjust_stepsize(btnGroup_accuracy->getActive());
@@ -316,25 +324,29 @@ void SupplyAudio::createMainCtrlBtnBox()
         cardAudioGroupDB.insert(spinBtn_audioGroup.currentValue.get_old_value(), cag);
 
         uint newVal = 0;
-        if (spinBtn_audioGroup.currentValue.get_old_value() < value)
+        if (spinBtn_audioGroup.currentValue.get_old_value() < value) {
             newVal = cardAudioGroupDB.nextOrThisGroupId(value);
-        else
+        } else {
             newVal = cardAudioGroupDB.prevOrThisGroupId(value);
-        spinBtn_audioGroup.set_value(newVal);
+        }
+        // TODO remove static_cast, audioGroup is not a card
+        spinBtn_audioGroup.set_value(static_cast<CardId>(newVal));
         setUpCardAudioGroup(newVal);
     }));
 
-    observers.push(spinBtn_firstCard.currentValue.observe([this](uint value) {
+    observers.push(spinBtn_firstCard.currentValue.observe([this](CardId value) {
         if (not spinBtn_firstCard.changeBySetValue) {
-            if (spinBtn_lastCard.currentValue < value)
+            if (spinBtn_lastCard.currentValue < value) {
                 spinBtn_lastCard.currentValue = value;
-            if (spinBtn_firstCard.currentValue.get_old_value() > value + 10)
+            }
+            if (spinBtn_firstCard.currentValue.get_old_value() > value + 10) {
                 spinBtn_lastCard.currentValue = value;
+            }
         }
         spinBtn_firstCard.changeBySetValue = false;
         requestCards();
     }));
-    observers.push(spinBtn_lastCard.currentValue.observe([this](uint value) {
+    observers.push(spinBtn_lastCard.currentValue.observe([this](CardId value) {
         if (not spinBtn_lastCard.changeBySetValue) {
             if (spinBtn_firstCard.currentValue > value) {
                 spinBtn_firstCard.currentValue = value;
@@ -427,7 +439,7 @@ auto SupplyAudio::getCurrentAudioGroup() const -> CardAudioGroup
     ranges::transform(first,
                       last,
                       std::inserter(cardId_audioFragment, cardId_audioFragment.begin()),
-                      [](const auto& cardId_fragmentPlayBox) -> std::pair<uint, AudioFragment> {
+                      [](const auto& cardId_fragmentPlayBox) -> std::pair<CardId, AudioFragment> {
                           const auto& [cardId, fragmentPlayBox] = cardId_fragmentPlayBox;
                           return {cardId, {fragmentPlayBox->get_start(), fragmentPlayBox->get_end()}};
                       });
@@ -438,7 +450,8 @@ auto SupplyAudio::getCurrentAudioGroup() const -> CardAudioGroup
 
 void SupplyAudio::setUpCardAudioGroup(uint groupId)
 {
-    spinBtn_audioGroup.set_value(groupId);
+    // TODO remove static_cast, audioGroup is not a card
+    spinBtn_audioGroup.set_value(static_cast<CardId>(groupId));
 
     auto cardAudioGroup = cardAudioGroupDB.get_cardAudioGroup(groupId);
     audioFile = cardAudioGroup.audioFile;
@@ -447,8 +460,8 @@ void SupplyAudio::setUpCardAudioGroup(uint groupId)
         oldValidAudiofilePath = cardAudioGroup.audioFile;
     const auto& cardId_audioFragments = cardAudioGroup.cardId_audioFragment;
     if (cardId_audioFragments.empty()) {
-        spinBtn_firstCard.set_value(0);
-        spinBtn_lastCard.set_value(0);
+        spinBtn_firstCard.set_value(static_cast<CardId>(0));
+        spinBtn_lastCard.set_value(static_cast<CardId>(0));
         return;
     }
     spinBtn_firstCard.set_value(cardId_audioFragments.begin()->first);
@@ -473,7 +486,8 @@ void SupplyAudio::setUpFragmentPlayBoxes(uint groupId)
 void SupplyAudio::createNewAudioCardGroup()
 {
     uint groupId = cardAudioGroupDB.newCardAudioGroup();
-    spinBtn_audioGroup.set_value(groupId);
+    // TODO remove static_cast, audioGroup is not a card
+    spinBtn_audioGroup.set_value(static_cast<CardId>(groupId));
 }
 
 void SupplyAudio::fragment_adjust_min_max()

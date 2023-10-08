@@ -1,13 +1,28 @@
 #include <CardAudioGroup.h>
 #include <fmt/format.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <ctre.hpp>
+#include <ctre/wrapper.hpp>
+#include <exception>
+#include <filesystem>
+#include <format>
 #include <fstream>
+#include <ios>
 #include <iterator>
+#include <memory>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
+#include <optional>
 #include <ranges>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+#include <utility>
+
+#include <sys/types.h>
 
 namespace ranges = std::ranges;
 namespace fs = std::filesystem;
@@ -37,11 +52,11 @@ auto CardAudioGroup::fromJson(const json& cag_json) -> CardAudioGroup
     cardAudioGroup.audioFile = std::string(cag_json[std::string(s_audioFile)]);
     ranges::transform(cag_json[std::string(s_fragments)].items(),
                       std::inserter(cardId_audioFragment, cardId_audioFragment.begin()),
-                      [](const auto& cardId_fragment) -> std::pair<uint, AudioFragment> {
+                      [](const auto& cardId_fragment) -> std::pair<CardId, AudioFragment> {
                           const auto& [cardId, fragment_json] = cardId_fragment;
                           AudioFragment fragment = {.start = fragment_json[s_start],
                                                     .end = fragment_json[s_end]};
-                          return {std::stoi(cardId), fragment};
+                          return {static_cast<CardId>(std::stoi(cardId)), fragment};
                       });
     return cardAudioGroup;
 }
@@ -104,7 +119,7 @@ void CardAudioGroupDB::save(uint groupId, const CardAudioGroup& cardAudioGroup)
             fs::create_directory(path_dir_cardAudioGroup);
         }
 
-        fs::path fn_cardAudioGroup = path_dir_cardAudioGroup / fmt::format("{:06d}.group", groupId);
+        fs::path fn_cardAudioGroup = path_dir_cardAudioGroup / std::format("{:06d}.group", groupId);
         std::ofstream ofs(fn_cardAudioGroup);
         ofs << CardAudioGroup::toJson(cardAudioGroup).dump(4);
         spdlog::debug("Saved {}", fn_cardAudioGroup.string());
@@ -205,7 +220,7 @@ auto CardAudioGroupDB::get_studyAudioFragment(uint cardId) const -> std::optiona
     return cardId_studyAudioFragment.at(cardId);
 }
 
-auto CardAudioGroupDB::seekForward(uint cardId) const -> std::optional<uint>
+auto CardAudioGroupDB::seekForward(CardId cardId) const -> std::optional<CardId>
 {
     const auto cardIdIt_group = cardIdIt_and_group(cardId);
     if (!cardIdIt_group.has_value()) {
@@ -218,7 +233,7 @@ auto CardAudioGroupDB::seekForward(uint cardId) const -> std::optional<uint>
     return {};
 }
 
-auto CardAudioGroupDB::seekBackward(uint cardId) const -> std::optional<uint>
+auto CardAudioGroupDB::seekBackward(CardId cardId) const -> std::optional<CardId>
 {
     const auto cardIdIt_group = cardIdIt_and_group(cardId);
     if (!cardIdIt_group.has_value()) {
@@ -231,7 +246,7 @@ auto CardAudioGroupDB::seekBackward(uint cardId) const -> std::optional<uint>
     return {};
 }
 
-auto CardAudioGroupDB::skipForward(uint cardId) const -> std::optional<uint>
+auto CardAudioGroupDB::skipForward(CardId cardId) const -> std::optional<CardId>
 {
     const auto cardIdIt_group = cardIdIt_and_group(cardId);
     if (!cardIdIt_group.has_value()) {
@@ -244,7 +259,7 @@ auto CardAudioGroupDB::skipForward(uint cardId) const -> std::optional<uint>
     return {};
 }
 
-auto CardAudioGroupDB::skipBackward(uint cardId) const -> std::optional<uint>
+auto CardAudioGroupDB::skipBackward(CardId cardId) const -> std::optional<CardId>
 {
     const auto cardIdIt_group = cardIdIt_and_group(cardId);
     if (!cardIdIt_group.has_value()) {
@@ -257,7 +272,7 @@ auto CardAudioGroupDB::skipBackward(uint cardId) const -> std::optional<uint>
     return {};
 }
 
-auto CardAudioGroupDB::findAudioGroupFromCardId(uint cardId) const -> std::optional<uint>
+auto CardAudioGroupDB::findAudioGroupFromCardId(CardId cardId) const -> std::optional<uint>
 {
     auto groupIt = ranges::find_if(
             id_cardAudioGroup,
@@ -271,7 +286,7 @@ auto CardAudioGroupDB::findAudioGroupFromCardId(uint cardId) const -> std::optio
     return {};
 }
 
-auto CardAudioGroupDB::cardIdIt_and_group(uint cardId) const -> std::optional<
+auto CardAudioGroupDB::cardIdIt_and_group(CardId cardId) const -> std::optional<
         std::pair<decltype(std::ranges::begin(id_cardAudioGroup.begin()->second.cardId_audioFragment)),
                   const decltype(CardAudioGroup().cardId_audioFragment)&>>
 {

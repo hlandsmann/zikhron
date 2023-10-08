@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <array>
+#include <boost/program_options/option.hpp>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -225,15 +226,25 @@ auto TreeWalker::getNextTargetCard(size_t vocableIndex) const -> size_t
     return *vocables[vocableIndex].CardIndices().begin();
 }
 
-auto TreeWalker::getNextCardChoice(std::optional<uint> preferedCardId) -> CardInformation
+auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> CardInformation
 {
-    createTree();
-    const auto& paths = tree->Paths();
     size_t activeCardIndex{};
-    if (!paths.empty()) {
-        activeCardIndex = tree->Paths().front().cardIndex;
+    if (not preferedCardId.has_value()) {
+        createTree();
+        const auto& paths = tree->Paths();
+        if (!paths.empty()) {
+            activeCardIndex = tree->Paths().front().cardIndex;
+        } else {
+            activeCardIndex = tree->getRoot();
+        }
     } else {
-        activeCardIndex = tree->getRoot();
+        auto optional_index = walkableData->Cards().optional_index(preferedCardId.value());
+        if (optional_index.has_value()) {
+            activeCardIndex = optional_index.value();
+        } else {
+            spdlog::error("prefered card Id could not be found in cards index_map!");
+            return {};
+        }
     }
     auto card = walkableData->getCardCopy(activeCardIndex);
 

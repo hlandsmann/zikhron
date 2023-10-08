@@ -1,6 +1,7 @@
 #pragma once
-#include <annotation/Ease.h>
 #include <misc/Identifier.h>
+
+#include <annotation/Ease.h>
 
 #include <compare>
 #include <ctime>

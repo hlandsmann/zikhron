@@ -72,7 +72,7 @@ public:
     using VocableIds_vt = std::vector<VocableId>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
     using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
-    auto getNextCardChoice(std::optional<uint> preferedCardId = {}) -> CardInformation;
+    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt& id_ease);
     void saveProgress() const;
 
@@ -85,6 +85,7 @@ private:
 
     std::shared_ptr<WalkableData> walkableData;
     std::unique_ptr<Tree> tree;
+    index_set againVocables;
 };
 
 } // namespace sr

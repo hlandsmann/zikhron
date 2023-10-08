@@ -34,8 +34,8 @@ target_link_libraries(zikhron_multimedia
         epoxy
         fmt::fmt
         spdlog::spdlog
+        zikhron::miscellaneous
         zikhron::utils
         zikhron::warnings
-
 )
 set_property(TARGET zikhron_multimedia PROPERTY CXX_STANDARD 23)

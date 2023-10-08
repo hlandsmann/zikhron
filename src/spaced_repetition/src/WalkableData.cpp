@@ -193,7 +193,7 @@ auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<V
 
 auto WalkableData::getActiveVocables(size_t cardIndex) -> std::set<VocableId>
 {
-    const auto& activeVocableIndices = cards[cardIndex].getTimingAndVocables().vocables;
+    const auto& activeVocableIndices = cards[cardIndex].getTimingAndVocables(true).vocables;
     std::set<VocableId> activeVocableIds;
     ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
                       [this](size_t vocableIndex) -> VocableId {

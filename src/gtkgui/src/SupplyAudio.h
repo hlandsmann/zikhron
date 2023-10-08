@@ -1,5 +1,4 @@
 #pragma once
-
 #include <ButtonGroup.h>
 #include <DataThread.h>
 #include <MediaButtons.h>
@@ -7,6 +6,7 @@
 #include <NotebookPage.h>
 #include <TextDraw.h>
 #include <gtkmm.h>
+#include <misc/Identifier.h>
 #include <multimedia/CardAudioGroup.h>
 #include <multimedia/MediaPlayer.h>
 #include <utils/Property.h>
@@ -27,7 +27,7 @@ public:
                    double step_increment,
                    double page_increment,
                    double page_size);
-    utl::Property<Value_t> currentValue = 0;
+    utl::Property<Value_t> currentValue{};
     void set_value(Value_t value);
     void set_digits(int digits);
     bool changeBySetValue = false;
@@ -42,7 +42,7 @@ protected:
     Glib::RefPtr<Gtk::Adjustment> adjustment;
 };
 
-class SpinBtnBoxCards : public SpinBtnBox<uint>
+class SpinBtnBoxCards : public SpinBtnBox<CardId>
 {
 public:
     SpinBtnBoxCards(const std::string& label_str);
@@ -129,7 +129,7 @@ private:
     void setUpFragmentPlayBoxes(uint groupId);
     void createNewAudioCardGroup();
 
-    std::map<uint, FragmentPlayBoxPtr> fragmentPlayBoxes;
+    std::map<CardId, FragmentPlayBoxPtr> fragmentPlayBoxes;
     auto first_fragmentPlayBox() const -> decltype(std::ranges::begin(fragmentPlayBoxes));
     auto last_fragmentPlayBox() const -> decltype(std::ranges::begin(fragmentPlayBoxes));
     void fragment_adjust_min_max();

@@ -1,4 +1,8 @@
 #pragma once
+#include <ranges>
+#include <misc/Identifier.h>
+#include <string>
+#include <sys/types.h>
 #include <filesystem>
 #include <map>
 #include <nlohmann/json_fwd.hpp>
@@ -20,7 +24,7 @@ struct StudyAudioFragment {
 
 struct CardAudioGroup {
     std::filesystem::path audioFile;
-    std::map<uint, AudioFragment> cardId_audioFragment;
+    std::map<CardId, AudioFragment> cardId_audioFragment;
 
     static auto toJson(const CardAudioGroup &) -> nlohmann::json;
     static auto fromJson(const nlohmann::json &) -> CardAudioGroup;
@@ -44,10 +48,10 @@ public:
     static auto get() -> CardAudioGroupDB &;
     void save(uint groupId, const CardAudioGroup &);
     void insert(uint groupId, const CardAudioGroup &);
-    [[nodiscard]] auto seekBackward(uint cardId) const -> std::optional<uint>;
-    [[nodiscard]] auto seekForward(uint cardId) const -> std::optional<uint>;
-    [[nodiscard]] auto skipBackward(uint cardId) const -> std::optional<uint>;
-    [[nodiscard]] auto skipForward(uint cardId) const -> std::optional<uint>;
+    [[nodiscard]] auto seekBackward(CardId cardId) const -> std::optional<CardId>;
+    [[nodiscard]] auto seekForward(CardId cardId) const -> std::optional<CardId>;
+    [[nodiscard]] auto skipBackward(CardId cardId) const -> std::optional<CardId>;
+    [[nodiscard]] auto skipForward(CardId cardId) const -> std::optional<CardId>;
     [[nodiscard]] auto nextOrThisGroupId(uint groupId) const -> uint;
     [[nodiscard]] auto prevOrThisGroupId(uint groupId) const -> uint;
     [[nodiscard]] auto newCardAudioGroup() -> uint;
@@ -57,12 +61,12 @@ public:
 private:
     void load();
     void setupStudyAudioFragments();
-    [[nodiscard]] auto findAudioGroupFromCardId(uint cardId) const -> std::optional<uint>;
+    [[nodiscard]] auto findAudioGroupFromCardId(CardId cardId) const -> std::optional<uint>;
 
     std::map<uint, CardAudioGroup> id_cardAudioGroup;
     std::map<uint, StudyAudioFragment> cardId_studyAudioFragment;
 
-    [[nodiscard]] auto cardIdIt_and_group(uint cardId) const -> std::optional<
+    [[nodiscard]] auto cardIdIt_and_group(CardId cardId) const -> std::optional<
         std::pair<decltype(std::ranges::begin(id_cardAudioGroup.begin()->second.cardId_audioFragment)),
                   const decltype(CardAudioGroup().cardId_audioFragment) &>>;
 };

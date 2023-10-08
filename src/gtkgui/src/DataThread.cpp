@@ -1,4 +1,5 @@
 #include "spaced_repetition/WalkableData.h"
+#include <misc/Identifier.h>
 #include <DataThread.h>
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
@@ -226,7 +227,7 @@ void DataThread::dispatcher_fun()
     }
 }
 
-void DataThread::requestCard(std::optional<uint> preferedCardId)
+void DataThread::requestCard(std::optional<CardId> preferedCardId)
 {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
@@ -303,7 +304,8 @@ auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<m
 void DataThread::sendActiveCard(CardInformation& cardInformation)
 {
     auto [current_card, vocableIds, ease] = std::move(cardInformation);
-    uint cardId = current_card->Id();
+    //TODO remove static_cast CardId
+    CardId cardId = static_cast<CardId>(current_card->Id());
     auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
     auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
     auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));

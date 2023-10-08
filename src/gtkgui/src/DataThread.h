@@ -79,7 +79,7 @@ public:
     static auto get() -> DataThread&;
     ~DataThread();
     using paragraph_optional = std::optional<std::shared_ptr<markup::Paragraph>>;
-    using message_card = std::tuple<std::shared_ptr<markup::Paragraph>, std::vector<Ease>, uint>;
+    using message_card = std::tuple<std::shared_ptr<markup::Paragraph>, std::vector<Ease>, CardId>;
     using message_annotation = std::shared_ptr<markup::Paragraph>;
     using message_paragraphFromIds = std::vector<paragraph_optional>;
     using signal_card = std::function<void(message_card&)>;
@@ -87,7 +87,7 @@ public:
     using signal_paragraphFromIds = std::function<void(message_paragraphFromIds&&)>;
     Session zikhronCfg;
 
-    void requestCard(std::optional<uint> preferedCardId = {});
+    void requestCard(std::optional<CardId> preferedCardId = {});
     void requestCardFromIds(std::vector<uint>&& ids);
     void submitEase(const VocabularySR::Id_Ease_vt& ease);
     void submitAnnotation(const ZH_Annotator::Combination& combination,

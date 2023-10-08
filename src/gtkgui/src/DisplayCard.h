@@ -7,16 +7,30 @@
 #include <NotebookPage.h>
 #include <TextDraw.h>
 #include <VocableList.h>
+#include <annotation/Ease.h>
 #include <annotation/Markup.h>
 #include <gtkmm.h>
+#include <gtkmm/box.h>
+#include <gtkmm/button.h>
+#include <gtkmm/overlay.h>
+#include <gtkmm/separator.h>
+#include <gtkmm/togglebutton.h>
+#include <misc/Identifier.h>
 #include <multimedia/CardAudioGroup.h>
 #include <multimedia/MediaPlayer.h>
 #include <utils/Property.h>
-#include <functional>
+
+#include <memory>
+#include <optional>
 #include <vector>
 
-class DisplayCard : public Gtk::Box, public NotebookPage {
-    enum class StudyMode { SingleCard, Group };
+class DisplayCard : public Gtk::Box
+    , public NotebookPage
+{
+    enum class StudyMode {
+        SingleCard,
+        Group
+    };
 
 public:
     DisplayCard(Gtk::Overlay&);
@@ -54,7 +68,7 @@ private:
     std::vector<Ease> easeList;
 
     VocableList vocableList;
-    uint cardId = 0;
+    CardId cardId{};
 
     utl::Property<bool> displayVocabulary = false;
 };

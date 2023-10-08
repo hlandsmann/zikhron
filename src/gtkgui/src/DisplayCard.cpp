@@ -1,9 +1,17 @@
 #include <DataThread.h>
+#include <sys/types.h>
 #include <DisplayCard.h>
+#include <gtkmm.h>
+#include <gtkmm/enums.h>
+#include <gtkmm/overlay.h>
+#include <multimedia/CardAudioGroup.h>
+#include <multimedia/MediaPlayer.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
-#include <ranges>
+#include <memory>
+#include <tuple>
+#include <utility>
 
 namespace ranges = std::ranges;
 
