@@ -64,11 +64,11 @@ public:
         int timing{};
         index_set vocables{};
     };
-    [[nodiscard]] auto timingAndNVocables(
-            const CardMeta& card,
-            const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables;
-    [[nodiscard]] auto timingAndNVocables(const CardMeta& card) const -> TimingAndVocables;
-    [[nodiscard]] auto timingAndNVocables(size_t cardIndex) const -> TimingAndVocables;
+    [[nodiscard]] auto timingAndVocables(const CardMeta& card, bool pull) const -> TimingAndVocables;
+    [[nodiscard]] auto timingAndVocables(const CardMeta& card) const -> TimingAndVocables;
+    [[nodiscard]] auto timingAndVocables(size_t cardIndex, bool pull) const -> TimingAndVocables;
+    [[nodiscard]] auto timingAndVocables(size_t cardIndex) const -> TimingAndVocables;
+
     [[nodiscard]] auto getActiveVocables(size_t cardIndex) const -> std::set<VocableId>;
 
     [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;

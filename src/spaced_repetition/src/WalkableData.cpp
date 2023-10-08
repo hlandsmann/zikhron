@@ -100,28 +100,18 @@ auto WalkableData::getCardCopy(size_t cardIndex) const -> CardDB::CardPtr
     return cardPtr->clone();
 }
 
-auto WalkableData::timingAndNVocables(
-        const CardMeta& card,
-        const folly::sorted_vector_set<std::size_t>& deadVocables) const -> TimingAndVocables
+auto WalkableData::timingAndVocables(const CardMeta& card, bool pull) const -> TimingAndVocables
 {
-    folly::sorted_vector_set<std::size_t> lifeVocables;
-    ranges::set_difference(card.VocableIndices(), deadVocables, std::inserter(lifeVocables, lifeVocables.begin()));
-    if (lifeVocables.empty()) {
-        return {};
-    }
-    auto vocindex_progresses = lifeVocables | views::transform(index_vocableProgress);
-    // auto progresses = vocindex_progresses | views::values;
-    auto progresses = lifeVocables | views::transform(vocable_progress);
-    auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
-    progresses.size();
-    // auto minIt = ranges::min_element(lifeVocables | views::transform(vocable_progress), std::less{}, &VocableProgress::getRepeatRange);
-    // auto [_, threshHoldProgress] = *minIt.base();
-    auto threshHoldProgress = *minIt;
-    // const auto& minr = threshHoldProgress.getRepeatRange();
-    // spdlog::info("00000 --- min: {}, n: {}, max: {}",  minr.daysMin, minr.daysNormal, minr.daysMax);
+    auto vocindex_progresses = card.VocableIndices() | views::transform(index_vocableProgress);
 
+    VocableProgress threshHoldProgress{};
+    if (not pull) {
+        auto progresses = card.VocableIndices() | views::transform(vocable_progress);
+        auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
+        threshHoldProgress = *minIt;
+    }
     folly::sorted_vector_set<std::size_t> nextActiveVocables;
-    ranges::copy_if(lifeVocables, std::inserter(nextActiveVocables, nextActiveVocables.begin()),
+    ranges::copy_if(card.VocableIndices(), std::inserter(nextActiveVocables, nextActiveVocables.begin()),
                     [&, this](const auto& vocableIndex) {
                         auto getRepeatRange = vocables[vocableIndex].Progress().getRepeatRange();
                         return threshHoldProgress.getRepeatRange().implies(getRepeatRange);
@@ -131,39 +121,32 @@ auto WalkableData::timingAndNVocables(
     auto nextActiveIt = ranges::max_element(
             progressesNextActive,
             [](const auto& range1, const auto& range2) -> bool {
-                // spdlog::info("min: {}, n: {}, max: {}", range1.daysMin, range1.daysNormal, range1.daysMax);
                 return range1.daysMin < range2.daysMin;
             },
             &VocableProgress::getRepeatRange);
     const auto& nextActiveProgress = *nextActiveIt;
-    // const auto& nar = nextActiveProgress.getRepeatRange();
-    // spdlog::info("00000 --- min: {}, n: {}, max: {}",  nar.daysMin, nar.daysNormal, nar.daysMax);
-
-    // std::vector<std::size_t> testv;
-    // ranges::copy(nextActiveVocables, std::back_inserter(testv));
-    // ranges::sort(testv, std::less{}, [this](std::size_t index) { return vocable_progress(index).getRepeatRange(); });
-    // for (const auto& [index, prog] : testv | views::transform(index_vocableProgress)) {
-    //     const auto& range = prog.getRepeatRange();
-    //     spdlog::info("i: {:04d} --- min: {}, n: {}, max: {}", index, range.daysMin, range.daysNormal, range.daysMax);
-    // }
-
-    // auto minIt = utl::min_element_val(progresses, std::less{}, &VocableProgress::getRepeatRange);
-    // auto x = minIt.getRepeatRange();
-    // for (const auto& [vocableIndex, progress] : progresses) {
-    // }
-    return {.timing = nextActiveProgress.getRepeatRange().daysMin,
+    auto timing = nextActiveProgress.getRepeatRange().daysMin;
+    if (timing > 0) {
+        return {};
+    }
+    return {.timing = timing,
             .vocables = nextActiveVocables};
 }
 
-auto WalkableData::timingAndNVocables(size_t cardIndex) const -> TimingAndVocables
+auto WalkableData::timingAndVocables(size_t cardIndex, bool pull) const -> TimingAndVocables
 {
     const CardMeta& card = cards[cardIndex];
-    return timingAndNVocables(card);
+    return timingAndVocables(card, pull);
 }
 
-auto WalkableData::timingAndNVocables(const CardMeta& card) const -> TimingAndVocables
+auto WalkableData::timingAndVocables(const CardMeta& card) const -> TimingAndVocables
 {
-    return timingAndNVocables(card, {});
+    return timingAndVocables(card, false);
+}
+
+auto WalkableData::timingAndVocables(size_t cardIndex) const -> TimingAndVocables
+{
+    return timingAndVocables(cardIndex, false);
 }
 
 auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>
@@ -192,7 +175,7 @@ auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<V
 
 auto WalkableData::getActiveVocables(size_t cardIndex) const -> std::set<VocableId>
 {
-    const auto& activeVocableIndices = timingAndNVocables(cardIndex).vocables;
+    const auto& activeVocableIndices = timingAndVocables(cardIndex).vocables;
     std::set<VocableId> activeVocableIds;
     ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
                       [this](size_t vocableIndex) -> VocableId {

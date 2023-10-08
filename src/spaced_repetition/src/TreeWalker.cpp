@@ -88,9 +88,9 @@ auto Node::lowerOrder(size_t order) -> std::optional<Path>
         }
         return a < b;
     };
-    const auto& thisTnv = walkableData->timingAndNVocables(cardIndex);
+    const auto& thisTnv = walkableData->timingAndVocables(cardIndex);
     ranges::copy(subCards | views::filter([this, &thisTnv, order](size_t index) -> bool {
-                     const auto& tnv = walkableData->timingAndNVocables(index);
+                     const auto& tnv = walkableData->timingAndVocables(index);
                      return tnv.timing <= 0 && tnv.vocables.size() < thisTnv.vocables.size();
                      // return walkableData->Cards()[index].VocableIndices().size() < order;
                  }),
@@ -99,8 +99,8 @@ auto Node::lowerOrder(size_t order) -> std::optional<Path>
         return {};
     }
     ranges::sort(cardsLessVocables, [&, this](size_t index_a, size_t index_b) -> bool {
-        const auto& tnv_a = walkableData->timingAndNVocables(index_a);
-        const auto& tnv_b = walkableData->timingAndNVocables(index_b);
+        const auto& tnv_a = walkableData->timingAndVocables(index_a);
+        const auto& tnv_b = walkableData->timingAndVocables(index_b);
         if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
             return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
         }
@@ -114,7 +114,7 @@ auto Node::lowerOrder(size_t order) -> std::optional<Path>
     });
     spdlog::info("lowerOrder subCards size: {}", cardsLessVocables.size());
     spdlog::info("smallCard size:{}, index: {}",
-                 walkableData->timingAndNVocables(cardsLessVocables[0]).vocables.size(),
+                 walkableData->timingAndVocables(cardsLessVocables[0]).vocables.size(),
                  cardsLessVocables[0]);
     return {{.cardIndex = cardsLessVocables[0]}};
 }
@@ -123,8 +123,8 @@ auto Node::collectSubCards() const -> index_set
 {
     index_set subCardsResult;
 
-    const auto& card = walkableData->Cards()[cardIndex];
-    const auto& tnv = walkableData->timingAndNVocables(card);
+    // const auto& card = walkableData->Cards()[cardIndex];
+    const auto& tnv = walkableData->timingAndVocables(cardIndex);
     const auto& vocables = walkableData->Vocables();
     const auto& containedVocables = tnv.vocables
                                     | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
@@ -197,7 +197,7 @@ auto TreeWalker::getTodayVocables() const -> index_set
     const auto& cards = walkableData->Cards();
     sr::index_set todayVocables;
     for (const auto& card : cards) {
-        auto tnv = walkableData->timingAndNVocables(card);
+        auto tnv = walkableData->timingAndVocables(card);
         if (tnv.timing <= 0) {
             todayVocables.insert(tnv.vocables.begin(), tnv.vocables.end());
         }
@@ -257,7 +257,7 @@ void TreeWalker::createTree()
     auto cardIndex = getNextTargetCard(optionalTargetVocable.value());
 
     spdlog::info("TargetVocable: {}, cardSize: {}", optionalTargetVocable.value(),
-                 walkableData->timingAndNVocables(cardIndex).vocables.size());
+                 walkableData->timingAndVocables(cardIndex).vocables.size());
     tree = std::make_unique<Tree>(walkableData, optionalTargetVocable.value(), cardIndex);
     tree->build();
 }
