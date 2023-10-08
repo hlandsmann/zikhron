@@ -92,11 +92,6 @@ void CardMeta::resetTimingAndVocables()
 auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
 {
     const auto& vocables = refVocables.get();
-    // auto vocindex_progresses = vocableIndices
-    //                            | views::transform([&vocables](std::size_t vocableIndex)
-    //                                                       -> std::pair<std::size_t, VocableProgress> {
-    //                                  return {vocableIndex, vocables[vocableIndex].Progress()};
-    //                              });
     auto vocable_progress = [&vocables](std::size_t vocableIndex) { return vocables[vocableIndex].Progress(); };
 
     VocableProgress threshHoldProgress{};
@@ -111,6 +106,9 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
                         auto getRepeatRange = vocables[vocableIndex].Progress().getRepeatRange();
                         return threshHoldProgress.getRepeatRange().implies(getRepeatRange);
                     });
+    if (nextActiveVocables.empty()) {
+        return {};
+    }
 
     auto progressesNextActive = nextActiveVocables | views::transform(vocable_progress);
     auto nextActiveIt = ranges::max_element(
@@ -150,22 +148,6 @@ auto WalkableData::getCardCopy(size_t cardIndex) const -> CardDB::CardPtr
     const CardDB::CardPtr& cardPtr = db.getCards().at(cardId);
     return cardPtr->clone();
 }
-
-// auto WalkableData::timingAndVocables(size_t cardIndex, bool pull) const -> TimingAndVocables
-// {
-//     const CardMeta& card = cards[cardIndex];
-//     return timingAndVocables(card, pull);
-// }
-//
-// auto WalkableData::timingAndVocables(const CardMeta& card) const -> TimingAndVocables
-// {
-//     return timingAndVocables(card, false);
-// }
-//
-// auto WalkableData::timingAndVocables(size_t cardIndex) const -> TimingAndVocables
-// {
-//     return timingAndVocables(cardIndex, false);
-// }
 
 auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>
 {
