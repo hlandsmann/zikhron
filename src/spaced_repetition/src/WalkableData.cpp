@@ -14,7 +14,6 @@
 #include <utils/min_element_val.h>
 
 #include <algorithm>
-#include <boost/range/combine.hpp>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -162,7 +161,7 @@ auto WalkableData::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<V
                       std::back_inserter(vocableIds),
                       [&](const ZH_Annotator::Item& item) -> VocableId {
                           // TODO remove static_cast
-                          VocableId vocId = static_cast<VocableId>(item.dicItemVec.front().id);
+                          auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
                           if (const auto it = vocableChoices.find(vocId);
                               it != vocableChoices.end()) {
                               // TODO remove static_cast
@@ -245,14 +244,13 @@ void WalkableData::insertVocabularyOfCard(const CardDB::CardPtr& card)
                           return item.dicItemVec;
                       });
 
-    const auto& progressCards = db.ProgressCards();
     // TODO remove static cast
     auto [card_index, cardMetaRef] = cards.emplace(static_cast<CardId>(card->Id()),
                                                    CardMeta{folly::sorted_vector_set<std::size_t>{},
                                                             std::ref(vocables)});
     auto& cardMeta = cardMetaRef.get();
     std::vector<VocableId> vocableIds = getVocableIdsInOrder(card, db.VocableChoices());
-    for (const auto& [vocId, dicItemVec] : boost::combine(vocableIds, annotatorItems)) {
+    for (const auto& [vocId, dicItemVec] : views::zip(vocableIds, annotatorItems)) {
         const auto& optionalIndex = vocables.optional_index(vocId);
         if (optionalIndex.has_value()) {
             auto& vocable = vocables[*optionalIndex];
@@ -286,7 +284,7 @@ auto WalkableData::getVocableIdsInOrder(const CardDB::CardPtr& card,
                       std::back_inserter(vocableIds),
                       [&vocableChoices](const ZH_Annotator::Item& item) -> VocableId {
                           // TODO remove static_cast
-                          VocableId vocId = static_cast<VocableId>(item.dicItemVec.front().id);
+                          auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
                           if (const auto it = vocableChoices.find(vocId);
                               it != vocableChoices.end()) {
                               // TODO remove static_cast
