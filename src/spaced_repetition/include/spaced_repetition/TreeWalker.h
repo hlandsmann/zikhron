@@ -85,7 +85,7 @@ private:
 
     std::shared_ptr<WalkableData> walkableData;
     std::unique_ptr<Tree> tree;
-    index_set againVocables;
+    index_set failedVocables;
 };
 
 } // namespace sr

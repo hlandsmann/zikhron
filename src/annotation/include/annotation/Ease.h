@@ -48,6 +48,6 @@ struct Ease {
     Ease(float intervalDay, float easeFactor, int indirectIntervalDay);
     [[nodiscard]] auto getProgress() const -> Progress;
 
-    EaseVal ease;
+    EaseVal easeVal;
     Progress progress;
 };

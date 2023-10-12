@@ -48,7 +48,7 @@ auto VocableMeta::CardIndices() const -> const folly::sorted_vector_set<std::siz
     return cardIndices;
 }
 
-void VocableMeta::advanceByEase(Ease ease)
+void VocableMeta::advanceByEase(const Ease& ease)
 {
     progress.advanceByEase(ease);
 }
@@ -205,7 +205,7 @@ auto WalkableData::getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease
     return ease;
 }
 
-void WalkableData::setEaseVocable(VocableId vocId, Ease ease)
+void WalkableData::setEaseVocable(VocableId vocId, const Ease& ease)
 {
     VocableMeta& vocable = vocables.at_id(vocId).second;
     vocable.advanceByEase(ease);

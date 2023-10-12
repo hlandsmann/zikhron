@@ -29,7 +29,7 @@ struct VocableMeta
                 ZH_Annotator::ZH_dicItemVec dicItemVec);
     [[nodiscard]] auto Progress() const -> const VocableProgress&;
     [[nodiscard]] auto CardIndices() const -> const folly::sorted_vector_set<std::size_t>&;
-    void advanceByEase(Ease);
+    void advanceByEase(const Ease&);
     void cardIndices_insert(std::size_t cardIndex);
 
 private:
@@ -72,7 +72,7 @@ public:
     [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;
     [[nodiscard]] auto getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>;
 
-    void setEaseVocable(VocableId, Ease);
+    void setEaseVocable(VocableId, const Ease&);
     void resetCardsContainingVocable(VocableId vocId);
     void saveProgress() const;
 

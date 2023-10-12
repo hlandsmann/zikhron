@@ -217,7 +217,7 @@ void SR_DataBase::SetEase(uint vocId, Ease ease)
     vocableSR.advanceByEase(ease);
     ids_nowVoc.erase(vocId);
 
-    if (ease.ease == EaseVal::again) {
+    if (ease.easeVal == EaseVal::again) {
         ids_againVoc.insert(vocId);
     } else {
         ids_againVoc.erase(vocId);
@@ -226,7 +226,7 @@ void SR_DataBase::SetEase(uint vocId, Ease ease)
     ids_repeatTodayVoc.erase(vocId);
     spdlog::debug("Ease of {} is {}, intervalDay {:.2f}, easeFactor {:.2f}",
                   id_vocable.at(vocId).front().key,
-                  mapEaseToUint(ease.ease),
+                  mapEaseToUint(ease.easeVal),
                   vocableSR.IntervalDay(),
                   vocableSR.EaseFactor());
 }
