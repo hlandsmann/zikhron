@@ -29,12 +29,12 @@ void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragra
          boost::combine(easeChoiceContainer, easeList, labelContainer)) {
         easeChoice->observe_active([this, ease, index](uint active) {
             auto tmpEase = ease;
-            tmpEase.ease = mapIntToEase(active);
+            tmpEase.easeVal = mapIntToEase(active);
             auto progress = tmpEase.getProgress();
             labelContainer[index]->set_label(
                 fmt::format("{:.1f}, ({:.1f})", progress.intervalDay, progress.easeFactor));
         });
-        easeChoice->setActive(mapEaseToUint(ease.ease));
+        easeChoice->setActive(mapEaseToUint(ease.easeVal));
         index++;
     }
 }
@@ -63,7 +63,7 @@ void VocableList::addLabel(int column, int row) {
 
 auto VocableList::getChoiceOfEase() -> std::vector<Ease> {
     for (size_t i = 0; i < easeList.size(); i++) {
-        easeList[i].ease = mapIntToEase(easeChoiceContainer[i]->getActive());
+        easeList[i].easeVal = mapIntToEase(easeChoiceContainer[i]->getActive());
     }
     return easeList;
 }

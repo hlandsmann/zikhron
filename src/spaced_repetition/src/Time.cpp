@@ -1,4 +1,8 @@
 #include "Time.h"
+#include <iomanip>
+#include <string>
+#include <sstream>
+#include <ctime>
 #include <chrono>
 namespace chrono = std::chrono;
 namespace spaced_repetition {

@@ -1,35 +1,42 @@
 #include <Ease.h>
+#include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <array>
-#include <ranges>
+#include <iterator>
 #include <span>
-#include <vector>
 
 namespace ranges = std::ranges;
 
 Ease::Ease(float intervalDay, float easeFactor, int indirectIntervalDay)
-    : ease{EaseVal::easy}
+    : easeVal{EaseVal::easy}
     , progress{.intervalDay = intervalDay,
                .easeFactor = easeFactor,
-               .indirectIntervalDay = indirectIntervalDay} {
+               .indirectIntervalDay = indirectIntervalDay}
+{
     if (easeFactor <= thresholdFactorGood) {
-        ease = EaseVal::good;
+        easeVal = EaseVal::good;
     }
     if (easeFactor <= thresholdFactorHard && intervalDay < thresholdIntervalHard) {
-        ease = EaseVal::hard;
+        easeVal = EaseVal::hard;
     }
     if (easeFactor <= thresholdFactorAgain && intervalDay < thresholdIntervalAgain) {
-        ease = EaseVal::again;
+        easeVal = EaseVal::again;
     }
 }
 
-auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress {
+auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
+{
     float easeChange = [=]() -> float {
         switch (ease) {
-        case EaseVal::easy: return Ease::changeFactorEasy;
-        case EaseVal::good: return Ease::changeFactorGood;
-        case EaseVal::hard: return Ease::changeFactorHard;
-        default: return 0.F;
+        case EaseVal::easy:
+            return Ease::changeFactorEasy;
+        case EaseVal::good:
+            return Ease::changeFactorGood;
+        case EaseVal::hard:
+            return Ease::changeFactorHard;
+        default:
+            return 0.F;
         }
     }();
     float easeFactor = std::clamp(std::max(Ease::minEaseFactor, progress.easeFactor) * easeChange,
@@ -39,27 +46,34 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress {
     float tempEaseFactor = [=]() -> float {
         switch (ease) {
         case EaseVal::easy:
-        case EaseVal::good: return easeFactor;
-        case EaseVal::hard: return Ease::tempEaseFactorHard;
-        default: return 0.F;
+        case EaseVal::good:
+            return easeFactor;
+        case EaseVal::hard:
+            return Ease::tempEaseFactorHard;
+        default:
+            return 0.F;
         }
     }();
 
     float intervalDayExtra = [=]() -> float {
-      constexpr static float divisorExtraEasy = 3.F;
-      constexpr static float divisorExtraGood = 4.F;
+        constexpr static float divisorExtraEasy = 3.F;
+        constexpr static float divisorExtraGood = 4.F;
         switch (ease) {
-        case EaseVal::easy: return float(progress.indirectIntervalDay) / divisorExtraEasy;
-        case EaseVal::good: return float(progress.indirectIntervalDay) / divisorExtraGood;
-        default: return 0.F;
+        case EaseVal::easy:
+            return float(progress.indirectIntervalDay) / divisorExtraEasy;
+        case EaseVal::good:
+            return float(progress.indirectIntervalDay) / divisorExtraGood;
+        default:
+            return 0.F;
         }
     }();
     float intervalDay = progress.intervalDay * tempEaseFactor + intervalDayExtra;
-
+    spdlog::info("itdy: {}", intervalDay);
     return {.intervalDay = intervalDay, .easeFactor = easeFactor, .indirectIntervalDay = 0};
 }
 
-auto Ease::getProgress() const -> Progress {
+auto Ease::getProgress() const -> Progress
+{
     std::array easeValList = {EaseVal::again, EaseVal::hard, EaseVal::good, EaseVal::easy};
     std::array<float, easeValList.size()> intervals{};
     ranges::transform(easeValList, intervals.begin(), [this](EaseVal easeVal) {
@@ -71,7 +85,9 @@ auto Ease::getProgress() const -> Progress {
         *it = std::max(*it, *std::prev(it) + 1.F);
     }
 
-    float intervalDay = intervals.at(mapEaseToUint(ease));
-    float easeFactor = computeProgress(ease, progress).easeFactor;
+    float intervalDay = intervals.at(mapEaseToUint(easeVal));
+
+    spdlog::info("itdy: {}, ease {}", intervalDay, mapEaseToUint(easeVal));
+    float easeFactor = computeProgress(easeVal, progress).easeFactor;
     return {.intervalDay = intervalDay, .easeFactor = easeFactor, .indirectIntervalDay = 0};
 }
