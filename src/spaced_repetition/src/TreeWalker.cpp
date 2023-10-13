@@ -258,9 +258,11 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
 void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 {
     for (auto [vocId, ease] : id_ease) {
-        spdlog::warn("begin id: {}", vocId);
+        // spdlog::warn("begin id: {}", vocId);
         walkableData->setEaseVocable(vocId, ease);
-        spdlog::warn("days {}, id: {}", walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin, vocId);
+        spdlog::warn("days {}, id: {}",
+                     walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,
+                     vocId);
         walkableData->resetCardsContainingVocable(vocId);
         if (ease.easeVal == EaseVal::again) {
             size_t vocableIndex = walkableData->Vocables().index_at_id(vocId);

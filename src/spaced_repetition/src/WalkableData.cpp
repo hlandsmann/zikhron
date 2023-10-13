@@ -199,7 +199,7 @@ auto WalkableData::getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease
                               vocSR.EaseFactor(),
                               vocSR.IntervalDay(),
                               vocId);
-                return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
+                return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor()}};
             });
     return ease;
 }

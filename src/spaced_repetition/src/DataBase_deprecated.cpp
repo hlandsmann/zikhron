@@ -1,8 +1,5 @@
 #include "misc/Identifier.h"
 
-#include <set>
-#include <exception>
-#include <string_view>
 #include <DataBase_deprecated.h>
 #include <VocableProgress.h>
 #include <annotation/Card.h>
@@ -15,12 +12,15 @@
 
 #include <algorithm>
 #include <boost/range/combine.hpp>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <ranges>
+#include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <sys/types.h>
@@ -242,10 +242,7 @@ void SR_DataBase::AdvanceIndirectlySeenVocables(uint cardId)
     std::vector<std::string> unchangedVocables;
     for (uint vocId : id_cardMeta.at(cardId).vocableIds)
         if (auto it = id_vocableSR.find(vocId); it != id_vocableSR.end()) {
-            if (it->second.advanceIndirectly())
-                advancedVocables.push_back(id_vocable.at(it->first).front().key);
-            else
-                unchangedVocables.push_back(id_vocable.at(it->first).front().key);
+            unchangedVocables.push_back(id_vocable.at(it->first).front().key);
         }
 
     spdlog::info("Advancing indirectly: {}", fmt::join(advancedVocables, ", "));

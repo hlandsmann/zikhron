@@ -1,5 +1,5 @@
 #include <Ease.h>
-#include <spdlog/spdlog.h>
+// #include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <array>
@@ -8,11 +8,10 @@
 
 namespace ranges = std::ranges;
 
-Ease::Ease(float intervalDay, float easeFactor, int indirectIntervalDay)
+Ease::Ease(float intervalDay, float easeFactor)
     : easeVal{EaseVal::easy}
     , progress{.intervalDay = intervalDay,
-               .easeFactor = easeFactor,
-               .indirectIntervalDay = indirectIntervalDay}
+               .easeFactor = easeFactor}
 {
     if (easeFactor <= thresholdFactorGood) {
         easeVal = EaseVal::good;
@@ -55,29 +54,17 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
         }
     }();
 
-    float intervalDayExtra = [=]() -> float {
-        constexpr static float divisorExtraEasy = 3.F;
-        constexpr static float divisorExtraGood = 4.F;
-        switch (ease) {
-        case EaseVal::easy:
-            return float(progress.indirectIntervalDay) / divisorExtraEasy;
-        case EaseVal::good:
-            return float(progress.indirectIntervalDay) / divisorExtraGood;
-        default:
-            return 0.F;
-        }
-    }();
-    float intervalDay = progress.intervalDay * tempEaseFactor + intervalDayExtra;
-    spdlog::info("itdy: {}", intervalDay);
-    return {.intervalDay = intervalDay, .easeFactor = easeFactor, .indirectIntervalDay = 0};
+    float intervalDay = progress.intervalDay * tempEaseFactor;
+    // spdlog::info("itdy: {}", intervalDay);
+    return {.intervalDay = intervalDay, .easeFactor = easeFactor};
 }
 
 auto Ease::getProgress() const -> Progress
 {
     std::array easeValList = {EaseVal::again, EaseVal::hard, EaseVal::good, EaseVal::easy};
     std::array<float, easeValList.size()> intervals{};
-    ranges::transform(easeValList, intervals.begin(), [this](EaseVal easeVal) {
-        return computeProgress(easeVal, progress).intervalDay;
+    ranges::transform(easeValList, intervals.begin(), [this](EaseVal ease) {
+        return computeProgress(ease, progress).intervalDay;
     });
 
     auto intervalSpan = std::span(std::next(intervals.begin()), intervals.end());
@@ -87,7 +74,7 @@ auto Ease::getProgress() const -> Progress
 
     float intervalDay = intervals.at(mapEaseToUint(easeVal));
 
-    spdlog::info("itdy: {}, ease {}", intervalDay, mapEaseToUint(easeVal));
+    // spdlog::info("itdy: {}, ease {}", intervalDay, mapEaseToUint(easeVal));
     float easeFactor = computeProgress(easeVal, progress).easeFactor;
-    return {.intervalDay = intervalDay, .easeFactor = easeFactor, .indirectIntervalDay = 0};
+    return {.intervalDay = intervalDay, .easeFactor = easeFactor};
 }

@@ -113,7 +113,7 @@ auto VocabularySR::GetCardRepeatedVoc() -> std::optional<uint> {
             return a_it > b_it;
         return a > b;
     };
-    auto urgency = [this](uint vocId) { return id_vocableSR.at(vocId).urgency(); };
+    auto urgency = [this](uint vocId) { return id_vocableSR.at(vocId).recency(); };
     return ranges::max_element(
                candidates,
                [&preferedQuantity, &urgency](const intersect_view& a, const intersect_view& b) {
@@ -307,7 +307,7 @@ auto VocabularySR::GetRelevantEase(uint cardId) const -> Id_Ease_vt {
                           vocSR.EaseFactor(),
                           vocSR.IntervalDay(),
                           vocId);
-            return {static_cast<VocableId>(vocId), {vocSR.IntervalDay(), vocSR.EaseFactor(), vocSR.IndirectIntervalDay()}};
+            return {static_cast<VocableId>(vocId), {vocSR.IntervalDay(), vocSR.EaseFactor()}};
         });
     return ease;
 }

@@ -42,44 +42,15 @@ auto VocableProgress::RepeatRange::operator<=>(const RepeatRange& other) const -
 void VocableProgress::advanceByEase(const Ease& ease)
 {
     lastSeen = std::time(nullptr);
-    indirectView = std::time(nullptr);
 
     auto progress = ease.getProgress();
     intervalDay = progress.intervalDay;
     easeFactor = progress.easeFactor;
-    indirectIntervalDay = progress.indirectIntervalDay;
-}
-
-auto VocableProgress::advanceIndirectly() -> bool
-{
-    if (isToBeRepeatedToday()) {
-        return false;
-    }
-
-    bool advanceIntervalDay = false;
-
-    /* Each Vocable is to be advanced only once each day it is viewed */
-    std::tm IndirectViewTime_tm = *std::localtime(&indirectView);
-    IndirectViewTime_tm.tm_mday += 1;
-    std::time_t indirectViewTime = std::mktime(&IndirectViewTime_tm);
-
-    if (indirectViewTime < todayMidnightTime()) {
-        advanceIntervalDay = true;
-    }
-    indirectView = std::time(nullptr);
-
-    indirectIntervalDay += advanceIntervalDay ? 1 : 0;
-    return advanceIntervalDay;
 }
 
 auto VocableProgress::recency() const -> float
 {
     return (easeFactor * intervalDay) - static_cast<float>(daysFromNow(lastSeen, 0));
-}
-
-auto VocableProgress::urgency() const -> float
-{
-    return (easeFactor * intervalDay) + static_cast<float>(indirectIntervalDay);
 }
 
 auto VocableProgress::pauseTimeOver() const -> bool
@@ -96,28 +67,24 @@ auto VocableProgress::fromJson(const nlohmann::json& jsonIn) -> pair_t
 {
     Init init = {.easeFactor = jsonIn.at(std::string(VocableProgress::s_ease_factor)),
                  .intervalDay = jsonIn.at(std::string(VocableProgress::s_interval_day)),
-                 .lastSeen = deserialize_time_t(jsonIn.at(std::string(VocableProgress::s_last_seen))),
-                 .indirectView = deserialize_time_t(jsonIn.at(std::string(VocableProgress::s_indirect_view))),
-                 .indirectIntervalDay = jsonIn.at(std::string(VocableProgress::s_indirect_interval_day))};
+                 .lastSeen = deserialize_time_t(jsonIn.at(std::string(VocableProgress::s_last_seen)))};
     return {jsonIn.at(std::string(VocableProgress::s_id)), {init}};
 }
 
 auto VocableProgress::toJson(const pair_t& pair) -> nlohmann::json
 {
     const VocableProgress& vocSR = pair.second;
-    return {{std::string(VocableProgress::s_id), pair.first},
+    return {
+            {std::string(VocableProgress::s_id), pair.first},
             {std::string(VocableProgress::s_ease_factor), vocSR.easeFactor},
             {std::string(VocableProgress::s_interval_day), vocSR.intervalDay},
-            {std::string(VocableProgress::s_last_seen), serialize_time_t(vocSR.lastSeen)},
-            {std::string(VocableProgress::s_indirect_view), serialize_time_t(vocSR.indirectView)},
-            {std::string(VocableProgress::s_indirect_interval_day), vocSR.indirectIntervalDay}};
+            {std::string(VocableProgress::s_last_seen), serialize_time_t(vocSR.lastSeen)}};
 }
 
 auto VocableProgress::isToBeRepeatedToday() const -> bool
 {
     std::time_t todayMidnight = todayMidnightTime();
-    std::time_t vocActiveTime = advanceTimeByDays(lastSeen,
-                                                  intervalDay + static_cast<float>(indirectIntervalDay));
+    std::time_t vocActiveTime = advanceTimeByDays(lastSeen, intervalDay);
 
     return todayMidnight > vocActiveTime;
 }
