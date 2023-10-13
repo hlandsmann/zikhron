@@ -71,7 +71,7 @@ public:
     TreeWalker(std::shared_ptr<WalkableData>);
     using VocableIds_vt = std::vector<VocableId>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
-    using CardInformation = std::tuple<std::unique_ptr<Card>, VocableIds_vt, Id_Ease_vt>;
+    using CardInformation = std::tuple<std::optional<std::unique_ptr<Card>>, VocableIds_vt, Id_Ease_vt>;
     auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardInformation;
     void setEaseLastCard(const Id_Ease_vt& id_ease);
     void saveProgress() const;
@@ -81,10 +81,10 @@ private:
     [[nodiscard]] auto getNextTargetVocable() const -> std::optional<size_t>;
     [[nodiscard]] auto getNextTargetCard(size_t vocableIndex) const -> size_t;
 
-    void createTree();
+    [[nodiscard]] auto createTree() -> std::optional<Tree>;
 
     std::shared_ptr<WalkableData> walkableData;
-    std::unique_ptr<Tree> tree;
+    std::optional<Tree> tree;
     index_set failedVocables;
 };
 

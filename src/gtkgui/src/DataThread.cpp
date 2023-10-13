@@ -1,11 +1,12 @@
 #include "spaced_repetition/WalkableData.h"
-#include <misc/Identifier.h>
+
 #include <DataThread.h>
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <misc/Identifier.h>
 #include <spaced_repetition/TreeWalker.h>
 #include <spaced_repetition/Vocabulary.h>
 #include <spdlog/spdlog.h>
@@ -304,10 +305,13 @@ auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<m
 void DataThread::sendActiveCard(CardInformation& cardInformation)
 {
     auto [current_card, vocableIds, ease] = std::move(cardInformation);
-    //TODO remove static_cast CardId
-    CardId cardId = static_cast<CardId>(current_card->Id());
-    auto current_card_clone = std::unique_ptr<Card>(current_card->clone());
-    auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
+    if (not current_card.has_value()) {
+        return;
+    }
+    // TODO remove static_cast CardId
+    CardId cardId = static_cast<CardId>(current_card.value()->Id());
+    auto current_card_clone = std::unique_ptr<Card>(current_card.value()->clone());
+    auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card.value()), std::move(vocableIds));
     auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));
     paragraph->setupVocables(ease);
     auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);
@@ -334,8 +338,8 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, combination, characterSequence]() {
             auto cardInformation = vocabularySR->AddAnnotation(combination, characterSequence);
-            //TODO reactivate
-            // sendActiveCard(cardInformation);
+            // TODO reactivate
+            //  sendActiveCard(cardInformation);
         });
     }
     condition.notify_one();
@@ -347,8 +351,8 @@ void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocId
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, vocId, vocIdOldChoice, vocIdNewChoice]() {
             auto cardInformation = vocabularySR->AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
-            //TODO reactivate
-            // sendActiveCard(cardInformation);
+            // TODO reactivate
+            //  sendActiveCard(cardInformation);
         });
     }
     condition.notify_one();

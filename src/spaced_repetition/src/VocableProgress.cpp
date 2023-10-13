@@ -1,5 +1,6 @@
 #include <VocableProgress.h>
 #include <annotation/Ease.h>
+#include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <cmath>
@@ -99,7 +100,9 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
     constexpr auto square = 2.F;
     float minFactor = std::pow(Ease::changeFactorHard, square);
     float maxFactor = easeFactor * Ease::changeFactorHard;
-    return {.daysMin = daysFromNow(lastSeen, intervalDay * minFactor),
+    float daysMinAtleast = (intervalDay >= 1.F) ? 1.F : 0.F;
+    return {.daysMin = daysFromNow(lastSeen,
+                                   std::max(daysMinAtleast, intervalDay * minFactor)),
             .daysNormal = daysFromNow(lastSeen, intervalDay),
             .daysMax = daysFromNow(lastSeen, intervalDay * maxFactor)};
 }

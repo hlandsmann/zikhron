@@ -232,7 +232,10 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
 {
     size_t activeCardIndex{};
     if (not preferedCardId.has_value()) {
-        createTree();
+        tree = createTree();
+        if (not tree.has_value()) {
+            return {};
+        }
         const auto& paths = tree->Paths();
         if (!paths.empty()) {
             activeCardIndex = tree->Paths().front().cardIndex;
@@ -260,9 +263,12 @@ void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
     for (auto [vocId, ease] : id_ease) {
         // spdlog::warn("begin id: {}", vocId);
         walkableData->setEaseVocable(vocId, ease);
-        spdlog::warn("days {}, id: {}",
-                     walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,
-                     vocId);
+        // spdlog::warn("intDay: {}, daysMin {}, daysNormal: {}, daysMax: {} id: {}, ease: {}",
+        //              walkableData->Vocables().at_id(vocId).second.Progress().IntervalDay(),
+        //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,
+        //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysNormal,
+        //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMax,
+        //              vocId, static_cast<unsigned>(ease.easeVal));
         walkableData->resetCardsContainingVocable(vocId);
         if (ease.easeVal == EaseVal::again) {
             size_t vocableIndex = walkableData->Vocables().index_at_id(vocId);
@@ -271,18 +277,20 @@ void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
     }
 }
 
-void TreeWalker::createTree()
+auto TreeWalker::createTree() -> std::optional<Tree>
 {
+    std::optional<Tree> resultTree;
     auto optionalTargetVocable = getNextTargetVocable();
     if (!optionalTargetVocable.has_value()) {
-        return;
+        return {};
     }
     auto cardIndex = getNextTargetCard(optionalTargetVocable.value());
 
     spdlog::info("TargetVocable: {}, cardSize: {}", optionalTargetVocable.value(),
                  walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size());
-    tree = std::make_unique<Tree>(walkableData, optionalTargetVocable.value(), cardIndex);
-    tree->build();
+    resultTree.emplace(walkableData, optionalTargetVocable.value(), cardIndex);
+    resultTree->build();
+    return resultTree;
 }
 
 void TreeWalker::saveProgress() const
