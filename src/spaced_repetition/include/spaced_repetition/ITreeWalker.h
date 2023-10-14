@@ -17,7 +17,13 @@ namespace sr {
 class ITreeWalker
 {
 public:
+  ITreeWalker() = default;
     virtual ~ITreeWalker() = default;
+    ITreeWalker(const ITreeWalker&) = delete;
+    ITreeWalker(ITreeWalker&&) = delete;
+    auto operator=(const ITreeWalker& other) -> ITreeWalker& = delete;
+    auto operator=(ITreeWalker&& other) noexcept -> ITreeWalker& = delete;
+
     using VocableIds_vt = std::vector<VocableId>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
     using CardInformation = std::tuple<std::optional<std::unique_ptr<Card>>, VocableIds_vt, Id_Ease_vt>;

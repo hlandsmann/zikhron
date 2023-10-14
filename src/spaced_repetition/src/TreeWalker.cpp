@@ -1,25 +1,23 @@
 #include "TreeWalker.h"
 
-#include "annotation/Ease.h"
-
 #include <ITreeWalker.h>
 #include <WalkableData.h>
+#include <annotation/Ease.h>
 #include <bits/ranges_algo.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/counting_iterator.h>
 
 #include <algorithm>
 #include <array>
-#include <boost/program_options/option.hpp>
 #include <cstddef>
 #include <functional>
 #include <iterator>
 #include <memory>
 #include <optional>
-#include <vector>
-// #include <ranges>
 #include <ranges>
 #include <utility>
+#include <vector>
 
 #include <sys/types.h>
 
@@ -72,22 +70,6 @@ void walk(const std::shared_ptr<sr::WalkableData>& walkableData)
 
 namespace sr {
 
-// void Node::push(uint cardIndex)
-// {
-//     const auto& card = walkableData->Cards()[cardIndex];
-//     const auto& tnv = walkableData->timingAndNVocables(card);
-//     if (tnv.timing > 0) {
-//         return;
-//     }
-//     // index_set intersection;
-//     // ranges::set_intersection(tnv.vocables, vocables, std::inserter(intersection, intersection.begin()));
-//     size_t intersectionCount = ranges::set_intersection(
-//                                        tnv.vocables, vocables, utl::counting_iterator{})
-//                                        .out.count;
-//     if (intersectionCount == 0) {
-//     }
-// }
-
 auto ITreeWalker::createTreeWalker(std::shared_ptr<WalkableData> walkableData) -> std::unique_ptr<ITreeWalker>
 {
     return std::make_unique<TreeWalker>(std::move(walkableData));
@@ -120,6 +102,7 @@ auto TreeWalker::getNextTargetVocable() const -> std::optional<size_t>
     if (todayVocables.empty()) {
         return {};
     }
+    spdlog::info("#Vocables to study: {}", todayVocables.size());
     auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
     size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
 

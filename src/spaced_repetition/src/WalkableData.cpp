@@ -4,7 +4,6 @@
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
-#include <bits/ranges_algo.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
@@ -119,7 +118,7 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
     const auto& nextActiveProgress = *nextActiveIt;
     auto timing = nextActiveProgress.getRepeatRange().daysMin;
     if (timing > 0) {
-        return {};
+        return {.timing = timing, .vocables = {}};
     }
     return {.timing = timing,
             .vocables = nextActiveVocables};
@@ -199,7 +198,7 @@ auto WalkableData::getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease
                               vocSR.EaseFactor(),
                               vocSR.IntervalDay(),
                               vocId);
-                return {vocId, {vocSR.IntervalDay(), vocSR.EaseFactor()}};
+                return {vocId, {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()}};
             });
     return ease;
 }

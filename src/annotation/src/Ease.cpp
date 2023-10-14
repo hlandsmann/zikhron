@@ -8,9 +8,10 @@
 
 namespace ranges = std::ranges;
 
-Ease::Ease(float intervalDay, float easeFactor)
+Ease::Ease(float intervalDay, int dueDays, float easeFactor)
     : easeVal{EaseVal::easy}
     , progress{.intervalDay = intervalDay,
+               .dueDays = dueDays,
                .easeFactor = easeFactor}
 {
     if (easeFactor <= thresholdFactorGood) {
@@ -54,7 +55,14 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
         }
     }();
 
-    float intervalDay = progress.intervalDay * tempEaseFactor;
+    float intervalDay = 0.F;
+    if (tempEaseFactor != 0) {
+        float partIntervalDay = std::clamp(progress.intervalDay - static_cast<float>(progress.dueDays),
+                                           0.F,
+                                           progress.intervalDay);
+        float partEaseFactor = tempEaseFactor - 1.F;
+        intervalDay = progress.intervalDay + partEaseFactor * partIntervalDay;
+    }
     // spdlog::info("itdy: {}", intervalDay);
     return {.intervalDay = intervalDay, .easeFactor = easeFactor};
 }

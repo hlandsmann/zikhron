@@ -1,11 +1,12 @@
 #include <misc/Config.h>
-#include <utility>
 #include <spaced_repetition/ITreeWalker.h>
 #include <spaced_repetition/WalkableData.h>
+#include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
 #include <memory>
+#include <utility>
 
 namespace fs = std::filesystem;
 
@@ -21,6 +22,13 @@ auto main() -> int
     auto zikhron_cfg = get_zikhron_cfg();
     auto walkableData = std::make_unique<sr::WalkableData>(zikhron_cfg);
     auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(walkableData));
+    auto [optCardId, _, ease] = treeWalker->getNextCardChoice();
+    if (not optCardId.has_value()) {
+        spdlog::info("No card found!");
+        return 0;
+    }
+    auto cardId = optCardId.value()->Id();
+    spdlog::info("show cardId: {}, size: {}", cardId, ease.size());
 
     return 0;
 }

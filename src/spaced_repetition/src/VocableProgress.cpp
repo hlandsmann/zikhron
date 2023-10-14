@@ -103,6 +103,11 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
     float daysMinAtleast = (intervalDay >= 1.F) ? 1.F : 0.F;
     return {.daysMin = daysFromNow(lastSeen,
                                    std::max(daysMinAtleast, intervalDay * minFactor)),
-            .daysNormal = daysFromNow(lastSeen, intervalDay),
+            .daysNormal = dueDays(),
             .daysMax = daysFromNow(lastSeen, intervalDay * maxFactor)};
+}
+
+auto VocableProgress::dueDays() const -> int
+{
+    return daysFromNow(lastSeen, intervalDay);
 }

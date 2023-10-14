@@ -1,23 +1,25 @@
 #pragma once
-#include <cstddef>
 #include <WalkableData.h>
-#include <vector>
-#include <optional>
+
+#include <cstddef>
 #include <memory>
- 
+#include <optional>
+#include <vector>
+
 namespace sr {
 struct Path
 {
     size_t cardIndex;
-    // uint steps{};
-    // uint eliminateCount{};
+    size_t maxVocableSize;
+    size_t steps;
+    size_t eliminateCount;
 };
 
 class Node;
 using node_vector = std::vector<std::optional<Node>>;
 class Node
 {
-    static constexpr size_t s_stopBreakDown = 3;
+    static constexpr size_t s_stopBreakDown = 4;
 
 public:
     Node(std::shared_ptr<WalkableData> walkableData,
@@ -28,6 +30,8 @@ public:
 
 private:
     [[nodiscard]] auto collectSubCards() const -> index_set;
+    [[nodiscard]] auto removeInactiveCardindices(const index_set& cardIndices) -> std::vector<size_t>;
+    void sortCardIndices(std::vector<size_t>& cardIndices);
     std::shared_ptr<WalkableData> walkableData;
     std::shared_ptr<node_vector> nodes;
     size_t cardIndex;

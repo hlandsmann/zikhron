@@ -12,3 +12,4 @@ Diagnostics:
       - concurrency-mt-unsafe
       - misc-non-private-member-variables-in-classes
       - readability-identifier-length
+      - readability-function-cognitive-complexity

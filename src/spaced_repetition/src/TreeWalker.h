@@ -1,6 +1,5 @@
 #pragma once
 #include "ITreeWalker.h"
-#include "Node.h"
 #include "Tree.h"
 #include "WalkableData.h"
 
@@ -19,14 +18,18 @@
 
 namespace sr {
 
-class Node;
 class Tree;
 
 class TreeWalker : public ITreeWalker
 {
 public:
     TreeWalker(std::shared_ptr<WalkableData>);
-    virtual ~TreeWalker() = default;
+    TreeWalker(const TreeWalker&) = delete;
+    TreeWalker(TreeWalker&&) = delete;
+    auto operator=(const TreeWalker& other) -> TreeWalker& = delete;
+    auto operator=(TreeWalker&& other) noexcept -> TreeWalker& = delete;
+    ~TreeWalker() override = default;
+
     using VocableIds_vt = std::vector<VocableId>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
     using CardInformation = std::tuple<std::optional<std::unique_ptr<Card>>, VocableIds_vt, Id_Ease_vt>;

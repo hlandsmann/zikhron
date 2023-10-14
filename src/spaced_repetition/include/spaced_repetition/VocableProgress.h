@@ -15,7 +15,7 @@ public:
     {
         float easeFactor = 0.F;
         float intervalDay = 0.F;
-        std::time_t lastSeen{};
+        std::time_t lastSeen{std::time(nullptr)};
     };
     VocableProgress(Init init)
         : easeFactor{init.easeFactor}
@@ -24,6 +24,7 @@ public:
     {}
     VocableProgress()
         : VocableProgress(Init{}) {}
+
     struct RepeatRange
     {
         int daysMin;
@@ -47,6 +48,7 @@ public:
     [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
     [[nodiscard]] auto IntervalDay() const -> float { return intervalDay; }
     [[nodiscard]] auto EaseFactor() const -> float { return easeFactor; }
+    [[nodiscard]] auto dueDays() const -> int;
 
     static auto toJson(const pair_t&) -> nlohmann::json;
     static auto fromJson(const nlohmann::json&) -> pair_t;
@@ -54,5 +56,5 @@ public:
 private:
     float easeFactor = 0.F;
     float intervalDay = 0.F;
-    std::time_t lastSeen{};
+    std::time_t lastSeen{std::time(nullptr)};
 };
