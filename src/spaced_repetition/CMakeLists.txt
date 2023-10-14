@@ -11,16 +11,21 @@ target_sources(zikhron_spaced_repetition
         include/spaced_repetition/CardProgress.h
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/DataBase_deprecated.h
-        include/spaced_repetition/TreeWalker.h
+        include/spaced_repetition/ITreeWalker.h
         include/spaced_repetition/VocableProgress.h
         include/spaced_repetition/Vocabulary.h
         include/spaced_repetition/WalkableData.h
         src/CardProgress.cpp
         src/DataBase.cpp
         src/DataBase_deprecated.cpp
+        src/Node.cpp
+        src/Node.h
         src/Time.cpp
         src/Time.h
+        src/Tree.cpp
+        src/Tree.h
         src/TreeWalker.cpp
+        src/TreeWalker.h
         src/VocableProgress.cpp
         src/Vocabulary.cpp
         src/WalkableData.cpp

@@ -8,7 +8,7 @@
 #include <gtkmm.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
-#include <spaced_repetition/TreeWalker.h>
+#include <spaced_repetition/ITreeWalker.h>
 #include <spaced_repetition/Vocabulary.h>
 #include <utils/Property.h>
 
@@ -106,7 +106,7 @@ private:
 
     using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, VocableId>>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
-    using CardInformation = sr::TreeWalker::CardInformation;
+    using CardInformation = sr::ITreeWalker::CardInformation;
 
     void worker_thread(std::stop_token);
     void dispatcher_fun();
@@ -114,7 +114,7 @@ private:
 
     [[nodiscard]] auto getCardFromId(uint id) const -> paragraph_optional;
     std::shared_ptr<zikhron::Config> config;
-    std::shared_ptr<sr::TreeWalker> treeWalker;
+    std::shared_ptr<sr::ITreeWalker> treeWalker;
 
     std::jthread worker;
     std::condition_variable_any condition;

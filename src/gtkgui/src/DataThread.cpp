@@ -7,7 +7,7 @@
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
-#include <spaced_repetition/TreeWalker.h>
+#include <spaced_repetition/ITreeWalker.h>
 #include <spaced_repetition/Vocabulary.h>
 #include <spdlog/spdlog.h>
 #include <utils/Property.h>
@@ -177,8 +177,8 @@ DataThread::DataThread()
     });
     job_queue.emplace([this]() {
         config = get_zikhron_cfg();
-        auto walkableData = std::make_shared<sr::WalkableData>(config);
-        treeWalker = std::make_shared<sr::TreeWalker>(walkableData);
+        auto walkableData = std::make_unique<sr::WalkableData>(config);
+        treeWalker = sr::ITreeWalker::createTreeWalker(std::move(walkableData));
         cardDB = loadCardDB(std::string{path_to_cardDB});
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
         vocabularySR = std::make_unique<VocabularySR>(cardDB, zh_dictionary);

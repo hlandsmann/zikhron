@@ -1,5 +1,6 @@
 #include <misc/Config.h>
-#include <spaced_repetition/TreeWalker.h>
+#include <utility>
+#include <spaced_repetition/ITreeWalker.h>
 #include <spaced_repetition/WalkableData.h>
 #include <spdlog/spdlog.h>
 
@@ -18,7 +19,8 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 auto main() -> int
 {
     auto zikhron_cfg = get_zikhron_cfg();
-    auto walkableData = std::make_shared<sr::WalkableData>(zikhron_cfg);
-    auto treeWalker = std::make_shared<sr::TreeWalker>(walkableData);
+    auto walkableData = std::make_unique<sr::WalkableData>(zikhron_cfg);
+    auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(walkableData));
+
     return 0;
 }
