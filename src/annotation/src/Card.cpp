@@ -1,17 +1,28 @@
 #include <Card.h>
+#include <ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
+#include <unicode/unistr.h>
+#include <utils/StringU8.h>
 
 #include <algorithm>
-#include <chrono>
 #include <ctre.hpp>
 #include <exception>
 #include <filesystem>
+#include <format>
 #include <fstream>
+#include <ios>
 #include <iterator>
+#include <map>
+#include <memory>
 #include <nlohmann/json.hpp>
+#include <nlohmann/json_fwd.hpp>
 #include <stdexcept>
 #include <string>
+#include <vector>
+
+#include <sys/types.h>
 namespace {
 auto cardFromJsonFile(const std::string& filename, uint cardId) -> std::unique_ptr<Card>
 {
@@ -21,7 +32,7 @@ auto cardFromJsonFile(const std::string& filename, uint cardId) -> std::unique_p
     }
     auto jsonCard = nlohmann::json::parse(cardFile);
     if (const auto& version = jsonCard.at("version"); version != "0.0") {
-        throw std::runtime_error(fmt::format("Supported version is '0.0', but got '{}'", version));
+        throw std::runtime_error(std::format("Supported version is '0.0', but got '{}'", std::string(version)));
     }
 
     if (jsonCard.at("type") == "dialogue") {
