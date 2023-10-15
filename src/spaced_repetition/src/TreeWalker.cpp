@@ -173,7 +173,8 @@ auto TreeWalker::createTree() -> std::optional<Tree>
     if (!optionalTargetVocable.has_value()) {
         return {};
     }
-    auto cardIndex = getNextTargetCard(optionalTargetVocable.value());
+    auto cardId = walkableData->Vocables()[optionalTargetVocable.value()].getNextTriggerCard(walkableData);
+    auto cardIndex = walkableData->Cards().index_at_id(cardId);
 
     spdlog::info("TargetVocable: {}, cardSize: {}", optionalTargetVocable.value(),
                  walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size());

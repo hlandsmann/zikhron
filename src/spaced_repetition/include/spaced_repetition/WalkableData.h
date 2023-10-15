@@ -21,7 +21,7 @@
 #include <sys/types.h>
 namespace sr {
 using index_set = folly::sorted_vector_set<std::size_t>;
-
+class WalkableData;
 struct VocableMeta
 {
     VocableMeta(VocableProgress _progress,
@@ -31,6 +31,8 @@ struct VocableMeta
     [[nodiscard]] auto CardIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void advanceByEase(const Ease&);
     void triggerByCardId(CardId cardId);
+    [[nodiscard]] auto getNextTriggerCard(const std::shared_ptr<WalkableData>& walkableData) const -> CardId;
+
     void cardIndices_insert(std::size_t cardIndex);
 
 private:

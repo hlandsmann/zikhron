@@ -1,5 +1,6 @@
 #include <VocableProgress.h>
 #include <annotation/Ease.h>
+#include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
@@ -9,6 +10,7 @@
 #include <ctime>
 #include <iterator>
 #include <nlohmann/json.hpp>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -79,6 +81,24 @@ void VocableProgress::triggeredBy(CardId cardId)
         triggerCards.erase(it);
     }
     triggerCards.push_back(cardId);
+}
+
+auto VocableProgress::getNextTriggerCard(std::set<CardId> availableCardIds) const -> CardId
+{
+    for (CardId cardId : triggerCards) {
+        availableCardIds.erase(cardId);
+    }
+    CardId result{};
+    if (not availableCardIds.empty()) {
+        result = *availableCardIds.begin();
+        spdlog::info("Triggered so far by [{}], now triggering: {} (new avaliable)", fmt::join(triggerCards, ", "), result);
+    } else if (not triggerCards.empty()) {
+        result = *triggerCards.begin();
+        spdlog::info("Triggered so far by [{}], now triggering: {} (old card)", fmt::join(triggerCards, ", "), result);
+    } else {
+        spdlog::error("Couldn't find next trigger card");
+    }
+    return result;
 }
 
 auto VocableProgress::recency() const -> float
