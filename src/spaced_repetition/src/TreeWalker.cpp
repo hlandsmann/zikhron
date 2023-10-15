@@ -165,7 +165,8 @@ auto TreeWalker::RepeatNowCardIndex() -> std::optional<size_t>
         const VocableMeta& vocable = walkableData->Vocables()[failedVoc];
         if (vocable.Progress().pauseTimeOver()) {
             failedVocables.erase(failedVoc);
-            return vocable.getNextTriggerCard(walkableData);
+            CardId triggerCard =  vocable.getNextTriggerCard(walkableData);
+            return walkableData->Cards().index_at_id(triggerCard);
         }
     }
 
