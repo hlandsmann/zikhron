@@ -5,8 +5,10 @@
 #include <compare>
 #include <ctime>
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
-#include <string_view>
+#include <set>
+#include <string>
 #include <utility>
+#include <vector>
 
 class VocableProgress
 {
@@ -15,11 +17,13 @@ public:
     {
         float easeFactor = 0.F;
         float intervalDay = 0.F;
+        std::vector<CardId> triggeredBy;
         std::time_t lastSeen{std::time(nullptr)};
     };
     VocableProgress(Init init)
         : easeFactor{init.easeFactor}
         , intervalDay{init.intervalDay}
+        , triggerCards{std::move(init.triggeredBy)}
         , lastSeen{init.lastSeen}
     {}
     VocableProgress()
@@ -35,12 +39,15 @@ public:
     };
     static constexpr int pause_time_minutes = 5;
     using pair_t = std::pair<VocableId, VocableProgress>;
-    static constexpr std::string_view s_id = "id";
-    static constexpr std::string_view s_ease_factor = "ease_factor";
-    static constexpr std::string_view s_interval_day = "interval_day";
-    static constexpr std::string_view s_last_seen = "last_seen";
+    static constexpr std::string s_id = "id";
+    static constexpr std::string s_ease_factor = "ease_factor";
+    static constexpr std::string s_interval_day = "interval_day";
+    static constexpr std::string s_last_seen = "last_seen";
+    static constexpr std::string s_triggered_by = "triggered_by";
 
     void advanceByEase(const Ease&);
+    void triggeredBy(CardId cardId);
+    [[nodiscard]] auto getNextTriggerCard(std::set<CardId> availableCardIds) const -> CardId;
     [[nodiscard]] auto recency() const -> float;
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
@@ -56,5 +63,6 @@ public:
 private:
     float easeFactor = 0.F;
     float intervalDay = 0.F;
+    std::vector<CardId> triggerCards;
     std::time_t lastSeen{std::time(nullptr)};
 };

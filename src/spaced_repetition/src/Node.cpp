@@ -29,10 +29,10 @@ Node::Node(std::shared_ptr<WalkableData> _walkableData,
     , cardIndex{_cardIndex}
     , subCards{collectSubCards()}
 {
-    spdlog::info("nVocables: {} nSubcards {}, for cardId: {}",
-                 walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size(),
-                 subCards.size(),
-                 walkableData->Cards().id_from_index(cardIndex));
+    // spdlog::info("nVocables: {} nSubcards {}, for cardId: {}",
+    //              walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size(),
+    //              subCards.size(),
+    //              walkableData->Cards().id_from_index(cardIndex));
 }
 
 void Node::tighten()
@@ -57,11 +57,11 @@ auto Node::lowerOrder(size_t order) -> size_t
 
     cardsLessVocables = removeInactiveCardindices(subCards);
     sortCardIndices(cardsLessVocables);
-    spdlog::info("order: {}, lowerOrder subCards size: {}, voc size:{}, cardId: {}",
-                 order,
-                 cardsLessVocables.size(),
-                 cards[cardIndex].getTimingAndVocables().vocables.size(),
-                 walkableData->Cards().id_from_index(cardIndex));
+    // spdlog::info("order: {}, lowerOrder subCards size: {}, voc size:{}, cardId: {}",
+    //              order,
+    //              cardsLessVocables.size(),
+    //              cards[cardIndex].getTimingAndVocables().vocables.size(),
+    //              walkableData->Cards().id_from_index(cardIndex));
     for (size_t index : cardsLessVocables) {
         if ((*nodes)[index].has_value()) {
             continue;
@@ -79,9 +79,9 @@ auto Node::lowerOrder(size_t order) -> size_t
         auto& tempNode = optionalNode.value();
         nextOrder = std::max(nextOrder, tempNode.lowerOrder(order + 1));
     }
-    spdlog::info("nextOrder: {}, cardId: {}",
-                 nextOrder,
-                 walkableData->Cards().id_from_index(cardIndex));
+    // spdlog::info("nextOrder: {}, cardId: {}",
+    //              nextOrder,
+    //              walkableData->Cards().id_from_index(cardIndex));
     return nextOrder;
 }
 

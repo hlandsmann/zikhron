@@ -47,6 +47,8 @@ private:
     std::shared_ptr<WalkableData> walkableData;
     std::optional<Tree> tree;
     index_set failedVocables;
+
+    size_t currentCardIndex{};
 };
 
 } // namespace sr

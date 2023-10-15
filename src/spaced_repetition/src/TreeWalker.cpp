@@ -102,7 +102,7 @@ auto TreeWalker::getNextTargetVocable() const -> std::optional<size_t>
     if (todayVocables.empty()) {
         return {};
     }
-    spdlog::info("#Vocables to study: {}", todayVocables.size());
+    spdlog::info("##### Vocables to study: {} #####", todayVocables.size());
     auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
     size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
 
@@ -139,7 +139,7 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
         }
     }
     auto card = walkableData->getCardCopy(activeCardIndex);
-
+    currentCardIndex = activeCardIndex;
     return {std::move(card),
             walkableData->getVocableIdsInOrder(activeCardIndex),
             walkableData->getRelevantEase(activeCardIndex)};
@@ -147,9 +147,11 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
 
 void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 {
+    CardId currentCardId = walkableData->Cards().id_from_index(currentCardIndex);
     for (auto [vocId, ease] : id_ease) {
         // spdlog::warn("begin id: {}", vocId);
         walkableData->setEaseVocable(vocId, ease);
+        walkableData->triggerVocable(vocId, currentCardId);
         // spdlog::warn("intDay: {}, daysMin {}, daysNormal: {}, daysMax: {} id: {}, ease: {}",
         //              walkableData->Vocables().at_id(vocId).second.Progress().IntervalDay(),
         //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,

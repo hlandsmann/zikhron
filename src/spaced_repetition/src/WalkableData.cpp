@@ -51,6 +51,11 @@ void VocableMeta::advanceByEase(const Ease& ease)
     progress.advanceByEase(ease);
 }
 
+void VocableMeta::triggerByCardId(CardId cardId)
+{
+    progress.triggeredBy(cardId);
+}
+
 void VocableMeta::cardIndices_insert(std::size_t cardIndex)
 {
     cardIndices.insert(cardIndex);
@@ -207,6 +212,12 @@ void WalkableData::setEaseVocable(VocableId vocId, const Ease& ease)
 {
     VocableMeta& vocable = vocables.at_id(vocId).second;
     vocable.advanceByEase(ease);
+}
+
+void WalkableData::triggerVocable(VocableId vocId, CardId cardId)
+{
+    VocableMeta& vocable = vocables.at_id(vocId).second;
+    vocable.triggerByCardId(cardId);
 }
 
 void WalkableData::resetCardsContainingVocable(VocableId vocId)

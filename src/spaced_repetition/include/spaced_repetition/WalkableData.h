@@ -30,6 +30,7 @@ struct VocableMeta
     [[nodiscard]] auto Progress() const -> const VocableProgress&;
     [[nodiscard]] auto CardIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void advanceByEase(const Ease&);
+    void triggerByCardId(CardId cardId);
     void cardIndices_insert(std::size_t cardIndex);
 
 private:
@@ -73,6 +74,7 @@ public:
     [[nodiscard]] auto getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>;
 
     void setEaseVocable(VocableId, const Ease&);
+    void triggerVocable(VocableId, CardId);
     void resetCardsContainingVocable(VocableId vocId);
     void saveProgress() const;
 

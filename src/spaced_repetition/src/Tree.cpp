@@ -40,7 +40,7 @@ auto Tree::getRoot() const -> size_t
 auto Tree::getNodeCardIndex() -> std::optional<size_t>
 {
     std::optional<size_t> result = std::nullopt;
-    spdlog::warn("--- getNodeCardIndex ---");
+    spdlog::info("--- getNodeCardIndex ---");
     size_t cardIndex = rootCardIndex;
     spdlog::info("rootcardId: {}", walkableData->Cards().id_from_index(cardIndex));
     auto* optionalNode = &(*nodes)[cardIndex];
@@ -54,7 +54,7 @@ auto Tree::getNodeCardIndex() -> std::optional<size_t>
     }
     while (optionalNode->has_value() && (not optionalNode->value().Paths().empty())) {
         // Note: if(not optionalNode.has_value()) test avoids clang-tidy warning, but is superfluous
-        spdlog::info("while");
+        // spdlog::info("while");
         if (not optionalNode->has_value()) {
             break;
         }
