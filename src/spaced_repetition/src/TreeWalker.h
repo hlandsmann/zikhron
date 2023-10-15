@@ -40,12 +40,13 @@ public:
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;
     [[nodiscard]] auto getNextTargetVocable() const -> std::optional<size_t>;
-    [[nodiscard]] auto getNextTargetCard(size_t vocableIndex) const -> size_t;
+    [[nodiscard]] auto getNextTargetCard() -> std::optional<size_t>;
 
-    [[nodiscard]] auto createTree() -> std::optional<Tree>;
+    [[nodiscard]] auto createTree(size_t targetVocableIndex) const -> std::optional<Tree>;
 
     std::shared_ptr<WalkableData> walkableData;
-    std::optional<Tree> tree;
+    // std::optional<Tree> tree;
+    std::map<size_t, std::optional<Tree>> vocableIndex_tree;
     index_set failedVocables;
 
     size_t currentCardIndex{};
