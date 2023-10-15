@@ -41,8 +41,12 @@ private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;
     [[nodiscard]] auto getNextTargetVocable() const -> std::optional<size_t>;
     [[nodiscard]] auto getNextTargetCard() -> std::optional<size_t>;
+    [[nodiscard]] auto getFailedVocableCleanTreeCardIndex() -> std::optional<size_t>;
+    [[nodiscard]] auto RepeatNowCardIndex()  -> std::optional<size_t>;
+    [[nodiscard]] auto getFailedVocIgnoreCardIndices() const -> std::shared_ptr<index_set>;
+    void addNextVocableToIgnoreCardIndices(size_t nextVocable, std::shared_ptr<index_set>&);
 
-    [[nodiscard]] auto createTree(size_t targetVocableIndex) const -> std::optional<Tree>;
+    [[nodiscard]] auto createTree(size_t targetVocableIndex, std::shared_ptr<index_set>) const -> Tree;
 
     std::shared_ptr<WalkableData> walkableData;
     // std::optional<Tree> tree;

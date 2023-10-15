@@ -11,14 +11,18 @@
 #include <utility>
 #include <vector>
 namespace sr {
-Tree::Tree(std::shared_ptr<WalkableData> _walkableData, size_t _vocableIndex, size_t cardIndex)
+Tree::Tree(std::shared_ptr<WalkableData> _walkableData,
+           size_t _vocableIndex,
+           size_t cardIndex,
+           std::shared_ptr<index_set> _ignoreCardIndices)
     : walkableData{std::move(_walkableData)}
     , nodes{std::make_shared<node_vector>()}
     , vocableIndex{_vocableIndex}
     , rootCardIndex{cardIndex}
+    , ignoreCardIndices{std::move(_ignoreCardIndices)}
 {
     nodes->resize(walkableData->Cards().size());
-    (*nodes)[rootCardIndex].emplace(walkableData, nodes, rootCardIndex);
+    (*nodes)[rootCardIndex].emplace(walkableData, nodes, rootCardIndex, ignoreCardIndices);
 }
 
 void Tree::build()

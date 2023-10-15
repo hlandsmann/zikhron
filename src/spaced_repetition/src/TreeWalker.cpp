@@ -112,9 +112,39 @@ auto TreeWalker::getNextTargetVocable() const -> std::optional<size_t>
 auto TreeWalker::getNextTargetCard() -> std::optional<size_t>
 {
     std::optional<size_t> result = std::nullopt;
+    result = RepeatNowCardIndex();
+    if (result.has_value()) {
+        return result;
+    }
+    result = getFailedVocableCleanTreeCardIndex();
+    if (result.has_value()) {
+        return result;
+    }
+    std::optional<size_t> optionalNextVocable = getNextTargetVocable();
+    if (not optionalNextVocable.has_value()) {
+        return {};
+    }
+    size_t nextVocable = optionalNextVocable.value();
+
+    auto ignoreCardIndices = getFailedVocIgnoreCardIndices();
+    addNextVocableToIgnoreCardIndices(nextVocable, ignoreCardIndices);
+    auto tree = createTree(nextVocable, ignoreCardIndices);
+    auto optionalSubCard = tree.getNodeCardIndex();
+    if (optionalSubCard.has_value()) {
+        result = optionalSubCard;
+    } else {
+        result = tree.getRoot();
+    }
+    return result;
+}
+
+auto TreeWalker::getFailedVocableCleanTreeCardIndex() -> std::optional<size_t>
+{
+    auto ignoreCardIndices = getFailedVocIgnoreCardIndices();
+    std::optional<size_t> result = std::nullopt;
     for (size_t failedVoc : failedVocables) {
         if (not vocableIndex_tree.contains(failedVoc)) {
-            vocableIndex_tree[failedVoc] = createTree(failedVoc);
+            vocableIndex_tree[failedVoc] = createTree(failedVoc, ignoreCardIndices);
         }
         auto& optionalTree = vocableIndex_tree[failedVoc];
         if (not optionalTree.has_value()) {
@@ -125,24 +155,37 @@ auto TreeWalker::getNextTargetCard() -> std::optional<size_t>
             return result;
         }
     }
+    return result;
+}
 
-    std::optional<size_t> optionalNextVocable = getNextTargetVocable();
-    if (not optionalNextVocable.has_value()) {
-        return {};
+auto TreeWalker::RepeatNowCardIndex() -> std::optional<size_t>
+{
+    std::optional<size_t> result = std::nullopt;
+    for (size_t failedVoc : failedVocables) {
+        const VocableMeta& vocable = walkableData->Vocables()[failedVoc];
+        if (vocable.Progress().pauseTimeOver()) {
+            failedVocables.erase(failedVoc);
+            return vocable.getNextTriggerCard(walkableData);
+        }
     }
-    size_t nextVocable = optionalNextVocable.value();
 
-    auto tree = createTree(nextVocable);
-    if (not tree.has_value()) {
-        return {};
-    }
-    auto optionalSubCard = tree->getNodeCardIndex();
-    if (optionalSubCard.has_value()) {
-        result = optionalSubCard;
-    } else {
-        result = tree->getRoot();
+    return result;
+}
+
+auto TreeWalker::getFailedVocIgnoreCardIndices() const -> std::shared_ptr<index_set>
+{
+    auto result = std::make_shared<index_set>();
+    for (size_t failedVoc : failedVocables) {
+        const auto& cardIndices = walkableData->Vocables()[failedVoc].CardIndices();
+        ranges::copy(cardIndices, std::inserter(*result, result->begin()));
     }
     return result;
+}
+
+void TreeWalker::addNextVocableToIgnoreCardIndices(size_t nextVocable, std::shared_ptr<index_set>& ignoreCardIndices)
+{
+    const auto& cardIndices = walkableData->Vocables()[nextVocable].CardIndices();
+    ranges::copy(cardIndices, std::inserter(*ignoreCardIndices, ignoreCardIndices->begin()));
 }
 
 auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> CardInformation
@@ -191,20 +234,15 @@ void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
     }
 }
 
-auto TreeWalker::createTree(size_t targetVocableIndex) const -> std::optional<Tree>
+auto TreeWalker::createTree(size_t targetVocableIndex, std::shared_ptr<index_set> ignoreCardIndices) const -> Tree
 {
-    std::optional<Tree> resultTree;
-    // auto optionalTargetVocable = getNextTargetVocable();
-    // if (!optionalTargetVocable.has_value()) {
-    //     return {};
-    // }
     auto cardId = walkableData->Vocables()[targetVocableIndex].getNextTriggerCard(walkableData);
     auto cardIndex = walkableData->Cards().index_at_id(cardId);
 
     spdlog::info("TargetVocable: {}, cardSize: {}", targetVocableIndex,
                  walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size());
-    resultTree.emplace(walkableData, targetVocableIndex, cardIndex);
-    resultTree->build();
+    auto resultTree = Tree{walkableData, targetVocableIndex, cardIndex, std::move(ignoreCardIndices)};
+    resultTree.build();
     return resultTree;
 }
 

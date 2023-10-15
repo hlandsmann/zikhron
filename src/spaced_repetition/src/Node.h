@@ -20,14 +20,14 @@ public:
     Node() = default;
     Node(std::shared_ptr<WalkableData> walkableData,
          std::shared_ptr<node_vector> nodes,
-         size_t cardIndex);
+         size_t cardIndex,
+         std::shared_ptr<index_set> ignoreCardIndices);
     void tighten();
     [[nodiscard]] auto lowerOrder(size_t order) -> size_t;
     [[nodiscard]] auto lowerOrderPulled() -> Path;
     [[nodiscard]] auto Paths() const -> const std::vector<Path>&;
 
     [[nodiscard]] auto CardID() const -> CardId { return walkableData->Cards().id_from_index(cardIndex); }
-
 
 private:
     void traverseAndTighten(Path& path);
@@ -37,6 +37,7 @@ private:
     std::shared_ptr<WalkableData> walkableData;
     std::shared_ptr<node_vector> nodes;
     size_t cardIndex{};
+    std::shared_ptr<index_set> ignoreCardIndices;
     index_set subCards; // all cards that contain vocables that are contained by this
     std::vector<size_t> cardsLessVocables;
     std::vector<size_t> cardsLessVocablesPulled;

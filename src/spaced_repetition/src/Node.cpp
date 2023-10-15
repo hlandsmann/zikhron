@@ -23,10 +23,12 @@ namespace sr {
 
 Node::Node(std::shared_ptr<WalkableData> _walkableData,
            std::shared_ptr<node_vector> _nodes,
-           size_t _cardIndex)
+           size_t _cardIndex,
+           std::shared_ptr<index_set> _ignoreCardIndices)
     : walkableData{std::move(_walkableData)}
     , nodes{std::move(_nodes)}
     , cardIndex{_cardIndex}
+    , ignoreCardIndices{std::move(_ignoreCardIndices)}
     , subCards{collectSubCards()}
 {
     // spdlog::info("nVocables: {} nSubcards {}, for cardId: {}",
@@ -66,7 +68,7 @@ auto Node::lowerOrder(size_t order) -> size_t
         if ((*nodes)[index].has_value()) {
             continue;
         }
-        (*nodes)[index].emplace(walkableData, nodes, index);
+        (*nodes)[index].emplace(walkableData, nodes, index, ignoreCardIndices);
         Path path{};
         path.cardIndex = index;
         paths.push_back(path);
@@ -106,8 +108,12 @@ auto Node::collectSubCards() const -> index_set
                                           return vocables[index];
                                       });
     for (const auto& vocableMeta : containedVocables) {
-        ranges::copy(vocableMeta.CardIndices(), std::inserter(subCardsResult, subCardsResult.begin()));
+        // ranges::copy(vocableMeta.CardIndices(), std::inserter(subCardsResult, subCardsResult.begin()));
+        ranges::set_difference(vocableMeta.CardIndices(),
+                               *ignoreCardIndices,
+                               std::inserter(subCardsResult, subCardsResult.begin()));
     }
+
     return subCardsResult;
 }
 
@@ -167,11 +173,11 @@ void Node::sortCardIndices(std::vector<size_t>& cardIndices)
         size_t countIntersect_b = ranges::set_intersection(
                                           thisTnv.vocables, tnv_b.vocables, utl::counting_iterator{})
                                           .out.count;
-        if (countIntersect_a != countIntersect_b) {
-            return countIntersect_a > countIntersect_b;
+        if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
+            return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
         }
-        // if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
-        return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
+        // if (countIntersect_a != countIntersect_b) {
+        return countIntersect_a > countIntersect_b;
         // }
     });
 }
