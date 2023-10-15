@@ -1,4 +1,5 @@
 #pragma once
+#include <optional>
 #include <cstddef>
 #include "Node.h"
 #include <vector>
@@ -11,14 +12,13 @@ class Tree
 public:
     Tree(std::shared_ptr<WalkableData> walkableData, size_t vocableIndex, size_t cardIndex);
     void build();
-    [[nodiscard]] auto Paths() const -> const std::vector<Path>&;
     [[nodiscard]] auto getRoot() const -> size_t;
+    [[nodiscard]] auto getNodeCardIndex() -> std::optional<size_t>;
 
 private:
     std::shared_ptr<WalkableData> walkableData;
     std::shared_ptr<node_vector> nodes;
-    std::vector<Path> paths;
     size_t vocableIndex;
-    size_t cardIndex;
+    size_t rootCardIndex;
 };
 } // namespace sr

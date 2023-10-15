@@ -123,9 +123,9 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
         if (not tree.has_value()) {
             return {};
         }
-        const auto& paths = tree->Paths();
-        if (!paths.empty()) {
-            activeCardIndex = tree->Paths().front().cardIndex;
+        auto optionalSubCard = tree->getNodeCardIndex();
+        if (optionalSubCard.has_value()) {
+            activeCardIndex = optionalSubCard.value();
         } else {
             activeCardIndex = tree->getRoot();
         }

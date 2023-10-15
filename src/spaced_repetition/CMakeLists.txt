@@ -20,6 +20,7 @@ target_sources(zikhron_spaced_repetition
         src/DataBase_deprecated.cpp
         src/Node.cpp
         src/Node.h
+        src/Path.h
         src/Time.cpp
         src/Time.h
         src/Tree.cpp

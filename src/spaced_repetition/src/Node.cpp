@@ -1,5 +1,7 @@
 #include "Node.h"
 
+#include "Path.h"
+
 #include <WalkableData.h>
 #include <spdlog/spdlog.h>
 #include <utils/counting_iterator.h>
@@ -27,34 +29,69 @@ Node::Node(std::shared_ptr<WalkableData> _walkableData,
     , cardIndex{_cardIndex}
     , subCards{collectSubCards()}
 {
-    spdlog::info("Subcards size {}, for index: {}", subCards.size(), cardIndex);
+    spdlog::info("nVocables: {} nSubcards {}, for cardId: {}",
+                 walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size(),
+                 subCards.size(),
+                 walkableData->Cards().id_from_index(cardIndex));
 }
 
-auto Node::lowerOrder(size_t order) -> std::optional<Path>
+void Node::tighten()
 {
-    auto& cards = walkableData->Cards();
-    // const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
-    cardsLessVocables = removeInactiveCardindices(subCards);
-    if (cardsLessVocables.empty()) {
-        return {};
+    for (Path& path : paths) {
+        traverseAndTighten(path);
     }
+}
+
+void Node::traverseAndTighten(Path& path)
+{
+}
+
+auto Node::lowerOrder(size_t order) -> size_t
+{
+    size_t nextOrder = order;
+    auto& cards = walkableData->Cards();
+    const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
+    if (thisTnv.vocables.size() <= s_stopBreakDown) {
+        return nextOrder;
+    }
+
+    cardsLessVocables = removeInactiveCardindices(subCards);
     sortCardIndices(cardsLessVocables);
     spdlog::info("order: {}, lowerOrder subCards size: {}, voc size:{}, cardId: {}",
                  order,
                  cardsLessVocables.size(),
-                 cards[cardsLessVocables[0]].getTimingAndVocables().vocables.size(),
-                 walkableData->Cards().id_from_index(cardsLessVocables[0]));
+                 cards[cardIndex].getTimingAndVocables().vocables.size(),
+                 walkableData->Cards().id_from_index(cardIndex));
     for (size_t index : cardsLessVocables) {
-        if (nodes->at(index).has_value()) {
+        if ((*nodes)[index].has_value()) {
             continue;
         }
-        auto tempNode = nodes->at(index).emplace(walkableData, nodes, index);
-        auto optionalPath = tempNode.lowerOrder(order + 1);
-        if (optionalPath.has_value()) {
-            paths.push_back(std::move(optionalPath.value()));
-        }
+        (*nodes)[index].emplace(walkableData, nodes, index);
+        Path path{};
+        path.cardIndex = index;
+        paths.push_back(path);
     }
-    return {{.cardIndex = cardsLessVocables[0]}};
+    for (Path& path : paths) {
+        auto& optionalNode = (*nodes)[path.cardIndex];
+        if (not optionalNode.has_value()) {
+            break;
+        }
+        auto& tempNode = optionalNode.value();
+        nextOrder = std::max(nextOrder, tempNode.lowerOrder(order + 1));
+    }
+    spdlog::info("nextOrder: {}, cardId: {}",
+                 nextOrder,
+                 walkableData->Cards().id_from_index(cardIndex));
+    return nextOrder;
+}
+
+auto Node::Paths() const -> const std::vector<Path>&
+{
+    // if (paths.empty()) {
+    //     spdlog::info("empty cardId: {}",
+    //                  walkableData->Cards().id_from_index(cardIndex));
+    // }
+    return paths;
 }
 
 auto Node::collectSubCards() const -> index_set
@@ -124,16 +161,18 @@ void Node::sortCardIndices(std::vector<size_t>& cardIndices)
     ranges::sort(cardIndices, [&, this](size_t index_a, size_t index_b) -> bool {
         const auto& tnv_a = cards[index_a].getTimingAndVocables();
         const auto& tnv_b = cards[index_b].getTimingAndVocables();
-        if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
-            return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
-        }
         size_t countIntersect_a = ranges::set_intersection(
                                           thisTnv.vocables, tnv_a.vocables, utl::counting_iterator{})
                                           .out.count;
         size_t countIntersect_b = ranges::set_intersection(
                                           thisTnv.vocables, tnv_b.vocables, utl::counting_iterator{})
                                           .out.count;
-        return countIntersect_a > countIntersect_b;
+        if (countIntersect_a != countIntersect_b) {
+            return countIntersect_a > countIntersect_b;
+        }
+        // if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
+        return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
+        // }
     });
 }
 

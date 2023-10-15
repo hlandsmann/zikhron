@@ -1,43 +1,71 @@
 #include "Tree.h"
-#include <cstddef>
-#include <utility>
+
 #include "Node.h"
-#include <vector>
 
 #include <WalkableData.h>
+#include <spdlog/spdlog.h>
 
+#include <cstddef>
 #include <memory>
+#include <optional>
+#include <utility>
+#include <vector>
 namespace sr {
-Tree::Tree(std::shared_ptr<WalkableData> _walkableData, size_t _vocableIndex, size_t _cardIndex)
+Tree::Tree(std::shared_ptr<WalkableData> _walkableData, size_t _vocableIndex, size_t cardIndex)
     : walkableData{std::move(_walkableData)}
     , nodes{std::make_shared<node_vector>()}
     , vocableIndex{_vocableIndex}
-    , cardIndex{_cardIndex}
+    , rootCardIndex{cardIndex}
 {
     nodes->resize(walkableData->Cards().size());
-    (*nodes)[cardIndex].emplace(walkableData, nodes, cardIndex);
+    (*nodes)[rootCardIndex].emplace(walkableData, nodes, rootCardIndex);
 }
 
 void Tree::build()
 {
-    auto optionalRoot = (*nodes)[cardIndex];
+    auto& optionalRoot = (*nodes)[rootCardIndex];
     if (!optionalRoot.has_value()) {
         return;
     }
     auto& root = optionalRoot.value();
-    auto optionalPath = root.lowerOrder(0);
-    if (optionalPath.has_value()) {
-        paths.push_back(*optionalPath);
-    }
-}
-
-auto Tree::Paths() const -> const std::vector<Path>&
-{
-    return paths;
+    auto order = root.lowerOrder(0);
+    spdlog::info("Order for tree with card_index {} is {}", rootCardIndex, order);
 }
 
 auto Tree::getRoot() const -> size_t
 {
-    return cardIndex;
+    return rootCardIndex;
 }
+
+auto Tree::getNodeCardIndex() -> std::optional<size_t>
+{
+    std::optional<size_t> result = std::nullopt;
+    spdlog::warn("--- getNodeCardIndex ---");
+    size_t cardIndex = rootCardIndex;
+    spdlog::info("rootcardId: {}", walkableData->Cards().id_from_index(cardIndex));
+    auto* optionalNode = &(*nodes)[cardIndex];
+    if (not optionalNode->has_value()) {
+        spdlog::info("no value");
+        return {};
+    }
+    if (optionalNode->value().Paths().empty()) {
+        spdlog::info("empty");
+        return {};
+    }
+    while (optionalNode->has_value() && (not optionalNode->value().Paths().empty())) {
+        // Note: if(not optionalNode.has_value()) test avoids clang-tidy warning, but is superfluous
+        spdlog::info("while");
+        if (not optionalNode->has_value()) {
+            break;
+        }
+        auto& node = optionalNode->value();
+        cardIndex = node.Paths().front().cardIndex;
+        spdlog::info("cardId: {}", walkableData->Cards().id_from_index(cardIndex));
+        result.emplace(cardIndex);
+        optionalNode = &(*nodes)[cardIndex];
+    }
+
+    return result;
+}
+
 } // namespace sr
