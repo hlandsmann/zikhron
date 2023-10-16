@@ -63,6 +63,7 @@ private:
     utl::Property<bool> vocablelistVisible = false;
     Gtk::Separator separator1;
     Gtk::ToggleButton btnAnnotate;
+    Gtk::Button btnSave;
     std::shared_ptr<markup::Paragraph> paragraph;
     std::shared_ptr<markup::Paragraph> annotation;
     std::vector<Ease> easeList;

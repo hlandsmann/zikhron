@@ -194,6 +194,11 @@ DataThread::~DataThread()
     worker.request_stop();
     worker.join();
     zikhronCfg.save();
+    saveProgress();
+}
+
+void DataThread::saveProgress()
+{
     treeWalker->saveProgress();
 }
 

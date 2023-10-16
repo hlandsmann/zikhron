@@ -1,5 +1,4 @@
 #include <DataThread.h>
-#include <sys/types.h>
 #include <DisplayCard.h>
 #include <gtkmm.h>
 #include <gtkmm/enums.h>
@@ -12,6 +11,8 @@
 #include <memory>
 #include <tuple>
 #include <utility>
+
+#include <sys/types.h>
 
 namespace ranges = std::ranges;
 
@@ -151,6 +152,10 @@ void DisplayCard::createControlButtons()
             annotation_end();
         }
     });
+    btnSave.set_image_from_icon_name("document-save");
+    btnSave.signal_clicked().connect([] {
+        DataThread::get().saveProgress();
+    });
 
     btnGrp_forwardBackward.setSensitive(false);
     btnGrp_forwardBackward.skipBackwardClick([this]() {
@@ -181,6 +186,7 @@ void DisplayCard::createControlButtons()
     controlBtnBox.append(grp_single_group);
     controlBtnBox.append(btnGrp_forwardBackward);
     controlBtnBox.append(btnAnnotate);
+    controlBtnBox.append(btnSave);
 
     append(controlBtnBox);
     controlBtnBox.set_visible(false);

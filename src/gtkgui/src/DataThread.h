@@ -86,6 +86,7 @@ public:
     using signal_annotation = std::function<void(message_annotation&)>;
     using signal_paragraphFromIds = std::function<void(message_paragraphFromIds&&)>;
     Session zikhronCfg;
+    void saveProgress();
 
     void requestCard(std::optional<CardId> preferedCardId = {});
     void requestCardFromIds(std::vector<uint>&& ids);
