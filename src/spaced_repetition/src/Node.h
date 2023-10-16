@@ -14,7 +14,7 @@ class Node;
 using node_vector = std::vector<std::optional<Node>>;
 class Node
 {
-    static constexpr size_t s_stopBreakDown = 4;
+    static constexpr size_t s_stopBreakDown = 5;
 
 public:
     Node() = default;

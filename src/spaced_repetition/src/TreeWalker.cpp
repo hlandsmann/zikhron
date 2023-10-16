@@ -4,6 +4,7 @@
 #include <WalkableData.h>
 #include <annotation/Ease.h>
 #include <bits/ranges_algo.h>
+#include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/counting_iterator.h>
@@ -16,6 +17,7 @@
 #include <memory>
 #include <optional>
 #include <ranges>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -95,38 +97,45 @@ auto TreeWalker::getTodayVocables() const -> index_set
     return todayVocables;
 }
 
-auto TreeWalker::getNextTargetVocable() const -> std::optional<size_t>
+auto TreeWalker::getNextTargetVocable(const std::shared_ptr<index_set>& ignoreCards) const -> std::optional<size_t>
 {
     const auto& vocables = walkableData->Vocables();
     sr::index_set todayVocables = getTodayVocables();
-    if (todayVocables.empty()) {
-        return {};
-    }
-    spdlog::info("##### Vocables to study: {} #####", todayVocables.size());
-    auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
-    size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
+    while (true) {
+        if (todayVocables.empty()) {
+            return {};
+        }
+        spdlog::info("##### Vocables to study: {} #####", todayVocables.size());
+        auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
+        size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
 
-    return {targetVocable};
+        auto cardId = walkableData->Vocables()[targetVocable].getNextTriggerCard(walkableData);
+        auto cardIndex = walkableData->Cards().index_at_id(cardId);
+        if (not ignoreCards->contains(cardIndex)) {
+            return {targetVocable};
+        }
+        todayVocables.erase(targetVocable);
+        spdlog::info("Dropping targetVocableIndex: {} for CardId: {}", targetVocable, cardId);
+    }
 }
 
 auto TreeWalker::getNextTargetCard() -> std::optional<size_t>
 {
     std::optional<size_t> result = std::nullopt;
-    result = RepeatNowCardIndex();
+    auto ignoreCardIndices = getFailedVocIgnoreCardIndices();
+
+    if (not removeRepeatNowCardIndex(ignoreCardIndices)) {
+        result = getFailedVocableCleanTreeCardIndex(ignoreCardIndices);
+    }
     if (result.has_value()) {
         return result;
     }
-    result = getFailedVocableCleanTreeCardIndex();
-    if (result.has_value()) {
-        return result;
-    }
-    std::optional<size_t> optionalNextVocable = getNextTargetVocable();
+    std::optional<size_t> optionalNextVocable = getNextTargetVocable(ignoreCardIndices);
     if (not optionalNextVocable.has_value()) {
         return {};
     }
     size_t nextVocable = optionalNextVocable.value();
 
-    auto ignoreCardIndices = getFailedVocIgnoreCardIndices();
     addNextVocableToIgnoreCardIndices(nextVocable, ignoreCardIndices);
     auto tree = createTree(nextVocable, ignoreCardIndices);
     auto optionalSubCard = tree.getNodeCardIndex();
@@ -138,9 +147,8 @@ auto TreeWalker::getNextTargetCard() -> std::optional<size_t>
     return result;
 }
 
-auto TreeWalker::getFailedVocableCleanTreeCardIndex() -> std::optional<size_t>
+auto TreeWalker::getFailedVocableCleanTreeCardIndex(const std::shared_ptr<index_set>& ignoreCardIndices) -> std::optional<size_t>
 {
-    auto ignoreCardIndices = getFailedVocIgnoreCardIndices();
     std::optional<size_t> result = std::nullopt;
     for (size_t failedVoc : failedVocables) {
         if (not vocableIndex_tree.contains(failedVoc)) {
@@ -158,19 +166,26 @@ auto TreeWalker::getFailedVocableCleanTreeCardIndex() -> std::optional<size_t>
     return result;
 }
 
-auto TreeWalker::RepeatNowCardIndex() -> std::optional<size_t>
+auto TreeWalker::removeRepeatNowCardIndex(const std::shared_ptr<index_set>& ignoreCards) -> bool
 {
-    std::optional<size_t> result = std::nullopt;
+    bool cardRemoved = false;
     for (size_t failedVoc : failedVocables) {
         const VocableMeta& vocable = walkableData->Vocables()[failedVoc];
         if (vocable.Progress().pauseTimeOver()) {
+            spdlog::info("pause time over for: {}", failedVoc);
             failedVocables.erase(failedVoc);
-            CardId triggerCard =  vocable.getNextTriggerCard(walkableData);
-            return walkableData->Cards().index_at_id(triggerCard);
+            CardId triggerCard = vocable.getNextTriggerCard(walkableData);
+            size_t triggerCardIndex = walkableData->Cards().index_at_id(triggerCard);
+            ignoreCards->erase(triggerCardIndex);
+            cardRemoved = true;
         }
     }
-
-    return result;
+    std::set<CardId> ignoreCardSet;
+    ranges::transform(*ignoreCards,
+                      std::inserter(ignoreCardSet, ignoreCardSet.begin()),
+                      [this](size_t index) { return walkableData->Cards().id_from_index(index); });
+    spdlog::info("Ignore CardIds: [{}]", fmt::join(ignoreCardSet, ", "));
+    return cardRemoved;
 }
 
 auto TreeWalker::getFailedVocIgnoreCardIndices() const -> std::shared_ptr<index_set>
