@@ -1,19 +1,22 @@
 #include "Time.h"
-#include <iomanip>
-#include <string>
-#include <sstream>
-#include <ctime>
+
 #include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <sstream>
+#include <string>
 namespace chrono = std::chrono;
 namespace spaced_repetition {
 
-auto serialize_time_t(const std::time_t& time) -> std::string {
+auto serialize_time_t(const std::time_t& time) -> std::string
+{
     std::stringstream transTime;
     transTime << std::put_time(std::localtime(&time), "%F %T");
     return transTime.str();
 }
 
-auto deserialize_time_t(const std::string& s) -> std::time_t {
+auto deserialize_time_t(const std::string& s) -> std::time_t
+{
     std::tm time{};
     time.tm_isdst = -1;
     std::stringstream ss(s);
@@ -21,7 +24,8 @@ auto deserialize_time_t(const std::string& s) -> std::time_t {
     return std::mktime(&time);
 }
 
-auto todayMidnightTime() -> std::time_t {
+auto todayMidnightTime() -> std::time_t
+{
     std::time_t now = std::time(nullptr);
     std::tm todayMidnight_tm = *std::localtime(&now);
     todayMidnight_tm.tm_sec = 0;
@@ -31,19 +35,21 @@ auto todayMidnightTime() -> std::time_t {
     return std::mktime(&todayMidnight_tm);
 }
 
-auto advanceTimeByDays(std::time_t inputTime, float days) -> std::time_t {
+auto advanceTimeByDays(std::time_t inputTime, float days) -> std::time_t
+{
     std::tm vocActiveTime_tm = *std::localtime(&inputTime);
     vocActiveTime_tm.tm_mday += static_cast<int>(days);
     return std::mktime(&vocActiveTime_tm);
 }
 
-auto daysFromNow(std::time_t startTime, float intervalDays) -> int {
-    const auto sysclock_now = chrono::system_clock::from_time_t(std::time(nullptr));
+auto daysFromToday(std::time_t startTime, float intervalDays) -> int
+{
+    const auto sysclock_todayMidnight = chrono::system_clock::from_time_t(todayMidnightTime());
     const auto sysclock_startTime = chrono::system_clock::from_time_t(
-        advanceTimeByDays(startTime, intervalDays));
-    const auto timePoint_now = chrono::time_point_cast<chrono::days>(sysclock_now);
+            advanceTimeByDays(startTime, intervalDays));
+    const auto timePoint_now = chrono::time_point_cast<chrono::days>(sysclock_todayMidnight);
     const auto timePoint_due = chrono::time_point_cast<chrono::days>(sysclock_startTime);
     return static_cast<int>((chrono::sys_days{timePoint_due} - chrono::sys_days{timePoint_now}).count());
 }
 
-}  // namespace spaced_repitition
+} // namespace spaced_repetition

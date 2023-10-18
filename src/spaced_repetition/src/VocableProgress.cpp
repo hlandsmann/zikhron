@@ -103,7 +103,7 @@ auto VocableProgress::getNextTriggerCard(std::set<CardId> availableCardIds) cons
 
 auto VocableProgress::recency() const -> float
 {
-    return (easeFactor * intervalDay) - static_cast<float>(daysFromNow(lastSeen, 0));
+    return (easeFactor * intervalDay) - static_cast<float>(daysFromToday(lastSeen, 0));
 }
 
 auto VocableProgress::pauseTimeOver() const -> bool
@@ -155,13 +155,13 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
     float minFactor = std::pow(Ease::changeFactorHard, square);
     float maxFactor = easeFactor * Ease::changeFactorHard;
     float daysMinAtleast = (intervalDay >= 1.F) ? 1.F : 0.F;
-    return {.daysMin = daysFromNow(lastSeen,
+    return {.daysMin = daysFromToday(lastSeen,
                                    std::max(daysMinAtleast, intervalDay * minFactor)),
             .daysNormal = dueDays(),
-            .daysMax = daysFromNow(lastSeen, intervalDay * maxFactor)};
+            .daysMax = daysFromToday(lastSeen, intervalDay * maxFactor)};
 }
 
 auto VocableProgress::dueDays() const -> int
 {
-    return daysFromNow(lastSeen, intervalDay);
+    return daysFromToday(lastSeen, intervalDay);
 }
