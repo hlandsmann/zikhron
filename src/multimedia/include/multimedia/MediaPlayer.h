@@ -60,4 +60,5 @@ private:
     utl::Property<bool> paused = true;
 
     double stopAtPosition = 0;
+    double volume = 42.F;
 };
