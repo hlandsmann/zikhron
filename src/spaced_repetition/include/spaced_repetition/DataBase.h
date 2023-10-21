@@ -1,20 +1,34 @@
 #pragma once
+#include "CardMeta.h"
 #include "CardProgress.h"
+#include "VocableMeta.h"
 #include "VocableProgress.h"
+#include "srtypes.h"
 
 #include <annotation/Card.h>
+#include <annotation/Ease.h>
+#include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
+#include <utils/index_map.h>
+#include <utils/min_element_val.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <map>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
+#include <set>
 #include <string_view>
 #include <vector>
 
+#include <sys/types.h>
+
+namespace sr {
 class DataBase
 {
     static constexpr std::string_view s_content = "content";
@@ -37,6 +51,19 @@ public:
     [[nodiscard]] auto ProgressCards() const -> const std::map<CardId, CardProgress>&;
     [[nodiscard]] auto getCards() const -> const std::map<unsigned, CardDB::CardPtr>&;
     void SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const;
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
+    [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
+    [[nodiscard]] auto getCardCopy(size_t cardIndex) const -> CardDB::CardPtr;
+    [[nodiscard]] auto getActiveVocables(size_t cardIndex) -> std::set<VocableId>;
+    [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;
+    [[nodiscard]] auto getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>;
+
+    void setEaseVocable(VocableId, const Ease&);
+    void triggerVocable(VocableId, CardId);
+    void resetCardsContainingVocable(VocableId vocId);
+    void saveProgress() const;
+    void addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
 
 private:
     std::shared_ptr<zikhron::Config> config;
@@ -60,4 +87,14 @@ private:
             const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>;
     static auto loadProgressCards(
             const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>;
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    void fillIndexMaps();
+    void insertVocabularyOfCard(const CardDB::CardPtr& card);
+    static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
+                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<VocableId>;
+    [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
+
+    utl::index_map<VocableId, VocableMeta> vocables;
+    utl::index_map<CardId, CardMeta> cards;
 };
+} // namespace sr

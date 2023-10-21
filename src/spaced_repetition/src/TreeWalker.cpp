@@ -1,7 +1,6 @@
 #include "TreeWalker.h"
 
 #include <ITreeWalker.h>
-#include <WalkableData.h>
 #include <annotation/Ease.h>
 #include <bits/ranges_algo.h>
 #include <fmt/format.h>
@@ -27,12 +26,12 @@ namespace views = std::ranges::views;
 
 namespace sr {
 
-auto ITreeWalker::createTreeWalker(std::shared_ptr<WalkableData> walkableData) -> std::unique_ptr<ITreeWalker>
+auto ITreeWalker::createTreeWalker(std::shared_ptr<DataBase> walkableData) -> std::unique_ptr<ITreeWalker>
 {
     return std::make_unique<TreeWalker>(std::move(walkableData));
 }
 
-TreeWalker::TreeWalker(std::shared_ptr<WalkableData> _walkableData)
+TreeWalker::TreeWalker(std::shared_ptr<DataBase> _walkableData)
     : walkableData{std::move(_walkableData)}
 {
     // walk(walkableData);
@@ -221,4 +220,16 @@ void TreeWalker::saveProgress() const
 {
     walkableData->saveProgress();
 }
+
+// auto TreeWalker::AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)
+//         -> CardInformation
+// {
+// }
+//
+// auto TreeWalker::AddAnnotation(const ZH_Annotator::Combination& combination,
+//                                const std::vector<utl::CharU8>& characterSequence)
+//         -> CardInformation
+// {
+// }
+
 } // namespace sr

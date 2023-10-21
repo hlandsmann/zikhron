@@ -1,8 +1,9 @@
 #pragma once
 #include "Path.h"
 
-#include <WalkableData.h>
+#include <DataBase.h>
 #include <misc/Identifier.h>
+#include <srtypes.h>
 
 #include <cstddef>
 #include <memory>
@@ -18,7 +19,7 @@ class Node
 
 public:
     Node() = default;
-    Node(std::shared_ptr<WalkableData> walkableData,
+    Node(std::shared_ptr<DataBase> walkableData,
          std::shared_ptr<node_vector> nodes,
          size_t cardIndex,
          std::shared_ptr<index_set> ignoreCardIndices);
@@ -34,7 +35,7 @@ private:
     [[nodiscard]] auto collectSubCards() const -> index_set;
     [[nodiscard]] auto removeInactiveCardindices(const index_set& cardIndices) -> std::vector<size_t>;
     void sortCardIndices(std::vector<size_t>& cardIndices);
-    std::shared_ptr<WalkableData> walkableData;
+    std::shared_ptr<DataBase> walkableData;
     std::shared_ptr<node_vector> nodes;
     size_t cardIndex{};
     std::shared_ptr<index_set> ignoreCardIndices;

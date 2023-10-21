@@ -1,7 +1,6 @@
 #pragma once
 
-#include "WalkableData.h"
-
+#include "DataBase.h"
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
@@ -17,7 +16,7 @@ namespace sr {
 class ITreeWalker
 {
 public:
-  ITreeWalker() = default;
+    ITreeWalker() = default;
     virtual ~ITreeWalker() = default;
     ITreeWalker(const ITreeWalker&) = delete;
     ITreeWalker(ITreeWalker&&) = delete;
@@ -31,8 +30,13 @@ public:
     virtual auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardInformation = 0;
     virtual void setEaseLastCard(const Id_Ease_vt& id_ease) = 0;
     virtual void saveProgress() const = 0;
+    // virtual auto AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)
+    //         -> CardInformation = 0;
+    // virtual auto AddAnnotation(const ZH_Annotator::Combination& combination,
+    //                            const std::vector<utl::CharU8>& characterSequence)
+    //         -> CardInformation = 0;
 
-    static auto createTreeWalker(std::shared_ptr<WalkableData>) -> std::unique_ptr<ITreeWalker>;
+    static auto createTreeWalker(std::shared_ptr<DataBase>) -> std::unique_ptr<ITreeWalker>;
 };
 
 } // namespace sr

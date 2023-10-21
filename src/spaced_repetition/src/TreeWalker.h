@@ -1,11 +1,12 @@
 #pragma once
 #include "ITreeWalker.h"
 #include "Tree.h"
-#include "WalkableData.h"
 
 #include <annotation/Card.h>
 #include <annotation/Ease.h>
+#include <annotation/ZH_Annotator.h>
 #include <misc/Identifier.h>
+#include <utils/StringU8.h>
 
 #include <cstddef>
 #include <map>
@@ -23,7 +24,7 @@ class Tree;
 class TreeWalker : public ITreeWalker
 {
 public:
-    TreeWalker(std::shared_ptr<WalkableData>);
+    TreeWalker(std::shared_ptr<DataBase>);
     TreeWalker(const TreeWalker&) = delete;
     TreeWalker(TreeWalker&&) = delete;
     auto operator=(const TreeWalker& other) -> TreeWalker& = delete;
@@ -36,6 +37,11 @@ public:
     auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardInformation override;
     void setEaseLastCard(const Id_Ease_vt& id_ease) override;
     void saveProgress() const override;
+    // auto AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)
+    //         -> CardInformation override;
+    // auto AddAnnotation(const ZH_Annotator::Combination& combination,
+    //                    const std::vector<utl::CharU8>& characterSequence)
+    //         -> CardInformation override;
 
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;
@@ -49,7 +55,7 @@ private:
 
     [[nodiscard]] auto createTree(size_t targetVocableIndex, std::shared_ptr<index_set>) const -> Tree;
 
-    std::shared_ptr<WalkableData> walkableData;
+    std::shared_ptr<DataBase> walkableData;
     // std::optional<Tree> tree;
     std::map<size_t, std::optional<Tree>> vocableIndex_tree;
     index_set failedVocables;

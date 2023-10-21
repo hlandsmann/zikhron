@@ -8,13 +8,16 @@ target_include_directories(zikhron_spaced_repetition
 )
 target_sources(zikhron_spaced_repetition
     PRIVATE
+        include/spaced_repetition/CardMeta.h
         include/spaced_repetition/CardProgress.h
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/DataBase_deprecated.h
         include/spaced_repetition/ITreeWalker.h
+        include/spaced_repetition/VocableMeta.h
         include/spaced_repetition/VocableProgress.h
         include/spaced_repetition/Vocabulary.h
-        include/spaced_repetition/WalkableData.h
+        include/spaced_repetition/srtypes.h
+        src/CardMeta.cpp
         src/CardProgress.cpp
         src/DataBase.cpp
         src/DataBase_deprecated.cpp
@@ -27,9 +30,9 @@ target_sources(zikhron_spaced_repetition
         src/Tree.h
         src/TreeWalker.cpp
         src/TreeWalker.h
+        src/VocableMeta.cpp
         src/VocableProgress.cpp
         src/Vocabulary.cpp
-        src/WalkableData.cpp
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC

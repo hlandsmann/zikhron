@@ -2,7 +2,7 @@
 
 #include "Node.h"
 
-#include <WalkableData.h>
+#include <DataBase.h>
 #include <spdlog/spdlog.h>
 
 #include <cstddef>
@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 namespace sr {
-Tree::Tree(std::shared_ptr<WalkableData> _walkableData,
+Tree::Tree(std::shared_ptr<DataBase> _walkableData,
            size_t _vocableIndex,
            size_t cardIndex,
            std::shared_ptr<index_set> _ignoreCardIndices)

@@ -1,7 +1,7 @@
 #pragma once
 #include "Node.h"
 
-#include <WalkableData.h>
+#include <DataBase.h>
 
 #include <cstddef>
 #include <memory>
@@ -10,7 +10,7 @@ namespace sr {
 class Tree
 {
 public:
-    Tree(std::shared_ptr<WalkableData> walkableData,
+    Tree(std::shared_ptr<DataBase> walkableData,
          size_t vocableIndex,
          size_t cardIndex,
          std::shared_ptr<index_set> ignoreCardIndices);
@@ -19,7 +19,7 @@ public:
     [[nodiscard]] auto getNodeCardIndex() -> std::optional<size_t>;
 
 private:
-    std::shared_ptr<WalkableData> walkableData;
+    std::shared_ptr<DataBase> walkableData;
     std::shared_ptr<node_vector> nodes;
     size_t vocableIndex;
     size_t rootCardIndex;

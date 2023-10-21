@@ -2,7 +2,7 @@
 
 #include "Path.h"
 
-#include <WalkableData.h>
+#include <DataBase.h>
 #include <spdlog/spdlog.h>
 #include <utils/counting_iterator.h>
 
@@ -21,7 +21,7 @@ namespace views = std::ranges::views;
 
 namespace sr {
 
-Node::Node(std::shared_ptr<WalkableData> _walkableData,
+Node::Node(std::shared_ptr<DataBase> _walkableData,
            std::shared_ptr<node_vector> _nodes,
            size_t _cardIndex,
            std::shared_ptr<index_set> _ignoreCardIndices)

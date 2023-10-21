@@ -2,27 +2,40 @@
 #include <DataBase.h>
 #include <VocableProgress.h>
 #include <annotation/Card.h>
+#include <annotation/Ease.h>
+#include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
+#include <utils/index_map.h>
+#include <utils/min_element_val.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <ranges>
+#include <set>
 #include <string>
 #include <type_traits>
 #include <utility>
+#include <vector>
+
+#include <sys/types.h>
 
 namespace ranges = std::ranges;
 namespace views = std::views;
 
+namespace sr {
 DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
     , zhDictionary{std::make_shared<ZH_Dictionary>(config->Dictionary())}
@@ -33,7 +46,9 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
                                       annotationChoices)}
     , progressVocables{loadProgressVocables(config->DatabaseDirectory() / s_fn_metaVocableSR)}
     , progressCards{loadProgressCards(config->DatabaseDirectory() / s_fn_metaCardSR)}
-{}
+{
+    fillIndexMaps();
+}
 
 auto DataBase::Dictionary() const -> std::shared_ptr<const ZH_Dictionary>
 {
@@ -183,3 +198,212 @@ auto DataBase::loadProgressCards(
     }
     return id_card;
 }
+
+// TODO OLD CODE //////////////////////////////////////////////////////////////////////////////////////////
+
+// WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
+//     : db{std::move(config)}
+// {
+//     fillIndexMaps();
+// }
+
+auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
+{
+    return vocables;
+}
+
+auto DataBase::Cards() -> utl::index_map<CardId, CardMeta>&
+{
+    return cards;
+}
+
+auto DataBase::getCardCopy(size_t cardIndex) const -> CardDB::CardPtr
+{
+    CardId cardId = cards.id_from_index(cardIndex);
+    const CardDB::CardPtr& cardPtr = getCards().at(cardId);
+    return cardPtr->clone();
+}
+
+auto DataBase::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>
+{
+    CardId cardId = cards.id_from_index(cardIndex);
+    const CardDB::CardPtr& cardPtr = getCards().at(cardId);
+    // const auto& vocableChoices = VocableChoices();
+    const ZH_Annotator& annotator = cardPtr->getAnnotator();
+    std::vector<VocableId> vocableIds;
+    ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
+                          return not item.dicItemVec.empty();
+                      }),
+                      std::back_inserter(vocableIds),
+                      [&](const ZH_Annotator::Item& item) -> VocableId {
+                          // TODO remove static_cast
+                          auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
+                          if (const auto it = vocableChoices.find(vocId);
+                              it != vocableChoices.end()) {
+                              // TODO remove static_cast
+                              vocId = static_cast<VocableId>(it->second);
+                          }
+                          return vocId;
+                      });
+    return vocableIds;
+}
+
+auto DataBase::getActiveVocables(size_t cardIndex) -> std::set<VocableId>
+{
+    const auto& activeVocableIndices = cards[cardIndex].getTimingAndVocables(true).vocables;
+    std::set<VocableId> activeVocableIds;
+    ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
+                      [this](size_t vocableIndex) -> VocableId {
+                          return vocables.id_from_index(vocableIndex);
+                      });
+
+    return activeVocableIds;
+}
+
+auto DataBase::getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>
+{
+    std::set<VocableId> activeVocables = getActiveVocables(cardIndex);
+    std::map<VocableId, Ease> ease;
+    ranges::transform(
+            activeVocables,
+            std::inserter(ease, ease.begin()),
+            [&, this](VocableId vocId) -> std::pair<VocableId, Ease> {
+                const VocableProgress& vocSR = vocables.at_id(vocId).second.Progress();
+                // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
+                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
+                              zhDictionary->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
+                              vocSR.EaseFactor(),
+                              vocSR.IntervalDay(),
+                              vocId);
+                return {vocId, {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()}};
+            });
+    return ease;
+}
+
+void DataBase::setEaseVocable(VocableId vocId, const Ease& ease)
+{
+    VocableMeta& vocable = vocables.at_id(vocId).second;
+    vocable.advanceByEase(ease);
+}
+
+void DataBase::triggerVocable(VocableId vocId, CardId cardId)
+{
+    VocableMeta& vocable = vocables.at_id(vocId).second;
+    vocable.triggerByCardId(cardId);
+}
+
+void DataBase::resetCardsContainingVocable(VocableId vocId)
+{
+    const auto& [_, vocable] = vocables.at_id(vocId);
+    const auto& cardIndices = vocable.CardIndices();
+    for (size_t card_index : cardIndices) {
+        auto& card = cards[card_index];
+        card.resetTimingAndVocables();
+    }
+}
+
+void DataBase::fillIndexMaps()
+{
+    for (const auto& [_, card] : getCards()) {
+        insertVocabularyOfCard(card);
+    }
+    spdlog::info("number of vocables: {}", vocables.size());
+    spdlog::info("number of cards: {}", cards.size());
+}
+
+void DataBase::insertVocabularyOfCard(const CardDB::CardPtr& card)
+{
+    const ZH_Annotator& annotator = card->getAnnotator();
+    std::map<std::string, uint> zhdic_vocableMeta;
+    // Its unfortunate, that we cannot simply use a view.... but we gotta live with that.
+    // So lets create a temporary vector annotatorItems to represent that view.
+    std::vector<std::reference_wrapper<const ZH_Annotator::ZH_dicItemVec>> annotatorItems;
+    ranges::transform(annotator.Items() | views::filter([](const ZH_Annotator::Item& item) {
+                          return not item.dicItemVec.empty();
+                      }),
+                      std::back_inserter(annotatorItems),
+                      [](const auto& item) -> std::reference_wrapper<const ZH_Annotator::ZH_dicItemVec> {
+                          return item.dicItemVec;
+                      });
+
+    // TODO remove static cast
+    auto [card_index, cardMetaRef] = cards.emplace(static_cast<CardId>(card->Id()),
+                                                   CardMeta{folly::sorted_vector_set<std::size_t>{},
+                                                            std::ref(vocables)});
+    auto& cardMeta = cardMetaRef.get();
+    std::vector<VocableId> vocableIds = getVocableIdsInOrder(card, vocableChoices);
+    for (const auto& [vocId, dicItemVec] : views::zip(vocableIds, annotatorItems)) {
+        const auto& optionalIndex = vocables.optional_index(vocId);
+        if (optionalIndex.has_value()) {
+            auto& vocable = vocables[*optionalIndex];
+            vocable.cardIndices_insert(card_index);
+            cardMeta.vocableIndices_insert(*optionalIndex);
+        } else {
+            const auto& progressVocables = ProgressVocables();
+            auto itVoc = progressVocables.find(vocId);
+            const auto& [vocable_index, _] = vocables.emplace(vocId,
+                                                              (itVoc != progressVocables.end())
+                                                                      ? itVoc->second
+                                                                      : VocableProgress{},
+                                                              folly::sorted_vector_set<std::size_t>{card_index},
+                                                              dicItemVec);
+
+            cardMeta.vocableIndices_insert(vocable_index);
+        }
+    }
+}
+
+auto DataBase::getVocableIdsInOrder(const CardDB::CardPtr& card,
+                                        const std::map<unsigned, unsigned>& vocableChoices)
+        -> std::vector<VocableId>
+{
+    std::map<std::string, uint> zhdic_vocableMeta;
+    const ZH_Annotator& annotator = card->getAnnotator();
+    std::vector<VocableId> vocableIds;
+    ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
+                          return not item.dicItemVec.empty();
+                      }),
+                      std::back_inserter(vocableIds),
+                      [&vocableChoices](const ZH_Annotator::Item& item) -> VocableId {
+                          // TODO remove static_cast
+                          auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
+                          if (const auto it = vocableChoices.find(vocId);
+                              it != vocableChoices.end()) {
+                              // TODO remove static_cast
+                              vocId = static_cast<VocableId>(it->second);
+                          }
+                          return vocId;
+                      });
+    return vocableIds;
+}
+
+auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
+{
+    std::map<VocableId, VocableProgress> id_progress;
+    ranges::transform(vocables.id_index_view(),
+                      std::inserter(id_progress, id_progress.begin()),
+                      [this](const auto& id_index) -> std::pair<VocableId, VocableProgress> {
+                          const auto [vocableId, index] = id_index;
+                          return {vocableId, vocables[index].Progress()};
+                      });
+    return id_progress;
+}
+
+void DataBase::saveProgress() const
+{
+    spdlog::info("Saving Progress..");
+    SaveProgressVocables(generateVocableIdProgressMap());
+}
+
+void DataBase::addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice)
+{
+    if (vocIdOldChoice == vocIdNewChoice) {
+        return;
+    }
+
+    // if (vocId != vocIdNewChoice)
+    //     id_id_vocableChoices[vocId] = vocIdNewChoice;
+    // else
+    //     id_id_vocableChoices.erase(vocId);
+}
+} // namespace sr
