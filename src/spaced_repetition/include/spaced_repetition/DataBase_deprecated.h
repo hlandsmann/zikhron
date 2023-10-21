@@ -1,6 +1,6 @@
 #pragma once
 #include <misc/Identifier.h>
-#include <annotation/Card.h>
+#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>

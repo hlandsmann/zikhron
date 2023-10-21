@@ -1,6 +1,6 @@
 
 #include <DataThread.h>
-#include <annotation/Card.h>
+#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
 #include <annotation/ZH_Annotator.h>

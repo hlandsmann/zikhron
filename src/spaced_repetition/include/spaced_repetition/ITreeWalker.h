@@ -1,7 +1,7 @@
 #pragma once
 
 #include "DataBase.h"
-#include <annotation/Card.h>
+#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
 

@@ -3,7 +3,7 @@
 #include "DataBase.h"
 #include "srtypes.h"
 
-#include <annotation/Card.h>
+#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <folly/sorted_vector_types.h>
