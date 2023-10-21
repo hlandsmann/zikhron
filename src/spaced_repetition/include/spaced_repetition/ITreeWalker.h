@@ -25,7 +25,7 @@ public:
 
     using VocableIds_vt = std::vector<VocableId>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
-    using CardInformation = std::tuple<std::optional<std::unique_ptr<Card>>, VocableIds_vt, Id_Ease_vt>;
+    using CardInformation = std::tuple<std::optional<std::shared_ptr<Card>>, VocableIds_vt, Id_Ease_vt>;
 
     virtual auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardInformation = 0;
     virtual void setEaseLastCard(const Id_Ease_vt& id_ease) = 0;

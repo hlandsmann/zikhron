@@ -79,13 +79,6 @@ Word::Word(const utl::StringU8& word, uint32_t _color, uint32_t _backGroundColor
 Word::Word(const utl::StringU8& word)
     : Word(word, /*color*/ 0, /* background_color*/ 0) {}
 
-auto Word::operator=(const Word&& word) noexcept -> Word&
-{
-    this->~Word();
-    new (this) Word(std::move(word));
-    return *this;
-}
-
 Word::operator std::string() const
 {
     return styledWord;
@@ -145,7 +138,7 @@ auto Paragraph::calculate_positions(size_t (Word::*len)() const) const -> std::v
     return result;
 }
 
-Paragraph::Paragraph(std::unique_ptr<Card> _card)
+Paragraph::Paragraph(std::shared_ptr<Card> _card)
     : card(std::move(_card))
 {
     utl::StringU8 text = card->getText();
@@ -193,7 +186,7 @@ Paragraph::Paragraph(std::unique_ptr<Card> _card)
     }
 }
 
-Paragraph::Paragraph(std::unique_ptr<Card> card_in, std::vector<VocableId>&& vocableIds_in)
+Paragraph::Paragraph(std::shared_ptr<Card> card_in, std::vector<VocableId>&& vocableIds_in)
     : Paragraph(std::move(card_in))
 {
     vocableIds = std::move(vocableIds_in);

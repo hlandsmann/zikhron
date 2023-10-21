@@ -17,6 +17,7 @@
 #include <span>
 #include <stack>
 #include <string>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -35,8 +36,10 @@ public:
     Word(const utl::StringU8& word);
     Word(const Word&) = default;
     Word(Word&&) = default;
+    ~Word() = default;
 
-    auto operator=(const Word&& word) noexcept -> Word&;
+    auto operator=(const Word& word) noexcept -> Word& = default;
+    auto operator=(Word&& word) noexcept -> Word& = default;
     operator std::string() const;
 
     void setColor(uint32_t color);
@@ -64,9 +67,9 @@ public:
     using vocable_pronounciation_meaning_t = std::tuple<std::string, std::string, std::string>;
     // ToDo: move that function to TextCard
 
-    Paragraph(std::unique_ptr<Card> card);
-    Paragraph(std::unique_ptr<Card> card, std::vector<VocableId>&& vocableIds);
-    auto get() const -> std::string;
+    Paragraph(std::shared_ptr<Card> card);
+    Paragraph(std::shared_ptr<Card> card, std::vector<VocableId>&& vocableIds);
+    [[nodiscard]] auto get() const -> std::string;
     [[nodiscard]] auto getFragments() const -> std::vector<std::string>;
     [[nodiscard]] auto getWordStartPosition(int pos, const std::vector<int>& positions) const -> int;
     [[nodiscard]] auto getWordIndex(int pos, const std::vector<int>& positions) const -> std::size_t;
@@ -104,7 +107,7 @@ private:
             -> std::optional<std::reference_wrapper<AnnotationChunk>>;
     [[nodiscard]] auto calculate_positions(size_t (Word::*len)() const) const -> std::vector<int>;
 
-    std::unique_ptr<Card> card;
+    std::shared_ptr<Card> card;
 
     struct WordState
     {

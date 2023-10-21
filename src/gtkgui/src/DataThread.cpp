@@ -316,7 +316,7 @@ void DataThread::sendActiveCard(CardInformation& cardInformation)
         return;
     }
     // TODO remove static_cast CardId
-    CardId cardId = static_cast<CardId>(current_card.value()->Id());
+    CardId cardId = current_card.value()->Id();
     auto current_card_clone = std::unique_ptr<Card>(current_card.value()->clone());
     auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card.value()), std::move(vocableIds));
     auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));

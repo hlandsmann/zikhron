@@ -103,7 +103,7 @@ class CardDB
 public:
     static constexpr std::string_view s_cardSubdirectory = "cards";
 
-    using CardPtr = std::unique_ptr<Card>;
+    using CardPtr = std::shared_ptr<Card>;
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
 
