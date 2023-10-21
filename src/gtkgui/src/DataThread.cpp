@@ -10,7 +10,6 @@
 #include <misc/Identifier.h>
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
-#include <spaced_repetition/Vocabulary.h>
 #include <spdlog/spdlog.h>
 #include <utils/Property.h>
 
@@ -183,7 +182,6 @@ DataThread::DataThread()
         treeWalker = sr::ITreeWalker::createTreeWalker(std::move(walkableData));
         cardDB = loadCardDB(std::string{path_to_cardDB});
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
-        vocabularySR = std::make_unique<VocabularySR>(cardDB, zh_dictionary);
     });
 
     dispatcher.connect([this]() { dispatcher_fun(); });
@@ -265,7 +263,7 @@ void DataThread::requestCardFromIds(std::vector<uint>&& _ids)
     condition.notify_one();
 }
 
-void DataThread::submitEase(const VocabularySR::Id_Ease_vt& ease)
+void DataThread::submitEase(const sr::ITreeWalker::Id_Ease_vt& ease)
 {
     std::lock_guard<std::mutex> lock(condition_mutex);
     treeWalker->setEaseLastCard(ease);
@@ -298,15 +296,17 @@ void DataThread::dispatch_arbitrary(const std::function<void()>& fun)
 
 auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<markup::Paragraph>>
 {
-    auto opt_cardInformation = vocabularySR->getCardFromId(id);
-    if (!opt_cardInformation.has_value()) {
-        return {};
-    }
-    auto [current_card, vocableIds, ease] = std::move(opt_cardInformation.value());
-    auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
-    paragraph->setupVocables(ease);
-
-    return {std::move(paragraph)};
+  //TODO reactivate
+    // auto opt_cardInformation = vocabularySR->getCardFromId(id);
+    // if (!opt_cardInformation.has_value()) {
+    //     return {};
+    // }
+    // auto [current_card, vocableIds, ease] = std::move(opt_cardInformation.value());
+    // auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
+    // paragraph->setupVocables(ease);
+    //
+    // return {std::move(paragraph)};
+  return {};
 }
 
 void DataThread::sendActiveCard(CardInformation& cardInformation)
@@ -344,7 +344,7 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, combination, characterSequence]() {
-            auto cardInformation = vocabularySR->AddAnnotation(combination, characterSequence);
+            // auto cardInformation = vocabularySR->AddAnnotation(combination, characterSequence);
             // TODO reactivate
             //  sendActiveCard(cardInformation);
         });
@@ -357,7 +357,7 @@ void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocId
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, vocId, vocIdOldChoice, vocIdNewChoice]() {
-            auto cardInformation = vocabularySR->AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
+            // auto cardInformation = vocabularySR->AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
             // TODO reactivate
             //  sendActiveCard(cardInformation);
         });

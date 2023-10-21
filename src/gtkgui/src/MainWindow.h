@@ -3,7 +3,6 @@
 #include <DataThread.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <gtkmm.h>
-#include <spaced_repetition/Vocabulary.h>
 #include <memory>
 #include <vector>
 

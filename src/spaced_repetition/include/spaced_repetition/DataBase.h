@@ -49,7 +49,7 @@ public:
     [[nodiscard]] auto VocableChoices() const -> const std::map<unsigned, unsigned>&;
     [[nodiscard]] auto ProgressVocables() const -> const std::map<VocableId, VocableProgress>&;
     [[nodiscard]] auto ProgressCards() const -> const std::map<CardId, CardProgress>&;
-    [[nodiscard]] auto getCards() const -> const std::map<unsigned, CardDB::CardPtr>&;
+    [[nodiscard]] auto getCards() const -> const std::map<CardId, CardDB::CardPtr>&;
     void SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const;
     ////////////////////////////////////////////////////////////////////////////////////////////////////
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;

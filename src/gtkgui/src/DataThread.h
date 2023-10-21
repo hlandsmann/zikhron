@@ -9,7 +9,6 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/ITreeWalker.h>
-#include <spaced_repetition/Vocabulary.h>
 #include <utils/Property.h>
 
 #include <queue>
@@ -90,7 +89,7 @@ public:
 
     void requestCard(std::optional<CardId> preferedCardId = {});
     void requestCardFromIds(std::vector<uint>&& ids);
-    void submitEase(const VocabularySR::Id_Ease_vt& ease);
+    void submitEase(const sr::ITreeWalker::Id_Ease_vt& ease);
     void submitAnnotation(const ZH_Annotator::Combination& combination,
                           const ZH_Annotator::CharacterSequence& characterSequence);
     void submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
@@ -131,7 +130,6 @@ private:
     // message_annotation msg_annotation;
 
     std::shared_ptr<ZH_Dictionary> zh_dictionary;
-    std::unique_ptr<VocabularySR> vocabularySR;
     Glib::Dispatcher dispatcher;
     std::shared_ptr<Glib::Dispatcher> propertyUpdate = std::make_shared<Glib::Dispatcher>();
 

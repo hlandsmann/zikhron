@@ -1,4 +1,5 @@
 #include <CardDB.h>
+#include <misc/Identifier.h>
 #include <ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
@@ -24,7 +25,7 @@
 
 #include <sys/types.h>
 namespace {
-auto cardFromJsonFile(const std::string& filename, uint cardId) -> std::unique_ptr<Card>
+auto cardFromJsonFile(const std::string& filename, CardId cardId) -> std::unique_ptr<Card>
 {
     std::ifstream cardFile(filename, std::ios::in | std::ios::binary);
     if (!cardFile) {
@@ -78,7 +79,7 @@ auto Card::getAnnotator() -> ZH_Annotator&
     return zh_annotator.value();
 }
 
-auto Card::Id() const -> unsigned
+auto Card::Id() const -> CardId
 {
     return id;
 }
@@ -138,7 +139,7 @@ void CardDB::loadFromDirectory(const std::filesystem::path& directoryPath)
             continue;
         }
         try {
-            uint cardId = static_cast<uint>(std::stoi(card_fn_match.get<1>().to_string()));
+            auto cardId = static_cast<CardId>(std::stoi(card_fn_match.get<1>().to_string()));
             if (cards.find(cardId) != cards.end()) {
                 spdlog::warn("File \"{}\" ignored, because number {} is already in use!",
                              entry.filename().string(),
@@ -152,7 +153,7 @@ void CardDB::loadFromDirectory(const std::filesystem::path& directoryPath)
     }
 }
 
-auto CardDB::get() const -> const std::map<uint, CardPtr>&
+auto CardDB::get() const -> const std::map<CardId, CardPtr>&
 {
     return cards;
 }

@@ -11,16 +11,13 @@ target_sources(zikhron_spaced_repetition
         include/spaced_repetition/CardMeta.h
         include/spaced_repetition/CardProgress.h
         include/spaced_repetition/DataBase.h
-        include/spaced_repetition/DataBase_deprecated.h
         include/spaced_repetition/ITreeWalker.h
         include/spaced_repetition/VocableMeta.h
         include/spaced_repetition/VocableProgress.h
-        include/spaced_repetition/Vocabulary.h
         include/spaced_repetition/srtypes.h
         src/CardMeta.cpp
         src/CardProgress.cpp
         src/DataBase.cpp
-        src/DataBase_deprecated.cpp
         src/Node.cpp
         src/Node.h
         src/Path.h
@@ -32,7 +29,6 @@ target_sources(zikhron_spaced_repetition
         src/TreeWalker.h
         src/VocableMeta.cpp
         src/VocableProgress.cpp
-        src/Vocabulary.cpp
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC

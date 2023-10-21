@@ -75,7 +75,7 @@ auto DataBase::ProgressCards() const -> const std::map<CardId, CardProgress>&
     return progressCards;
 }
 
-auto DataBase::getCards() const -> const std::map<unsigned, CardDB::CardPtr>&
+auto DataBase::getCards() const -> const std::map<CardId, CardDB::CardPtr>&
 {
     return cardDB->get();
 }

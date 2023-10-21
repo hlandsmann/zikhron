@@ -1,5 +1,7 @@
 #pragma once
 #include <annotation/ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
+#include <misc/Identifier.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 
@@ -8,13 +10,15 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #include <sys/types.h>
 
 struct Card
 {
-    Card(std::string _filename, uint _id)
+    Card(std::string _filename, CardId _id)
         : filename(std::move(_filename)), id(_id){};
     Card(const Card&) = default;
     Card(Card&&) = default;
@@ -24,7 +28,7 @@ struct Card
 
     [[nodiscard]] virtual auto clone() const -> std::unique_ptr<Card> = 0;
 
-    [[nodiscard]] auto Id() const -> unsigned;
+    [[nodiscard]] auto Id() const -> CardId;
     [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
 
@@ -37,14 +41,14 @@ struct Card
 private:
     std::optional<ZH_Annotator> zh_annotator;
     std::string filename;
-    unsigned id;
+    CardId id;
 };
 
 template<typename Card_Type>
 struct Card_clone : public Card
 {
 public:
-    Card_clone(std::string _filename, uint _id)
+    Card_clone(std::string _filename, CardId _id)
         : Card(std::move(_filename), _id){};
     Card_clone(const Card_clone&) = default;
     Card_clone(Card_clone&&) = default;
@@ -60,7 +64,7 @@ public:
 
 struct DialogueCard : public Card_clone<DialogueCard>
 {
-    DialogueCard(const std::string& _filename, uint _id)
+    DialogueCard(const std::string& _filename, CardId _id)
         : Card_clone<DialogueCard>(_filename, _id){};
     DialogueCard(const DialogueCard&) = default;
     DialogueCard(DialogueCard&&) = default;
@@ -81,7 +85,7 @@ struct DialogueCard : public Card_clone<DialogueCard>
 
 struct TextCard : public Card_clone<TextCard>
 {
-    TextCard(std::string _filename, uint _id)
+    TextCard(std::string _filename, CardId _id)
         : Card_clone<TextCard>(std::move(_filename), _id){};
     TextCard(const TextCard&) = default;
     TextCard(TextCard&&) = default;
@@ -109,8 +113,8 @@ public:
            const std::map<CharacterSequence, Combination>& choices);
     void loadFromDirectory(const std::filesystem::path& directoryPath);
 
-    [[nodiscard]] auto get() const -> const std::map<uint, CardPtr>&;
+    [[nodiscard]] auto get() const -> const std::map<CardId, CardPtr>&;
 
 private:
-    std::map<uint, CardPtr> cards;
+    std::map<CardId, CardPtr> cards;
 };
