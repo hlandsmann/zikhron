@@ -1,14 +1,31 @@
+#include <ButtonGroup.h>
+#include <TextDraw.h>
 #include <VocableList.h>
+#include <annotation/Ease.h>
+#include <annotation/Markup.h>
 #include <fmt/format.h>
-#include <algorithm>
-#include <boost/range/combine.hpp>
-#include <ranges>
-namespace ranges = std::ranges;
 
-VocableList::VocableList() { set_column_spacing(32); }
+#include <boost/range/combine.hpp>
+#include <cstddef>
+#include <format>
+#include <memory>
+#include <ranges>
+#include <string>
+#include <utility>
+#include <vector>
+
+#include <sys/types.h>
+namespace ranges = std::ranges;
+namespace views = ranges::views;
+
+VocableList::VocableList()
+{
+    set_column_spacing(32);
+}
 
 void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragraph_in,
-                               const std::vector<Ease>& _easeList) {
+                               const std::vector<Ease>& _easeList)
+{
     easeList = _easeList;
 
     reset();
@@ -25,21 +42,21 @@ void VocableList::setParagraph(const std::shared_ptr<markup::Paragraph>& paragra
     }
 
     index = 0;
-    for (const auto& [easeChoice, ease, label] :
-         boost::combine(easeChoiceContainer, easeList, labelContainer)) {
+    for (const auto& [easeChoice, ease, label] : views::zip(easeChoiceContainer, easeList, labelContainer)) {
         easeChoice->observe_active([this, ease, index](uint active) {
             auto tmpEase = ease;
             tmpEase.easeVal = mapIntToEase(active);
             auto progress = tmpEase.getProgress();
             labelContainer[index]->set_label(
-                fmt::format("{:.1f}, ({:.1f})", progress.intervalDay, progress.easeFactor));
+                    std::format("{:.1f}, ({:.1f})", progress.intervalDay, progress.easeFactor));
         });
         easeChoice->setActive(mapEaseToUint(ease.easeVal));
         index++;
     }
 }
 
-void VocableList::addTextDraw(int column, int row, const std::string& markup) {
+void VocableList::addTextDraw(int column, int row, const std::string& markup)
+{
     auto textDraw = std::make_unique<TextDraw>();
     textDraw->setFontSize(vocableFontSize);
     textDraw->setSpacing(vocableSpacing);
@@ -48,27 +65,31 @@ void VocableList::addTextDraw(int column, int row, const std::string& markup) {
     textDrawContainer.push_back(std::move(textDraw));
 }
 
-void VocableList::addEaseChoice(int column, int row) {
+void VocableList::addEaseChoice(int column, int row)
+{
     auto easeChoice = std::make_unique<ButtonGroup>("Again", "Hard", "Normal", "Easy");
     attach(*easeChoice, column, row);
     easeChoiceContainer.push_back(std::move(easeChoice));
 }
 
-void VocableList::addLabel(int column, int row) {
+void VocableList::addLabel(int column, int row)
+{
     auto progressLabel = std::make_unique<Gtk::Label>("");
     progressLabel->set_margin_end(16);
     attach(*progressLabel, column, row);
     labelContainer.push_back(std::move(progressLabel));
 }
 
-auto VocableList::getChoiceOfEase() -> std::vector<Ease> {
+auto VocableList::getChoiceOfEase() -> std::vector<Ease>
+{
     for (size_t i = 0; i < easeList.size(); i++) {
         easeList[i].easeVal = mapIntToEase(easeChoiceContainer[i]->getActive());
     }
     return easeList;
 }
 
-void VocableList::reset() {
+void VocableList::reset()
+{
     for (const auto& textDraw : textDrawContainer) {
         remove(*textDraw);
     }
