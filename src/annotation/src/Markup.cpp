@@ -4,6 +4,7 @@
 #include <Ease.h>
 #include <Word.h>
 #include <ZH_Annotator.h>
+#include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -11,10 +12,13 @@
 #include <utils/StringU8.h>
 
 #include <algorithm>
+#include <array>
 #include <boost/range/combine.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <functional>
 #include <iterator>
 #include <limits>
@@ -23,6 +27,7 @@
 #include <numeric>
 #include <ranges>
 #include <span>
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
@@ -72,7 +77,10 @@ Paragraph::Paragraph(std::shared_ptr<Card> _card)
             fragmentPos++;
         }
 
-        size_t firstWordIndex = 0, wordIndex = 0, fragmentIndex = 0, currentLength = 0;
+        size_t firstWordIndex = 0;
+        size_t wordIndex = 0;
+        size_t fragmentIndex = 0;
+        size_t currentLength = 0;
         for (const auto& item : zh_annotator.Items()) {
             currentLength += utl::StringU8(item.text).length();
             wordIndex++;
@@ -117,8 +125,9 @@ auto Paragraph::getFragments() const -> std::vector<std::string>
 auto Paragraph::getWordStartPosition(int pos, const std::vector<int>& positions) const -> int
 {
     std::size_t index = getWordIndex(pos, positions);
-    if (index >= positions.size())
+    if (index >= positions.size()) {
         return -1;
+    }
     return positions[index];
 }
 
@@ -138,9 +147,10 @@ auto Paragraph::getWordIndex(int pos, const std::vector<int>& positions) const -
 
 auto Paragraph::fragmentStartPos(size_t fragment, const std::vector<int>& positions) const -> int
 {
-    if (fragment >= fragments.size())
+    if (fragment >= fragments.size()) {
         throw std::out_of_range(
-                fmt::format("Only {} fragments, fragment #{} requested", fragments.size(), fragment));
+                std::format("Only {} fragments, fragment #{} requested", fragments.size(), fragment));
+    }
     ptrdiff_t dist = std::distance(std::span<const Word>(words).begin(), fragments[fragment].begin());
 
     int result = positions[dist];
@@ -427,11 +437,11 @@ void Paragraph::setupVocables(const std::map<VocableId, Ease>& ease)
                 const ZH_Dictionary::Entry& zhEntry = zh_dictionary.EntryFromPosition(
                         vocId, CharacterSetType::Simplified);
                 uint32_t color = colors[colorIndex++ % colors.size()];
-                std::string style = fmt::format(" color=\"#{:06x}\"", color);
+                std::string style = std::format(" color=\"#{:06x}\"", color);
 
-                std::string vocable = fmt::format("<span{}>{}</span>", style, zhEntry.key);
-                std::string pronounciation = fmt::format("<span{}>{}</span>", style, zhEntry.pronounciation);
-                std::string meaning = fmt::format("<span{}>{}</span>", style, zhEntry.meanings.at(0));
+                std::string vocable = std::format("<span{}>{}</span>", style, zhEntry.key);
+                std::string pronounciation = std::format("<span{}>{}</span>", style, zhEntry.pronounciation);
+                std::string meaning = std::format("<span{}>{}</span>", style, zhEntry.meanings.at(0));
                 return {vocable, pronounciation, meaning};
             });
 }
