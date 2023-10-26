@@ -1,4 +1,5 @@
 #include "TreeWalker.h"
+#include <srtypes.h>
 
 #include <ITreeWalker.h>
 #include <annotation/Ease.h>

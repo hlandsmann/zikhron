@@ -26,12 +26,12 @@ namespace ranges = std::ranges;
 // namespace views = std::views;
 
 namespace sr {
-VocableMeta::VocableMeta(VocableProgress _progress,
-                         folly::sorted_vector_set<std::size_t> _cardIndices,
-                         ZH_Annotator::ZH_dicItemVec _dicItemVec)
+VocableMeta::VocableMeta(VocableProgress _progress//,
+        //                 folly::sorted_vector_set<std::size_t> _cardIndices/* ,
+/*                         ZH_Annotator::ZH_dicItemVec _dicItemVec */)
     : progress{std::move(_progress)}
-    , cardIndices{std::move(_cardIndices)}
-    , dicItemVec{std::move(_dicItemVec)} {}
+    // , cardIndices{std::move(_cardIndices)}
+    /*, dicItemVec{std::move(_dicItemVec)}*/ {}
 
 auto VocableMeta::Progress() const -> const VocableProgress&
 {

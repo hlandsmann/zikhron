@@ -1,8 +1,8 @@
 #include <CardDB.h>
-#include <misc/Identifier.h>
 #include <ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
@@ -156,4 +156,14 @@ void CardDB::loadFromDirectory(const std::filesystem::path& directoryPath)
 auto CardDB::get() const -> const std::map<CardId, CardPtr>&
 {
     return cards;
+}
+
+auto CardDB::atId(CardId cardId) -> CardPtr&
+{
+    return cards.at(cardId);
+}
+
+auto CardDB::atId(CardId cardId) const -> CardPtrConst
+{
+    return {cards.at(cardId)};
 }

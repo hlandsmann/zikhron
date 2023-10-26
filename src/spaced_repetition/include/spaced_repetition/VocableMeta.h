@@ -1,6 +1,6 @@
 #pragma once
-#include "VocableProgress.h"
 #include "DataBase.h"
+#include "VocableProgress.h"
 #include "srtypes.h"
 
 #include <annotation/CardDB.h>
@@ -18,11 +18,13 @@
 
 namespace sr {
 
-struct VocableMeta
+class VocableMeta
 {
-    VocableMeta(VocableProgress _progress,
-                folly::sorted_vector_set<std::size_t> _cardIndices,
-                ZH_Annotator::ZH_dicItemVec dicItemVec);
+public:
+    VocableMeta(VocableProgress _progress//,
+                // folly::sorted_vector_set<std::size_t> _cardIndices /* ,
+                //  ZH_Annotator::ZH_dicItemVec dicItemVec */
+    );
     [[nodiscard]] auto Progress() const -> const VocableProgress&;
     [[nodiscard]] auto CardIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void advanceByEase(const Ease&);
@@ -34,12 +36,7 @@ struct VocableMeta
 private:
     VocableProgress progress;
     folly::sorted_vector_set<std::size_t> cardIndices;
-    ZH_Annotator::ZH_dicItemVec dicItemVec;
+    // ZH_Annotator::ZH_dicItemVec dicItemVec;
 };
 
-struct TimingAndVocables
-{
-    int timing{};
-    index_set vocables{};
-};
 } // namespace sr

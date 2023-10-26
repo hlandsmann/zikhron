@@ -107,7 +107,7 @@ void MediaPlayer::play(double until)
     stopAtPosition = until;
     mpv_flag_paused = 0;
     mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
-    mpv_set_property_async(mpv.get(), 0, "volume", MPV_FORMAT_DOUBLE, &volume);
+    mpv_set_property_async(mpv.get(), 0, "ao-volume", MPV_FORMAT_DOUBLE, &volume);
 }
 
 void MediaPlayer::pause()

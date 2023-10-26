@@ -1,11 +1,11 @@
 #pragma once
-
 #include <cstddef>
 #include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <optional>
+#include <span>
 #include <stdexcept>
 #include <type_traits>
 #include <utility>
@@ -42,7 +42,7 @@ public:
 
 private:
     // using non_const_T = T;
-    std::reference_wrapper<vector_T> refData;
+    vector_T* refData;
     std::size_t index;
 };
 
@@ -66,12 +66,14 @@ public:
     using non_const_T = std::remove_const_t<T>;
 
     index_map() = default;
-    [[nodiscard]] auto begin() -> iterator;
-    [[nodiscard]] auto end() -> iterator;
-    [[nodiscard]] auto begin() const -> const_iterator;
-    [[nodiscard]] auto end() const -> const_iterator;
-    [[nodiscard]] auto cbegin() const -> const_iterator;
-    [[nodiscard]] auto cend() const -> const_iterator;
+    [[nodiscard]] auto vspan() -> std::span<T>;
+    [[nodiscard]] auto vspan() const -> std::span<const T>;
+    [[nodiscard]] auto begin() -> std::vector<T>::iterator;              // iterator;
+    [[nodiscard]] auto end() -> std::vector<T>::iterator;                // iterator;
+    [[nodiscard]] auto begin() const -> std::vector<T>::const_iterator;  // const_iterator;
+    [[nodiscard]] auto end() const -> std::vector<T>::const_iterator;    // const_iterator;
+    [[nodiscard]] auto cbegin() const -> std::vector<T>::const_iterator; // const_iterator;
+    [[nodiscard]] auto cend() const -> std::vector<T>::const_iterator;   // const_iterator;
 
     [[nodiscard]] auto size() const -> std::size_t;
     [[nodiscard]] auto empty() const -> bool;
@@ -100,39 +102,57 @@ private:
 };
 
 template<class KeyType, class T>
-auto index_map<KeyType, T>::begin() -> iterator
+auto index_map<KeyType, T>::vspan() -> std::span<T>
 {
-    return {data, 0};
+    return {data.begin(), data.end()};
 }
 
 template<class KeyType, class T>
-auto index_map<KeyType, T>::end() -> iterator
+auto index_map<KeyType, T>::vspan() const -> std::span<const T>
 {
-    return {data, data.size()};
+    return {data.cbegin(), data.cend()};
 }
 
 template<class KeyType, class T>
-auto index_map<KeyType, T>::begin() const -> const_iterator
+auto index_map<KeyType, T>::begin() -> std::vector<T>::iterator
 {
-    return {data, 0};
+    // return {data, 0};
+    return data.begin();
 }
 
 template<class KeyType, class T>
-auto index_map<KeyType, T>::end() const -> const_iterator
+auto index_map<KeyType, T>::end() -> std::vector<T>::iterator
 {
-    return {data, data.size()};
+    // return {data, data.size()};
+    return data.end();
 }
 
 template<class KeyType, class T>
-auto index_map<KeyType, T>::cbegin() const -> const_iterator
+auto index_map<KeyType, T>::begin() const -> std::vector<T>::const_iterator
 {
-    return {data, 0};
+    // return {data, 0};
+    return data.begin();
 }
 
 template<class KeyType, class T>
-auto index_map<KeyType, T>::cend() const -> const_iterator
+auto index_map<KeyType, T>::end() const -> std::vector<T>::const_iterator
 {
-    return {data, data.size()};
+    // return {data, data.size()};
+    return data.end();
+}
+
+template<class KeyType, class T>
+auto index_map<KeyType, T>::cbegin() const -> std::vector<T>::const_iterator
+{
+    // return {data, 0};
+    return data.cbegin();
+}
+
+template<class KeyType, class T>
+auto index_map<KeyType, T>::cend() const -> std::vector<T>::const_iterator
+{
+    // return {data, data.size()};
+    return data.cend();
 }
 
 template<class KeyType, class T>
@@ -259,13 +279,13 @@ auto index_map<KeyType, T>::id_index_view() const -> const std::map<key_type, st
 
 template<class T>
 index_map_iterator<T>::index_map_iterator(vector_T& data, std::size_t _index)
-    : refData{data}, index{_index}
+    : refData{&data}, index{_index}
 {}
 
 template<class T>
 auto index_map_iterator<T>::operator*() const -> reference
 {
-    auto& data = refData.get();
+    auto& data = *refData;
     return data[index];
 }
 
@@ -302,7 +322,7 @@ auto index_map_iterator<T>::operator--(int) -> index_map_iterator
 template<class T>
 auto index_map_iterator<T>::operator==(const index_map_iterator& it) const -> bool
 {
-    return (std::addressof(refData.get()) == std::addressof(it.refData.get()) && index == it.index);
+    return (refData == it.refData && index == it.index);
 }
 
 template<class T>

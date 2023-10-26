@@ -101,7 +101,7 @@ struct std::formatter<utl::CharU8>
     template<typename FormatContext>
     auto format(const utl::CharU8& itemU8, FormatContext& ctx)
     {
-        return fmt::format_to(ctx.out(), "{}", std::string(itemU8));
+        return std::format_to(ctx.out(), "{}", std::string(itemU8));
     }
 };
 

@@ -104,6 +104,7 @@ public:
     static constexpr std::string_view s_cardSubdirectory = "cards";
 
     using CardPtr = std::shared_ptr<Card>;
+    using CardPtrConst = std::shared_ptr<const Card>;
     using CharacterSequence = std::vector<utl::CharU8>;
     using Combination = std::vector<int>;
 
@@ -114,6 +115,8 @@ public:
     void loadFromDirectory(const std::filesystem::path& directoryPath);
 
     [[nodiscard]] auto get() const -> const std::map<CardId, CardPtr>&;
+    [[nodiscard]] auto atId(CardId) -> CardPtr&;
+    [[nodiscard]] auto atId(CardId) const -> CardPtrConst;
 
 private:
     std::map<CardId, CardPtr> cards;
