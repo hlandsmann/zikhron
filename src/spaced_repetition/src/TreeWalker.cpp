@@ -35,7 +35,7 @@ auto ITreeWalker::createTreeWalker(std::shared_ptr<DataBase> db) -> std::unique_
 TreeWalker::TreeWalker(std::shared_ptr<DataBase> _db)
     : db{std::move(_db)}
 {
-    // walk(walkableData);
+    // walk(db);
     // createTree();
 }
 
@@ -192,10 +192,10 @@ void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
         db->setEaseVocable(vocId, ease);
         db->triggerVocable(vocId, currentCardId);
         // spdlog::warn("intDay: {}, daysMin {}, daysNormal: {}, daysMax: {} id: {}, ease: {}",
-        //              walkableData->Vocables().at_id(vocId).second.Progress().IntervalDay(),
-        //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,
-        //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysNormal,
-        //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMax,
+        //              db->Vocables().at_id(vocId).second.Progress().IntervalDay(),
+        //              db->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,
+        //              db->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysNormal,
+        //              db->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMax,
         //              vocId, static_cast<unsigned>(ease.easeVal));
         db->resetCardsContainingVocable(vocId);
         if (ease.easeVal == EaseVal::again) {

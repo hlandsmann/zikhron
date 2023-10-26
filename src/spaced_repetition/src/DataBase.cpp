@@ -205,12 +205,6 @@ auto DataBase::loadProgressCards(
 
 // TODO OLD CODE //////////////////////////////////////////////////////////////////////////////////////////
 
-// WalkableData::WalkableData(std::shared_ptr<zikhron::Config> config)
-//     : db{std::move(config)}
-// {
-//     fillIndexMaps();
-// }
-
 auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 {
     return *vocables;

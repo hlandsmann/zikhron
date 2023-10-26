@@ -32,9 +32,9 @@ Node::Node(std::shared_ptr<DataBase> _db,
     , subCards{collectSubCards()}
 {
     // spdlog::info("nVocables: {} nSubcards {}, for cardId: {}",
-    //              walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size(),
+    //              db->Cards()[cardIndex].getTimingAndVocables().vocables.size(),
     //              subCards.size(),
-    //              walkableData->Cards().id_from_index(cardIndex));
+    //              db->Cards().id_from_index(cardIndex));
 }
 
 void Node::tighten()
@@ -63,7 +63,7 @@ auto Node::lowerOrder(size_t order) -> size_t
     //              order,
     //              cardsLessVocables.size(),
     //              cards[cardIndex].getTimingAndVocables().vocables.size(),
-    //              walkableData->Cards().id_from_index(cardIndex));
+    //              db->Cards().id_from_index(cardIndex));
     for (size_t index : cardsLessVocables) {
         if ((*nodes)[index].has_value()) {
             continue;
@@ -83,7 +83,7 @@ auto Node::lowerOrder(size_t order) -> size_t
     }
     // spdlog::info("nextOrder: {}, cardId: {}",
     //              nextOrder,
-    //              walkableData->Cards().id_from_index(cardIndex));
+    //              db->Cards().id_from_index(cardIndex));
     return nextOrder;
 }
 
@@ -91,7 +91,7 @@ auto Node::Paths() const -> const std::vector<Path>&
 {
     // if (paths.empty()) {
     //     spdlog::info("empty cardId: {}",
-    //                  walkableData->Cards().id_from_index(cardIndex));
+    //                  db->Cards().id_from_index(cardIndex));
     // }
     return paths;
 }
@@ -100,7 +100,7 @@ auto Node::collectSubCards() const -> index_set
 {
     index_set subCardsResult;
 
-    // const auto& card = walkableData->Cards()[cardIndex];
+    // const auto& card = db->Cards()[cardIndex];
     const auto& tnv = db->Cards()[cardIndex].getTimingAndVocables();
     const auto& vocables = db->Vocables();
     const auto& containedVocables = tnv.vocables
@@ -135,12 +135,12 @@ auto Node::removeInactiveCardindices(const index_set& cardIndices) -> std::vecto
         //                   tnvp.timing);
         //     std::vector<size_t> tempIndices;
         //     ranges::copy(card.VocableIndices(), std::back_inserter(tempIndices));
-        //     ranges::sort(tempIndices, std::less{}, [this](size_t tindex) { return walkableData->Vocables()[tindex].Progress().getRepeatRange().daysMin; });
+        //     ranges::sort(tempIndices, std::less{}, [this](size_t tindex) { return db->Vocables()[tindex].Progress().getRepeatRange().daysMin; });
         //     // for (size_t vocindex : cards[index].VocableIndices()) {
         //     for (size_t vocindex : tempIndices) {
-        //         auto daysMin = walkableData->Vocables()[vocindex].Progress().getRepeatRange().daysMin;
-        //         auto daysNormal = walkableData->Vocables()[vocindex].Progress().getRepeatRange().daysNormal;
-        //         auto daysMax = walkableData->Vocables()[vocindex].Progress().getRepeatRange().daysMax;
+        //         auto daysMin = db->Vocables()[vocindex].Progress().getRepeatRange().daysMin;
+        //         auto daysNormal = db->Vocables()[vocindex].Progress().getRepeatRange().daysNormal;
+        //         auto daysMax = db->Vocables()[vocindex].Progress().getRepeatRange().daysMax;
         //         spdlog::info("   mindays {}, ndays {}, maxdays {}", daysMin, daysNormal, daysMax);
         //     }
         // }
