@@ -3,6 +3,7 @@
 #include <VocableProgress.h>
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
+#include <annotation/Markup.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <folly/sorted_vector_types.h>
@@ -20,6 +21,7 @@
 #include <memory>
 #include <ranges>
 #include <utility>
+#include <vector>
 
 #include <sys/types.h>
 
@@ -32,6 +34,11 @@ CardMeta::CardMeta(std::shared_ptr<Card> _card,
     : card{std::move(_card)}
     , vocables{std::move(_vocables)}
 {}
+
+auto CardMeta::Id() const -> CardId
+{
+    return card->Id();
+}
 
 auto CardMeta::VocableIndices() const -> const index_set&
 {
@@ -62,6 +69,25 @@ void CardMeta::resetTimingAndVocables()
 {
     timingAndVocablesPulled.reset();
     timingAndVocables.reset();
+}
+
+auto CardMeta::getStudyMarkup() -> std::unique_ptr<markup::Paragraph>
+{
+    std::vector<VocableId> vocableIds;
+    auto studyMarkup = std::make_unique<markup::Paragraph>(card, std::move(vocableIds));
+    return studyMarkup;
+}
+
+auto CardMeta::getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>
+{
+    auto annotationMarkup = std::make_unique<markup::Paragraph>(card);
+    return annotationMarkup;
+}
+
+auto CardMeta::getEaseList() -> std::vector<Ease>
+{
+    std::vector<Ease> easeList;
+    return easeList;
 }
 
 auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables

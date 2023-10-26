@@ -4,6 +4,7 @@
 
 #include <DataBase.h>
 #include <spdlog/spdlog.h>
+#include <srtypes.h>
 #include <utils/counting_iterator.h>
 
 #include <algorithm>

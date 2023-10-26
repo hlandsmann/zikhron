@@ -4,6 +4,7 @@
 
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
+#include <annotation/Markup.h>
 #include <annotation/ZH_Annotator.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
@@ -13,6 +14,7 @@
 #include <cstddef>
 #include <memory>
 #include <optional>
+#include <vector>
 
 #include <sys/types.h>
 namespace sr {
@@ -21,10 +23,15 @@ struct CardMeta
 {
     CardMeta(std::shared_ptr<Card> card,
              std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables);
+    [[nodiscard]] auto Id() const -> CardId;
     [[nodiscard]] auto VocableIndices() const -> const index_set&;
     [[nodiscard]] auto VocableIds() const -> const folly::sorted_vector_set<VocableId>&;
     [[nodiscard]] auto getTimingAndVocables(bool pull = false) const -> const TimingAndVocables&;
     void resetTimingAndVocables();
+
+    [[nodiscard]] auto getStudyMarkup() -> std::unique_ptr<markup::Paragraph>;
+    [[nodiscard]] auto getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>;
+    [[nodiscard]] auto getEaseList() -> std::vector<Ease>;
 
 private:
     [[nodiscard]] auto generateTimingAndVocables(bool pull) const -> TimingAndVocables;
