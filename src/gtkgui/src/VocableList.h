@@ -5,7 +5,12 @@
 #include <annotation/Markup.h>
 #include <gtkmm.h>
 
-class VocableList : public Gtk::Grid {
+#include <memory>
+#include <string>
+#include <vector>
+
+class VocableList : public Gtk::Grid
+{
 public:
     VocableList();
     void setParagraph(const std::shared_ptr<markup::Paragraph>&, const std::vector<Ease>&);
