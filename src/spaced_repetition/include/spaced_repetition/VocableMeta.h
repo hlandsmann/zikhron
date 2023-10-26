@@ -29,7 +29,7 @@ public:
     [[nodiscard]] auto CardIndices() const -> const folly::sorted_vector_set<std::size_t>&;
     void advanceByEase(const Ease&);
     void triggerByCardId(CardId cardId);
-    [[nodiscard]] auto getNextTriggerCard(const std::shared_ptr<DataBase>& walkableData) const -> CardId;
+    [[nodiscard]] auto getNextTriggerCard(const std::shared_ptr<DataBase>& db) const -> CardId;
 
     void cardIndices_insert(std::size_t cardIndex);
 

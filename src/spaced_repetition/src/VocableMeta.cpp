@@ -53,11 +53,11 @@ void VocableMeta::triggerByCardId(CardId cardId)
     progress.triggeredBy(cardId);
 }
 
-auto VocableMeta::getNextTriggerCard(const std::shared_ptr<DataBase>& walkableData) const -> CardId
+auto VocableMeta::getNextTriggerCard(const std::shared_ptr<DataBase>& db) const -> CardId
 {
     std::set<CardId> cardIds;
     ranges::transform(cardIndices, std::inserter(cardIds, cardIds.begin()), [&](size_t cardIndex) -> CardId {
-        return walkableData->Cards().id_from_index(cardIndex);
+        return db->Cards().id_from_index(cardIndex);
     });
     return progress.getNextTriggerCard(std::move(cardIds));
 }

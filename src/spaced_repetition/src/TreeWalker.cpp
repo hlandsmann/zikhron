@@ -27,13 +27,13 @@ namespace views = std::ranges::views;
 
 namespace sr {
 
-auto ITreeWalker::createTreeWalker(std::shared_ptr<DataBase> walkableData) -> std::unique_ptr<ITreeWalker>
+auto ITreeWalker::createTreeWalker(std::shared_ptr<DataBase> db) -> std::unique_ptr<ITreeWalker>
 {
-    return std::make_unique<TreeWalker>(std::move(walkableData));
+    return std::make_unique<TreeWalker>(std::move(db));
 }
 
-TreeWalker::TreeWalker(std::shared_ptr<DataBase> _walkableData)
-    : walkableData{std::move(_walkableData)}
+TreeWalker::TreeWalker(std::shared_ptr<DataBase> _db)
+    : db{std::move(_db)}
 {
     // walk(walkableData);
     // createTree();
@@ -41,7 +41,7 @@ TreeWalker::TreeWalker(std::shared_ptr<DataBase> _walkableData)
 
 auto TreeWalker::getTodayVocables() const -> index_set
 {
-    const auto& cards = walkableData->Cards();
+    const auto& cards = db->Cards();
     sr::index_set todayVocables;
     for (const auto& card : cards) {
         auto tnv = card.getTimingAndVocables();
@@ -54,7 +54,7 @@ auto TreeWalker::getTodayVocables() const -> index_set
 
 auto TreeWalker::getNextTargetVocable(const std::shared_ptr<index_set>& ignoreCards) const -> std::optional<size_t>
 {
-    const auto& vocables = walkableData->Vocables();
+    const auto& vocables = db->Vocables();
     sr::index_set todayVocables = getTodayVocables();
     while (true) {
         if (todayVocables.empty()) {
@@ -64,8 +64,8 @@ auto TreeWalker::getNextTargetVocable(const std::shared_ptr<index_set>& ignoreCa
         auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
         size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
 
-        auto cardId = walkableData->Vocables()[targetVocable].getNextTriggerCard(walkableData);
-        auto cardIndex = walkableData->Cards().index_at_id(cardId);
+        auto cardId = db->Vocables()[targetVocable].getNextTriggerCard(db);
+        auto cardIndex = db->Cards().index_at_id(cardId);
         if (not ignoreCards->contains(cardIndex)) {
             return {targetVocable};
         }
@@ -125,12 +125,12 @@ auto TreeWalker::removeRepeatNowCardIndex(const std::shared_ptr<index_set>& igno
 {
     bool cardRemoved = false;
     for (size_t failedVoc : failedVocables) {
-        const VocableMeta& vocable = walkableData->Vocables()[failedVoc];
+        const VocableMeta& vocable = db->Vocables()[failedVoc];
         if (vocable.Progress().pauseTimeOver()) {
             spdlog::info("pause time over for: {}", failedVoc);
             failedVocables.erase(failedVoc);
-            CardId triggerCard = vocable.getNextTriggerCard(walkableData);
-            size_t triggerCardIndex = walkableData->Cards().index_at_id(triggerCard);
+            CardId triggerCard = vocable.getNextTriggerCard(db);
+            size_t triggerCardIndex = db->Cards().index_at_id(triggerCard);
             ignoreCards->erase(triggerCardIndex);
             cardRemoved = true;
         }
@@ -138,7 +138,7 @@ auto TreeWalker::removeRepeatNowCardIndex(const std::shared_ptr<index_set>& igno
     std::set<CardId> ignoreCardSet;
     ranges::transform(*ignoreCards,
                       std::inserter(ignoreCardSet, ignoreCardSet.begin()),
-                      [this](size_t index) { return walkableData->Cards().id_from_index(index); });
+                      [this](size_t index) { return db->Cards().id_from_index(index); });
     spdlog::info("Ignore CardIds: [{}]", fmt::join(ignoreCardSet, ", "));
     return cardRemoved;
 }
@@ -147,7 +147,7 @@ auto TreeWalker::getFailedVocIgnoreCardIndices() const -> std::shared_ptr<index_
 {
     auto result = std::make_shared<index_set>();
     for (size_t failedVoc : failedVocables) {
-        const auto& cardIndices = walkableData->Vocables()[failedVoc].CardIndices();
+        const auto& cardIndices = db->Vocables()[failedVoc].CardIndices();
         ranges::copy(cardIndices, std::inserter(*result, result->begin()));
     }
     return result;
@@ -155,7 +155,7 @@ auto TreeWalker::getFailedVocIgnoreCardIndices() const -> std::shared_ptr<index_
 
 void TreeWalker::addNextVocableToIgnoreCardIndices(size_t nextVocable, std::shared_ptr<index_set>& ignoreCardIndices)
 {
-    const auto& cardIndices = walkableData->Vocables()[nextVocable].CardIndices();
+    const auto& cardIndices = db->Vocables()[nextVocable].CardIndices();
     ranges::copy(cardIndices, std::inserter(*ignoreCardIndices, ignoreCardIndices->begin()));
 }
 
@@ -169,7 +169,7 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
         }
         activeCardIndex = optionalCardIndex.value();
     } else {
-        auto optional_index = walkableData->Cards().optional_index(preferedCardId.value());
+        auto optional_index = db->Cards().optional_index(preferedCardId.value());
         if (optional_index.has_value()) {
             activeCardIndex = optional_index.value();
         } else {
@@ -177,29 +177,29 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
             return {};
         }
     }
-    auto card = walkableData->getCardCopy(activeCardIndex);
+    auto card = db->getCardCopy(activeCardIndex);
     currentCardIndex = activeCardIndex;
     return {std::move(card),
-            walkableData->getVocableIdsInOrder(activeCardIndex),
-            walkableData->getRelevantEase(activeCardIndex)};
+            db->getVocableIdsInOrder(activeCardIndex),
+            db->getRelevantEase(activeCardIndex)};
 }
 
 void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 {
-    CardId currentCardId = walkableData->Cards().id_from_index(currentCardIndex);
+    CardId currentCardId = db->Cards().id_from_index(currentCardIndex);
     for (auto [vocId, ease] : id_ease) {
         // spdlog::warn("begin id: {}", vocId);
-        walkableData->setEaseVocable(vocId, ease);
-        walkableData->triggerVocable(vocId, currentCardId);
+        db->setEaseVocable(vocId, ease);
+        db->triggerVocable(vocId, currentCardId);
         // spdlog::warn("intDay: {}, daysMin {}, daysNormal: {}, daysMax: {} id: {}, ease: {}",
         //              walkableData->Vocables().at_id(vocId).second.Progress().IntervalDay(),
         //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,
         //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysNormal,
         //              walkableData->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMax,
         //              vocId, static_cast<unsigned>(ease.easeVal));
-        walkableData->resetCardsContainingVocable(vocId);
+        db->resetCardsContainingVocable(vocId);
         if (ease.easeVal == EaseVal::again) {
-            size_t vocableIndex = walkableData->Vocables().index_at_id(vocId);
+            size_t vocableIndex = db->Vocables().index_at_id(vocId);
             failedVocables.insert(vocableIndex);
         }
     }
@@ -207,19 +207,19 @@ void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 
 auto TreeWalker::createTree(size_t targetVocableIndex, std::shared_ptr<index_set> ignoreCardIndices) const -> Tree
 {
-    auto cardId = walkableData->Vocables()[targetVocableIndex].getNextTriggerCard(walkableData);
-    auto cardIndex = walkableData->Cards().index_at_id(cardId);
+    auto cardId = db->Vocables()[targetVocableIndex].getNextTriggerCard(db);
+    auto cardIndex = db->Cards().index_at_id(cardId);
 
     spdlog::info("TargetVocable: {}, cardSize: {}", targetVocableIndex,
-                 walkableData->Cards()[cardIndex].getTimingAndVocables().vocables.size());
-    auto resultTree = Tree{walkableData, targetVocableIndex, cardIndex, std::move(ignoreCardIndices)};
+                 db->Cards()[cardIndex].getTimingAndVocables().vocables.size());
+    auto resultTree = Tree{db, targetVocableIndex, cardIndex, std::move(ignoreCardIndices)};
     resultTree.build();
     return resultTree;
 }
 
 void TreeWalker::saveProgress() const
 {
-    walkableData->saveProgress();
+    db->saveProgress();
 }
 
 // auto TreeWalker::AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)

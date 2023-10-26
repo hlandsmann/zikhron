@@ -20,8 +20,8 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 auto main() -> int
 {
     auto zikhron_cfg = get_zikhron_cfg();
-    auto walkableData = std::make_unique<sr::DataBase>(zikhron_cfg);
-    auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(walkableData));
+    auto db = std::make_unique<sr::DataBase>(zikhron_cfg);
+    auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
     auto [optCardId, _, ease] = treeWalker->getNextCardChoice();
     if (not optCardId.has_value()) {
         spdlog::info("No card found!");

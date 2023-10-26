@@ -4,6 +4,7 @@
 
 #include <DataBase.h>
 #include <spdlog/spdlog.h>
+#include <srtypes.h>
 
 #include <cstddef>
 #include <memory>
@@ -11,18 +12,18 @@
 #include <utility>
 #include <vector>
 namespace sr {
-Tree::Tree(std::shared_ptr<DataBase> _walkableData,
+Tree::Tree(std::shared_ptr<DataBase> _db,
            size_t _vocableIndex,
            size_t cardIndex,
            std::shared_ptr<index_set> _ignoreCardIndices)
-    : walkableData{std::move(_walkableData)}
+    : db{std::move(_db)}
     , nodes{std::make_shared<node_vector>()}
     , vocableIndex{_vocableIndex}
     , rootCardIndex{cardIndex}
     , ignoreCardIndices{std::move(_ignoreCardIndices)}
 {
-    nodes->resize(walkableData->Cards().size());
-    (*nodes)[rootCardIndex].emplace(walkableData, nodes, rootCardIndex, ignoreCardIndices);
+    nodes->resize(db->Cards().size());
+    (*nodes)[rootCardIndex].emplace(db, nodes, rootCardIndex, ignoreCardIndices);
 }
 
 void Tree::build()
@@ -46,7 +47,7 @@ auto Tree::getNodeCardIndex() -> std::optional<size_t>
     std::optional<size_t> result = std::nullopt;
     spdlog::info("--- getNodeCardIndex ---");
     size_t cardIndex = rootCardIndex;
-    spdlog::info("rootcardId: {}", walkableData->Cards().id_from_index(cardIndex));
+    spdlog::info("rootcardId: {}", db->Cards().id_from_index(cardIndex));
     auto* optionalNode = &(*nodes)[cardIndex];
     if (not optionalNode->has_value()) {
         spdlog::info("no value");
@@ -64,7 +65,7 @@ auto Tree::getNodeCardIndex() -> std::optional<size_t>
         }
         auto& node = optionalNode->value();
         cardIndex = node.Paths().front().cardIndex;
-        spdlog::info("cardId: {}", walkableData->Cards().id_from_index(cardIndex));
+        spdlog::info("cardId: {}", db->Cards().id_from_index(cardIndex));
         result.emplace(cardIndex);
         optionalNode = &(*nodes)[cardIndex];
     }

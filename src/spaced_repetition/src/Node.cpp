@@ -21,11 +21,11 @@ namespace views = std::ranges::views;
 
 namespace sr {
 
-Node::Node(std::shared_ptr<DataBase> _walkableData,
+Node::Node(std::shared_ptr<DataBase> _db,
            std::shared_ptr<node_vector> _nodes,
            size_t _cardIndex,
            std::shared_ptr<index_set> _ignoreCardIndices)
-    : walkableData{std::move(_walkableData)}
+    : db{std::move(_db)}
     , nodes{std::move(_nodes)}
     , cardIndex{_cardIndex}
     , ignoreCardIndices{std::move(_ignoreCardIndices)}
@@ -51,7 +51,7 @@ void Node::traverseAndTighten(Path& path)
 auto Node::lowerOrder(size_t order) -> size_t
 {
     size_t nextOrder = order;
-    auto& cards = walkableData->Cards();
+    auto& cards = db->Cards();
     const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
     if (thisTnv.vocables.size() <= s_stopBreakDown) {
         return nextOrder;
@@ -68,7 +68,7 @@ auto Node::lowerOrder(size_t order) -> size_t
         if ((*nodes)[index].has_value()) {
             continue;
         }
-        (*nodes)[index].emplace(walkableData, nodes, index, ignoreCardIndices);
+        (*nodes)[index].emplace(db, nodes, index, ignoreCardIndices);
         Path path{};
         path.cardIndex = index;
         paths.push_back(path);
@@ -101,8 +101,8 @@ auto Node::collectSubCards() const -> index_set
     index_set subCardsResult;
 
     // const auto& card = walkableData->Cards()[cardIndex];
-    const auto& tnv = walkableData->Cards()[cardIndex].getTimingAndVocables();
-    const auto& vocables = walkableData->Vocables();
+    const auto& tnv = db->Cards()[cardIndex].getTimingAndVocables();
+    const auto& vocables = db->Vocables();
     const auto& containedVocables = tnv.vocables
                                     | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
                                           return vocables[index];
@@ -120,7 +120,7 @@ auto Node::collectSubCards() const -> index_set
 auto Node::removeInactiveCardindices(const index_set& cardIndices) -> std::vector<size_t>
 {
     std::vector<size_t> result;
-    auto& cards = walkableData->Cards();
+    auto& cards = db->Cards();
     const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
     ranges::copy_if(cardIndices, std::back_inserter(result), [&cards, &thisTnv](size_t index) -> bool {
         const auto& tnv = cards[index].getTimingAndVocables();
@@ -153,7 +153,7 @@ auto Node::removeInactiveCardindices(const index_set& cardIndices) -> std::vecto
 
 void Node::sortCardIndices(std::vector<size_t>& cardIndices)
 {
-    auto& cards = walkableData->Cards();
+    auto& cards = db->Cards();
     const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
     const auto preferedQuantity = [](size_t a, size_t b) -> bool {
         const std::array quantity = {4, 3, 5, 2, 6};

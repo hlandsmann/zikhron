@@ -178,8 +178,8 @@ DataThread::DataThread()
     });
     job_queue.emplace([this]() {
         config = get_zikhron_cfg();
-        auto walkableData = std::make_unique<sr::DataBase>(config);
-        treeWalker = sr::ITreeWalker::createTreeWalker(std::move(walkableData));
+        auto db = std::make_unique<sr::DataBase>(config);
+        treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
         cardDB = loadCardDB(std::string{path_to_cardDB});
         zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
     });

@@ -19,7 +19,7 @@ class Node
 
 public:
     Node() = default;
-    Node(std::shared_ptr<DataBase> walkableData,
+    Node(std::shared_ptr<DataBase> db,
          std::shared_ptr<node_vector> nodes,
          size_t cardIndex,
          std::shared_ptr<index_set> ignoreCardIndices);
@@ -28,14 +28,14 @@ public:
     [[nodiscard]] auto lowerOrderPulled() -> Path;
     [[nodiscard]] auto Paths() const -> const std::vector<Path>&;
 
-    [[nodiscard]] auto CardID() const -> CardId { return walkableData->Cards().id_from_index(cardIndex); }
+    [[nodiscard]] auto CardID() const -> CardId { return db->Cards().id_from_index(cardIndex); }
 
 private:
     void traverseAndTighten(Path& path);
     [[nodiscard]] auto collectSubCards() const -> index_set;
     [[nodiscard]] auto removeInactiveCardindices(const index_set& cardIndices) -> std::vector<size_t>;
     void sortCardIndices(std::vector<size_t>& cardIndices);
-    std::shared_ptr<DataBase> walkableData;
+    std::shared_ptr<DataBase> db;
     std::shared_ptr<node_vector> nodes;
     size_t cardIndex{};
     std::shared_ptr<index_set> ignoreCardIndices;

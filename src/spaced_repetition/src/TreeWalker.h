@@ -1,4 +1,6 @@
 #pragma once
+#include "DataBase.h"
+#include "srtypes.h"
 #include "ITreeWalker.h"
 #include "Tree.h"
 
@@ -55,7 +57,7 @@ private:
 
     [[nodiscard]] auto createTree(size_t targetVocableIndex, std::shared_ptr<index_set>) const -> Tree;
 
-    std::shared_ptr<DataBase> walkableData;
+    std::shared_ptr<DataBase> db;
     // std::optional<Tree> tree;
     std::map<size_t, std::optional<Tree>> vocableIndex_tree;
     index_set failedVocables;
