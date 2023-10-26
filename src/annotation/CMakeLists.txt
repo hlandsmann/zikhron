@@ -9,15 +9,16 @@ PUBLIC
 )
 target_sources(zikhron_annotation
     PRIVATE
-        src/Ease.cpp
-        src/Markup.cpp
-        src/CardDB.cpp
-        src/ZH_Annotator.cpp
-    PUBLIC
+        include/annotation/CardDB.h
         include/annotation/Ease.h
         include/annotation/Markup.h
+        include/annotation/Word.h
         include/annotation/ZH_Annotator.h
-        include/annotation/CardDB.h
+        src/CardDB.cpp
+        src/Ease.cpp
+        src/Markup.cpp
+        src/Word.cpp
+        src/ZH_Annotator.cpp
 )
 target_link_libraries(zikhron_annotation
     PUBLIC
