@@ -1,6 +1,7 @@
 #pragma once
-
+#include "CardMeta.h"
 #include "DataBase.h"
+
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
@@ -23,11 +24,11 @@ public:
     auto operator=(const ITreeWalker& other) -> ITreeWalker& = delete;
     auto operator=(ITreeWalker&& other) noexcept -> ITreeWalker& = delete;
 
-    using VocableIds_vt = std::vector<VocableId>;
+    // using VocableIds_vt = std::vector<VocableId>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
-    using CardInformation = std::tuple<std::optional<std::shared_ptr<Card>>, VocableIds_vt, Id_Ease_vt>;
+    // using CardInformation = std::tuple<std::optional<std::shared_ptr<Card>>, VocableIds_vt, Id_Ease_vt>;
 
-    virtual auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardInformation = 0;
+    virtual auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardMeta& = 0;
     virtual void setEaseLastCard(const Id_Ease_vt& id_ease) = 0;
     virtual void saveProgress() const = 0;
     // virtual auto AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)

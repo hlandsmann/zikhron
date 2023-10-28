@@ -89,7 +89,6 @@ private:
             const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>;
     ///////////////////////////////////////////////////////////////////////////////////////////////
     void fillIndexMaps();
-    void insertVocabularyOfCard(const CardDB::CardPtr& card);
     static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
                                      const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<VocableId>;
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;

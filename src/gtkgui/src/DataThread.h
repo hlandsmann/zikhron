@@ -8,6 +8,7 @@
 #include <gtkmm.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <spaced_repetition/CardMeta.h>
 #include <spaced_repetition/ITreeWalker.h>
 #include <utils/Property.h>
 
@@ -29,7 +30,6 @@
 #include <vector>
 
 #include <sys/types.h>
-
 class Session
 {
     using path = std::filesystem::path;
@@ -78,7 +78,8 @@ public:
     static auto get() -> DataThread&;
     ~DataThread();
     using paragraph_optional = std::optional<std::shared_ptr<markup::Paragraph>>;
-    using message_card = std::tuple<std::shared_ptr<markup::Paragraph>, std::vector<Ease>, CardId>;
+    // using message_card = std::tuple<std::shared_ptr<markup::Paragraph>, std::vector<Ease>, CardId>;
+    using message_card = std::shared_ptr<sr::CardMeta>;
     using message_annotation = std::shared_ptr<markup::Paragraph>;
     using message_paragraphFromIds = std::vector<paragraph_optional>;
     using signal_card = std::function<void(message_card&)>;
@@ -100,17 +101,13 @@ public:
     void dispatch_arbitrary(const std::function<void()>& fun);
 
 private:
-    static constexpr std::string_view path_to_dictionary =
-            "/home/harmen/src/zikhron/dictionaries/cedict_ts.u8";
-    static constexpr std::string_view path_to_cardDB = "/home/harmen/zikhron/cards";
-
     using Item_Id_vt = std::vector<std::pair<ZH_Dictionary::Entry, VocableId>>;
     using Id_Ease_vt = std::map<VocableId, Ease>;
-    using CardInformation = sr::ITreeWalker::CardInformation;
+    // using CardInformation = sr::ITreeWalker::CardInformation;
 
     void worker_thread(std::stop_token);
     void dispatcher_fun();
-    void sendActiveCard(CardInformation& cardInformation);
+    void sendActiveCard(sr::CardMeta& cardMeta);
 
     [[nodiscard]] auto getCardFromId(uint id) const -> paragraph_optional;
     std::shared_ptr<zikhron::Config> config;
@@ -120,7 +117,6 @@ private:
     std::condition_variable_any condition;
     std::mutex condition_mutex;
 
-    std::shared_ptr<CardDB> cardDB;
 
     signal_card send_card;
     signal_annotation send_annotation;
@@ -129,7 +125,6 @@ private:
     // message_card msg_card;
     // message_annotation msg_annotation;
 
-    std::shared_ptr<ZH_Dictionary> zh_dictionary;
     Glib::Dispatcher dispatcher;
     std::shared_ptr<Glib::Dispatcher> propertyUpdate = std::make_shared<Glib::Dispatcher>();
 

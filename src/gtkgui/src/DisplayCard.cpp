@@ -8,13 +8,15 @@
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
-#include <tuple>
+#include <ranges>
 #include <utility>
 
 #include <sys/types.h>
 
 namespace ranges = std::ranges;
+namespace views = std::views;
 
 DisplayCard::DisplayCard(Gtk::Overlay& ov)
     : overlay(ov)
@@ -38,8 +40,13 @@ DisplayCard::DisplayCard(Gtk::Overlay& ov)
 
 void DisplayCard::receive_card(DataThread::message_card& msg_card)
 {
-    std::tie(paragraph, easeList, cardId) = std::move(msg_card);
-
+    // std::tie(paragraph, easeList, cardId) = std::move(msg_card);
+    cardId = msg_card->Id();
+    paragraph = msg_card->getStudyMarkup();
+    auto orderedEase = msg_card->getRelevantEase();
+    easeList.clear();
+    ranges::copy(orderedEase | std::views::values, std::back_inserter(easeList));
+    paragraph->setupVocables(orderedEase);
     vocableList.setParagraph(paragraph, easeList);
 
     vocableList.set_visible(displayVocabulary);

@@ -1,5 +1,4 @@
 #include "TreeWalker.h"
-#include <srtypes.h>
 
 #include <ITreeWalker.h>
 #include <annotation/Ease.h>
@@ -7,6 +6,7 @@
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
+#include <srtypes.h>
 #include <utils/counting_iterator.h>
 
 #include <algorithm>
@@ -159,35 +159,32 @@ void TreeWalker::addNextVocableToIgnoreCardIndices(size_t nextVocable, std::shar
     ranges::copy(cardIndices, std::inserter(*ignoreCardIndices, ignoreCardIndices->begin()));
 }
 
-auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> CardInformation
+auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> CardMeta&
 {
     size_t activeCardIndex{};
     if (not preferedCardId.has_value()) {
-        auto optionalCardIndex = getNextTargetCard();
-        if (not optionalCardIndex.has_value()) {
-            return {};
-        }
-        activeCardIndex = optionalCardIndex.value();
+        activeCardIndex = getNextTargetCard().value_or(0);
     } else {
         auto optional_index = db->Cards().optional_index(preferedCardId.value());
-        if (optional_index.has_value()) {
-            activeCardIndex = optional_index.value();
-        } else {
+        activeCardIndex = optional_index.value_or(0);
+        if (not optional_index.has_value()) {
             spdlog::error("prefered card Id could not be found in cards index_map!");
-            return {};
         }
     }
     auto card = db->getCardCopy(activeCardIndex);
     currentCardIndex = activeCardIndex;
-    return {std::move(card),
-            db->getVocableIdsInOrder(activeCardIndex),
-            db->getRelevantEase(activeCardIndex)};
+    return db->Cards()[activeCardIndex];
+    // return {std::move(card),
+    //         db->getVocableIdsInOrder(activeCardIndex),
+    //         db->getRelevantEase(activeCardIndex)};
 }
 
 void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 {
     CardId currentCardId = db->Cards().id_from_index(currentCardIndex);
     for (auto [vocId, ease] : id_ease) {
+        // if(auto it = ranges::find_if(vocab
+
         // spdlog::warn("begin id: {}", vocId);
         db->setEaseVocable(vocId, ease);
         db->triggerVocable(vocId, currentCardId);

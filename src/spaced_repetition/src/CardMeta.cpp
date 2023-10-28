@@ -204,7 +204,6 @@ auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) con
             std::back_inserter(eases),
             [&, this](VocableId vocId) -> Ease {
                 const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
-                // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
                 spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
                               dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified).key,
                               vocSR.EaseFactor(),

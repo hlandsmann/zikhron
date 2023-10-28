@@ -8,6 +8,7 @@
 #include <fmt/format.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <spaced_repetition/CardMeta.h>
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
 #include <spdlog/spdlog.h>
@@ -60,19 +61,6 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     auto path_to_exe = fs::read_symlink("/proc/self/exe");
     auto zikhron_cfg_json = path_to_exe.parent_path() / "config.json";
     return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
-}
-
-auto loadCardDB(const std::string& path_to_cardDB) -> std::unique_ptr<CardDB>
-{
-    auto cardDB = std::make_unique<CardDB>();
-    try {
-        cardDB->loadFromDirectory(path_to_cardDB);
-    } catch (const std::exception& e) {
-        spdlog::error(e.what());
-    } catch (...) {
-        spdlog::error("Unknown Error, load Card Database failed!");
-    }
-    return cardDB;
 }
 
 template<class JsonType, class TypeOut>
@@ -180,8 +168,6 @@ DataThread::DataThread()
         config = get_zikhron_cfg();
         auto db = std::make_unique<sr::DataBase>(config);
         treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
-        cardDB = loadCardDB(std::string{path_to_cardDB});
-        zh_dictionary = std::make_shared<ZH_Dictionary>(path_to_dictionary);
     });
 
     dispatcher.connect([this]() { dispatcher_fun(); });
@@ -238,8 +224,8 @@ void DataThread::requestCard(std::optional<CardId> preferedCardId)
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, preferedCardId]() {
-            auto cardInformation = treeWalker->getNextCardChoice(preferedCardId);
-            sendActiveCard(cardInformation);
+            auto& cardMeta = treeWalker->getNextCardChoice(preferedCardId);
+            sendActiveCard(cardMeta);
         });
     }
     condition.notify_one();
@@ -296,37 +282,39 @@ void DataThread::dispatch_arbitrary(const std::function<void()>& fun)
 
 auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<markup::Paragraph>>
 {
-  //TODO reactivate
-    // auto opt_cardInformation = vocabularySR->getCardFromId(id);
-    // if (!opt_cardInformation.has_value()) {
-    //     return {};
-    // }
-    // auto [current_card, vocableIds, ease] = std::move(opt_cardInformation.value());
-    // auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
-    // paragraph->setupVocables(ease);
+    // TODO reactivate
+    //  auto opt_cardInformation = vocabularySR->getCardFromId(id);
+    //  if (!opt_cardInformation.has_value()) {
+    //      return {};
+    //  }
+    //  auto [current_card, vocableIds, ease] = std::move(opt_cardInformation.value());
+    //  auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card), std::move(vocableIds));
+    //  paragraph->setupVocables(ease);
     //
-    // return {std::move(paragraph)};
-  return {};
+    //  return {std::move(paragraph)};
+    return {};
 }
 
-void DataThread::sendActiveCard(CardInformation& cardInformation)
+void DataThread::sendActiveCard(sr::CardMeta& cardMeta)
 {
-    auto [current_card, vocableIds, ease] = std::move(cardInformation);
-    if (not current_card.has_value()) {
-        return;
-    }
-    // TODO remove static_cast CardId
-    CardId cardId = current_card.value()->Id();
-    auto current_card_clone = std::unique_ptr<Card>(current_card.value()->clone());
-    auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card.value()), std::move(vocableIds));
-    auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));
-    paragraph->setupVocables(ease);
-    auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);
-    std::vector<Ease> vocEaseList;
-    ranges::copy(orderedEase | std::views::values, std::back_inserter(vocEaseList));
+    message_card msg_card = std::make_shared<sr::CardMeta>(cardMeta);
+    message_annotation paragraph_annotation = cardMeta.getAnnotationMarkup();
+    // auto [current_card, vocableIds, ease] = std::move(cardInformation);
+    // if (not current_card.has_value()) {
+    //     return;
+    // }
+    // // TODO remove static_cast CardId
+    // CardId cardId = current_card.value()->Id();
+    // auto current_card_clone = std::unique_ptr<Card>(current_card.value()->clone());
+    // auto paragraph = std::make_unique<markup::Paragraph>(std::move(current_card.value()), std::move(vocableIds));
+    // auto paragraph_annotation = std::make_shared<markup::Paragraph>(std::move(current_card_clone));
+    // paragraph->setupVocables(ease);
+    // auto orderedEase = paragraph->getRelativeOrderedEaseList(ease);
+    // std::vector<Ease> vocEaseList;
+    // ranges::copy(orderedEase | std::views::values, std::back_inserter(vocEaseList));
 
     dispatch_queue.emplace(
-            [this, msg_card = message_card(std::move(paragraph), std::move(vocEaseList), cardId)]() mutable {
+            [this, msg_card = std::move(msg_card)]() mutable {
                 if (send_card) {
                     send_card(msg_card);
                 }

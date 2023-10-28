@@ -1,8 +1,8 @@
 #pragma once
 #include "DataBase.h"
-#include "srtypes.h"
 #include "ITreeWalker.h"
 #include "Tree.h"
+#include "srtypes.h"
 
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
@@ -33,10 +33,10 @@ public:
     auto operator=(TreeWalker&& other) noexcept -> TreeWalker& = delete;
     ~TreeWalker() override = default;
 
-    using VocableIds_vt = std::vector<VocableId>;
-    using Id_Ease_vt = std::map<VocableId, Ease>;
-    using CardInformation = ITreeWalker::CardInformation;
-    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardInformation override;
+    using Id_Ease_vt = ITreeWalker::Id_Ease_vt;
+    // using VocableIds_vt = std::vector<VocableId>;
+    // using CardInformation = ITreeWalker::CardInformation;
+    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardMeta& override;
     void setEaseLastCard(const Id_Ease_vt& id_ease) override;
     void saveProgress() const override;
     // auto AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)
