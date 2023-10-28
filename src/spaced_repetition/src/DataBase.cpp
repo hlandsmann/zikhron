@@ -82,13 +82,14 @@ void DataBase::saveJsonToFile(const std::filesystem::path& fn, const nlohmann::j
     ofs << js.dump(4);
 }
 
-auto DataBase::loadAnnotationChoices(const std::filesystem::path& annotationChoicesPath) -> AnnotationChoiceMap
+auto DataBase::loadAnnotationChoices(
+        const std::filesystem::path& annotationChoicesPath) -> std::shared_ptr<AnnotationChoiceMap>
 {
     try {
-        AnnotationChoiceMap annotationChoices;
+        auto annotationChoices = std::make_shared<AnnotationChoiceMap>();
         nlohmann::json choicesJson = loadJsonFromFile(annotationChoicesPath);
         ranges::transform(choicesJson,
-                          std::inserter(annotationChoices, annotationChoices.begin()),
+                          std::inserter(*annotationChoices, annotationChoices->begin()),
                           [](const nlohmann::json& choice) -> std::pair<CharacterSequence, Combination> {
                               nlohmann::json char_seqJson = choice["char_seq"];
                               nlohmann::json combinationJson = choice["combination"];
@@ -259,6 +260,32 @@ void DataBase::addVocableChoice(VocableId oldVocId, VocableId newVocId)
     //     id_id_vocableChoices[vocId] = vocIdNewChoice;
     // else
     //     id_id_vocableChoices.erase(vocId);
+}
+
+void DataBase::addAnnotation(const ZH_Annotator::Combination& combination,
+                             const std::vector<utl::CharU8>& characterSequence)
+{
+    (*annotationChoices)[characterSequence] = combination;
+
+    std::set<uint> cardsWithCharSeq;
+
+    for (const auto& [id, cardPtr] : cardDB->get()) {
+        if (cardPtr->getAnnotator().ContainsCharacterSequence(characterSequence)) {
+            cardsWithCharSeq.insert(id);
+            auto& cardMeta = cards->at_id(id).second;
+            cardMeta.resetAnnotation();
+        }
+    }
+    spdlog::debug("relevant cardIds: {}", fmt::join(cardsWithCharSeq, ","));
+
+    // for (uint cardId : cardsWithCharSeq) {
+    //     auto& cardPtr = cardDB->get().at(cardId);
+    //     cardPtr->getAnnotator().SetAnnotationChoices(annotationChoices);
+    //     cardPtr->getAnnotator().Reannotate();
+    //     // EraseVocabularyOfCard(cardId);
+    //     // InsertVocabularyOfCard(cardId, cardPtr);
+    // }
+    // CleanUpVocables(id_cardMeta.at(activeCardId).vocableIds);
 }
 
 auto DataBase::unmapVocableChoice(VocableId vocableId) const -> VocableId

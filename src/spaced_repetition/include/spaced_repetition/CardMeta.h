@@ -27,9 +27,11 @@ struct CardMeta
              vocId_vocId_map vocableChoices);
     [[nodiscard]] auto Id() const -> CardId;
     [[nodiscard]] auto VocableIndices() const -> const index_set&;
-    [[nodiscard]] auto VocableIds() const -> const folly::sorted_vector_set<VocableId>&;
+    [[nodiscard]] auto VocableIds() const -> const vocId_set&;
+    [[nodiscard]] auto NewVocableIds() const -> vocId_set;
     [[nodiscard]] auto getTimingAndVocables(bool pull = false) const -> const TimingAndVocables&;
     void resetTimingAndVocables();
+    void resetAnnotation();
     void addVocableChoice(VocableId oldVocId, VocableId newVocId);
 
     [[nodiscard]] auto getStudyMarkup() -> std::unique_ptr<markup::Paragraph>;
@@ -44,8 +46,8 @@ private:
     auto getActiveVocableIds() const -> std::vector<VocableId>;
     auto easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>;
     std::shared_ptr<Card> card;
-    mutable std::optional<folly::sorted_vector_set<std::size_t>> optVocableIndices;
-    mutable std::optional<folly::sorted_vector_set<VocableId>> optVocableIds;
+    mutable std::optional<index_set> optVocableIndices;
+    mutable std::optional<vocId_set> optVocableIds;
     mutable std::optional<TimingAndVocables> timingAndVocables;
     mutable std::optional<TimingAndVocables> timingAndVocablesPulled;
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;

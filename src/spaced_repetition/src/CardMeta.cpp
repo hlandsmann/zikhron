@@ -75,6 +75,14 @@ void CardMeta::resetTimingAndVocables()
     timingAndVocables.reset();
 }
 
+void CardMeta::resetAnnotation()
+{
+    card->resetAnnotator();
+    optVocableIds.reset();
+    optVocableIndices.reset();
+    resetTimingAndVocables();
+}
+
 void CardMeta::addVocableChoice(VocableId oldVocId, VocableId newVocId)
 {
     vocableChoices[oldVocId] = newVocId;
@@ -170,11 +178,16 @@ auto CardMeta::generateVocableIndexes() const -> index_set
 {
     index_set result;
     const auto& vocableIds = VocableIds();
-    ranges::transform(vocableIds,
-                      std::inserter(result, result.begin()),
-                      [this](VocableId vocableId) -> std::size_t {
-                          return vocables->index_at_id(vocableId);
-                      });
+    try {
+        ranges::transform(vocableIds,
+                          std::inserter(result, result.begin()),
+                          [this](VocableId vocableId) -> std::size_t {
+                              return vocables->index_at_id(vocableId);
+                          });
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to get Vocable Indexes, error: {}", e.what());
+        return {};
+    }
     return result;
 }
 

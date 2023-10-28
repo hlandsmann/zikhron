@@ -37,9 +37,9 @@ class DataBase
     static constexpr std::string_view s_fn_vocableChoices = "vocableChoices.json";
 
 public:
-    using CharacterSequence = std::vector<utl::CharU8>;
-    using Combination = std::vector<int>;
-    using AnnotationChoiceMap = std::map<CharacterSequence, Combination>;
+    using CharacterSequence = Card::CharacterSequence;
+    using Combination = Card::Combination;
+    using AnnotationChoiceMap = Card::AnnotationChoiceMap;
 
     DataBase(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto Dictionary() const -> std::shared_ptr<const ZH_Dictionary>;
@@ -52,6 +52,8 @@ public:
     void resetCardsContainingVocable(VocableId vocId);
     void saveProgress() const;
     void addVocableChoice(VocableId oldVocId, VocableId newVocId);
+    void addAnnotation(const ZH_Annotator::Combination& combination,
+                       const std::vector<utl::CharU8>& characterSequence);
 
     [[nodiscard]] auto unmapVocableChoice(VocableId) const -> VocableId;
     void SaveVocableChoices() const;
@@ -62,7 +64,7 @@ private:
 
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
-    AnnotationChoiceMap annotationChoices;
+    std::shared_ptr<AnnotationChoiceMap> annotationChoices;
     vocId_vocId_map vocableChoices;
     std::shared_ptr<CardDB> cardDB;
     std::map<VocableId, VocableProgress> progressVocables;
@@ -70,7 +72,8 @@ private:
 
     static void saveJsonToFile(const std::filesystem::path& fn, const nlohmann::json& js);
     static auto loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json;
-    static auto loadAnnotationChoices(const std::filesystem::path& annotationChoicesPath) -> AnnotationChoiceMap;
+    static auto loadAnnotationChoices(
+            const std::filesystem::path& annotationChoicesPath) -> std::shared_ptr<AnnotationChoiceMap>;
     static auto loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocId_vocId_map;
 
     template<class key_type, class mapped_value>

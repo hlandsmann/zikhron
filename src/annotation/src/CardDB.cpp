@@ -21,11 +21,18 @@
 #include <nlohmann/json_fwd.hpp>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <sys/types.h>
 namespace {
-auto cardFromJsonFile(const std::string& filename, CardId cardId) -> std::unique_ptr<Card>
+auto cardFromJsonFile(
+        const std::string& filename,
+        CardId cardId,
+        const std::shared_ptr<const ZH_Dictionary>& dictionary,
+        const std::shared_ptr<const Card::AnnotationChoiceMap>& annotationChoices
+
+        ) -> std::unique_ptr<Card>
 {
     std::ifstream cardFile(filename, std::ios::in | std::ios::binary);
     if (!cardFile) {
@@ -41,7 +48,7 @@ auto cardFromJsonFile(const std::string& filename, CardId cardId) -> std::unique
         if (not dlg.is_array()) {
             throw std::runtime_error("Expected an array");
         }
-        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId);
+        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, dictionary, annotationChoices);
         for (const auto& speakerTextPair : dlg) {
             if (speakerTextPair.empty()) {
                 continue;
@@ -55,7 +62,7 @@ auto cardFromJsonFile(const std::string& filename, CardId cardId) -> std::unique
     }
     if (jsonCard["type"] == "text") {
         const auto& text = jsonCard["content"];
-        auto textCard = std::make_unique<TextCard>(filename, cardId);
+        auto textCard = std::make_unique<TextCard>(filename, cardId, dictionary, annotationChoices);
         textCard->text = icu::UnicodeString::fromUTF8(std::string(text));
 
         return textCard;
@@ -64,25 +71,38 @@ auto cardFromJsonFile(const std::string& filename, CardId cardId) -> std::unique
 }
 } // namespace
 
-auto Card::createAnnotator(const std::shared_ptr<const ZH_Dictionary>& _dictionary,
-                           const std::map<CharacterSequence, Combination>& _choices) -> ZH_Annotator&
-{
-    zh_annotator.emplace(getText(), _dictionary, _choices);
-    return zh_annotator.value();
-}
+Card::Card(std::string _filename,
+           CardId _id,
+           std::shared_ptr<const ZH_Dictionary> _dictionary,
+           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
+    : filename{std::move(_filename)}
+    , id{_id}
+    , dictionary{std::move(_dictionary)}
+    , annotationChoices{std::move(_annotationChoices)} {};
 
 auto Card::getAnnotator() -> ZH_Annotator&
 {
-    if (not zh_annotator.has_value()) {
-        zh_annotator.emplace();
+    if (not annotator.has_value()) {
+        annotator.emplace(getText(), dictionary, annotationChoices);
     }
-    return zh_annotator.value();
+    return annotator.value();
+}
+
+void Card::resetAnnotator()
+{
+    annotator.reset();
 }
 
 auto Card::Id() const -> CardId
 {
     return id;
 }
+
+DialogueCard::DialogueCard(const std::string& _filename,
+                           CardId _id,
+                           std::shared_ptr<const ZH_Dictionary> _dictionary,
+                           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
+    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices)){};
 
 auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString>
 {
@@ -107,6 +127,12 @@ auto DialogueCard::getText() const -> utl::StringU8
     return result;
 }
 
+TextCard::TextCard(const std::string& _filename,
+                   CardId _id,
+                   std::shared_ptr<const ZH_Dictionary> _dictionary,
+                   std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
+    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices)){};
+
 auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>
 {
     return {text};
@@ -118,17 +144,18 @@ auto TextCard::getText() const -> utl::StringU8
 }
 
 CardDB::CardDB(const std::filesystem::path& directoryPath,
-               const std::shared_ptr<const ZH_Dictionary>& dictionary,
-               const std::map<CharacterSequence, Combination>& choices)
-{
-    loadFromDirectory(directoryPath);
-    for (const auto& [_, card] : cards) {
-        card->createAnnotator(dictionary, choices);
-    }
-}
+               std::shared_ptr<const ZH_Dictionary> _dictionary,
+               std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
+    : dictionary{std::move(_dictionary)}
+    , annotationChoices{std::move(_annotationChoices)}
+    , cards{loadFromDirectory(directoryPath, dictionary, annotationChoices)} {}
 
-void CardDB::loadFromDirectory(const std::filesystem::path& directoryPath)
+auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
+                               const std::shared_ptr<const ZH_Dictionary>& dictionary,
+                               const std::shared_ptr<const AnnotationChoiceMap>& annotationChoices)
+        -> std::map<CardId, CardPtr>
 {
+    std::map<CardId, CardPtr> cards;
     namespace fs = std::filesystem;
     auto card_fn_matcher = ctre::match<"(\\d{6})(_dlg|_text)(\\.json)">;
     for (const fs::path& entry : fs::directory_iterator(directoryPath)) {
@@ -146,11 +173,12 @@ void CardDB::loadFromDirectory(const std::filesystem::path& directoryPath)
                              cardId);
                 continue;
             }
-            cards[cardId] = cardFromJsonFile(entry, cardId);
+            cards[cardId] = cardFromJsonFile(entry, cardId, dictionary, annotationChoices);
         } catch (std::exception& e) {
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
     }
+    return cards;
 }
 
 auto CardDB::get() const -> const std::map<CardId, CardPtr>&

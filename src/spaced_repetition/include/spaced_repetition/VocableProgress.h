@@ -20,6 +20,12 @@ public:
         std::vector<CardId> triggeredBy;
         std::time_t lastSeen{std::time(nullptr)};
     };
+    static constexpr Init new_vocable = {
+            .easeFactor = 0.F,
+            .intervalDay = 0.F,
+            .triggeredBy = {},
+            .lastSeen = {}
+    };
     VocableProgress(Init init)
         : easeFactor{init.easeFactor}
         , intervalDay{init.intervalDay}

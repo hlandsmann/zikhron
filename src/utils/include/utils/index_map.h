@@ -204,8 +204,9 @@ auto index_map<KeyType, T>::id_from_index(std::size_t index) const -> key_type
 {
     const auto it = std::find_if(id_index.begin(), id_index.end(),
                                  [index](const auto& element) {
-      const auto& [_, tempIndex] = element;
-      return tempIndex == index; });
+                                     const auto& [_, tempIndex] = element;
+                                     return tempIndex == index;
+                                 });
     if (it == id_index.end()) {
         throw std::out_of_range("index_map, id_from_index");
     }

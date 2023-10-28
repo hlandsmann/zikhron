@@ -1,25 +1,32 @@
 #include "ZH_Annotator.h"
+
 #include "dictionary/ZH_Dictionary.h"
+
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
+
 #include <algorithm>
+#include <compare>
 #include <cstddef>
 #include <gsl/util>
-#include <iostream>
+#include <iterator>
 #include <limits>
+#include <memory>
 #include <numeric>
 #include <ranges>
 #include <span>
-#include <string_view>
+#include <utility>
+#include <vector>
 
 namespace ranges = std::ranges;
 namespace {
 
 auto GetCandidates(const utl::StringU8& text,
                    const CharacterSetType characterSet,
-                   const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> {
+                   const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>
+{
     std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> candidates;
     candidates.reserve(text.length());
     for (size_t indexBegin = 0; indexBegin < text.length(); indexBegin++) {
@@ -50,7 +57,8 @@ auto GetCandidates(const utl::StringU8& text,
 }
 
 auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& candidates)
-    -> std::vector<std::vector<std::vector<int>>> {
+        -> std::vector<std::vector<std::vector<int>>>
+{
     namespace views = ranges::views;
 
     using std::vector;
@@ -60,8 +68,7 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
     auto candidateLength = [](const ZH_Annotator::ZH_dicItemVec& itemVec) -> size_t {
         return utl::StringU8(itemVec.front().key).length();
     };
-    auto c_lengths = candidates |
-                     views::transform([&](auto& v) { return v | views::transform(candidateLength); });
+    auto c_lengths = candidates | views::transform([&](auto& v) { return v | views::transform(candidateLength); });
 
     int forward = 0;
     for (const auto& c_length : c_lengths) {
@@ -78,22 +85,26 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
     return chunks;
 }
 
-auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -> bool {
+auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -> bool
+{
     auto meanDiff = [](const std::vector<int>& vec) {
-        if (vec.empty())
+        if (vec.empty()) {
             return std::numeric_limits<int>::max();
+        }
         const int max = *std::max_element(vec.begin(), vec.end());
 
         return std::accumulate(
-            vec.begin(), vec.end(), int(0), [max](int sum, int val) { return sum + (max - val); });
+                vec.begin(), vec.end(), int(0), [max](int sum, int val) { return sum + (max - val); });
     };
-    if (a.size() == b.size())
+    if (a.size() == b.size()) {
         return meanDiff(a) < meanDiff(b);
+    }
     return a.size() < b.size();
 }
-}  // namespace
+} // namespace
 
-auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> std::vector<Combination> {
+auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> std::vector<Combination>
+{
     using std::vector;
     vector<Combination> combis;
     Combination comb;
@@ -111,15 +122,16 @@ auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> st
     auto next_combination = [&pos, &comb, &chunk]() {
         namespace ranges = std::ranges;
         while (not comb.empty()) {
-            const size_t forward = static_cast<size_t>(comb.back());
+            auto forward = static_cast<size_t>(comb.back());
             comb.pop_back();
             pos -= forward;
 
             const auto& node = chunk[pos];
             const auto it = ranges::find(node, forward);
 
-            if (it == node.begin())
+            if (it == node.begin()) {
                 continue;
+            }
             pos += static_cast<size_t>(*std::prev(it));
             comb.push_back(*std::prev(it));
             break;
@@ -127,34 +139,48 @@ auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> st
     };
     while (true) {
         fill_foward();
-        if (pos == chunk.size())
+        if (pos == chunk.size()) {
             combis.push_back(comb);
+        }
         next_combination();
 
-        if (comb.empty())
+        if (comb.empty()) {
             break;
+        }
     }
     return combis;
 }
 
-auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_ordering {
-    if (auto cmp = text <=> other.text; cmp != 0)
+auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_ordering
+{
+    if (auto cmp = text <=> other.text; cmp != nullptr) {
         return cmp;
+    }
     return dicItemVec <=> other.dicItemVec;
 }
 
-ZH_Annotator::ZH_Annotator(const utl::StringU8& _text,
-                           const std::shared_ptr<const ZH_Dictionary>& _dictionary,
-                           const std::map<CharacterSequence, Combination>& _choices)
-    : text(_text), dictionary(_dictionary), choices(_choices) {
+ZH_Annotator::ZH_Annotator(utl::StringU8 _text,
+                           std::shared_ptr<const ZH_Dictionary> _dictionary,
+                           std::shared_ptr<const AnnotationChoiceMap> _choices)
+    : text{std::move(_text)}
+    , dictionary{std::move(_dictionary)}
+    , choices{std::move(_choices)}
+{
     annotate();
 }
 
-auto ZH_Annotator::Annotated() const -> const std::string& { return annotated_text; }
+auto ZH_Annotator::Annotated() const -> const std::string&
+{
+    return annotated_text;
+}
 
-auto ZH_Annotator::Items() const -> const std::vector<Item>& { return items; }
+auto ZH_Annotator::Items() const -> const std::vector<Item>&
+{
+    return items;
+}
 
-auto ZH_Annotator::UniqueItems() const -> std::set<Item> {
+auto ZH_Annotator::UniqueItems() const -> std::set<Item>
+{
     std::set<Item> uniqueItems;
 
     std::copy_if(items.begin(),
@@ -165,17 +191,23 @@ auto ZH_Annotator::UniqueItems() const -> std::set<Item> {
     return uniqueItems;
 }
 
-auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>& {
+auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&
+{
     return candidates;
 }
 
-auto ZH_Annotator::Chunks() const -> const std::vector<std::vector<std::vector<int>>>& { return chunks; }
+auto ZH_Annotator::Chunks() const -> const std::vector<std::vector<std::vector<int>>>&
+{
+    return chunks;
+}
 
-auto ZH_Annotator::Dictionary() const -> const std::shared_ptr<const ZH_Dictionary>& {
+auto ZH_Annotator::Dictionary() const -> const std::shared_ptr<const ZH_Dictionary>&
+{
     return dictionary;
 }
 
-void ZH_Annotator::annotate() {
+void ZH_Annotator::annotate()
+{
     using utl::StringU8;
 
     candidates = GetCandidates(text, CharacterSetType::Simplified, *dictionary);
@@ -184,24 +216,24 @@ void ZH_Annotator::annotate() {
     namespace ranges = std::ranges;
     namespace views = std::ranges::views;
     auto min_combis =
-        chunks | views::transform([this, pos = 0](const auto& chunk) mutable -> std::vector<int> {
-            const auto combs = get_combinations(chunk);
-            if (combs.empty()) {
-                pos++;
-                return {};
-            }
+            chunks | views::transform([this, pos = 0](const auto& chunk) mutable -> std::vector<int> {
+                const auto combs = get_combinations(chunk);
+                if (combs.empty()) {
+                    pos++;
+                    return {};
+                }
 
-            int combinationLength = std::accumulate(combs.front().begin(), combs.front().end(), 0);
-            auto finally = gsl::final_action([&pos, combinationLength]() { pos += combinationLength; });
-            if (combinationLength > 1) {
-                const auto& possibleChoice = std::vector<utl::CharU8>(
-                    text.cbegin() + pos, text.cbegin() + pos + combinationLength);
-                const auto& choiceIt = choices.find(possibleChoice);
-                if (choiceIt != choices.end())
-                    return choiceIt->second;
-            }
-            return *std::min_element(combs.begin(), combs.end(), compare_combination);
-        });
+                int combinationLength = std::accumulate(combs.front().begin(), combs.front().end(), 0);
+                auto finally = gsl::final_action([&pos, combinationLength]() { pos += combinationLength; });
+                if (combinationLength > 1) {
+                    const auto& possibleChoice = std::vector<utl::CharU8>(
+                            text.cbegin() + pos, text.cbegin() + pos + combinationLength);
+                    const auto& choiceIt = choices->find(possibleChoice);
+                    if (choiceIt != choices->end())
+                        return choiceIt->second;
+                }
+                return *std::min_element(combs.begin(), combs.end(), compare_combination);
+            });
     size_t pos = 0;
     for (const auto& comb : min_combis) {
         if (comb.empty()) {
@@ -221,15 +253,18 @@ void ZH_Annotator::annotate() {
     }
 }
 
-void ZH_Annotator::SetAnnotationChoices(const std::map<CharacterSequence, Combination>& _choices) {
-    choices = _choices;
-}
+// void ZH_Annotator::SetAnnotationChoices(const std::map<CharacterSequence, Combination>& _choices)
+// {
+//     choices = _choices;
+// }
 
-void ZH_Annotator::Reannotate() {
+void ZH_Annotator::Reannotate()
+{
     items.clear();
     annotate();
 }
 
-auto ZH_Annotator::ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool {
+auto ZH_Annotator::ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool
+{
     return not ranges::search(std::span(text.cbegin(), text.cend()), charSeq).empty();
 }

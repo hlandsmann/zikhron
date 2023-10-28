@@ -332,9 +332,9 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
         job_queue.emplace([this, combination, characterSequence]() {
-            // auto cardInformation = vocabularySR->AddAnnotation(combination, characterSequence);
-            // TODO reactivate
-            //  sendActiveCard(cardInformation);
+            db->addAnnotation(combination, characterSequence);
+            auto& cardMeta = treeWalker->getLastCard();
+            sendActiveCard(cardMeta);
         });
     }
     condition.notify_one();
