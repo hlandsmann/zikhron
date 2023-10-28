@@ -11,6 +11,7 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
+#include <srtypes.h>
 #include <utils/StringU8.h>
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
@@ -64,7 +65,7 @@ auto DataBase::Dictionary() const -> std::shared_ptr<const ZH_Dictionary>
 //     return annotationChoices;
 // }
 
-auto DataBase::VocableChoices() const -> const std::map<VocableId, VocableId>&
+auto DataBase::VocableChoices() const -> const vocId_vocId_map&
 {
     return vocableChoices;
 }
@@ -125,9 +126,9 @@ auto DataBase::loadAnnotationChoices(const std::filesystem::path& annotationChoi
     }
 }
 
-auto DataBase::loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> std::map<VocableId, VocableId>
+auto DataBase::loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocId_vocId_map
 {
-    std::map<VocableId, VocableId> vocableChoices;
+    vocId_vocId_map vocableChoices;
     try {
         nlohmann::json choicesJson = loadJsonFromFile(vocableChoicesPath);
         ranges::transform(choicesJson,
@@ -304,7 +305,7 @@ void DataBase::fillIndexMaps()
 {
     folly::sorted_vector_set<VocableId> allVocableIds;
     for (const auto& [id, cardPtr] : getCards()) {
-        (*cards).emplace(id, cardPtr, vocables);
+        (*cards).emplace(id, cardPtr, vocables, vocableChoices);
         // insertVocabularyOfCard(card);
     }
 

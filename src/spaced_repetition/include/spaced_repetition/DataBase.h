@@ -46,7 +46,7 @@ public:
     DataBase(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto Dictionary() const -> std::shared_ptr<const ZH_Dictionary>;
     // [[nodiscard]] auto AnnotationChoices() const -> const AnnotationChoiceMap&;
-    [[nodiscard]] auto VocableChoices() const -> const std::map<VocableId, VocableId>&;
+    [[nodiscard]] auto VocableChoices() const -> const vocId_vocId_map&;
     [[nodiscard]] auto ProgressVocables() const -> const std::map<VocableId, VocableProgress>&;
     [[nodiscard]] auto ProgressCards() const -> const std::map<CardId, CardProgress>&;
     [[nodiscard]] auto getCards() const -> const std::map<CardId, CardDB::CardPtr>&;
@@ -71,7 +71,7 @@ private:
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
     AnnotationChoiceMap annotationChoices;
-    std::map<VocableId, VocableId> vocableChoices;
+    vocId_vocId_map vocableChoices;
     std::shared_ptr<CardDB> cardDB;
     std::map<VocableId, VocableProgress> progressVocables;
     std::map<CardId, CardProgress> progressCards;
@@ -79,7 +79,7 @@ private:
     static void saveJsonToFile(const std::filesystem::path& fn, const nlohmann::json& js);
     static auto loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json;
     static auto loadAnnotationChoices(const std::filesystem::path& annotationChoicesPath) -> AnnotationChoiceMap;
-    static auto loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> std::map<VocableId, VocableId>;
+    static auto loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocId_vocId_map;
 
     template<class key_type, class mapped_value>
     static auto jsonToMap(const nlohmann::json& jsonMeta) -> std::map<key_type, mapped_value>;
