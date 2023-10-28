@@ -1,15 +1,21 @@
 #include <ZH_Dictionary.h>
+#include <misc/Identifier.h>
 
 #include <algorithm>
 #include <array>
 #include <cstddef>
+#include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iterator>
 #include <ranges>
+#include <span>
 #include <stdexcept>
+#include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
+#include <vector>
 
 namespace ranges = std::ranges;
 
@@ -260,7 +266,7 @@ auto ZH_Dictionary::EntryFromPosition(size_t pos, const std::span<const Key>& ke
     return {.key = keys[pos_to_characterSet[pos]].key,
             .pronounciation = pronounciation.at(pos),
             .meanings = meanings.at(pos),
-            .id = unsigned(pos)};
+            .id = static_cast<VocableId>(pos)};
 }
 
 auto ZH_Dictionary::EntryFromPosition(size_t pos, CharacterSetType characterSet) const -> Entry

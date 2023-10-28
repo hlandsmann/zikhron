@@ -30,6 +30,7 @@ struct CardMeta
     [[nodiscard]] auto VocableIds() const -> const folly::sorted_vector_set<VocableId>&;
     [[nodiscard]] auto getTimingAndVocables(bool pull = false) const -> const TimingAndVocables&;
     void resetTimingAndVocables();
+    void addVocableChoice(VocableId oldVocId, VocableId newVocId);
 
     [[nodiscard]] auto getStudyMarkup() -> std::unique_ptr<markup::Paragraph>;
     [[nodiscard]] auto getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>;

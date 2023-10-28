@@ -75,6 +75,11 @@ void CardMeta::resetTimingAndVocables()
     timingAndVocables.reset();
 }
 
+void CardMeta::addVocableChoice(VocableId oldVocId, VocableId newVocId)
+{
+    vocableChoices[oldVocId] = newVocId;
+}
+
 auto CardMeta::getStudyMarkup() -> std::unique_ptr<markup::Paragraph>
 {
     std::vector<VocableId> vocableIds = generateVocableIDs();

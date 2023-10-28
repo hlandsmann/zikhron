@@ -94,7 +94,7 @@ public:
     void submitEase(const sr::ITreeWalker::Id_Ease_vt& ease);
     void submitAnnotation(const ZH_Annotator::Combination& combination,
                           const ZH_Annotator::CharacterSequence& characterSequence);
-    void submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
+    void submitVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice);
 
     void signal_annotation_connect(const signal_annotation& signal);
     void signal_card_connect(const signal_card& signal);

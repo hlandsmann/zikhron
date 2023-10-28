@@ -173,6 +173,11 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
     return db->Cards()[activeCardIndex];
 }
 
+auto TreeWalker::getLastCard() -> CardMeta&
+{
+    return db->Cards()[currentCardIndex];
+}
+
 void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 {
     CardId currentCardId = db->Cards().id_from_index(currentCardIndex);

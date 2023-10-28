@@ -241,13 +241,19 @@ void DataBase::saveProgress() const
 {
     spdlog::info("Saving Progress..");
     SaveProgressVocables(generateVocableIdProgressMap());
+    SaveVocableChoices();
 }
 
-void DataBase::addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice)
+void DataBase::addVocableChoice(VocableId oldVocId, VocableId newVocId)
 {
-    if (vocIdOldChoice == vocIdNewChoice) {
-        return;
+    // if (vocIdOldChoice == vocIdNewChoice) {
+    //     return;
+    // }
+    vocableChoices[oldVocId] = newVocId;
+    for (auto& cardMeta : *cards) {
+        cardMeta.addVocableChoice(oldVocId, newVocId);
     }
+    // spdlog::warn("Mapping vocId: {} to vocId: {}", oldVocId, newVocId);
 
     // if (vocId != vocIdNewChoice)
     //     id_id_vocableChoices[vocId] = vocIdNewChoice;
@@ -257,10 +263,29 @@ void DataBase::addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewCh
 
 auto DataBase::unmapVocableChoice(VocableId vocableId) const -> VocableId
 {
-    if (auto it = ranges::find_if(vocableChoices, [vocableId](const std::pair<VocableId, VocableId> mapping) { return mapping.second == vocableId; }); it != vocableChoices.end()) {
+    if (auto it = ranges::find_if(vocableChoices,
+                                  [vocableId](const std::pair<VocableId, VocableId> mapping) {
+                                      return mapping.second == vocableId;
+                                  });
+        it != vocableChoices.end()) {
         return it->first;
     }
     return vocableId;
+}
+
+void DataBase::SaveVocableChoices() const
+{
+    try {
+        nlohmann::json array = nlohmann::json::array();
+        ranges::transform(vocableChoices,
+                          std::back_inserter(array),
+                          [](const std::pair<uint, uint>& choice) -> nlohmann::json {
+                              return {{"id", choice.first}, {"map_id", choice.second}};
+                          });
+        saveJsonToFile(config->DatabaseDirectory() / s_fn_vocableChoices, array);
+    } catch (const std::exception& e) {
+        spdlog::error("Saving vocable choices failed with Error: {}", e.what());
+    }
 }
 
 void DataBase::SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const

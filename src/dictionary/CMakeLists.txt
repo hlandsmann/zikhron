@@ -8,9 +8,12 @@ target_include_directories(zikhron_dictionary
 )
 target_sources(zikhron_dictionary
     PRIVATE
-        src/ZH_Dictionary.cpp
-    PUBLIC
         include/dictionary/ZH_Dictionary.h
+        src/ZH_Dictionary.cpp
 )
 set_property(TARGET zikhron_dictionary PROPERTY CXX_STANDARD 23)
-target_link_libraries(zikhron_dictionary PRIVATE zikhron::warnings)
+target_link_libraries(zikhron_dictionary
+    PRIVATE
+        zikhron::miscellaneous
+        zikhron::warnings
+)

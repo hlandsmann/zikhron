@@ -1,4 +1,5 @@
 #pragma once
+#include <misc/Identifier.h>
 
 #include <compare>
 #include <cstddef>
@@ -39,7 +40,7 @@ public:
         std::string key;
         std::string pronounciation;
         std::vector<std::string> meanings;
-        unsigned id;
+        VocableId id;
         auto operator<=>(const Entry&) const -> std::weak_ordering;
         auto operator==(const Entry&) const -> bool = default;
     };

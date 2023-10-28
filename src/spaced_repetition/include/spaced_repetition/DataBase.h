@@ -17,12 +17,10 @@
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
 
-#include <cstddef>
 #include <filesystem>
 #include <map>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
-#include <set>
 #include <string_view>
 #include <vector>
 
@@ -53,9 +51,10 @@ public:
     void triggerVocable(VocableId, CardId);
     void resetCardsContainingVocable(VocableId vocId);
     void saveProgress() const;
-    void addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
+    void addVocableChoice(VocableId oldVocId, VocableId newVocId);
 
     [[nodiscard]] auto unmapVocableChoice(VocableId) const -> VocableId;
+    void SaveVocableChoices() const;
     void SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const;
 
 private:

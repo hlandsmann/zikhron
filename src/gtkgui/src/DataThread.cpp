@@ -340,14 +340,14 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
     condition.notify_one();
 }
 
-void DataThread::submitVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice)
+void DataThread::submitVocableChoice(VocableId vocId, VocableId /* vocIdOldChoice */, VocableId vocIdNewChoice)
 {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
-        job_queue.emplace([this, vocId, vocIdOldChoice, vocIdNewChoice]() {
-            // auto cardInformation = vocabularySR->AddVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
-            // TODO reactivate
-            //  sendActiveCard(cardInformation);
+        job_queue.emplace([this, vocId/* , vocIdOldChoice */, vocIdNewChoice]() {
+            db->addVocableChoice(vocId, vocIdNewChoice);
+            auto& cardMeta = treeWalker->getLastCard();
+            sendActiveCard(cardMeta);
         });
     }
     condition.notify_one();
