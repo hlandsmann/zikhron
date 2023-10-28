@@ -65,21 +65,6 @@ auto DataBase::Dictionary() const -> std::shared_ptr<const ZH_Dictionary>
 //     return annotationChoices;
 // }
 
-auto DataBase::VocableChoices() const -> const vocId_vocId_map&
-{
-    return vocableChoices;
-}
-
-auto DataBase::ProgressVocables() const -> const std::map<VocableId, VocableProgress>&
-{
-    return progressVocables;
-}
-
-auto DataBase::ProgressCards() const -> const std::map<CardId, CardProgress>&
-{
-    return progressCards;
-}
-
 auto DataBase::getCards() const -> const std::map<CardId, CardDB::CardPtr>&
 {
     return cardDB->get();
@@ -169,27 +154,6 @@ auto DataBase::loadProgressVocables(
     return id_progress;
 }
 
-void DataBase::SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const
-{
-    auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
-        nlohmann::json jsonMeta = nlohmann::json::object();
-        auto& content = jsonMeta[std::string(s_content)];
-        content = nlohmann::json::array();
-
-        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
-        ranges::transform(map, std::back_inserter(content), &sr_t::toJson);
-        return jsonMeta;
-    };
-    std::filesystem::create_directory(config->DatabaseDirectory());
-
-    try {
-        nlohmann::json jsonVocSR = generateJsonFromMap(id_progress);
-        saveJsonToFile(config->DatabaseDirectory() / s_fn_metaVocableSR, jsonVocSR);
-    } catch (const std::exception& e) {
-        spdlog::error("Saving of vocable progress failed. Error: {}", e.what());
-    }
-}
-
 auto DataBase::loadProgressCards(
         const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>
 {
@@ -214,69 +178,6 @@ auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 auto DataBase::Cards() -> utl::index_map<CardId, CardMeta>&
 {
     return *cards;
-}
-
-auto DataBase::getCardCopy(size_t cardIndex) const -> CardDB::CardPtr
-{
-    CardId cardId = cards->id_from_index(cardIndex);
-    const CardDB::CardPtr& cardPtr = getCards().at(cardId);
-    return cardPtr->clone();
-}
-
-auto DataBase::getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>
-{
-    CardId cardId = cards->id_from_index(cardIndex);
-    const auto& cardPtr = cardDB->atId(cardId);
-    // const auto& vocableChoices = VocableChoices();
-    const ZH_Annotator& annotator = cardPtr->getAnnotator();
-    std::vector<VocableId> vocableIds;
-    ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
-                          return not item.dicItemVec.empty();
-                      }),
-                      std::back_inserter(vocableIds),
-                      [&](const ZH_Annotator::Item& item) -> VocableId {
-                          // TODO remove static_cast
-                          auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
-                          if (const auto it = vocableChoices.find(vocId);
-                              it != vocableChoices.end()) {
-                              // TODO remove static_cast
-                              vocId = static_cast<VocableId>(it->second);
-                          }
-                          return vocId;
-                      });
-    return vocableIds;
-}
-
-auto DataBase::getActiveVocables(size_t cardIndex) -> std::set<VocableId>
-{
-    const auto& activeVocableIndices = (*cards)[cardIndex].getTimingAndVocables(true).vocables;
-    std::set<VocableId> activeVocableIds;
-    ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
-                      [this](size_t vocableIndex) -> VocableId {
-                          return vocables->id_from_index(vocableIndex);
-                      });
-
-    return activeVocableIds;
-}
-
-auto DataBase::getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>
-{
-    std::set<VocableId> activeVocables = getActiveVocables(cardIndex);
-    std::map<VocableId, Ease> ease;
-    ranges::transform(
-            activeVocables,
-            std::inserter(ease, ease.begin()),
-            [&, this](VocableId vocId) -> std::pair<VocableId, Ease> {
-                const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
-                // const VocableProgress vocSR = id_vocableSR.contains(vocId) ? id_vocableSR.at(vocId) : VocableProgress{};
-                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
-                              zhDictionary->EntryFromPosition(vocId, CharacterSetType::Simplified).key,
-                              vocSR.EaseFactor(),
-                              vocSR.IntervalDay(),
-                              vocId);
-                return {vocId, {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()}};
-            });
-    return ease;
 }
 
 void DataBase::setEaseVocable(VocableId vocId, const Ease& ease)
@@ -352,5 +253,34 @@ void DataBase::addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewCh
     //     id_id_vocableChoices[vocId] = vocIdNewChoice;
     // else
     //     id_id_vocableChoices.erase(vocId);
+}
+
+auto DataBase::unmapVocableChoice(VocableId vocableId) const -> VocableId
+{
+    if (auto it = ranges::find_if(vocableChoices, [vocableId](const std::pair<VocableId, VocableId> mapping) { return mapping.second == vocableId; }); it != vocableChoices.end()) {
+        return it->first;
+    }
+    return vocableId;
+}
+
+void DataBase::SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const
+{
+    auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
+        nlohmann::json jsonMeta = nlohmann::json::object();
+        auto& content = jsonMeta[std::string(s_content)];
+        content = nlohmann::json::array();
+
+        using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
+        ranges::transform(map, std::back_inserter(content), &sr_t::toJson);
+        return jsonMeta;
+    };
+    std::filesystem::create_directory(config->DatabaseDirectory());
+
+    try {
+        nlohmann::json jsonVocSR = generateJsonFromMap(id_progress);
+        saveJsonToFile(config->DatabaseDirectory() / s_fn_metaVocableSR, jsonVocSR);
+    } catch (const std::exception& e) {
+        spdlog::error("Saving of vocable progress failed. Error: {}", e.what());
+    }
 }
 } // namespace sr

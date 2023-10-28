@@ -45,25 +45,18 @@ public:
 
     DataBase(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto Dictionary() const -> std::shared_ptr<const ZH_Dictionary>;
-    // [[nodiscard]] auto AnnotationChoices() const -> const AnnotationChoiceMap&;
-    [[nodiscard]] auto VocableChoices() const -> const vocId_vocId_map&;
-    [[nodiscard]] auto ProgressVocables() const -> const std::map<VocableId, VocableProgress>&;
-    [[nodiscard]] auto ProgressCards() const -> const std::map<CardId, CardProgress>&;
     [[nodiscard]] auto getCards() const -> const std::map<CardId, CardDB::CardPtr>&;
-    void SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const;
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
-    [[nodiscard]] auto getCardCopy(size_t cardIndex) const -> CardDB::CardPtr;
-    [[nodiscard]] auto getActiveVocables(size_t cardIndex) -> std::set<VocableId>;
-    [[nodiscard]] auto getVocableIdsInOrder(size_t cardIndex) const -> std::vector<VocableId>;
-    [[nodiscard]] auto getRelevantEase(size_t cardIndex) -> std::map<VocableId, Ease>;
 
     void setEaseVocable(VocableId, const Ease&);
     void triggerVocable(VocableId, CardId);
     void resetCardsContainingVocable(VocableId vocId);
     void saveProgress() const;
     void addVocableChoice(uint vocId, uint vocIdOldChoice, uint vocIdNewChoice);
+
+    [[nodiscard]] auto unmapVocableChoice(VocableId) const -> VocableId;
+    void SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const;
 
 private:
     std::shared_ptr<zikhron::Config> config;

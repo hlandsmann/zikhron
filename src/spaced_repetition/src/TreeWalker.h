@@ -34,16 +34,8 @@ public:
     ~TreeWalker() override = default;
 
     using Id_Ease_vt = ITreeWalker::Id_Ease_vt;
-    // using VocableIds_vt = std::vector<VocableId>;
-    // using CardInformation = ITreeWalker::CardInformation;
-    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardMeta& override;
     void setEaseLastCard(const Id_Ease_vt& id_ease) override;
-    void saveProgress() const override;
-    // auto AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)
-    //         -> CardInformation override;
-    // auto AddAnnotation(const ZH_Annotator::Combination& combination,
-    //                    const std::vector<utl::CharU8>& characterSequence)
-    //         -> CardInformation override;
+    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardMeta& override;
 
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;

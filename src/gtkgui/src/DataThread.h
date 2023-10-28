@@ -9,6 +9,7 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/CardMeta.h>
+#include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
 #include <utils/Property.h>
 
@@ -112,11 +113,11 @@ private:
     [[nodiscard]] auto getCardFromId(uint id) const -> paragraph_optional;
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<sr::ITreeWalker> treeWalker;
+    std::shared_ptr<sr::DataBase> db;
 
     std::jthread worker;
     std::condition_variable_any condition;
     std::mutex condition_mutex;
-
 
     signal_card send_card;
     signal_annotation send_annotation;

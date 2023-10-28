@@ -166,8 +166,8 @@ DataThread::DataThread()
     });
     job_queue.emplace([this]() {
         config = get_zikhron_cfg();
-        auto db = std::make_unique<sr::DataBase>(config);
-        treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
+        db = std::make_shared<sr::DataBase>(config);
+        treeWalker = sr::ITreeWalker::createTreeWalker(db);
     });
 
     dispatcher.connect([this]() { dispatcher_fun(); });
@@ -185,7 +185,7 @@ DataThread::~DataThread()
 
 void DataThread::saveProgress()
 {
-    treeWalker->saveProgress();
+    db->saveProgress();
 }
 
 void DataThread::worker_thread(std::stop_token token)

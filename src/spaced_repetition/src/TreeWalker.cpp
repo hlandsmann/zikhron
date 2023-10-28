@@ -35,8 +35,6 @@ auto ITreeWalker::createTreeWalker(std::shared_ptr<DataBase> db) -> std::unique_
 TreeWalker::TreeWalker(std::shared_ptr<DataBase> _db)
     : db{std::move(_db)}
 {
-    // walk(db);
-    // createTree();
 }
 
 auto TreeWalker::getTodayVocables() const -> index_set
@@ -171,20 +169,15 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
             spdlog::error("prefered card Id could not be found in cards index_map!");
         }
     }
-    auto card = db->getCardCopy(activeCardIndex);
     currentCardIndex = activeCardIndex;
     return db->Cards()[activeCardIndex];
-    // return {std::move(card),
-    //         db->getVocableIdsInOrder(activeCardIndex),
-    //         db->getRelevantEase(activeCardIndex)};
 }
 
 void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 {
     CardId currentCardId = db->Cards().id_from_index(currentCardIndex);
-    for (auto [vocId, ease] : id_ease) {
-        // if(auto it = ranges::find_if(vocab
-
+    for (auto [tmpVocId, ease] : id_ease) {
+        auto vocId = db->unmapVocableChoice(tmpVocId);
         // spdlog::warn("begin id: {}", vocId);
         db->setEaseVocable(vocId, ease);
         db->triggerVocable(vocId, currentCardId);
@@ -213,21 +206,5 @@ auto TreeWalker::createTree(size_t targetVocableIndex, std::shared_ptr<index_set
     resultTree.build();
     return resultTree;
 }
-
-void TreeWalker::saveProgress() const
-{
-    db->saveProgress();
-}
-
-// auto TreeWalker::AddVocableChoice(VocableId vocId, VocableId vocIdOldChoice, VocableId vocIdNewChoice)
-//         -> CardInformation
-// {
-// }
-//
-// auto TreeWalker::AddAnnotation(const ZH_Annotator::Combination& combination,
-//                                const std::vector<utl::CharU8>& characterSequence)
-//         -> CardInformation
-// {
-// }
 
 } // namespace sr
