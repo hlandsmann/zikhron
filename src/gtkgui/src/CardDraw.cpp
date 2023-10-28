@@ -4,6 +4,7 @@
 #include <CardDraw.h>
 #include <DataThread.h>
 #include <annotation/Markup.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
@@ -163,10 +164,10 @@ void CardDraw::mouseClickStandard(int textDrawIndex, int byteIndex)
                 if (not choice.has_value()) {
                     return;
                 }
-                VocableId vocId = clickedItem.front().id;
-                VocableId vocIdNewChoice = clickedItem[choice.value()].id;
-                spdlog::info("Map id {} / {} to {}", vocId, vocIdOldChoice, vocIdNewChoice);
-                DataThread::get().submitVocableChoice(vocId, vocIdOldChoice, vocIdNewChoice);
+                VocableId oldVocId = clickedItem.front().id;
+                VocableId newVocId = clickedItem[choice.value()].id;
+                spdlog::info("Map id {} / {} to {}", oldVocId, vocIdOldChoice, newVocId);
+                DataThread::get().submitVocableChoice(oldVocId, newVocId);
             });
     overlay.add_overlay(*vocableOverlay);
 }

@@ -340,12 +340,12 @@ void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
     condition.notify_one();
 }
 
-void DataThread::submitVocableChoice(VocableId vocId, VocableId /* vocIdOldChoice */, VocableId vocIdNewChoice)
+void DataThread::submitVocableChoice(VocableId oldVocId, VocableId newVocId)
 {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
-        job_queue.emplace([this, vocId/* , vocIdOldChoice */, vocIdNewChoice]() {
-            db->addVocableChoice(vocId, vocIdNewChoice);
+        job_queue.emplace([this, oldVocId/* , vocIdOldChoice */, newVocId]() {
+            db->addVocableChoice(oldVocId, newVocId);
             auto& cardMeta = treeWalker->getLastCard();
             sendActiveCard(cardMeta);
         });
