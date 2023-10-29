@@ -5,7 +5,11 @@
 #include <annotation/Markup.h>
 #include <gtkmm.h>
 
-class CardDraw : public Gtk::Grid {
+#include <memory>
+#include <vector>
+
+class CardDraw : public Gtk::Grid
+{
 public:
     CardDraw(Gtk::Overlay&);
     void setParagraph(const std::shared_ptr<markup::Paragraph>&);

@@ -16,6 +16,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <exception>
 #include <functional>
 #include <iterator>
 #include <map>
@@ -58,6 +59,16 @@ auto CardMeta::VocableIds() const -> const folly::sorted_vector_set<VocableId>&
     }
     auto vocableIds = generateVocableIDs();
     return optVocableIds.emplace(vocableIds.begin(), vocableIds.end());
+}
+
+auto CardMeta::NewVocableIds() const -> vocId_set
+{
+    const auto& vocableIds = VocableIds();
+    vocId_set newVocableIds;
+    ranges::copy_if(vocableIds,
+                    std::inserter(newVocableIds, newVocableIds.begin()),
+                    [this](VocableId vocId) { return not vocables->contains(vocId); });
+    return newVocableIds;
 }
 
 auto CardMeta::getTimingAndVocables(bool pull) const -> const TimingAndVocables&
