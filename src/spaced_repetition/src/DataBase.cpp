@@ -95,8 +95,9 @@ void DataBase::resetCardsContainingVocable(VocableId vocId)
 void DataBase::saveProgress() const
 {
     spdlog::info("Saving Progress..");
-    SaveProgressVocables();
-    SaveVocableChoices();
+    saveProgressVocables();
+    saveAnnotationChoices();
+    saveVocableChoices();
 }
 
 void DataBase::addVocableChoice(VocableId oldVocId, VocableId newVocId)
@@ -236,7 +237,22 @@ auto DataBase::loadProgressCards(
     return id_card;
 }
 
-void DataBase::SaveVocableChoices() const
+void DataBase::saveAnnotationChoices() const
+{
+    try {
+        nlohmann::json array = nlohmann::json::array();
+        ranges::transform(*annotationChoices,
+                          std::back_inserter(array),
+                          [](const std::pair<CharacterSequence, Combination>& choice) -> nlohmann::json {
+                              return {{"char_seq", choice.first}, {"combination", choice.second}};
+                          });
+        saveJsonToFile(config->DatabaseDirectory() / s_fn_annotationChoices, array);
+    } catch (const std::exception& e) {
+        spdlog::error("Saving annotation choices failed with Error: {}", e.what());
+    }
+}
+
+void DataBase::saveVocableChoices() const
 {
     try {
         nlohmann::json array = nlohmann::json::array();
@@ -251,7 +267,7 @@ void DataBase::SaveVocableChoices() const
     }
 }
 
-void DataBase::SaveProgressVocables() const
+void DataBase::saveProgressVocables() const
 {
     std::map<VocableId, VocableProgress> id_progress = generateVocableIdProgressMap();
     auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {

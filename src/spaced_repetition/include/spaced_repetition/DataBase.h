@@ -69,13 +69,13 @@ private:
             const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>;
     static auto loadProgressCards(
             const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>;
-    void SaveVocableChoices() const;
-    void SaveProgressVocables() const;
+    void saveAnnotationChoices() const;
+    void saveVocableChoices() const;
+    void saveProgressVocables() const;
 
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
     void fillIndexMaps();
     void addNewVocableIds(const vocId_set& newVocableIds);
-
 
     std::shared_ptr<zikhron::Config> config;
 
