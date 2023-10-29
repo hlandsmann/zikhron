@@ -43,7 +43,6 @@ public:
 
     DataBase(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto Dictionary() const -> std::shared_ptr<const ZH_Dictionary>;
-    [[nodiscard]] auto getCards() const -> const std::map<CardId, CardDB::CardPtr>&;
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
 

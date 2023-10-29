@@ -60,11 +60,6 @@ auto DataBase::Dictionary() const -> std::shared_ptr<const ZH_Dictionary>
     return zhDictionary;
 }
 
-auto DataBase::getCards() const -> const std::map<CardId, CardDB::CardPtr>&
-{
-    return cardDB->get();
-}
-
 auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 {
     return *vocables;
@@ -293,7 +288,7 @@ auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, Vocab
 void DataBase::fillIndexMaps()
 {
     folly::sorted_vector_set<VocableId> allVocableIds;
-    for (const auto& [id, cardPtr] : getCards()) {
+    for (const auto& [id, cardPtr] : cardDB->get()) {
         (*cards).emplace(id, cardPtr, vocables, vocableChoices);
     }
 
