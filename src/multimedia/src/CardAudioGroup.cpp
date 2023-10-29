@@ -38,7 +38,7 @@ auto CardAudioGroup::toJson(const CardAudioGroup& self) -> json
         json jsonFragment = json::object();
         jsonFragment[s_start] = audioFragment.start;
         jsonFragment[s_end] = audioFragment.end;
-        json_cardId_fragment[cardId] = jsonFragment;
+        json_cardId_fragment[std::to_string(cardId)] = jsonFragment;
     }
 
     cardAudioGroup[std::string(s_fragments)] = json_cardId_fragment;

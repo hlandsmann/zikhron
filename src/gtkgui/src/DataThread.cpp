@@ -231,7 +231,7 @@ void DataThread::requestCard(std::optional<CardId> preferedCardId)
     condition.notify_one();
 }
 
-void DataThread::requestCardFromIds(std::vector<uint>&& _ids)
+void DataThread::requestCardFromIds(std::vector<CardId>&& _ids)
 {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
@@ -280,8 +280,14 @@ void DataThread::dispatch_arbitrary(const std::function<void()>& fun)
     dispatcher.emit();
 }
 
-auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<markup::Paragraph>>
+auto DataThread::getCardFromId(CardId id) const -> std::optional<std::shared_ptr<markup::Paragraph>>
 {
+    if (!db->Cards().contains(id)) {
+        return {};
+    }
+    auto& cardMeta = db->Cards().at_id(id).second;
+    auto studyMarkup = cardMeta.getStudyMarkup();
+    studyMarkup->setupVocables(cardMeta.getRelevantEase());
     // TODO reactivate
     //  auto opt_cardInformation = vocabularySR->getCardFromId(id);
     //  if (!opt_cardInformation.has_value()) {
@@ -292,7 +298,7 @@ auto DataThread::getCardFromId(uint id) const -> std::optional<std::shared_ptr<m
     //  paragraph->setupVocables(ease);
     //
     //  return {std::move(paragraph)};
-    return {};
+    return {std::move(studyMarkup)};
 }
 
 void DataThread::sendActiveCard(sr::CardMeta& cardMeta)
@@ -344,7 +350,7 @@ void DataThread::submitVocableChoice(VocableId oldVocId, VocableId newVocId)
 {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
-        job_queue.emplace([this, oldVocId/* , vocIdOldChoice */, newVocId]() {
+        job_queue.emplace([this, oldVocId /* , vocIdOldChoice */, newVocId]() {
             db->addVocableChoice(oldVocId, newVocId);
             auto& cardMeta = treeWalker->getLastCard();
             sendActiveCard(cardMeta);

@@ -10,8 +10,8 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <ranges>
-#include <span>
 #include <type_traits>
+#include <utility>
 #include <vector>
 
 #include <sys/types.h>
@@ -374,9 +374,12 @@ void SupplyAudio::createMainCtrlBtnBox()
 
 void SupplyAudio::requestCards()
 {
-    std::vector<uint> ids;
+    std::vector<CardId> ids;
     ids.resize(spinBtn_lastCard.currentValue - spinBtn_firstCard.currentValue + 1);
-    ranges::generate(ids, [n = int(spinBtn_firstCard.currentValue)]() mutable { return n++; });
+    ranges::generate(ids,
+                     [n = int(spinBtn_firstCard.currentValue)]() mutable -> CardId {
+                         return static_cast<CardId>(n++);
+                     });
     DataThread::get().requestCardFromIds(std::move(ids));
 }
 

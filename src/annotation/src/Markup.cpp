@@ -408,10 +408,10 @@ void Paragraph::setupVocables(const std::map<VocableId, Ease>& ease)
         });
     });
 
-    // clang-format off
-    const std::array colors = {0xffe119, 0x3cd44b, 0x42d4f4, 0xf58231, 0xf032e6, 0xfabed4,
-                               0x913ec4, 0xff294B, 0x4363ff, 0xbfef45, 0x469990};
-    // clang-format on
+    const std::array<uint32_t, 11> colors = {0xffe119, 0x3cd44b, 0x42d4f4,
+                                             0xf58231, 0xf032e6, 0xfabed4,
+                                             0x913ec4, 0xff294B, 0x4363ff,
+                                             0xbfef45, 0x469990};
     assert(zh_annotator.Items().size() == words.size());
 
     const auto& items = zh_annotator.Items();
@@ -433,7 +433,7 @@ void Paragraph::setupVocables(const std::map<VocableId, Ease>& ease)
     ranges::transform(
             activeVocables,
             std::back_inserter(vocables),
-            [&, colorIndex = 0](uint vocId) mutable -> vocable_pronounciation_meaning_t {
+            [&, colorIndex = size_t{0}](uint vocId) mutable -> vocable_pronounciation_meaning_t {
                 const ZH_Dictionary::Entry& zhEntry = zh_dictionary.EntryFromPosition(
                         vocId, CharacterSetType::Simplified);
                 uint32_t color = colors[colorIndex++ % colors.size()];

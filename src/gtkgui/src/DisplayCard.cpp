@@ -44,9 +44,11 @@ void DisplayCard::receive_card(DataThread::message_card& msg_card)
     cardId = msg_card->Id();
     paragraph = msg_card->getStudyMarkup();
     auto orderedEase = msg_card->getRelevantEase();
-    easeList.clear();
-    ranges::copy(orderedEase | std::views::values, std::back_inserter(easeList));
     paragraph->setupVocables(orderedEase);
+
+    easeList.clear();
+    auto relativeOrderedEaseList = paragraph->getRelativeOrderedEaseList(orderedEase);
+    ranges::copy(relativeOrderedEaseList  | std::views::values, std::back_inserter(easeList));
     vocableList.setParagraph(paragraph, easeList);
 
     vocableList.set_visible(displayVocabulary);

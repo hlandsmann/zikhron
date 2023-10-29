@@ -90,7 +90,7 @@ public:
     void saveProgress();
 
     void requestCard(std::optional<CardId> preferedCardId = {});
-    void requestCardFromIds(std::vector<uint>&& ids);
+    void requestCardFromIds(std::vector<CardId>&& ids);
     void submitEase(const sr::ITreeWalker::Id_Ease_vt& ease);
     void submitAnnotation(const ZH_Annotator::Combination& combination,
                           const ZH_Annotator::CharacterSequence& characterSequence);
@@ -110,7 +110,7 @@ private:
     void dispatcher_fun();
     void sendActiveCard(sr::CardMeta& cardMeta);
 
-    [[nodiscard]] auto getCardFromId(uint id) const -> paragraph_optional;
+    [[nodiscard]] auto getCardFromId(CardId id) const -> paragraph_optional;
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<sr::ITreeWalker> treeWalker;
     std::shared_ptr<sr::DataBase> db;
