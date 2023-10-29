@@ -56,10 +56,28 @@ public:
                        const std::vector<utl::CharU8>& characterSequence);
 
     [[nodiscard]] auto unmapVocableChoice(VocableId) const -> VocableId;
-    void SaveVocableChoices() const;
-    void SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const;
 
 private:
+    template<class key_type, class mapped_value>
+    static auto jsonToMap(const nlohmann::json& jsonMeta) -> std::map<key_type, mapped_value>;
+    static void saveJsonToFile(const std::filesystem::path& fn, const nlohmann::json& js);
+    static auto loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json;
+
+    static auto loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocId_vocId_map;
+    static auto loadAnnotationChoices(
+            const std::filesystem::path& annotationChoicesPath) -> std::shared_ptr<AnnotationChoiceMap>;
+    static auto loadProgressVocables(
+            const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>;
+    static auto loadProgressCards(
+            const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>;
+    void SaveVocableChoices() const;
+    void SaveProgressVocables() const;
+
+    [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
+    void fillIndexMaps();
+    void addNewVocableIds(const vocId_set& newVocableIds);
+
+
     std::shared_ptr<zikhron::Config> config;
 
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
@@ -69,24 +87,6 @@ private:
     std::shared_ptr<CardDB> cardDB;
     std::map<VocableId, VocableProgress> progressVocables;
     std::map<CardId, CardProgress> progressCards;
-
-    static void saveJsonToFile(const std::filesystem::path& fn, const nlohmann::json& js);
-    static auto loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json;
-    static auto loadAnnotationChoices(
-            const std::filesystem::path& annotationChoicesPath) -> std::shared_ptr<AnnotationChoiceMap>;
-    static auto loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocId_vocId_map;
-
-    template<class key_type, class mapped_value>
-    static auto jsonToMap(const nlohmann::json& jsonMeta) -> std::map<key_type, mapped_value>;
-    static auto loadProgressVocables(
-            const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>;
-    static auto loadProgressCards(
-            const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>;
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    void fillIndexMaps();
-    static auto getVocableIdsInOrder(const CardDB::CardPtr& card,
-                                     const std::map<unsigned, unsigned>& vocableChoices) -> std::vector<VocableId>;
-    [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
     std::shared_ptr<utl::index_map<CardId, CardMeta>> cards;

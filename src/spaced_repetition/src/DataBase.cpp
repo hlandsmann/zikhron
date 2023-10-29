@@ -7,6 +7,7 @@
 #include <annotation/Ease.h>
 #include <annotation/ZH_Annotator.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <fmt/format.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -21,7 +22,6 @@
 #include <exception>
 #include <filesystem>
 #include <fstream>
-#include <functional>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -60,116 +60,10 @@ auto DataBase::Dictionary() const -> std::shared_ptr<const ZH_Dictionary>
     return zhDictionary;
 }
 
-// auto DataBase::AnnotationChoices() const -> const AnnotationChoiceMap&
-// {
-//     return annotationChoices;
-// }
-
 auto DataBase::getCards() const -> const std::map<CardId, CardDB::CardPtr>&
 {
     return cardDB->get();
 }
-
-auto DataBase::loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json
-{
-    std::ifstream ifs(fn);
-    return nlohmann::json::parse(ifs);
-}
-
-void DataBase::saveJsonToFile(const std::filesystem::path& fn, const nlohmann::json& js)
-{
-    std::ofstream ofs(fn);
-    ofs << js.dump(4);
-}
-
-auto DataBase::loadAnnotationChoices(
-        const std::filesystem::path& annotationChoicesPath) -> std::shared_ptr<AnnotationChoiceMap>
-{
-    try {
-        auto annotationChoices = std::make_shared<AnnotationChoiceMap>();
-        nlohmann::json choicesJson = loadJsonFromFile(annotationChoicesPath);
-        ranges::transform(choicesJson,
-                          std::inserter(*annotationChoices, annotationChoices->begin()),
-                          [](const nlohmann::json& choice) -> std::pair<CharacterSequence, Combination> {
-                              nlohmann::json char_seqJson = choice["char_seq"];
-                              nlohmann::json combinationJson = choice["combination"];
-                              CharacterSequence char_seq;
-                              Combination combination;
-                              ranges::transform(char_seqJson,
-                                                std::back_inserter(char_seq),
-                                                [](const nlohmann::json& character) -> utl::CharU8 {
-                                                    return {std::string(character)};
-                                                });
-                              ranges::transform(combinationJson,
-                                                std::back_inserter(combination),
-                                                [](const nlohmann::json& c) -> int { return c; });
-                              return {char_seq, combination};
-                          });
-        return annotationChoices;
-    } catch (const std::exception& e) {
-        spdlog::error("Load of AnnotationChoice file failed, Error: {}", e.what());
-        return {};
-    }
-}
-
-auto DataBase::loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocId_vocId_map
-{
-    vocId_vocId_map vocableChoices;
-    try {
-        nlohmann::json choicesJson = loadJsonFromFile(vocableChoicesPath);
-        ranges::transform(choicesJson,
-                          std::inserter(vocableChoices, vocableChoices.begin()),
-                          [](const nlohmann::json& choice) -> std::pair<VocableId, VocableId> {
-                              nlohmann::json id = choice["id"];
-                              nlohmann::json map_id = choice["map_id"];
-
-                              return {id, map_id};
-                          });
-    } catch (const std::exception& e) {
-        spdlog::error("Load of vocable choice file failed, Error: {}", e.what());
-    }
-    return vocableChoices;
-}
-
-template<class key_type, class mapped_value>
-auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<key_type, mapped_value>
-{
-    std::map<key_type, mapped_value> map;
-    const auto& content = jsonMeta.at(std::string(s_content));
-    using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
-    ranges::transform(content, std::inserter(map, map.begin()), &sr_t::fromJson);
-    return map;
-}
-
-auto DataBase::loadProgressVocables(
-        const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>
-{
-    std::map<VocableId, VocableProgress> id_progress;
-    try {
-        nlohmann::json jsonVocable = loadJsonFromFile(progressVocablePath);
-        id_progress = jsonToMap<VocableId, VocableProgress>(jsonVocable);
-        spdlog::debug("Vocable SR file {} loaded!", s_fn_metaVocableSR);
-    } catch (const std::exception& e) {
-        spdlog::error("Vocabulary SR load for {} failed! Exception {}", progressVocablePath.c_str(), e.what());
-    }
-    return id_progress;
-}
-
-auto DataBase::loadProgressCards(
-        const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>
-{
-    std::map<CardId, CardProgress> id_card;
-    try {
-        nlohmann::json jsonCardSR = loadJsonFromFile(progressCardsPath);
-        id_card = jsonToMap<CardId, CardProgress>(jsonCardSR);
-        spdlog::debug("Card SR file {} loaded!", s_fn_metaCardSR);
-    } catch (const std::exception& e) {
-        spdlog::error("Card SR load for {} failed! Exception {}", progressCardsPath.c_str(), e.what());
-    }
-    return id_card;
-}
-
-// TODO OLD CODE //////////////////////////////////////////////////////////////////////////////////////////
 
 auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 {
@@ -203,63 +97,19 @@ void DataBase::resetCardsContainingVocable(VocableId vocId)
     }
 }
 
-void DataBase::fillIndexMaps()
-{
-    folly::sorted_vector_set<VocableId> allVocableIds;
-    for (const auto& [id, cardPtr] : getCards()) {
-        (*cards).emplace(id, cardPtr, vocables, vocableChoices);
-    }
-
-    for (const auto& card : *cards) {
-        const auto& vocableIds = card.VocableIds();
-        allVocableIds.insert(vocableIds.begin(), vocableIds.end());
-    }
-    for (VocableId vocId : allVocableIds) {
-        vocables->emplace(vocId, progressVocables.at(vocId));
-    }
-    for (const auto& [cardIndex, cardMeta] : views::enumerate(cards->vspan())) {
-        for (const auto& vocableIndex : cardMeta.VocableIndices()) {
-            (*vocables)[vocableIndex].cardIndices_insert(static_cast<std::size_t>(cardIndex));
-        }
-    }
-    spdlog::info("number of vocables: {}", allVocableIds.size());
-    spdlog::info("number of cards: {}", cards->size());
-}
-
-auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
-{
-    std::map<VocableId, VocableProgress> id_progress;
-    ranges::transform(vocables->id_index_view(),
-                      std::inserter(id_progress, id_progress.begin()),
-                      [this](const auto& id_index) -> std::pair<VocableId, VocableProgress> {
-                          const auto [vocableId, index] = id_index;
-                          return {vocableId, (*vocables)[index].Progress()};
-                      });
-    return id_progress;
-}
-
 void DataBase::saveProgress() const
 {
     spdlog::info("Saving Progress..");
-    SaveProgressVocables(generateVocableIdProgressMap());
+    SaveProgressVocables();
     SaveVocableChoices();
 }
 
 void DataBase::addVocableChoice(VocableId oldVocId, VocableId newVocId)
 {
-    // if (vocIdOldChoice == vocIdNewChoice) {
-    //     return;
-    // }
     vocableChoices[oldVocId] = newVocId;
     for (auto& cardMeta : *cards) {
         cardMeta.addVocableChoice(oldVocId, newVocId);
     }
-    // spdlog::warn("Mapping vocId: {} to vocId: {}", oldVocId, newVocId);
-
-    // if (vocId != vocIdNewChoice)
-    //     id_id_vocableChoices[vocId] = vocIdNewChoice;
-    // else
-    //     id_id_vocableChoices.erase(vocId);
 }
 
 void DataBase::addAnnotation(const ZH_Annotator::Combination& combination,
@@ -274,18 +124,10 @@ void DataBase::addAnnotation(const ZH_Annotator::Combination& combination,
             cardsWithCharSeq.insert(id);
             auto& cardMeta = cards->at_id(id).second;
             cardMeta.resetAnnotation();
+            addNewVocableIds(cardMeta.NewVocableIds());
         }
     }
     spdlog::debug("relevant cardIds: {}", fmt::join(cardsWithCharSeq, ","));
-
-    // for (uint cardId : cardsWithCharSeq) {
-    //     auto& cardPtr = cardDB->get().at(cardId);
-    //     cardPtr->getAnnotator().SetAnnotationChoices(annotationChoices);
-    //     cardPtr->getAnnotator().Reannotate();
-    //     // EraseVocabularyOfCard(cardId);
-    //     // InsertVocabularyOfCard(cardId, cardPtr);
-    // }
-    // CleanUpVocables(id_cardMeta.at(activeCardId).vocableIds);
 }
 
 auto DataBase::unmapVocableChoice(VocableId vocableId) const -> VocableId
@@ -298,6 +140,105 @@ auto DataBase::unmapVocableChoice(VocableId vocableId) const -> VocableId
         return it->first;
     }
     return vocableId;
+}
+
+template<class key_type, class mapped_value>
+auto DataBase::jsonToMap(const nlohmann::json& jsonMeta) -> std::map<key_type, mapped_value>
+{
+    std::map<key_type, mapped_value> map;
+    const auto& content = jsonMeta.at(std::string(s_content));
+    using sr_t = typename std::decay_t<decltype(map)>::mapped_type;
+    ranges::transform(content, std::inserter(map, map.begin()), &sr_t::fromJson);
+    return map;
+}
+
+void DataBase::saveJsonToFile(const std::filesystem::path& fn, const nlohmann::json& js)
+{
+    std::ofstream ofs(fn);
+    ofs << js.dump(4);
+}
+
+auto DataBase::loadJsonFromFile(const std::filesystem::path& fn) -> nlohmann::json
+{
+    std::ifstream ifs(fn);
+    return nlohmann::json::parse(ifs);
+}
+
+auto DataBase::loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocId_vocId_map
+{
+    vocId_vocId_map vocableChoices;
+    try {
+        nlohmann::json choicesJson = loadJsonFromFile(vocableChoicesPath);
+        ranges::transform(choicesJson,
+                          std::inserter(vocableChoices, vocableChoices.begin()),
+                          [](const nlohmann::json& choice) -> std::pair<VocableId, VocableId> {
+                              nlohmann::json id = choice["id"];
+                              nlohmann::json map_id = choice["map_id"];
+
+                              return {id, map_id};
+                          });
+    } catch (const std::exception& e) {
+        spdlog::error("Load of vocable choice file failed, Error: {}", e.what());
+    }
+    return vocableChoices;
+}
+
+auto DataBase::loadAnnotationChoices(
+        const std::filesystem::path& annotationChoicesPath) -> std::shared_ptr<AnnotationChoiceMap>
+{
+    try {
+        auto annotationChoices = std::make_shared<AnnotationChoiceMap>();
+        nlohmann::json choicesJson = loadJsonFromFile(annotationChoicesPath);
+        ranges::transform(choicesJson,
+                          std::inserter(*annotationChoices, annotationChoices->begin()),
+                          [](const nlohmann::json& choice) -> std::pair<CharacterSequence, Combination> {
+                              nlohmann::json char_seqJson = choice["char_seq"];
+                              nlohmann::json combinationJson = choice["combination"];
+                              CharacterSequence char_seq;
+                              Combination combination;
+                              ranges::transform(char_seqJson,
+                                                std::back_inserter(char_seq),
+                                                [](const nlohmann::json& character) -> utl::CharU8 {
+                                                    return {std::string(character)};
+                                                });
+                              ranges::transform(combinationJson,
+                                                std::back_inserter(combination),
+                                                [](const nlohmann::json& c) -> int { return c; });
+                              return {char_seq, combination};
+                          });
+        return annotationChoices;
+    } catch (const std::exception& e) {
+        spdlog::error("Load of AnnotationChoice file failed, Error: {}", e.what());
+        return {};
+    }
+}
+
+auto DataBase::loadProgressVocables(
+        const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>
+{
+    std::map<VocableId, VocableProgress> id_progress;
+    try {
+        nlohmann::json jsonVocable = loadJsonFromFile(progressVocablePath);
+        id_progress = jsonToMap<VocableId, VocableProgress>(jsonVocable);
+        spdlog::debug("Vocable SR file {} loaded!", s_fn_metaVocableSR);
+    } catch (const std::exception& e) {
+        spdlog::error("Vocabulary SR load for {} failed! Exception {}", progressVocablePath.c_str(), e.what());
+    }
+    return id_progress;
+}
+
+auto DataBase::loadProgressCards(
+        const std::filesystem::path& progressCardsPath) -> std::map<CardId, CardProgress>
+{
+    std::map<CardId, CardProgress> id_card;
+    try {
+        nlohmann::json jsonCardSR = loadJsonFromFile(progressCardsPath);
+        id_card = jsonToMap<CardId, CardProgress>(jsonCardSR);
+        spdlog::debug("Card SR file {} loaded!", s_fn_metaCardSR);
+    } catch (const std::exception& e) {
+        spdlog::error("Card SR load for {} failed! Exception {}", progressCardsPath.c_str(), e.what());
+    }
+    return id_card;
 }
 
 void DataBase::SaveVocableChoices() const
@@ -315,8 +256,9 @@ void DataBase::SaveVocableChoices() const
     }
 }
 
-void DataBase::SaveProgressVocables(std::map<VocableId, VocableProgress> id_progress) const
+void DataBase::SaveProgressVocables() const
 {
+    std::map<VocableId, VocableProgress> id_progress = generateVocableIdProgressMap();
     auto generateJsonFromMap = [](const auto& map) -> nlohmann::json {
         nlohmann::json jsonMeta = nlohmann::json::object();
         auto& content = jsonMeta[std::string(s_content)];
@@ -335,4 +277,51 @@ void DataBase::SaveProgressVocables(std::map<VocableId, VocableProgress> id_prog
         spdlog::error("Saving of vocable progress failed. Error: {}", e.what());
     }
 }
+
+auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
+{
+    std::map<VocableId, VocableProgress> id_progress;
+    ranges::transform(vocables->id_index_view(),
+                      std::inserter(id_progress, id_progress.begin()),
+                      [this](const auto& id_index) -> std::pair<VocableId, VocableProgress> {
+                          const auto [vocableId, index] = id_index;
+                          return {vocableId, (*vocables)[index].Progress()};
+                      });
+    return id_progress;
+}
+
+void DataBase::fillIndexMaps()
+{
+    folly::sorted_vector_set<VocableId> allVocableIds;
+    for (const auto& [id, cardPtr] : getCards()) {
+        (*cards).emplace(id, cardPtr, vocables, vocableChoices);
+    }
+
+    for (const auto& card : *cards) {
+        const auto& vocableIds = card.VocableIds();
+        allVocableIds.insert(vocableIds.begin(), vocableIds.end());
+    }
+    for (VocableId vocId : allVocableIds) {
+        if (progressVocables.contains(vocId)) {
+            vocables->emplace(vocId, progressVocables.at(vocId));
+        } else {
+            vocables->emplace(vocId, VocableProgress::new_vocable);
+        }
+    }
+    for (const auto& [cardIndex, cardMeta] : views::enumerate(cards->vspan())) {
+        for (const auto& vocableIndex : cardMeta.VocableIndices()) {
+            (*vocables)[vocableIndex].cardIndices_insert(static_cast<std::size_t>(cardIndex));
+        }
+    }
+    spdlog::info("number of vocables: {}", allVocableIds.size());
+    spdlog::info("number of cards: {}", cards->size());
+}
+
+void DataBase::addNewVocableIds(const vocId_set& newVocableIds)
+{
+    for (VocableId newVocId : newVocableIds) {
+        vocables->emplace(newVocId, VocableProgress::new_vocable);
+    }
+}
+
 } // namespace sr
