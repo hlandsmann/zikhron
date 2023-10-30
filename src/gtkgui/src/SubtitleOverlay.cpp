@@ -1,4 +1,5 @@
 #include <SubtitleOverlay.h>
+#include <GTKMM_includes.h>
 
 SubtitleOverlay::SubtitleOverlay() {
     testBtn.set_label("hello world");
@@ -6,6 +7,7 @@ SubtitleOverlay::SubtitleOverlay() {
     append(fixed);
     fixed.put(box, 0, 0);
     box.append(textDraw);
+    // textDraw.get_style_context()->add_class("suboverlay");
     set_halign(Gtk::Align::END);
     set_valign(Gtk::Align::START);
     // box.set_halign(Gtk::Align::CENTER);

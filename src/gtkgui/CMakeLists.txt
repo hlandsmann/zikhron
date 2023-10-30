@@ -17,6 +17,7 @@ target_sources(zikhron_gtkgui
         src/DataThread.h
         src/DisplayCard.cpp
         src/DisplayCard.h
+        src/GTKMM_includes.h
         src/MainWindow.cpp
         src/MainWindow.h
         src/MediaButtons.cpp

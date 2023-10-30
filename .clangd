@@ -1,4 +1,7 @@
 Diagnostics:
+  Suppress:
+    - conflicting_types
+    - builtin_definition
   UnusedIncludes: Strict
   MissingIncludes: Strict
   ClangTidy:
