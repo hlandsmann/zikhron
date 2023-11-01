@@ -40,11 +40,33 @@ void TextDraw::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int h
         cr->rectangle(0, 0, width, height);
         cr->stroke();
     }
-    cr->move_to(spacing, spacing + drift);
+    // auto layout2 = freshLayout();
+    // cr->move_to(spacing + 2, spacing + drift + 2);
+    // cr->set_source_rgb(0, 0, 0);
+    // layout2->set_width(sizeNoSpace(width) * Pango::SCALE);
+    // layout2->show_in_cairo_context(cr);
+    //
+    // cr->move_to(spacing + 2, spacing + drift - 2);
+    // cr->set_source_rgb(0, 0, 0);
+    // layout2->set_width(sizeNoSpace(width) * Pango::SCALE);
+    // layout2->show_in_cairo_context(cr);
+    //
+    // cr->move_to(spacing - 2, spacing + drift + 2);
+    // cr->set_source_rgb(0, 0, 0);
+    // layout2->set_width(sizeNoSpace(width) * Pango::SCALE);
+    // layout2->show_in_cairo_context(cr);
+    //
+    // cr->move_to(spacing - 2, spacing + drift - 2);
+    // cr->set_source_rgb(0, 0, 0);
+    // layout2->set_width(sizeNoSpace(width) * Pango::SCALE);
+    // layout2->show_in_cairo_context(cr);
 
+    // std::apply([&](auto... color) { cr->set_source_rgb(color...); }, fontColor);
+    cr->move_to(spacing, spacing + drift);
     auto layout = freshLayout();
     layout->set_width(sizeNoSpace(width) * Pango::SCALE);
     layout->show_in_cairo_context(cr);
+
     lastDrawnLayout = layout;
 
     newHeightRequest(height, layout);

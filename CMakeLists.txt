@@ -12,6 +12,7 @@ CPMAddPackage("gh:gabime/spdlog@1.11.0")
 CPMAddPackage("gh:hanickadot/compile-time-regular-expressions#v3.8")
 CPMAddPackage("gh:microsoft/GSL@4.0.0")
 CPMAddPackage("gh:nlohmann/json@3.11.2")
+CPMAddPackage("gh:glfw/glfw#3.3.8")
 include(FindPkgConfig)
 
 option(use_iwyu ON)
@@ -30,13 +31,14 @@ endif(use_iwyu)
 include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
 gen_cfg_json()
 add_subdirectory(src)
-
+add_subdirectory(third_party)
 option(ENABLE_TESTING "Enable Test Builds" ON)
 
 if(ENABLE_TESTING)
     enable_testing()
     message("Building tests..")
     add_subdirectory(test)
+    add_subdirectory(imguitest)
 endif()
 
 
