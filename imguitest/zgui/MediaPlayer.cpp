@@ -1,5 +1,4 @@
 // clang-format off
-#include <array>
 #include <epoxy/glx.h>
 #include <epoxy/egl.h>
 #include <epoxy/gl_generated.h>
