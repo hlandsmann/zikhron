@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="92.0px"
+   height="92.0px"
+   viewBox="0 0 92.0 92.0"
+   version="1.1"
+   id="SVGRoot"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs3883" />
+  <g
+     id="layer1">
+    <g
+       data-name="Group"
+       id="g863"
+       transform="matrix(1.0564862,0,0,1.0421469,-6.82431,-6.107345)">
+      <path
+         data-name="Path"
+         d="M 54.2,39 H 25.8 a 1,1 0 1 0 0,2 h 28.4 a 1,1 0 0 0 0,-2 z"
+         id="path855" />
+      <path
+         data-name="Path"
+         d="M 54.2,27 H 25.8 a 1,1 0 0 0 0,2 h 28.4 a 1,1 0 0 0 0,-2 z"
+         id="path857" />
+      <path
+         data-name="Path"
+         d="M 54.2,51 H 25.8 a 1,1 0 1 0 0,2 h 28.4 a 1,1 0 0 0 0,-2 z"
+         id="path859" />
+      <path
+         data-name="Compound Path"
+         d="m 40.3,88.9 h 39.4 a 9,9 0 0 0 9,-9 V 40.1 a 9,9 0 0 0 -9,-9 h -11 v -11 a 9,9 0 0 0 -9,-9 H 20.3 a 9,9 0 0 0 -9,9 v 39.8 a 9,9 0 0 0 9,9 h 11 v 11 a 9,9 0 0 0 9,9 z M 79.7,33.1 a 7,7 0 0 1 7,7 v 39.8 a 7,7 0 0 1 -7,7 H 40.3 a 7,7 0 0 1 -7,-7 v -11 h 26.4 a 9,9 0 0 0 9,-9 V 33.1 Z M 13.3,59.9 V 20.1 a 7,7 0 0 1 7,-7 h 39.4 a 7,7 0 0 1 7,7 v 39.8 a 7,7 0 0 1 -7,7 H 20.3 a 7,7 0 0 1 -7,-7 z"
+         id="path861" />
+    </g>
+  </g>
+</svg>
