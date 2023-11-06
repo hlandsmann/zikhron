@@ -10,8 +10,8 @@
 #include <utility>
 
 namespace widget {
-Window::Window(std::shared_ptr<layout::rect> _rect, float _width, float _height, std::string _name)
-    : rect{std::move(_rect)}
+Window::Window(layout::Align _align, std::shared_ptr<layout::Rect> _rect, float _width, float _height, std::string _name)
+    : Widget<Window>{_align, std::move(_rect)}
     , width{_width}
     , height{_height}
     , name{std::move(_name)}

@@ -93,7 +93,7 @@ void MainWindow::initImGui()
                                  io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 }
 
-void MainWindow::doImGui(const widget::layout::rect& rect)
+void MainWindow::doImGui(const widget::layout::Rect& rect)
 {
     bool show_demo_window = true;
     if (show_demo_window) {
@@ -123,7 +123,7 @@ void MainWindow::run()
     int display_h{};
     glfwGetFramebufferSize(window, &display_w, &display_h);
 
-    widget::layout::rect rect{0, 0, static_cast<float>(display_w), static_cast<float>(display_h)};
+    widget::layout::Rect rect{0, 0, static_cast<float>(display_w), static_cast<float>(display_h)};
 
     if (glfwWindowShouldClose(window) != 0) {
         close = true;

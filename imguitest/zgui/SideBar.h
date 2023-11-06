@@ -13,7 +13,7 @@ public:
         SupplyAudio,
     };
 
-    auto doChoice(const widget::layout::rect& rect) -> Tab;
+    auto doChoice(const widget::layout::Rect& rect) -> Tab;
 
 private:
     constexpr static float width = 40.F;

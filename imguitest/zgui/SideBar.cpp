@@ -2,7 +2,7 @@
 #include <SideBar.h>
 #include <imgui.h>
 
-auto SideBar::doChoice(const widget::layout::rect& rect) -> Tab
+auto SideBar::doChoice(const widget::layout::Rect& rect) -> Tab
 {
     ImGui::SetNextWindowPos({rect.x, rect.y});
     ImGui::SetNextWindowSize({rect.width, rect.height});

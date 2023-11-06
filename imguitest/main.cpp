@@ -14,7 +14,7 @@
 auto taskSlow43() -> folly::coro::Task<int>
 {
     spdlog::info("Hello World");
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 3; i++) {
         spdlog::info("run: {}", i);
         co_await folly::futures::sleep(std::chrono::seconds{1});
     }
@@ -24,7 +24,7 @@ auto taskSlow43() -> folly::coro::Task<int>
 auto taskSlow42() -> folly::coro::Task<int>
 {
     spdlog::info("Hello World");
-    for (int i = 10; i < 20; i++) {
+    for (int i = 10; i < 13; i++) {
         spdlog::info("run: {}", i);
         co_await folly::futures::sleep(std::chrono::seconds{1});
     }
@@ -38,6 +38,7 @@ auto main(int argc, char** argv) -> int
     // auto threadPoolExecutor = std::make_shared<folly::ThreadPoolExecutor>(
     //         1, 20, std::make_shared<folly::NamedThreadFactory>("thread_pool"));
     MainWindow mainWindow{executor};
+
     auto task = taskSlow43;
     auto f2 = taskSlow42().semi().via(executor.get());
     auto future = task().semi().via(executor.get());

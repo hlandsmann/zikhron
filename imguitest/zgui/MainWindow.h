@@ -27,7 +27,7 @@ public:
 private:
     void initOpenglContext();
     void initImGui();
-    void doImGui(const widget::layout::rect& rect);
+    void doImGui(const widget::layout::Rect& rect);
     std::string glsl_version{"#version 130"};
     bool close{false};
     GLFWwindow* window{nullptr};

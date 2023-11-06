@@ -7,43 +7,47 @@
 #include <vector>
 
 namespace widget {
-namespace layout {
-struct rect
-{
-    float x{};
-    float y{};
-    float width{};
-    float height{};
-};
-
-enum class Orientation {
-    horizontal,
-    vertical
-};
-
-enum class Align {
-    start,
-    center,
-    end
-};
-} // namespace layout
-class Layout
+class Layout : public Widget<Layout>
 {
 public:
+    constexpr static float s_padding = 16.F;
     Layout(layout::Orientation);
+    Layout(layout::Align, std::shared_ptr<layout::Rect>, layout::Orientation);
+
+    void setSize(const layout::Rect&);
 
     template<class WidgetType, class... Args>
-    auto add(layout::Align dir, Args... args) -> std::shared_ptr<WidgetType>
+    auto add(layout::Align align, Args... args) -> std::shared_ptr<WidgetType>
     {
-        auto rect = std::make_shared<layout::rect>();
-        auto widget = std::make_shared<WidgetType>(rect, std::forward<Args>(args)...);
+        auto rect = std::make_shared<layout::Rect>();
+        auto widget = std::make_shared<WidgetType>(align, rect, std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
         return widget;
     }
 
 private:
+    enum class Measure {
+        width,
+        height
+    };
+    Layout(std::shared_ptr<layout::Rect>, layout::Orientation _orientation);
+    friend class Widget<Layout>;
+    auto calculateSize() const -> WidgetSize;
+    static auto measureProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float;
+    auto accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
+                           std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
+                           Measure measure) const -> float;
+    static auto max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
+                            std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
+                            Measure measure) -> float;
+    void doLayout();
+
     layout::Orientation orientation;
     std::vector<std::shared_ptr<WidgetBase>> widgets;
+    std::vector<std::shared_ptr<layout::Rect>> rects;
+
+    std::shared_ptr<layout::Rect> rect;
+    float padding{s_padding};
 };
 
 } // namespace widget
