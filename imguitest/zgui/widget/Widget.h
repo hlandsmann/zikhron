@@ -50,7 +50,7 @@ public:
     auto operator=(const WidgetBase&) -> WidgetBase& = default;
     auto operator=(WidgetBase&&) -> WidgetBase& = default;
 
-    [[nodiscard]] virtual auto LayoutSize() const -> const WidgetSize& = 0;
+    [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
     [[nodiscard]] auto Align() const -> layout::Align;
 
 protected:
@@ -73,16 +73,16 @@ public:
     auto operator=(const Widget&) -> Widget& = default;
     auto operator=(Widget&&) -> Widget& = default;
 
-    [[nodiscard]] auto LayoutSize() const -> const WidgetSize& override
+    [[nodiscard]] auto getWidgetSize() const -> const WidgetSize& override
     {
-        if (size.has_value()) {
-            return *size;
+        if (widgetSize.has_value()) {
+            return *widgetSize;
         }
-        return size.emplace(static_cast<WidgetImpl const*>(this)->calculateSize());
+        return widgetSize.emplace(static_cast<WidgetImpl const*>(this)->calculateSize());
     }
 
 private:
-    mutable std::optional<WidgetSize> size;
+    mutable std::optional<WidgetSize> widgetSize;
 };
 
 } // namespace widget

@@ -34,8 +34,9 @@ private:
     Layout(std::shared_ptr<layout::Rect>, layout::Orientation _orientation);
     friend class Widget<Layout>;
     auto calculateSize() const -> WidgetSize;
-    static auto sizeProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float;
-    static auto positionProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&;
+    static auto widgetSizeProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float;
+    static auto rectPositionProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&;
+    static auto rectSizeProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&;
     auto accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
                            std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
                            Measure measure) const -> float;

@@ -51,24 +51,35 @@ auto Layout::calculateSize() const -> WidgetSize
     return result;
 }
 
-auto Layout::sizeProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float
+auto Layout::widgetSizeProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float
 {
     switch (measure) {
     case Measure::width:
-        return widget->LayoutSize().width;
+        return widget->getWidgetSize().width;
     case Measure::height:
-        return widget->LayoutSize().height;
+        return widget->getWidgetSize().height;
     }
     std::unreachable();
 }
 
-auto Layout::positionProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&
+auto Layout::rectPositionProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&
 {
     switch (measure) {
     case Measure::width:
         return rect->x;
     case Measure::height:
         return rect->y;
+    }
+    std::unreachable();
+}
+
+auto Layout::rectSizeProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&
+{
+    switch (measure) {
+    case Measure::width:
+        return rect->width;
+    case Measure::height:
+        return rect->height;
     }
     std::unreachable();
 }
@@ -80,11 +91,11 @@ auto Layout::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_
     if (first == last) {
         return 0.0F;
     }
-    return sizeProjection(
+    return widgetSizeProjection(
             *std::max_element(first, last,
                               [measure](const std::shared_ptr<WidgetBase>& widget_a,
                                         const std::shared_ptr<WidgetBase>& widget_b) {
-                                  return sizeProjection(widget_a, measure) < sizeProjection(widget_b, measure);
+                                  return widgetSizeProjection(widget_a, measure) < widgetSizeProjection(widget_b, measure);
                               }),
             measure);
 }
@@ -94,7 +105,7 @@ auto Layout::accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_i
                                Measure measure) const -> float
 {
     return std::accumulate(first, last, float{}, [this, measure](float val, const std::shared_ptr<WidgetBase>& widget) -> float {
-        return val + sizeProjection(widget, measure) + ((val == 0.F) ? 0.F : padding);
+        return val + widgetSizeProjection(widget, measure) + ((val == 0.F) ? 0.F : padding);
     });
 }
 
@@ -119,31 +130,27 @@ auto Layout::getNextAlign(layout::Align oldAlign, layout::Align nextAlign)
 void Layout::doLayout()
 {
     auto measure = Measure::width;
-    float startSize{};
-    float centerSize{};
-    float endSize{};
+
+    auto centerIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
+        return widgetPtr->Align() == layout::Align::center
+               || widgetPtr->Align() == layout::Align::end;
+    });
+    auto endIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
+        return widgetPtr->Align() == layout::Align::end;
+    });
+    float startSize = accumulateMeasure(widgets.begin(), centerIt, measure);
+    float centerSize = accumulateMeasure(centerIt, endIt, measure);
+    float endSize = accumulateMeasure(endIt, widgets.end(), measure);
 
     using layout::Align;
     Align align = Align::start;
-    for (const auto& widget : widgets) {
-        align = getNextAlign(align, widget->Align());
-        switch (align) {
-        case Align::start:
-            startSize += sizeProjection(widget, measure);
-            break;
-        case Align::center:
-            centerSize += sizeProjection(widget, measure);
-            break;
-        case Align::end:
-            endSize += sizeProjection(widget, measure);
-            break;
-        }
-    }
     auto size_type = SizeType::fixed;
-    align = Align::start;
     float cursor{};
-    for (const auto& [widget, wRect] : views::zip(widgets, rects)) {
-        align = getNextAlign(align, widget->Align());
+    for (const auto& [widgetPair, widgetRect0] : views::zip(views::pairwise(widgets), rects)) {
+        auto& widget0 = *std::get<0>(widgetPair);
+        auto& widget1 = *std::get<1>(widgetPair);
+
+        // align = getNextAlign(align, widget->Align());
     }
 }
 
