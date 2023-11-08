@@ -2,6 +2,7 @@ Diagnostics:
   Suppress:
     - conflicting_types
     - builtin_definition
+    - template_different_type_constraint
   UnusedIncludes: Strict
   MissingIncludes: Strict
   ClangTidy:

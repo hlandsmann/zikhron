@@ -1,6 +1,5 @@
 #include "Window.h"
 
-#include "Layout.h"
 #include "Widget.h"
 
 #include <imgui.h>
@@ -20,8 +19,8 @@ Window::Window(layout::Align _align, std::shared_ptr<layout::Rect> _rect, float 
 
 auto Window::calculateSize() const -> WidgetSize
 {
-    return {.widthType = (width == 0.F) ? size_type::variable : size_type::fixed,
-            .heightType = (height == 0.F) ? size_type::variable : size_type::fixed,
+    return {.widthType = (width == 0.F) ? layout::SizeType::expand : layout::SizeType::fixed,
+            .heightType = (height == 0.F) ? layout::SizeType::expand : layout::SizeType::fixed,
             .width = width,
             .height = height};
 }

@@ -12,4 +12,9 @@ auto WidgetBase::Rect() const -> const layout::Rect&
 {
     return *rect;
 }
+
+auto WidgetBase::Align() const -> layout::Align
+{
+    return align;
+}
 } // namespace widget

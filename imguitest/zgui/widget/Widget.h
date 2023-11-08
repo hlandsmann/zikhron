@@ -1,9 +1,9 @@
 #pragma once
-#include <utility>
-#include <memory>
 #include <imgui.h>
 
+#include <memory>
 #include <optional>
+#include <utility>
 
 namespace widget {
 namespace layout {
@@ -25,16 +25,17 @@ enum class Align {
     center,
     end
 };
-} // namespace layout
-enum class size_type {
+enum class SizeType {
     fixed,
-    variable
+    expand
 };
+} // namespace layout
 
 struct WidgetSize
 {
-    size_type widthType{size_type::fixed};
-    size_type heightType{size_type::fixed};
+    using SizeType = layout::SizeType;
+    SizeType widthType{SizeType::fixed};
+    SizeType heightType{SizeType::fixed};
     float width{};
     float height{};
 };
@@ -50,8 +51,11 @@ public:
     auto operator=(WidgetBase&&) -> WidgetBase& = default;
 
     [[nodiscard]] virtual auto LayoutSize() const -> const WidgetSize& = 0;
+    [[nodiscard]] auto Align() const -> layout::Align;
+
 protected:
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
+
 private:
     layout::Align align;
     std::shared_ptr<layout::Rect> rect;
@@ -61,7 +65,8 @@ template<class WidgetImpl>
 class Widget : public WidgetBase
 {
 public:
-    Widget(layout::Align align, std::shared_ptr<layout::Rect> rect) : WidgetBase{align, std::move(rect)}{}
+    Widget(layout::Align align, std::shared_ptr<layout::Rect> rect)
+        : WidgetBase{align, std::move(rect)} {}
     ~Widget() override = default;
     Widget(const Widget&) = default;
     Widget(Widget&&) = default;

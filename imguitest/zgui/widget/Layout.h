@@ -9,6 +9,7 @@
 namespace widget {
 class Layout : public Widget<Layout>
 {
+  using SizeType = layout::SizeType;
 public:
     constexpr static float s_padding = 16.F;
     Layout(layout::Orientation);
@@ -33,13 +34,15 @@ private:
     Layout(std::shared_ptr<layout::Rect>, layout::Orientation _orientation);
     friend class Widget<Layout>;
     auto calculateSize() const -> WidgetSize;
-    static auto measureProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float;
+    static auto sizeProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float;
+    static auto positionProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&;
     auto accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
                            std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
                            Measure measure) const -> float;
     static auto max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
-                            std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
-                            Measure measure) -> float;
+                                   std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
+                                   Measure measure) -> float;
+    static auto getNextAlign(layout::Align oldAlign, layout::Align nextAlign);
     void doLayout();
 
     layout::Orientation orientation;
