@@ -14,12 +14,12 @@ namespace views = std::ranges::views;
 namespace widget {
 Layout::Layout(layout::Orientation _orientation)
     : Layout{std::make_shared<layout::Rect>(), _orientation} {}
-Layout::Layout(layout::Align _align, std::shared_ptr<layout::Rect> _rect, layout::Orientation _orientation)
+Layout::Layout(Align _align, std::shared_ptr<layout::Rect> _rect, layout::Orientation _orientation)
     : Widget<Layout>{_align, _rect}
     , orientation{_orientation}
     , rect{std::move(_rect)} {}
 Layout::Layout(std::shared_ptr<layout::Rect> _rect, layout::Orientation _orientation)
-    : Widget<Layout>{layout::Align::start, _rect}
+    : Widget<Layout>{Align::start, _rect}
     , rect{std::move(_rect)}
     , orientation{_orientation} {}
 
@@ -51,35 +51,46 @@ auto Layout::calculateSize() const -> WidgetSize
     return result;
 }
 
-auto Layout::widgetSizeProjection(const std::shared_ptr<WidgetBase>& widget, Measure measure) -> float
+auto Layout::widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float
 {
     switch (measure) {
     case Measure::width:
-        return widget->getWidgetSize().width;
+        return widgetSize.width;
     case Measure::height:
-        return widget->getWidgetSize().height;
+        return widgetSize.height;
     }
     std::unreachable();
 }
 
-auto Layout::rectPositionProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&
+auto Layout::widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType
 {
     switch (measure) {
     case Measure::width:
-        return rect->x;
+        return widgetSize.widthType;
     case Measure::height:
-        return rect->y;
+        return widgetSize.heightType;
     }
     std::unreachable();
 }
 
-auto Layout::rectSizeProjection(const std::shared_ptr<layout::Rect>& rect, Measure measure) -> float&
+auto Layout::rectPositionProjection(layout::Rect& rect, Measure measure) -> float&
 {
     switch (measure) {
     case Measure::width:
-        return rect->width;
+        return rect.x;
     case Measure::height:
-        return rect->height;
+        return rect.y;
+    }
+    std::unreachable();
+}
+
+auto Layout::rectSizeProjection(layout::Rect& rect, Measure measure) -> float&
+{
+    switch (measure) {
+    case Measure::width:
+        return rect.width;
+    case Measure::height:
+        return rect.height;
     }
     std::unreachable();
 }
@@ -92,11 +103,13 @@ auto Layout::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_
         return 0.0F;
     }
     return widgetSizeProjection(
-            *std::max_element(first, last,
-                              [measure](const std::shared_ptr<WidgetBase>& widget_a,
-                                        const std::shared_ptr<WidgetBase>& widget_b) {
-                                  return widgetSizeProjection(widget_a, measure) < widgetSizeProjection(widget_b, measure);
-                              }),
+            (*std::max_element(first, last,
+                               [measure](const std::shared_ptr<WidgetBase>& widget_a,
+                                         const std::shared_ptr<WidgetBase>& widget_b) -> bool {
+                                   return widgetSizeProjection(widget_a->getWidgetSize(), measure)
+                                          < widgetSizeProjection(widget_b->getWidgetSize(), measure);
+                               }))
+                    ->getWidgetSize(),
             measure);
 }
 
@@ -105,13 +118,12 @@ auto Layout::accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_i
                                Measure measure) const -> float
 {
     return std::accumulate(first, last, float{}, [this, measure](float val, const std::shared_ptr<WidgetBase>& widget) -> float {
-        return val + widgetSizeProjection(widget, measure) + ((val == 0.F) ? 0.F : padding);
+        return val + widgetSizeProjection(widget->getWidgetSize(), measure) + ((val == 0.F) ? 0.F : padding);
     });
 }
 
-auto Layout::getNextAlign(layout::Align oldAlign, layout::Align nextAlign)
+auto Layout::getNextAlign(Align oldAlign, Align nextAlign)
 {
-    using layout::Align;
     switch (oldAlign) {
     case Align::start:
         return nextAlign;
@@ -122,9 +134,55 @@ auto Layout::getNextAlign(layout::Align oldAlign, layout::Align nextAlign)
         return nextAlign;
     case Align::end:
         return Align::end;
-    default:
-        return Align::end;
     }
+    std::unreachable();
+}
+
+auto Layout::getWidgetNewCursor(Align align, float cursor, const std::shared_ptr<Widget>& widget,
+                                float centerSize, float endSize, Measure measure) const -> float
+{
+    float widgetSize = widgetSizeProjection(widget->getWidgetSize(), measure);
+    switch (align) {
+    case Align::start:
+        return cursor;
+    case Align::center: {
+        float rectSize = rectSizeProjection(*rect, measure);
+        float centerCursor = rectSize / 2 - widgetSize / 2;
+        float minCursor = std::min(rectSize - centerSize, centerCursor);
+        return std::max(minCursor, cursor);
+    }
+    case Align::end:
+        float maxCursor = std::max(widgetSize - endSize, cursor);
+        if (widgetSizeTypeProjection(widget->getWidgetSize(), measure) == SizeType::fixed
+            || widgetSize < endSize) {
+            return maxCursor;
+        }
+        return cursor;
+    }
+    std::unreachable();
+}
+
+auto Layout::getWidgetNewSize(Align align, Align alignNextWidget,
+                              float cursor, float cursorNextWidget,
+                              const std::shared_ptr<Widget>& widget,
+                              Measure measure) -> float
+{
+    float widgetSize = widgetSizeProjection(widget->getWidgetSize(), measure);
+    SizeType widgetSizeType = widgetSizeTypeProjection(widget->getWidgetSize(), measure);
+    switch (align) {
+    case Align::start:
+    case Align::center:
+        if (align == alignNextWidget || widgetSizeType == SizeType::fixed) {
+            return widgetSize;
+        }
+        return cursorNextWidget - cursor;
+    case Align::end:
+        if (widgetSizeType == SizeType::fixed) {
+            return widgetSize;
+        }
+        return cursorNextWidget - cursor;
+    }
+    std::unreachable();
 }
 
 void Layout::doLayout()
@@ -132,17 +190,16 @@ void Layout::doLayout()
     auto measure = Measure::width;
 
     auto centerIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
-        return widgetPtr->Align() == layout::Align::center
-               || widgetPtr->Align() == layout::Align::end;
+        return widgetPtr->Align() == Align::center
+               || widgetPtr->Align() == Align::end;
     });
     auto endIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
-        return widgetPtr->Align() == layout::Align::end;
+        return widgetPtr->Align() == Align::end;
     });
     float startSize = accumulateMeasure(widgets.begin(), centerIt, measure);
-    float centerSize = accumulateMeasure(centerIt, endIt, measure);
+    float centerSize = accumulateMeasure(centerIt, widgets.end(), measure);
     float endSize = accumulateMeasure(endIt, widgets.end(), measure);
 
-    using layout::Align;
     Align align = Align::start;
     auto size_type = SizeType::fixed;
     float cursor{};
