@@ -17,10 +17,10 @@ Layout::Layout(layout::Orientation _orientation)
 Layout::Layout(Align _align, std::shared_ptr<layout::Rect> _rect, layout::Orientation _orientation)
     : Widget<Layout>{_align, _rect}
     , orientation{_orientation}
-    , rect{std::move(_rect)} {}
+    , layoutRect{std::move(_rect)} {}
 Layout::Layout(std::shared_ptr<layout::Rect> _rect, layout::Orientation _orientation)
     : Widget<Layout>{Align::start, _rect}
-    , rect{std::move(_rect)}
+    , layoutRect{std::move(_rect)}
     , orientation{_orientation} {}
 
 auto Layout::calculateSize() const -> WidgetSize
@@ -138,22 +138,22 @@ auto Layout::getNextAlign(Align oldAlign, Align nextAlign)
     std::unreachable();
 }
 
-auto Layout::getWidgetNewCursor(Align align, float cursor, const std::shared_ptr<Widget>& widget,
+auto Layout::getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
                                 float centerSize, float endSize, Measure measure) const -> float
 {
-    float widgetSize = widgetSizeProjection(widget->getWidgetSize(), measure);
+    float widgetSize = widgetSizeProjection(widget.getWidgetSize(), measure);
     switch (align) {
     case Align::start:
         return cursor;
     case Align::center: {
-        float rectSize = rectSizeProjection(*rect, measure);
+        float rectSize = rectSizeProjection(*layoutRect, measure);
         float centerCursor = rectSize / 2 - widgetSize / 2;
         float minCursor = std::min(rectSize - centerSize, centerCursor);
         return std::max(minCursor, cursor);
     }
     case Align::end:
         float maxCursor = std::max(widgetSize - endSize, cursor);
-        if (widgetSizeTypeProjection(widget->getWidgetSize(), measure) == SizeType::fixed
+        if (widgetSizeTypeProjection(widget.getWidgetSize(), measure) == SizeType::fixed
             || widgetSize < endSize) {
             return maxCursor;
         }
@@ -164,11 +164,11 @@ auto Layout::getWidgetNewCursor(Align align, float cursor, const std::shared_ptr
 
 auto Layout::getWidgetNewSize(Align align, Align alignNextWidget,
                               float cursor, float cursorNextWidget,
-                              const std::shared_ptr<Widget>& widget,
+                              const WidgetBase& widget,
                               Measure measure) -> float
 {
-    float widgetSize = widgetSizeProjection(widget->getWidgetSize(), measure);
-    SizeType widgetSizeType = widgetSizeTypeProjection(widget->getWidgetSize(), measure);
+    float widgetSize = widgetSizeProjection(widget.getWidgetSize(), measure);
+    SizeType widgetSizeType = widgetSizeTypeProjection(widget.getWidgetSize(), measure);
     switch (align) {
     case Align::start:
     case Align::center:
@@ -187,6 +187,9 @@ auto Layout::getWidgetNewSize(Align align, Align alignNextWidget,
 
 void Layout::doLayout()
 {
+    if (widgets.empty()) {
+        return;
+    }
     auto measure = Measure::width;
 
     auto centerIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
@@ -196,19 +199,39 @@ void Layout::doLayout()
     auto endIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
         return widgetPtr->Align() == Align::end;
     });
-    float startSize = accumulateMeasure(widgets.begin(), centerIt, measure);
+    // float startSize = accumulateMeasure(widgets.begin(), centerIt, measure);
     float centerSize = accumulateMeasure(centerIt, widgets.end(), measure);
     float endSize = accumulateMeasure(endIt, widgets.end(), measure);
 
-    Align align = Align::start;
-    auto size_type = SizeType::fixed;
-    float cursor{};
+    auto& widget = *widgets.front();
+    Align align0 = getNextAlign(Align::start, widget.Align());
+    Align align1 = align0;
+    float cursor0 = getWidgetNewCursor(align0, 0.F, widget, centerSize, endSize, measure);
+    float cursor1 = cursor0;
     for (const auto& [widgetPair, widgetRect0] : views::zip(views::pairwise(widgets), rects)) {
         auto& widget0 = *std::get<0>(widgetPair);
         auto& widget1 = *std::get<1>(widgetPair);
 
-        // align = getNextAlign(align, widget->Align());
+        align1 = getNextAlign(align1, widget1.Align()); // old Align is here also align0
+
+        cursor1 = cursor0 + widgetSizeProjection(widget0.getWidgetSize(), measure) + padding;
+        cursor1 = getWidgetNewCursor(align1, cursor1, widget1, centerSize, endSize, measure);
+
+        auto size = getWidgetNewSize(align0, align1, cursor0, cursor1, widget0, measure);
+
+        // set values
+        rectPositionProjection(*widgetRect0, measure) = cursor0;
+        rectSizeProjection(*widgetRect0, measure) = size;
+
+        // only cursor0 needs updating for next loop
+        cursor0 = cursor1;
+        align0 = align1;
     }
+    auto& widgetRect = *rects.back();
+    cursor1 = rectSizeProjection(*layoutRect, measure);
+    auto size = getWidgetNewSize(align0, align0, cursor0, cursor1, widget, measure);
+    rectPositionProjection(widgetRect, measure) = cursor0;
+    rectSizeProjection(widgetRect, measure) = size;
 }
 
 } // namespace widget

@@ -47,11 +47,11 @@ private:
                                    std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
                                    Measure measure) -> float;
     static auto getNextAlign(Align oldAlign, Align nextAlign);
-    auto getWidgetNewCursor(Align align, float cursor, const std::shared_ptr<Widget>& widget,
+    auto getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
                             float centerSize, float endSize, Measure measure) const -> float;
     static auto getWidgetNewSize(Align align, Align alignNextWidget,
                                  float cursor, float cursorNextWidget,
-                                 const std::shared_ptr<Widget>& widget,
+                                 const WidgetBase& widget,
                                  Measure measure) -> float;
     void doLayout();
 
@@ -59,7 +59,7 @@ private:
     std::vector<std::shared_ptr<WidgetBase>> widgets;
     std::vector<std::shared_ptr<layout::Rect>> rects;
 
-    std::shared_ptr<layout::Rect> rect;
+    std::shared_ptr<layout::Rect> layoutRect;
     float padding{s_padding};
 };
 
