@@ -1,4 +1,5 @@
 #pragma once
+#include <widget/Widget.h>
 #include <Fonts.h>
 #include <GLFW/glfw3.h>
 #include <MediaPlayer.h>
@@ -28,6 +29,7 @@ private:
     void initOpenglContext();
     void initImGui();
     void doImGui(const widget::layout::Rect& rect);
+    void arrangeLayout();
     std::string glsl_version{"#version 130"};
     bool close{false};
     GLFWwindow* window{nullptr};
@@ -36,8 +38,6 @@ private:
     // ImGui widgets
     SideBar sideBar{};
     std::unique_ptr<Fonts> fonts;
-    std::shared_ptr<widget::Window> window1;
-    std::shared_ptr<widget::Window> window2;
     widget::Layout layout{widget::layout::Orientation::horizontal};
 
     // async

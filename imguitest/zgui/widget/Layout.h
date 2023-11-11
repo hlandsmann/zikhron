@@ -2,8 +2,10 @@
 #include "Widget.h"
 
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace widget {
@@ -15,25 +17,43 @@ class Layout : public Widget<Layout>
 public:
     constexpr static float s_padding = 16.F;
     Layout(layout::Orientation);
-    Layout(Align, std::shared_ptr<layout::Rect>, layout::Orientation);
+    Layout(Align, layout::Orientation, std::shared_ptr<layout::Rect>);
 
-    void setSize(const layout::Rect&);
+    void arrange(const layout::Rect&);
+    void arrange();
 
     template<class WidgetType, class... Args>
     auto add(Align align, Args... args) -> std::shared_ptr<WidgetType>
     {
         auto rect = std::make_shared<layout::Rect>();
-        auto widget = std::make_shared<WidgetType>(align, rect, std::forward<Args>(args)...);
+        auto widgetOrientation = Orientation() == layout::Orientation::vertical
+                                         ? layout::Orientation::horizontal
+                                         : layout::Orientation::vertical;
+        auto widget = std::make_shared<WidgetType>(align, widgetOrientation, rect, std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
+        // spdlog::warn("a: {}, w: {}, b: {}, f: {}",
+        //              static_cast<int>(align),
+        //              static_cast<int>(widget->Align()),
+        //              static_cast<int>(widgets.back()->Align()),
+        //              static_cast<int>(widgets.front()->Align()));
+        rects.push_back(std::move(rect));
         return widget;
     }
+    template<class WidgetType>
+    auto next() -> WidgetType&
+    {
+        auto& result = dynamic_cast<WidgetType&>(**currentWidgetIt);
+        currentWidgetIt++;
+        return result;
+    }
+    void start();
 
 private:
     enum class Measure {
         width,
         height
     };
-    Layout(std::shared_ptr<layout::Rect>, layout::Orientation _orientation);
+    Layout(layout::Orientation _orientation, std::shared_ptr<layout::Rect>);
     friend class Widget<Layout>;
     auto calculateSize() const -> WidgetSize;
     static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;
@@ -49,15 +69,17 @@ private:
     static auto getNextAlign(Align oldAlign, Align nextAlign);
     auto getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
                             float centerSize, float endSize, Measure measure) const -> float;
-    static auto getWidgetNewSize(Align align, Align alignNextWidget,
-                                 float cursor, float cursorNextWidget,
-                                 const WidgetBase& widget,
-                                 Measure measure) -> float;
-    void doLayout();
+    auto getWidgetNewSize(Align align, Align alignNextWidget,
+                          float cursor, float cursorNextWidget,
+                          const WidgetBase& widget,
+                          Measure measure) const -> float;
+    void setChildWidgetsInitialRect();
+    void doLayout(Measure measure);
 
     layout::Orientation orientation;
     std::vector<std::shared_ptr<WidgetBase>> widgets;
     std::vector<std::shared_ptr<layout::Rect>> rects;
+    std::vector<std::shared_ptr<WidgetBase>>::iterator currentWidgetIt;
 
     std::shared_ptr<layout::Rect> layoutRect;
     float padding{s_padding};

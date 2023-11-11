@@ -27,8 +27,16 @@ enum class Align {
 };
 enum class SizeType {
     fixed,
-    expand
+    width_fixed = fixed,
+    height_fixed = fixed,
+    expand,
+    width_expand = expand,
+    height_expand = expand,
 };
+static auto constexpr width_fixed = SizeType::width_fixed;
+static auto constexpr height_fixed = SizeType::height_fixed;
+static auto constexpr width_expand = SizeType::width_expand;
+static auto constexpr height_expand = SizeType::height_expand;
 } // namespace layout
 
 struct WidgetSize
@@ -43,7 +51,7 @@ struct WidgetSize
 class WidgetBase
 {
 public:
-    WidgetBase(layout::Align align, std::shared_ptr<layout::Rect> rect);
+    WidgetBase(layout::Align align, layout::Orientation orientation, std::shared_ptr<layout::Rect> rect);
     virtual ~WidgetBase() = default;
     WidgetBase(const WidgetBase&) = default;
     WidgetBase(WidgetBase&&) = default;
@@ -52,12 +60,14 @@ public:
 
     [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
     [[nodiscard]] auto Align() const -> layout::Align;
+    [[nodiscard]] auto Orientation() const -> layout::Orientation;
 
 protected:
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
 
 private:
     layout::Align align;
+    layout::Orientation orientation;
     std::shared_ptr<layout::Rect> rect;
 };
 
@@ -65,8 +75,8 @@ template<class WidgetImpl>
 class Widget : public WidgetBase
 {
 public:
-    Widget(layout::Align align, std::shared_ptr<layout::Rect> rect)
-        : WidgetBase{align, std::move(rect)} {}
+    Widget(layout::Align align, layout::Orientation orientation, std::shared_ptr<layout::Rect> rect)
+        : WidgetBase{align, orientation, std::move(rect)} {}
     ~Widget() override = default;
     Widget(const Widget&) = default;
     Widget(Widget&&) = default;

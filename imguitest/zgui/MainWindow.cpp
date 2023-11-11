@@ -18,7 +18,10 @@
 #include <folly/executors/ManualExecutor.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
+#include <widget/Button.h>
 #include <widget/Layout.h>
+#include <widget/Widget.h>
+#include <widget/imglog.h>
 
 #include <memory>
 #include <stdexcept>
@@ -42,6 +45,7 @@ MainWindow::MainWindow(std::shared_ptr<folly::ManualExecutor> _executor)
     initImGui();
     fonts = std::make_unique<Fonts>();
     videoPlayer->initGL();
+    arrangeLayout();
     // videoPlayer->openFile("/home/harmen/Videos/chinesisch/Cute Programmer E01 1080p WEB-DL AAC H.264-Luvmichelle.mkv");
     // videoPlayer->play();
 }
@@ -67,7 +71,7 @@ void MainWindow::initOpenglContext()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
     // Create window with graphics context
-    window = glfwCreateWindow(1980, 1200, "Dear ImGui GLFW+OpenGL3 example", nullptr, nullptr);
+    window = glfwCreateWindow(1980, 1200, "zikhron", nullptr, nullptr);
     if (window == nullptr) {
         throw std::runtime_error("Failed to create Window");
     }
@@ -89,32 +93,67 @@ void MainWindow::initImGui()
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
-    io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 20, nullptr,
-                                 io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    // io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 20, nullptr,
+    //                              io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 }
 
 void MainWindow::doImGui(const widget::layout::Rect& rect)
 {
+    // sideBar.doChoice({.x = rect.width - 80, .y = 0, .width = 80, .height = rect.height});
+    // ImGui::PushFont(fonts->Gui());
+    layout.arrange(rect);
+    {
+        auto droppedWindow = layout.next<widget::Window>().dropWindow();
+        ImGui::PushFont(fonts->ChineseBig());
+        ImGui::Text("位置");
+        ImGui::Text("1");
+        ImGui::PopFont();
+        // }
+        // {
+        //     auto droppedWindow = layout.next<widget::Window>().dropWindow();
+        ImGui::PushFont(fonts->ChineseSmall());
+        ImGui::Text("位置");
+        ImGui::Text("2");
+        ImGui::PopFont();
+        // }
+        // {
+        //     auto droppedWindow = layout.next<widget::Window>().dropWindow();
+        ImGui::PushFont(fonts->Gui());
+        ImGui::Text("Hello World");
+        ImGui::Text("3");
+        ImGui::PopFont();
+    }
+    {
+        auto& window = layout.next<widget::Window>();
+        auto droppedWindow = window.dropWindow();
+        window.getLayout().next<widget::Button>().clicked();
+        window.getLayout().next<widget::Button>().clicked();
+        window.getLayout().next<widget::Button>().clicked();
+
+        // ImGui::PushFont(fonts->Gui());
+        // ImGui::Text("Hello WOrld");
+        // ImGui::Text("4");
+        // ImGui::PopFont();
+    }
+    // ImGui::PopFont();
     bool show_demo_window = true;
     if (show_demo_window) {
         ImGui::ShowDemoWindow(&show_demo_window);
     }
-    sideBar.doChoice({.x = rect.width - 80, .y = 0, .width = 80, .height = rect.height});
+}
 
-    ImGui::PushFont(fonts->ChineseBig());
-    ImGui::Text("位置");
-    ImGui::PopFont();
-
-    ImGui::PushFont(fonts->ChineseSmall());
-    ImGui::Text("位置");
-    ImGui::PopFont();
-
-    ImGui::PushFont(fonts->Gui());
-    ImGui::Text("Hello WOrld");
-    ImGui::PopFont();
-
+void MainWindow::arrangeLayout()
+{
     using Align = widget::layout::Align;
-    window1 = layout.add<widget::Window>(Align::start,0,0,"win1"); 
+    using namespace widget::layout;
+
+    layout.add<widget::Window>(Align::start, width_expand, height_expand, "win1");
+    // layout.add<widget::Window>(Align::center, 80, 0, width_fixed, height_expand, "win2");
+    // layout.add<widget::Window>(Align::center, 80, 0, width_expand, height_expand, "win3");
+    auto& window = *layout.add<widget::Window>(Align::end, width_fixed, height_expand, "win4");
+    window.getLayout().add<widget::Button>(Align::start, "Cards");
+    window.getLayout().add<widget::Button>(Align::start, "Video");
+    window.getLayout().add<widget::Button>(Align::start, "Audio Group");
 }
 
 void MainWindow::run()
@@ -136,6 +175,7 @@ void MainWindow::run()
 
     ImGui::NewFrame();
     doImGui(rect);
+    imglog::renderLogMessages();
     ImGui::Render();
 
     glViewport(0, 0, display_w, display_h);
@@ -144,7 +184,7 @@ void MainWindow::run()
                  bgColor.z * bgColor.w,
                  bgColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
-    videoPlayer->render(display_w - 80, display_h);
+    videoPlayer->render(display_w, display_h);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     glfwSwapBuffers(window);

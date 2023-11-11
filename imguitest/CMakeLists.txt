@@ -28,6 +28,8 @@ target_sources(imguitest
         zgui/widget/Widget.h
         zgui/widget/Window.cpp
         zgui/widget/Window.h
+        zgui/widget/imglog.cpp
+        zgui/widget/imglog.h
 )
 
 target_link_libraries(imguitest

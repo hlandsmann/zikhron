@@ -1,11 +1,16 @@
 #include "Layout.h"
 
 #include "Widget.h"
+#include "imglog.h"
+
+#include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <iterator>
 #include <memory>
 #include <numeric>
 #include <ranges>
+#include <span>
 #include <utility>
 #include <vector>
 
@@ -13,15 +18,36 @@ namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 namespace widget {
 Layout::Layout(layout::Orientation _orientation)
-    : Layout{std::make_shared<layout::Rect>(), _orientation} {}
-Layout::Layout(Align _align, std::shared_ptr<layout::Rect> _rect, layout::Orientation _orientation)
-    : Widget<Layout>{_align, _rect}
+    : Layout{_orientation, std::make_shared<layout::Rect>()} {}
+Layout::Layout(Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
+    : Widget<Layout>{_align, _orientation, _rect}
     , orientation{_orientation}
     , layoutRect{std::move(_rect)} {}
-Layout::Layout(std::shared_ptr<layout::Rect> _rect, layout::Orientation _orientation)
-    : Widget<Layout>{Align::start, _rect}
+Layout::Layout(layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
+    : Widget<Layout>{Align::start, _orientation, _rect}
     , layoutRect{std::move(_rect)}
     , orientation{_orientation} {}
+
+void Layout::arrange(const layout::Rect& rect)
+{
+    *layoutRect = rect;
+    arrange();
+}
+
+void Layout::arrange()
+{
+    if (orientation == layout::Orientation::horizontal) {
+        doLayout(Measure::width);
+    } else {
+        doLayout(Measure::height);
+    }
+    start();
+}
+
+void Layout::start()
+{
+    currentWidgetIt = widgets.begin();
+}
 
 auto Layout::calculateSize() const -> WidgetSize
 {
@@ -141,18 +167,21 @@ auto Layout::getNextAlign(Align oldAlign, Align nextAlign)
 auto Layout::getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
                                 float centerSize, float endSize, Measure measure) const -> float
 {
+    float rectSize = rectSizeProjection(*layoutRect, measure);
     float widgetSize = widgetSizeProjection(widget.getWidgetSize(), measure);
+    // imglog::log("wsize: {}, align {}", widgetSize, static_cast<int>(align));
     switch (align) {
     case Align::start:
+        // imglog::log("StartCursor: {}", cursor);
         return cursor;
     case Align::center: {
-        float rectSize = rectSizeProjection(*layoutRect, measure);
         float centerCursor = rectSize / 2 - widgetSize / 2;
         float minCursor = std::min(rectSize - centerSize, centerCursor);
         return std::max(minCursor, cursor);
     }
     case Align::end:
-        float maxCursor = std::max(widgetSize - endSize, cursor);
+        // imglog::log("EndCursor: {}", cursor);
+        float maxCursor = std::max(rectSize - endSize, cursor);
         if (widgetSizeTypeProjection(widget.getWidgetSize(), measure) == SizeType::fixed
             || widgetSize < endSize) {
             return maxCursor;
@@ -165,7 +194,7 @@ auto Layout::getWidgetNewCursor(Align align, float cursor, const WidgetBase& wid
 auto Layout::getWidgetNewSize(Align align, Align alignNextWidget,
                               float cursor, float cursorNextWidget,
                               const WidgetBase& widget,
-                              Measure measure) -> float
+                              Measure measure) const -> float
 {
     float widgetSize = widgetSizeProjection(widget.getWidgetSize(), measure);
     SizeType widgetSizeType = widgetSizeTypeProjection(widget.getWidgetSize(), measure);
@@ -175,7 +204,7 @@ auto Layout::getWidgetNewSize(Align align, Align alignNextWidget,
         if (align == alignNextWidget || widgetSizeType == SizeType::fixed) {
             return widgetSize;
         }
-        return cursorNextWidget - cursor;
+        return cursorNextWidget - cursor - padding;
     case Align::end:
         if (widgetSizeType == SizeType::fixed) {
             return widgetSize;
@@ -185,13 +214,35 @@ auto Layout::getWidgetNewSize(Align align, Align alignNextWidget,
     std::unreachable();
 }
 
-void Layout::doLayout()
+void Layout::setChildWidgetsInitialRect()
 {
+    for (const auto& [widget, rect] : views::zip(widgets, rects)) {
+        rect->x = layoutRect->x;
+        rect->y = layoutRect->y;
+        auto widgetSize = widget->getWidgetSize();
+        rect->width = widgetSize.widthType == SizeType::fixed ? widgetSize.width : layoutRect->width;
+        rect->height = widgetSize.heightType == SizeType::fixed ? widgetSize.height : layoutRect->height;
+    }
+}
+
+void Layout::doLayout(Measure measure)
+{
+    imglog::log("layout x: {}, y: {}, w: {}, h: {}", layoutRect->x, layoutRect->y, layoutRect->width, layoutRect->height);
     if (widgets.empty()) {
         return;
     }
-    auto measure = Measure::width;
+    // static int i = 0;
+    // if (i < 10) {
+    //     i++;
+    //     spdlog::warn("b: {}, f: {}",
+    //                  static_cast<int>(widgets.back()->Align()),
+    //                  static_cast<int>(widgets.front()->Align()));
+    // }
+    setChildWidgetsInitialRect();
 
+    // for (const auto& widget : widgets) {
+    //     imglog::log("waling: {}", static_cast<int>(widget->Align()));
+    // }
     auto centerIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
         return widgetPtr->Align() == Align::center
                || widgetPtr->Align() == Align::end;
@@ -202,36 +253,53 @@ void Layout::doLayout()
     // float startSize = accumulateMeasure(widgets.begin(), centerIt, measure);
     float centerSize = accumulateMeasure(centerIt, widgets.end(), measure);
     float endSize = accumulateMeasure(endIt, widgets.end(), measure);
-
-    auto& widget = *widgets.front();
-    Align align0 = getNextAlign(Align::start, widget.Align());
+    auto widget0 = widgets.front();
+    Align align0 = getNextAlign(Align::start, widget0->Align());
     Align align1 = align0;
-    float cursor0 = getWidgetNewCursor(align0, 0.F, widget, centerSize, endSize, measure);
+    float cursor0 = getWidgetNewCursor(align0, rectPositionProjection(*layoutRect, measure), *widget0, centerSize, endSize, measure);
     float cursor1 = cursor0;
-    for (const auto& [widgetPair, widgetRect0] : views::zip(views::pairwise(widgets), rects)) {
-        auto& widget0 = *std::get<0>(widgetPair);
-        auto& widget1 = *std::get<1>(widgetPair);
+    for (const auto& [widget1, widgetRect0] : views::zip(std::span{std::next(widgets.begin()), widgets.end()}, rects)) {
+        // auto& widget0 = *std::get<0>(widgetPair);
+        // auto& widget1 = *std::get<1>(widgetPair);
 
-        align1 = getNextAlign(align1, widget1.Align()); // old Align is here also align0
+        align1 = getNextAlign(align1, widget1->Align()); // old Align is here also align0
 
-        cursor1 = cursor0 + widgetSizeProjection(widget0.getWidgetSize(), measure) + padding;
-        cursor1 = getWidgetNewCursor(align1, cursor1, widget1, centerSize, endSize, measure);
+        cursor1 = cursor0 + widgetSizeProjection(widget0->getWidgetSize(), measure) + padding;
+        cursor1 = getWidgetNewCursor(align1, cursor1, *widget1, centerSize, endSize, measure);
 
-        auto size = getWidgetNewSize(align0, align1, cursor0, cursor1, widget0, measure);
+        auto size = getWidgetNewSize(align0, align1, cursor0, cursor1, *widget0, measure);
 
         // set values
+        // imglog::log("SetCursor {}", cursor0);
+        // imglog::log("SetSize {}", size);
         rectPositionProjection(*widgetRect0, measure) = cursor0;
         rectSizeProjection(*widgetRect0, measure) = size;
 
         // only cursor0 needs updating for next loop
         cursor0 = cursor1;
         align0 = align1;
+        widget0 = widget1;
     }
+    // if (i < 10) {
+    //     i++;
+    //     spdlog::warn("b: {}, f: {}",
+    //                  static_cast<int>(widgets.back()->Align()),
+    //                  static_cast<int>(widgets.front()->Align()));
+    // }
     auto& widgetRect = *rects.back();
     cursor1 = rectSizeProjection(*layoutRect, measure);
-    auto size = getWidgetNewSize(align0, align0, cursor0, cursor1, widget, measure);
+    auto size = getWidgetNewSize(align0, align0, cursor0, cursor1, *widget0, measure);
+
+    // imglog::log("SetCursor {}", cursor0);
+    // imglog::log("SetSize {}", size);
     rectPositionProjection(widgetRect, measure) = cursor0;
     rectSizeProjection(widgetRect, measure) = size;
+    // if (i < 10) {
+    //     i++;
+    //     spdlog::warn("b: {}, f: {}",
+    //                  static_cast<int>(widgets.back()->Align()),
+    //                  static_cast<int>(widgets.front()->Align()));
+    // }
 }
 
 } // namespace widget
