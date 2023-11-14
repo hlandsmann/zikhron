@@ -66,17 +66,17 @@ protected:
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
 
 private:
-    layout::Align align;
-    layout::Orientation orientation;
-    std::shared_ptr<layout::Rect> rect;
+    layout::Align baseAlign;
+    layout::Orientation baseOrientation;
+    std::shared_ptr<layout::Rect> rectPtr;
 };
 
 template<class WidgetImpl>
 class Widget : public WidgetBase
 {
 public:
-    Widget(layout::Align align, layout::Orientation orientation, std::shared_ptr<layout::Rect> rect)
-        : WidgetBase{align, orientation, std::move(rect)} {}
+    Widget(layout::Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
+        : WidgetBase{_align, _orientation, std::move(_rect)} {}
     ~Widget() override = default;
     Widget(const Widget&) = default;
     Widget(Widget&&) = default;
@@ -85,14 +85,14 @@ public:
 
     [[nodiscard]] auto getWidgetSize() const -> const WidgetSize& override
     {
-        if (widgetSize.has_value()) {
-            return *widgetSize;
+        if (optWidgetSize.has_value()) {
+            return *optWidgetSize;
         }
-        return widgetSize.emplace(static_cast<WidgetImpl const*>(this)->calculateSize());
+        return optWidgetSize.emplace(static_cast<WidgetImpl const*>(this)->calculateSize());
     }
 
 private:
-    mutable std::optional<WidgetSize> widgetSize;
+    mutable std::optional<WidgetSize> optWidgetSize;
 };
 
 } // namespace widget

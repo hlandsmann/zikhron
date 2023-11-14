@@ -1,6 +1,6 @@
 #include "Window.h"
 
-#include "Layout.h"
+#include "Box.h"
 #include "Widget.h"
 #include "imglog.h"
 
@@ -14,7 +14,7 @@ namespace widget {
 Window::Window(layout::Align _align, layout::Orientation _orientation, const std::shared_ptr<layout::Rect>& _rect,
                layout::SizeType _sizeTypeWidth, layout::SizeType _sizeTypeHeight,
                std::string _name)
-    : Widget<Window>{_align, _orientation, std::move(_rect)}
+    : Widget<Window>{_align, _orientation, _rect}
     , layout{_align, _orientation, _rect}
     , sizeTypeWidth{_sizeTypeWidth}
     , sizeTypeHeight{_sizeTypeHeight}
@@ -29,7 +29,7 @@ auto Window::dropWindow() -> WindowDrop
     return {name, rect};
 }
 
-auto Window::getLayout() -> Layout&
+auto Window::getLayout() -> Box&
 {
     return layout;
 }

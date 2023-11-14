@@ -1,4 +1,4 @@
-#include "Layout.h"
+#include "Box.h"
 
 #include "Widget.h"
 #include "imglog.h"
@@ -17,24 +17,25 @@
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 namespace widget {
-Layout::Layout(layout::Orientation _orientation)
-    : Layout{_orientation, std::make_shared<layout::Rect>()} {}
-Layout::Layout(Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
-    : Widget<Layout>{_align, _orientation, _rect}
+Box::Box(layout::Orientation _orientation)
+    : Box{_orientation, std::make_shared<layout::Rect>()} {}
+Box::Box(Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
+    : Widget<Box>{_align, _orientation, _rect}
     , orientation{_orientation}
     , layoutRect{std::move(_rect)} {}
-Layout::Layout(layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
-    : Widget<Layout>{Align::start, _orientation, _rect}
+Box::Box(layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
+    : Widget<Box>{Align::start, _orientation, _rect}
+    , orientation{_orientation}
     , layoutRect{std::move(_rect)}
-    , orientation{_orientation} {}
+{}
 
-void Layout::arrange(const layout::Rect& rect)
+void Box::arrange(const layout::Rect& rect)
 {
     *layoutRect = rect;
     arrange();
 }
 
-void Layout::arrange()
+void Box::arrange()
 {
     if (orientation == layout::Orientation::horizontal) {
         doLayout(Measure::width);
@@ -44,12 +45,12 @@ void Layout::arrange()
     start();
 }
 
-void Layout::start()
+void Box::start()
 {
     currentWidgetIt = widgets.begin();
 }
 
-auto Layout::calculateSize() const -> WidgetSize
+auto Box::calculateSize() const -> WidgetSize
 {
     WidgetSize result{};
     if (widgets.empty()) {
@@ -77,7 +78,7 @@ auto Layout::calculateSize() const -> WidgetSize
     return result;
 }
 
-auto Layout::widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float
+auto Box::widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float
 {
     switch (measure) {
     case Measure::width:
@@ -88,7 +89,7 @@ auto Layout::widgetSizeProjection(const WidgetSize& widgetSize, Measure measure)
     std::unreachable();
 }
 
-auto Layout::widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType
+auto Box::widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType
 {
     switch (measure) {
     case Measure::width:
@@ -99,7 +100,7 @@ auto Layout::widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure meas
     std::unreachable();
 }
 
-auto Layout::rectPositionProjection(layout::Rect& rect, Measure measure) -> float&
+auto Box::rectPositionProjection(layout::Rect& rect, Measure measure) -> float&
 {
     switch (measure) {
     case Measure::width:
@@ -110,7 +111,7 @@ auto Layout::rectPositionProjection(layout::Rect& rect, Measure measure) -> floa
     std::unreachable();
 }
 
-auto Layout::rectSizeProjection(layout::Rect& rect, Measure measure) -> float&
+auto Box::rectSizeProjection(layout::Rect& rect, Measure measure) -> float&
 {
     switch (measure) {
     case Measure::width:
@@ -121,7 +122,7 @@ auto Layout::rectSizeProjection(layout::Rect& rect, Measure measure) -> float&
     std::unreachable();
 }
 
-auto Layout::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
+auto Box::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
                                 std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
                                 Measure measure) -> float
 {
@@ -139,7 +140,7 @@ auto Layout::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_
             measure);
 }
 
-auto Layout::accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
+auto Box::accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
                                std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
                                Measure measure) const -> float
 {
@@ -148,7 +149,7 @@ auto Layout::accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_i
     });
 }
 
-auto Layout::getNextAlign(Align oldAlign, Align nextAlign)
+auto Box::getNextAlign(Align oldAlign, Align nextAlign)
 {
     switch (oldAlign) {
     case Align::start:
@@ -164,7 +165,7 @@ auto Layout::getNextAlign(Align oldAlign, Align nextAlign)
     std::unreachable();
 }
 
-auto Layout::getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
+auto Box::getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
                                 float centerSize, float endSize, Measure measure) const -> float
 {
     float rectSize = rectSizeProjection(*layoutRect, measure);
@@ -191,30 +192,30 @@ auto Layout::getWidgetNewCursor(Align align, float cursor, const WidgetBase& wid
     std::unreachable();
 }
 
-auto Layout::getWidgetNewSize(Align align, Align alignNextWidget,
+auto Box::getWidgetNewSize(Align align, Align alignNextWidget,
                               float cursor, float cursorNextWidget,
                               const WidgetBase& widget,
                               Measure measure) const -> float
 {
-    float widgetSize = widgetSizeProjection(widget.getWidgetSize(), measure);
-    SizeType widgetSizeType = widgetSizeTypeProjection(widget.getWidgetSize(), measure);
+    float projectedSize = widgetSizeProjection(widget.getWidgetSize(), measure);
+    SizeType projectedSizeType = widgetSizeTypeProjection(widget.getWidgetSize(), measure);
     switch (align) {
     case Align::start:
     case Align::center:
-        if (align == alignNextWidget || widgetSizeType == SizeType::fixed) {
-            return widgetSize;
+        if (align == alignNextWidget || projectedSizeType == SizeType::fixed) {
+            return projectedSize;
         }
         return cursorNextWidget - cursor - padding;
     case Align::end:
-        if (widgetSizeType == SizeType::fixed) {
-            return widgetSize;
+        if (projectedSizeType == SizeType::fixed) {
+            return projectedSize;
         }
         return cursorNextWidget - cursor;
     }
     std::unreachable();
 }
 
-void Layout::setChildWidgetsInitialRect()
+void Box::setChildWidgetsInitialRect()
 {
     for (const auto& [widget, rect] : views::zip(widgets, rects)) {
         rect->x = layoutRect->x;
@@ -225,7 +226,7 @@ void Layout::setChildWidgetsInitialRect()
     }
 }
 
-void Layout::doLayout(Measure measure)
+void Box::doLayout(Measure measure)
 {
     imglog::log("layout x: {}, y: {}, w: {}, h: {}", layoutRect->x, layoutRect->y, layoutRect->width, layoutRect->height);
     if (widgets.empty()) {

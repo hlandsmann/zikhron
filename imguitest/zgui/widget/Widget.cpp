@@ -6,23 +6,23 @@
 #include <utility>
 namespace widget {
 WidgetBase::WidgetBase(layout::Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
-    : align{_align}
-    , orientation{_orientation}
-    , rect{std::move(_rect)}
+    : baseAlign{_align}
+    , baseOrientation{_orientation}
+    , rectPtr{std::move(_rect)}
 {
 }
 auto WidgetBase::Rect() const -> const layout::Rect&
 {
-    return *rect;
+    return *rectPtr;
 }
 
 auto WidgetBase::Align() const -> layout::Align
 {
-    return align;
+    return baseAlign;
 }
 auto WidgetBase::Orientation() const -> layout::Orientation
 {
-    return orientation;
+    return baseOrientation;
 }
 
 } // namespace widget

@@ -1,6 +1,6 @@
 #pragma once
 #include <imgui.h>
-#include <widget/Layout.h>
+#include <widget/Box.h>
 
 class SideBar
 {

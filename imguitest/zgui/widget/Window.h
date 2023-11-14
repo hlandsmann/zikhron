@@ -1,4 +1,4 @@
-#include "Layout.h"
+#include "Box.h"
 #include "Widget.h"
 
 #include <imgui.h>
@@ -24,17 +24,17 @@ public:
     auto operator=(Window&&) -> Window& = default;
 
     auto dropWindow() -> WindowDrop;
-    auto getLayout() -> Layout&;
+    auto getLayout() -> Box&;
 
 private:
     friend class Widget<Window>;
     auto calculateSize() const -> WidgetSize;
+    Box layout;
     // float width;
     // float height;
     layout::SizeType sizeTypeWidth;
     layout::SizeType sizeTypeHeight;
 
-    Layout layout;
     std::string name;
 };
 

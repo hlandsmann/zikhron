@@ -19,7 +19,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <widget/Button.h>
-#include <widget/Layout.h>
+#include <widget/Box.h>
 #include <widget/Widget.h>
 #include <widget/imglog.h>
 
@@ -56,7 +56,7 @@ MainWindow::~MainWindow()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(glfwWindow);
     glfwTerminate();
 }
 
@@ -71,11 +71,11 @@ void MainWindow::initOpenglContext()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
     // Create window with graphics context
-    window = glfwCreateWindow(1980, 1200, "zikhron", nullptr, nullptr);
-    if (window == nullptr) {
+    glfwWindow = glfwCreateWindow(1980, 1200, "zikhron", nullptr, nullptr);
+    if (glfwWindow == nullptr) {
         throw std::runtime_error("Failed to create Window");
     }
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(glfwWindow);
     glfwSwapInterval(1); // Enable vsync
 }
 
@@ -91,7 +91,7 @@ void MainWindow::initImGui()
     ImGui::StyleColorsDark();
 
     // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplGlfw_InitForOpenGL(glfwWindow, true);
     ImGui_ImplOpenGL3_Init(glsl_version.c_str());
     // io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 20, nullptr,
     //                              io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
@@ -160,11 +160,11 @@ void MainWindow::run()
 {
     int display_w{};
     int display_h{};
-    glfwGetFramebufferSize(window, &display_w, &display_h);
+    glfwGetFramebufferSize(glfwWindow, &display_w, &display_h);
 
     widget::layout::Rect rect{0, 0, static_cast<float>(display_w), static_cast<float>(display_h)};
 
-    if (glfwWindowShouldClose(window) != 0) {
+    if (glfwWindowShouldClose(glfwWindow) != 0) {
         close = true;
         return;
     }
@@ -187,7 +187,7 @@ void MainWindow::run()
     videoPlayer->render(display_w, display_h);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-    glfwSwapBuffers(window);
+    glfwSwapBuffers(glfwWindow);
 }
 
 auto MainWindow::shouldClose() const -> bool

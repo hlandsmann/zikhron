@@ -18,7 +18,6 @@ Button::Button(layout::Align _align, layout::Orientation _orientation, std::shar
 auto Button::calculateSize() const -> WidgetSize
 {
     // ImDrawList* list = ImGui::GetWindowDrawList();
-    ImVec2 start = ImGui::GetCursorPos();
 
     // list->ChannelsSplit(2);
 
@@ -40,10 +39,10 @@ auto Button::calculateSize() const -> WidgetSize
 
 auto Button::clicked() const -> bool
 {
-    const auto& rect = Rect();
-    ImGui::SetCursorPos({rect.x, rect.y});
-    imglog::log("widgth: {}, o: {}", rect.width, static_cast<int>(Orientation()));
-    return ImGui::Button(label.c_str(), {rect.width, rect.height});
+    const auto& btnRect = Rect();
+    ImGui::SetCursorPos({btnRect.x, btnRect.y});
+    // imglog::log("widgth: {}, o: {}", rect.width, static_cast<int>(Orientation()));
+    return ImGui::Button(label.c_str(), {btnRect.width, btnRect.height});
 }
 
 // {

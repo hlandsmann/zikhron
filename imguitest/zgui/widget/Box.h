@@ -9,34 +9,34 @@
 #include <vector>
 
 namespace widget {
-class Layout : public Widget<Layout>
+class Box : public Widget<Box>
 {
     using SizeType = layout::SizeType;
     using Align = layout::Align;
 
 public:
     constexpr static float s_padding = 16.F;
-    Layout(layout::Orientation);
-    Layout(Align, layout::Orientation, std::shared_ptr<layout::Rect>);
+    Box(layout::Orientation);
+    Box(Align, layout::Orientation, std::shared_ptr<layout::Rect>);
 
     void arrange(const layout::Rect&);
     void arrange();
 
     template<class WidgetType, class... Args>
-    auto add(Align align, Args... args) -> std::shared_ptr<WidgetType>
+    auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
     {
-        auto rect = std::make_shared<layout::Rect>();
+        auto widgetRect = std::make_shared<layout::Rect>();
         auto widgetOrientation = Orientation() == layout::Orientation::vertical
                                          ? layout::Orientation::horizontal
                                          : layout::Orientation::vertical;
-        auto widget = std::make_shared<WidgetType>(align, widgetOrientation, rect, std::forward<Args>(args)...);
+        auto widget = std::make_shared<WidgetType>(widgetAlign, widgetOrientation, widgetRect, std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
         // spdlog::warn("a: {}, w: {}, b: {}, f: {}",
         //              static_cast<int>(align),
         //              static_cast<int>(widget->Align()),
         //              static_cast<int>(widgets.back()->Align()),
         //              static_cast<int>(widgets.front()->Align()));
-        rects.push_back(std::move(rect));
+        rects.push_back(std::move(widgetRect));
         return widget;
     }
     template<class WidgetType>
@@ -53,8 +53,8 @@ private:
         width,
         height
     };
-    Layout(layout::Orientation _orientation, std::shared_ptr<layout::Rect>);
-    friend class Widget<Layout>;
+    Box(layout::Orientation, std::shared_ptr<layout::Rect>);
+    friend class Widget<Box>;
     auto calculateSize() const -> WidgetSize;
     static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;
     static auto widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType;

@@ -6,6 +6,8 @@ add_executable(imguitest)
 target_sources(imguitest
     PRIVATE
         main.cpp
+        zgui/AsyncDataBase.cpp
+        zgui/AsyncDataBase.h
         zgui/Fonts.cpp
         zgui/Fonts.h
         zgui/MainWindow.cpp
@@ -18,12 +20,12 @@ target_sources(imguitest
         zgui/TextDraw.h
         zgui/Theme.cpp
         zgui/Theme.h
+        zgui/widget/Box.cpp
+        zgui/widget/Box.h
         zgui/widget/Button.cpp
         zgui/widget/Button.h
         zgui/widget/ImageButton.cpp
         zgui/widget/ImageButton.h
-        zgui/widget/Layout.cpp
-        zgui/widget/Layout.h
         zgui/widget/Widget.cpp
         zgui/widget/Widget.h
         zgui/widget/Window.cpp
@@ -42,11 +44,11 @@ target_link_libraries(imguitest
         spdlog::spdlog
         folly
         # zikhron::multimedia
-        # zikhron::annotation
+        zikhron::annotation
         zikhron::dictionary
-        # zikhron::miscellaneous
-        # zikhron::spaced_repetition
-        # zikhron::warnings
+        zikhron::miscellaneous
+        zikhron::spaced_repetition
+        zikhron::warnings
 )
 
 target_include_directories(imguitest
