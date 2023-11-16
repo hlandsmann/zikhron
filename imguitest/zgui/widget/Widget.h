@@ -91,6 +91,11 @@ public:
         return optWidgetSize.emplace(static_cast<WidgetImpl const*>(this)->calculateSize());
     }
 
+    void resetWidgetSize()
+    {
+        optWidgetSize.reset();
+    }
+
 private:
     mutable std::optional<WidgetSize> optWidgetSize;
 };

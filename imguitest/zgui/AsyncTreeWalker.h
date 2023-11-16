@@ -5,19 +5,21 @@
 #include <folly/futures/Future.h>
 #include <folly/futures/SharedPromise.h>
 #include <misc/Config.h>
+#include <spaced_repetition/CardMeta.h>
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
 
 #include <memory>
-class AsyncDataBase
+class AsyncTreeWalker
 {
 public:
     using DataBasePtr = std::shared_ptr<sr::DataBase>;
     using TreeWalkerPtr = std::shared_ptr<sr::ITreeWalker>;
-    AsyncDataBase(std::shared_ptr<folly::CPUThreadPoolExecutor> threadPoolExecutor,
-                  std::shared_ptr<folly::ManualExecutor> synchronousExecutor);
-    auto getDataBase() -> folly::Future<DataBasePtr>;
-    auto getTreeWalker() -> folly::Future<TreeWalkerPtr>;
+    AsyncTreeWalker(std::shared_ptr<folly::ManualExecutor> synchronousExecutor,
+                  std::shared_ptr<folly::CPUThreadPoolExecutor> threadPoolExecutor);
+    auto getDataBase() const -> folly::Future<DataBasePtr>;
+    auto getTreeWalker() const -> folly::Future<TreeWalkerPtr>;
+    auto getNextCardChoice() -> folly::coro::Task<sr::CardMeta>;
 
 private:
     static auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>;

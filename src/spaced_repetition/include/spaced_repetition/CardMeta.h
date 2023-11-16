@@ -1,5 +1,4 @@
 #pragma once
-#include <map>
 #include "VocableMeta.h"
 #include "srtypes.h"
 
@@ -12,7 +11,7 @@
 #include <misc/Identifier.h>
 #include <utils/index_map.h>
 
-#include <cstddef>
+#include <map>
 #include <memory>
 #include <optional>
 #include <vector>
@@ -36,13 +35,13 @@ struct CardMeta
 
     [[nodiscard]] auto getStudyMarkup() -> std::unique_ptr<markup::Paragraph>;
     [[nodiscard]] auto getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>;
-    [[nodiscard]] auto getRelevantEase()const -> std::map<VocableId, Ease>;
+    [[nodiscard]] auto getRelevantEase() const -> std::map<VocableId, Ease>;
 
 private:
     [[nodiscard]] auto generateTimingAndVocables(bool pull) const -> TimingAndVocables;
     auto generateVocableIDs() const -> std::vector<VocableId>;
     auto generateVocableIndexes() const -> index_set;
-    void mapVocableChoices(std::vector<VocableId> &vocableIds) const;
+    void mapVocableChoices(std::vector<VocableId>& vocableIds) const;
     auto getActiveVocableIds() const -> std::vector<VocableId>;
     auto easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>;
     std::shared_ptr<Card> card;

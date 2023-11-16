@@ -6,6 +6,7 @@
 // #include <epoxy/egl.h>
 // #include <epoxy/gl_generated.h>
 // clang-format on
+#include <AsyncTreeWalker.h>
 #include <Fonts.h>
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
@@ -18,15 +19,14 @@
 #include <folly/executors/ManualExecutor.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include <widget/Button.h>
 #include <widget/Box.h>
+#include <widget/Button.h>
 #include <widget/Widget.h>
 #include <widget/imglog.h>
 
 #include <memory>
 #include <stdexcept>
 #include <string>
-#include <thread>
 #include <utility>
 namespace {
 void glfw_error_callback(int error, const char* description)
@@ -35,11 +35,12 @@ void glfw_error_callback(int error, const char* description)
 }
 } // namespace
 
-MainWindow::MainWindow(std::shared_ptr<folly::ManualExecutor> _executor)
-    : executor{std::move(_executor)}
-    , threadPoolExecutor{std::make_shared<folly::CPUThreadPoolExecutor>(
-              0, std::thread::hardware_concurrency())}
+MainWindow::MainWindow(std::shared_ptr<folly::ManualExecutor> _synchronousExecutor,
+                       std::shared_ptr<AsyncTreeWalker> _asyncTreeWalker)
+    : synchronousExecutor{std::move(_synchronousExecutor)}
+    , asyncTreeWalker{std::move(_asyncTreeWalker)}
     , videoPlayer{std::make_shared<MediaPlayer>()}
+    , cardDisplay{synchronousExecutor, asyncTreeWalker}
 {
     initOpenglContext();
     initImGui();

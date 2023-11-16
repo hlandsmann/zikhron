@@ -1,4 +1,5 @@
 #pragma once
+#include "CardMeta.h"
 #include "DataBase.h"
 #include "ITreeWalker.h"
 #include "Tree.h"
@@ -14,8 +15,6 @@
 #include <map>
 #include <memory>
 #include <optional>
-#include <tuple>
-#include <vector>
 
 #include <sys/types.h>
 
@@ -37,7 +36,6 @@ public:
     void setEaseLastCard(const Id_Ease_vt& id_ease) override;
     auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardMeta& override;
     auto getLastCard() -> CardMeta& override;
-
 
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;

@@ -6,8 +6,10 @@ add_executable(imguitest)
 target_sources(imguitest
     PRIVATE
         main.cpp
-        zgui/AsyncDataBase.cpp
-        zgui/AsyncDataBase.h
+        zgui/AsyncTreeWalker.cpp
+        zgui/AsyncTreeWalker.h
+        zgui/CardDisplay.cpp
+        zgui/CardDisplay.h
         zgui/Fonts.cpp
         zgui/Fonts.h
         zgui/MainWindow.cpp

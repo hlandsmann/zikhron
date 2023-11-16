@@ -1,13 +1,15 @@
 #pragma once
-#include <widget/Widget.h>
+#include "AsyncTreeWalker.h"
+#include "CardDisplay.h"
+
 #include <Fonts.h>
 #include <GLFW/glfw3.h>
 #include <MediaPlayer.h>
 #include <SideBar.h>
-#include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/executors/ManualExecutor.h>
 #include <imgui.h>
 #include <widget/Box.h>
+#include <widget/Widget.h>
 #include <widget/Window.h>
 
 #include <memory>
@@ -16,7 +18,8 @@
 class MainWindow
 {
 public:
-    MainWindow(std::shared_ptr<folly::ManualExecutor> executor);
+    MainWindow(std::shared_ptr<folly::ManualExecutor> executor,
+               std::shared_ptr<AsyncTreeWalker> asyncTreeWalker);
     ~MainWindow();
     MainWindow(const MainWindow&) = delete;
     MainWindow(MainWindow&&) = delete;
@@ -41,7 +44,9 @@ private:
     widget::Box layout{widget::layout::Orientation::horizontal};
 
     // async
-    std::shared_ptr<folly::ManualExecutor> executor;
-    std::shared_ptr<folly::CPUThreadPoolExecutor> threadPoolExecutor;
+    std::shared_ptr<folly::ManualExecutor> synchronousExecutor;
+    std::shared_ptr<AsyncTreeWalker> asyncTreeWalker;
     std::shared_ptr<MediaPlayer> videoPlayer;
+
+    CardDisplay cardDisplay;
 };

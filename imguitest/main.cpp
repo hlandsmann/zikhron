@@ -1,4 +1,4 @@
-#include <AsyncDataBase.h>
+#include <AsyncTreeWalker.h>
 #include <MainWindow.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/executors/ManualExecutor.h>
@@ -12,6 +12,7 @@
 
 #include <chrono>
 #include <memory>
+#include <thread>
 #include <utility>
 
 auto taskSlow45(folly::Future<int> f) -> folly::coro::Task<int>
@@ -53,19 +54,20 @@ auto taskSlow42(std::shared_ptr<folly::CPUThreadPoolExecutor> cpuEx) -> folly::c
     co_return 42;
 }
 
-
 auto main(int argc, char** argv) -> int
 {
     auto folly = folly::Init(&argc, &argv);
-    auto threadPoolExecutor = std::make_shared<folly::CPUThreadPoolExecutor>(1, 20, std::make_shared<folly::NamedThreadFactory>("thread_pool"));
+    auto threadPoolExecutor = std::make_shared<folly::CPUThreadPoolExecutor>(
+            1, std::thread::hardware_concurrency(),
+            std::make_shared<folly::NamedThreadFactory>("thread_pool"));
     auto executor = std::make_shared<folly::ManualExecutor>();
-    auto asyncDataBase = std::make_shared<AsyncDataBase>(threadPoolExecutor, executor);
+    auto asyncTreeWalker = std::make_shared<AsyncTreeWalker>(executor, threadPoolExecutor);
     // folly::SharedPromise<int> p;
     // p.setWith([]() { return 168; });
     // auto f45 = p.getSemiFuture();
     // auto ts45 = taskSlow45(p.getFuture()).semi().via(executor.get());
 
-    MainWindow mainWindow{executor};
+    MainWindow mainWindow{executor, asyncTreeWalker};
     // auto task43 = taskSlow43;
     // auto f4 = taskSlow44().semi().via(threadPoolExecutor.get());
     // auto f2 = taskSlow42(threadPoolExecutor).semi().via(executor.get());
