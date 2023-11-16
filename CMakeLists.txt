@@ -16,19 +16,6 @@ CPMAddPackage("gh:nlohmann/json@3.11.2")
 CPMAddPackage("gh:glfw/glfw#3.3.8")
 include(FindPkgConfig)
 
-option(use_iwyu ON)
-
-if(use_iwyu)
-    find_program(IWYU_PATH NAMES include-what-you-use iwyu)
-
-    if(NOT IWYU_PATH)
-        message(FATAL_ERROR "Could not find the program include-what-you-use")
-    endif()
-
-    set(CMAKE_CXX_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
-    set(CMAKE_C_INCLUDE_WHAT_YOU_USE ${IWYU_PATH})
-endif(use_iwyu)
-
 include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
 gen_cfg_json()
 add_subdirectory(src)
