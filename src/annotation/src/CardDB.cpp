@@ -80,17 +80,17 @@ Card::Card(std::string _filename,
     , dictionary{std::move(_dictionary)}
     , annotationChoices{std::move(_annotationChoices)} {};
 
-auto Card::getAnnotator() -> ZH_Annotator&
+auto Card::getTokenizer() -> ZH_Tokenizer&
 {
-    if (not annotator.has_value()) {
-        annotator.emplace(getText(), dictionary, annotationChoices);
+    if (not tokenizer.has_value()) {
+        tokenizer.emplace(getText(), dictionary, annotationChoices);
     }
-    return annotator.value();
+    return tokenizer.value();
 }
 
-void Card::resetAnnotator()
+void Card::resetTokenizer()
 {
-    annotator.reset();
+    tokenizer.reset();
 }
 
 auto Card::Id() const -> CardId

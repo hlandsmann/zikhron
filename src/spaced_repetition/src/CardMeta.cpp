@@ -88,7 +88,7 @@ void CardMeta::resetTimingAndVocables()
 
 void CardMeta::resetAnnotation()
 {
-    card->resetAnnotator();
+    card->resetTokenizer();
     optVocableIds.reset();
     optVocableIndices.reset();
     resetTimingAndVocables();
@@ -171,13 +171,13 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
 
 auto CardMeta::generateVocableIDs() const -> std::vector<VocableId>
 {
-    const ZH_Annotator& annotator = card->getAnnotator();
+    const ZH_Tokenizer& tokenizer = card->getTokenizer();
     auto vocableIds = std::vector<VocableId>{};
-    ranges::transform(annotator.Items() | std::views::filter([](const ZH_Annotator::Item& item) {
+    ranges::transform(tokenizer.Items() | std::views::filter([](const ZH_Tokenizer::Item& item) {
                           return not item.dicItemVec.empty();
                       }),
                       std::inserter(vocableIds, vocableIds.begin()),
-                      [](const ZH_Annotator::Item& item) -> VocableId {
+                      [](const ZH_Tokenizer::Item& item) -> VocableId {
                           // TODO remove static_cast
                           auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
                           return vocId;
@@ -227,7 +227,7 @@ auto CardMeta::getActiveVocableIds() const -> std::vector<VocableId>
 auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>
 {
     std::vector<Ease> eases;
-    const auto& dictionary = *card->getAnnotator().Dictionary();
+    const auto& dictionary = *card->getTokenizer().Dictionary();
     ranges::transform(
             vocableIds,
             std::back_inserter(eases),

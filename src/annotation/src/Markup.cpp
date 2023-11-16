@@ -56,10 +56,10 @@ Paragraph::Paragraph(std::shared_ptr<Card> _card)
 {
     utl::StringU8 text = card->getText();
 
-    const ZH_Annotator& zh_annotator = card->getAnnotator();
-    ranges::transform(zh_annotator.Items(),
+    const ZH_Tokenizer& zh_tokenizer = card->getTokenizer();
+    ranges::transform(zh_tokenizer.Items(),
                       std::back_inserter(words),
-                      [](const ZH_Annotator::Item& item) -> markup::Word { return item.text; });
+                      [](const ZH_Tokenizer::Item& item) -> markup::Word { return item.text; });
 
     utf8Positions = calculate_positions(&Word::vLength);
     bytePositions = calculate_positions(&Word::byteLength);
@@ -81,7 +81,7 @@ Paragraph::Paragraph(std::shared_ptr<Card> _card)
         size_t wordIndex = 0;
         size_t fragmentIndex = 0;
         size_t currentLength = 0;
-        for (const auto& item : zh_annotator.Items()) {
+        for (const auto& item : zh_tokenizer.Items()) {
             currentLength += utl::StringU8(item.text).length();
             wordIndex++;
 
@@ -159,9 +159,9 @@ auto Paragraph::fragmentStartPos(size_t fragment, const std::vector<int>& positi
 
 void Paragraph::updateAnnotationColoring()
 {
-    const auto& zh_annotator = card->getAnnotator();
-    const auto& chunks = zh_annotator.Chunks();
-    const auto& items = zh_annotator.Items();
+    const auto& zh_tokenizer = card->getTokenizer();
+    const auto& chunks = zh_tokenizer.Chunks();
+    const auto& items = zh_tokenizer.Items();
 
     if (words.empty())
         return;
@@ -183,7 +183,7 @@ void Paragraph::updateAnnotationColoring()
     });
 
     auto numberOfCombinations = utl::Single_memoinize(+[](decltype(chunks.begin()) chunkIt) -> size_t {
-        return ZH_Annotator::get_combinations(*chunkIt).size();
+        return ZH_Tokenizer::get_combinations(*chunkIt).size();
     });
 
     size_t currentPos = 0;
@@ -252,7 +252,7 @@ void Paragraph::highlightWordAtPosition(int pos, const std::vector<int>& positio
 
     preChanges.push({.index = index, .word{words[index]}});
 
-    const ZH_Annotator::ZH_dicItemVec clickedItem = wordFromPosition(pos, positions);
+    const ZH_Tokenizer::ZH_dicItemVec clickedItem = wordFromPosition(pos, positions);
     if (clickedItem.empty()) {
         return;
     }
@@ -305,7 +305,7 @@ auto Paragraph::getAnnotationPossibilities(int pos) -> AnnotationPossibilities
 
     const std::vector<utl::CharU8>& items = annotationChunk.characters;
 
-    const auto combinations = ZH_Annotator::get_combinations(annotationChunk.chunk);
+    const auto combinations = ZH_Tokenizer::get_combinations(annotationChunk.chunk);
     for (const auto& combination : combinations) {
         // fmt::print("{}\n", fmt::join(combination, ","));
         int currentPos = 0;
@@ -351,40 +351,40 @@ void Paragraph::undoChange()
 }
 
 auto Paragraph::wordFromPosition(int pos, const std::vector<int>& positions) const
-        -> const ZH_Annotator::ZH_dicItemVec
+        -> const ZH_Tokenizer::ZH_dicItemVec
 {
-    const auto& zh_annotator = card->getAnnotator();
+    const auto& zh_tokenizer = card->getTokenizer();
 
     const std::size_t index = getWordIndex(pos, positions);
-    if (index >= zh_annotator.Items().size()) {
+    if (index >= zh_tokenizer.Items().size()) {
         return {};
     }
 
-    const ZH_Annotator::Item& item = zh_annotator.Items().at(index);
+    const ZH_Tokenizer::Item& item = zh_tokenizer.Items().at(index);
     return item.dicItemVec;
 }
 
 auto Paragraph::getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
         -> ZH_Dictionary::Entry
 {
-    const auto& zh_annotator = card->getAnnotator();
+    const auto& zh_tokenizer = card->getTokenizer();
     const std::size_t index = getWordIndex(pos, positions);
-    if (index >= zh_annotator.Items().size()) {
+    if (index >= zh_tokenizer.Items().size()) {
         return {};
     }
     size_t indexVocableChoice = std::accumulate(
-            zh_annotator.Items().begin(),
-            zh_annotator.Items().begin() + index,
+            zh_tokenizer.Items().begin(),
+            zh_tokenizer.Items().begin() + index,
             size_t{},
-            [](size_t start, const ZH_Annotator::Item& annotatorItem) {
-                if (!annotatorItem.dicItemVec.empty()) {
+            [](size_t start, const ZH_Tokenizer::Item& tokenizerItem) {
+                if (!tokenizerItem.dicItemVec.empty()) {
                     return start + 1;
                 }
                 return start;
             });
     assert(indexVocableChoice < vocableIds.size());
     size_t vocId = vocableIds[indexVocableChoice];
-    const ZH_Dictionary& zh_dictionary = *card->getAnnotator().Dictionary();
+    const ZH_Dictionary& zh_dictionary = *card->getTokenizer().Dictionary();
 
     return zh_dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified);
 }
@@ -396,13 +396,13 @@ auto Paragraph::getVocables() const -> const std::vector<vocable_pronounciation_
 
 void Paragraph::setupVocables(const std::map<VocableId, Ease>& ease)
 {
-    const auto& zh_annotator = card->getAnnotator();
+    const auto& zh_tokenizer = card->getTokenizer();
 
-    const ZH_Dictionary& zh_dictionary = *card->getAnnotator().Dictionary();
+    const ZH_Dictionary& zh_dictionary = *card->getTokenizer().Dictionary();
     activeVocables.clear();
     ranges::copy(ease | std::views::keys, std::back_inserter(activeVocables));
     ranges::sort(activeVocables, std::less{}, [&](const auto& vocId) {
-        return ranges::find_if(zh_annotator.Items(), [&](const auto& item) -> bool {
+        return ranges::find_if(zh_tokenizer.Items(), [&](const auto& item) -> bool {
             const auto& key = zh_dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified).key;
             return std::string(item.text) == key;
         });
@@ -412,15 +412,15 @@ void Paragraph::setupVocables(const std::map<VocableId, Ease>& ease)
                                              0xf58231, 0xf032e6, 0xfabed4,
                                              0x913ec4, 0xff294B, 0x4363ff,
                                              0xbfef45, 0x469990};
-    assert(zh_annotator.Items().size() == words.size());
+    assert(zh_tokenizer.Items().size() == words.size());
 
-    const auto& items = zh_annotator.Items();
+    const auto& items = zh_tokenizer.Items();
     for (uint colorIndex = 0; colorIndex < activeVocables.size(); colorIndex++) {
         uint vocId = activeVocables[colorIndex];
         const ZH_Dictionary::Entry& voc = zh_dictionary.EntryFromPosition(vocId,
                                                                           CharacterSetType::Simplified);
 
-        for (boost::tuple<Word&, const ZH_Annotator::Item&> p : boost::combine(words, items)) {
+        for (boost::tuple<Word&, const ZH_Tokenizer::Item&> p : boost::combine(words, items)) {
             auto& word = p.get<0>();
             const auto& item = p.get<1>();
 

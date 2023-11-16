@@ -92,8 +92,8 @@ public:
     void requestCard(std::optional<CardId> preferedCardId = {});
     void requestCardFromIds(std::vector<CardId>&& ids);
     void submitEase(const sr::ITreeWalker::Id_Ease_vt& ease);
-    void submitAnnotation(const ZH_Annotator::Combination& combination,
-                          const ZH_Annotator::CharacterSequence& characterSequence);
+    void submitAnnotation(const ZH_Tokenizer::Combination& combination,
+                          const ZH_Tokenizer::CharacterSequence& characterSequence);
     void submitVocableChoice(VocableId oldVocId, VocableId newVocId);
 
     void signal_annotation_connect(const signal_annotation& signal);

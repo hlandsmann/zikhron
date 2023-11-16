@@ -108,7 +108,7 @@ void DataBase::addVocableChoice(VocableId oldVocId, VocableId newVocId)
     }
 }
 
-void DataBase::addAnnotation(const ZH_Annotator::Combination& combination,
+void DataBase::addAnnotation(const ZH_Tokenizer::Combination& combination,
                              const std::vector<utl::CharU8>& characterSequence)
 {
     (*annotationChoices)[characterSequence] = combination;
@@ -116,7 +116,7 @@ void DataBase::addAnnotation(const ZH_Annotator::Combination& combination,
     std::set<uint> cardsWithCharSeq;
 
     for (const auto& [id, cardPtr] : cardDB->get()) {
-        if (cardPtr->getAnnotator().ContainsCharacterSequence(characterSequence)) {
+        if (cardPtr->getTokenizer().ContainsCharacterSequence(characterSequence)) {
             cardsWithCharSeq.insert(id);
             auto& cardMeta = cards->at_id(id).second;
             cardMeta.resetAnnotation();

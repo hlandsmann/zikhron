@@ -51,7 +51,7 @@ public:
     void resetCardsContainingVocable(VocableId vocId);
     void saveProgress() const;
     void addVocableChoice(VocableId oldVocId, VocableId newVocId);
-    void addAnnotation(const ZH_Annotator::Combination& combination,
+    void addAnnotation(const ZH_Tokenizer::Combination& combination,
                        const std::vector<utl::CharU8>& characterSequence);
 
     [[nodiscard]] auto unmapVocableChoice(VocableId) const -> VocableId;

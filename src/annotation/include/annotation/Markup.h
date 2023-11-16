@@ -60,7 +60,7 @@ public:
     auto getAnnotationPossibilities(int pos) -> AnnotationPossibilities;
     void undoChange();
     [[nodiscard]] auto wordFromPosition(int pos, const std::vector<int>& positions) const
-            -> const ZH_Annotator::ZH_dicItemVec;
+            -> const ZH_Tokenizer::ZH_dicItemVec;
     [[nodiscard]] auto getVocableChoiceFromPosition(int pos, const std::vector<int>& positions) const
             -> ZH_Dictionary::Entry;
     void setupVocables(const std::map<VocableId, Ease>&);

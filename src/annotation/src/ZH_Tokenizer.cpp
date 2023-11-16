@@ -25,22 +25,22 @@ namespace {
 
 auto GetCandidates(const utl::StringU8& text,
                    const CharacterSetType characterSet,
-                   const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>
+                   const ZH_Dictionary& dict) -> std::vector<std::vector<ZH_Tokenizer::ZH_dicItemVec>>
 {
-    std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>> candidates;
+    std::vector<std::vector<ZH_Tokenizer::ZH_dicItemVec>> candidates;
     candidates.reserve(text.length());
     for (size_t indexBegin = 0; indexBegin < text.length(); indexBegin++) {
         const auto span_lower = ZH_Dictionary::Lower_bound(text.substr(indexBegin, 1), dict.Simplified());
         const auto span_now = ZH_Dictionary::Upper_bound(text.substr(indexBegin, 1), span_lower);
 
-        std::vector<ZH_Annotator::ZH_dicItemVec> Items;
+        std::vector<ZH_Tokenizer::ZH_dicItemVec> Items;
         for (size_t indexEnd = indexBegin + 1; indexEnd <= text.length(); indexEnd++) {
             const auto key = text.substr(indexBegin, indexEnd - indexBegin);
             const auto found = ZH_Dictionary::Lower_bound(key, span_now);
 
             if (found.empty() || found.begin()->key.substr(0, key.length()) != key)
                 break;
-            ZH_Annotator::ZH_dicItemVec dicEntries;
+            ZH_Tokenizer::ZH_dicItemVec dicEntries;
             for (ZH_Dictionary::Key dictionaryKey : found) {
                 if (dictionaryKey.key == key) {
                     dicEntries.push_back(dict.EntryFromPosition(dictionaryKey.pos, characterSet));
@@ -56,7 +56,7 @@ auto GetCandidates(const utl::StringU8& text,
     return candidates;
 }
 
-auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& candidates)
+auto GetChunks(const std::vector<std::vector<ZH_Tokenizer::ZH_dicItemVec>>& candidates)
         -> std::vector<std::vector<std::vector<int>>>
 {
     namespace views = ranges::views;
@@ -65,7 +65,7 @@ auto GetChunks(const std::vector<std::vector<ZH_Annotator::ZH_dicItemVec>>& cand
     vector<vector<int>> chunk;
     vector<vector<vector<int>>> chunks;
 
-    auto candidateLength = [](const ZH_Annotator::ZH_dicItemVec& itemVec) -> size_t {
+    auto candidateLength = [](const ZH_Tokenizer::ZH_dicItemVec& itemVec) -> size_t {
         return utl::StringU8(itemVec.front().key).length();
     };
     auto c_lengths = candidates | views::transform([&](auto& v) { return v | views::transform(candidateLength); });
@@ -103,7 +103,7 @@ auto compare_combination(const std::vector<int>& a, const std::vector<int>& b) -
 }
 } // namespace
 
-auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> std::vector<Combination>
+auto ZH_Tokenizer::get_combinations(const std::vector<Combination>& chunk) -> std::vector<Combination>
 {
     using std::vector;
     vector<Combination> combis;
@@ -151,7 +151,7 @@ auto ZH_Annotator::get_combinations(const std::vector<Combination>& chunk) -> st
     return combis;
 }
 
-auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_ordering
+auto ZH_Tokenizer::Item::operator<=>(const Item& other) const -> std::weak_ordering
 {
     if (auto cmp = text <=> other.text; cmp != nullptr) {
         return cmp;
@@ -159,7 +159,7 @@ auto ZH_Annotator::Item::operator<=>(const Item& other) const -> std::weak_order
     return dicItemVec <=> other.dicItemVec;
 }
 
-ZH_Annotator::ZH_Annotator(utl::StringU8 _text,
+ZH_Tokenizer::ZH_Tokenizer(utl::StringU8 _text,
                            std::shared_ptr<const ZH_Dictionary> _dictionary,
                            std::shared_ptr<const AnnotationChoiceMap> _choices)
     : text{std::move(_text)}
@@ -169,17 +169,17 @@ ZH_Annotator::ZH_Annotator(utl::StringU8 _text,
     annotate();
 }
 
-auto ZH_Annotator::Annotated() const -> const std::string&
+auto ZH_Tokenizer::Annotated() const -> const std::string&
 {
     return annotated_text;
 }
 
-auto ZH_Annotator::Items() const -> const std::vector<Item>&
+auto ZH_Tokenizer::Items() const -> const std::vector<Item>&
 {
     return items;
 }
 
-auto ZH_Annotator::UniqueItems() const -> std::set<Item>
+auto ZH_Tokenizer::UniqueItems() const -> std::set<Item>
 {
     std::set<Item> uniqueItems;
 
@@ -191,22 +191,22 @@ auto ZH_Annotator::UniqueItems() const -> std::set<Item>
     return uniqueItems;
 }
 
-auto ZH_Annotator::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&
+auto ZH_Tokenizer::Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&
 {
     return candidates;
 }
 
-auto ZH_Annotator::Chunks() const -> const std::vector<std::vector<std::vector<int>>>&
+auto ZH_Tokenizer::Chunks() const -> const std::vector<std::vector<std::vector<int>>>&
 {
     return chunks;
 }
 
-auto ZH_Annotator::Dictionary() const -> const std::shared_ptr<const ZH_Dictionary>&
+auto ZH_Tokenizer::Dictionary() const -> const std::shared_ptr<const ZH_Dictionary>&
 {
     return dictionary;
 }
 
-void ZH_Annotator::annotate()
+void ZH_Tokenizer::annotate()
 {
     using utl::StringU8;
 
@@ -253,18 +253,18 @@ void ZH_Annotator::annotate()
     }
 }
 
-// void ZH_Annotator::SetAnnotationChoices(const std::map<CharacterSequence, Combination>& _choices)
+// void ZH_Tokenizer::SetAnnotationChoices(const std::map<CharacterSequence, Combination>& _choices)
 // {
 //     choices = _choices;
 // }
 
-void ZH_Annotator::Reannotate()
+void ZH_Tokenizer::Reannotate()
 {
     items.clear();
     annotate();
 }
 
-auto ZH_Annotator::ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool
+auto ZH_Tokenizer::ContainsCharacterSequence(const CharacterSequence& charSeq) -> bool
 {
     return not ranges::search(std::span(text.cbegin(), text.cend()), charSeq).empty();
 }

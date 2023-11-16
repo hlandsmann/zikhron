@@ -36,13 +36,13 @@ public:
     [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
 
-    auto getAnnotator() -> ZH_Annotator&;
-    void resetAnnotator();
+    auto getTokenizer() -> ZH_Tokenizer&;
+    void resetTokenizer();
 
 private:
     std::string filename;
     CardId id;
-    std::optional<ZH_Annotator> annotator;
+    std::optional<ZH_Tokenizer> tokenizer;
     std::shared_ptr<const ZH_Dictionary> dictionary;
     std::shared_ptr<const AnnotationChoiceMap> annotationChoices;
 };

@@ -31,7 +31,7 @@ public:
 private:
     VocableProgress progress;
     folly::sorted_vector_set<std::size_t> cardIndices;
-    // ZH_Annotator::ZH_dicItemVec dicItemVec;
+    // ZH_Tokenizer::ZH_dicItemVec dicItemVec;
 };
 
 } // namespace sr

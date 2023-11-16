@@ -11,7 +11,7 @@
 #include <utility>
 #include <vector>
 
-class ZH_Annotator
+class ZH_Tokenizer
 {
     utl::StringU8 text;
 
@@ -21,8 +21,8 @@ public:
     using AnnotationChoiceMap = std::map<CharacterSequence, Combination>;
     using ZH_dicItemVec = std::vector<ZH_Dictionary::Entry>;
 
-    ZH_Annotator() = default;
-    ZH_Annotator(utl::StringU8 text,
+    ZH_Tokenizer() = default;
+    ZH_Tokenizer(utl::StringU8 text,
                  std::shared_ptr<const ZH_Dictionary> dictionary,
                  std::shared_ptr<const AnnotationChoiceMap> choices = {});
     [[nodiscard]] auto Annotated() const -> const std::string&;

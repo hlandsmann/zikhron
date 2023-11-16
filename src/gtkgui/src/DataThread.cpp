@@ -332,8 +332,8 @@ void DataThread::sendActiveCard(sr::CardMeta& cardMeta)
     });
 }
 
-void DataThread::submitAnnotation(const ZH_Annotator::Combination& combination,
-                                  const ZH_Annotator::CharacterSequence& characterSequence)
+void DataThread::submitAnnotation(const ZH_Tokenizer::Combination& combination,
+                                  const ZH_Tokenizer::CharacterSequence& characterSequence)
 {
     {
         std::lock_guard<std::mutex> lock(condition_mutex);
