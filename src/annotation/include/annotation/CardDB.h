@@ -1,5 +1,5 @@
 #pragma once
-#include <annotation/ZH_Annotator.h>
+#include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <unicode/unistr.h>

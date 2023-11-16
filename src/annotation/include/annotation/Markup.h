@@ -2,7 +2,7 @@
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/Word.h>
-#include <annotation/ZH_Annotator.h>
+#include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>

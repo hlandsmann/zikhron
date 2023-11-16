@@ -5,7 +5,7 @@
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
-#include <annotation/ZH_Annotator.h>
+#include <annotation/ZH_Tokenizer.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>

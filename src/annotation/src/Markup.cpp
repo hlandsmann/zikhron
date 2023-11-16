@@ -3,7 +3,7 @@
 #include <CardDB.h>
 #include <Ease.h>
 #include <Word.h>
-#include <ZH_Annotator.h>
+#include <ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>

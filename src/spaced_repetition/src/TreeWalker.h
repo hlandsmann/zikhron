@@ -7,7 +7,7 @@
 
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
-#include <annotation/ZH_Annotator.h>
+#include <annotation/ZH_Tokenizer.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 

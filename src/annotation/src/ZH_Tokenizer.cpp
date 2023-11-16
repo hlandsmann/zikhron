@@ -1,4 +1,4 @@
-#include "ZH_Annotator.h"
+#include "ZH_Tokenizer.h"
 
 #include "dictionary/ZH_Dictionary.h"
 
