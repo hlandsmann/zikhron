@@ -22,6 +22,10 @@ target_sources(imguitest
         zgui/TextDraw.h
         zgui/Theme.cpp
         zgui/Theme.h
+        zgui/Token.cpp
+        zgui/Token.h
+        zgui/TokenText.cpp
+        zgui/TokenText.h
         zgui/widget/Box.cpp
         zgui/widget/Box.h
         zgui/widget/Button.cpp
