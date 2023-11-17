@@ -15,7 +15,6 @@
 namespace ranges = std::ranges;
 namespace utl {
 
-// StringU8::StringU8(const std::string_view& _strv) : StringU8(std::string(_strv)) {}
 StringU8::StringU8(const icu::UnicodeString& _str)
     : StringU8(icustringToString(_str)) {}
 
@@ -30,6 +29,11 @@ StringU8::StringU8(const std::span<const CharU8>& items)
 }
 
 StringU8::operator std::string() const
+{
+    return string();
+}
+
+auto StringU8::string() const -> std::string
 {
     return substr(0, static_cast<long>(chars.size()));
 }

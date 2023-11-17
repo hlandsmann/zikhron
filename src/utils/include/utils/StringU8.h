@@ -4,7 +4,6 @@
 #include <compare>
 #include <cstddef>
 #include <format>
-#include <iosfwd>
 #include <span>
 #include <string>
 #include <utility>
@@ -21,7 +20,6 @@ auto stringPlusT(std::string&& a, const T& b) -> std::string
     return std::move(a) += b;
 }
 
-/* Item representing either a character or a markup formatter */
 class CharU8
 {
 public:
@@ -35,6 +33,7 @@ public:
     auto operator=(const CharU8& other) -> CharU8& = default;
     auto operator=(CharU8&& other) noexcept -> CharU8& = default;
     operator std::string() const { return str; }
+    [[nodiscard]] auto string() const -> std::string { return str; }
     [[nodiscard]] auto vLength() const -> size_t { return virtualLength; }
     [[nodiscard]] auto isMarkup() const -> bool { return markup; }
     auto operator<=>(const CharU8& other) const -> std::weak_ordering { return str <=> other.str; };
@@ -55,7 +54,6 @@ public:
     ~StringU8() = default;
     StringU8(const std::string&);
     StringU8(const std::span<const CharU8>&);
-    // StringU8(const std::string_view&);
     StringU8(const icu::UnicodeString&);
     StringU8(const StringU8&) = default;
     StringU8(StringU8&&) = default;
@@ -63,6 +61,7 @@ public:
     auto operator=(StringU8&& other) noexcept -> StringU8& = default;
     auto operator<=>(const StringU8&) const -> std::weak_ordering;
     operator std::string() const;
+    [[nodiscard]] auto string() const -> std::string;
 
     [[nodiscard]] auto length() const -> size_t;
     [[nodiscard]] auto vlength() const -> size_t;
@@ -73,7 +72,6 @@ public:
     [[nodiscard]] auto front() const -> CharU8;
     [[nodiscard]] auto cbegin() const { return chars.cbegin(); }
     [[nodiscard]] auto cend() const { return chars.cend(); }
-    // void push_back(const std::string&);
     void push_back(const CharU8&);
     void append(const std::string&);
     void append(const icu::UnicodeString&);
@@ -83,12 +81,6 @@ private:
 };
 
 } // namespace utl
-
-inline auto operator<<(std::ostream& os, const utl::CharU8& itemU8) -> std::ostream&
-{
-    os << std::string(itemU8);
-    return os;
-}
 
 template<>
 struct std::formatter<utl::CharU8>
@@ -104,9 +96,3 @@ struct std::formatter<utl::CharU8>
         return std::format_to(ctx.out(), "{}", std::string(itemU8));
     }
 };
-
-inline auto operator<<(std::ostream& os, const utl::StringU8& strU8) -> std::ostream&
-{
-    os << std::string(strU8);
-    return os;
-}
