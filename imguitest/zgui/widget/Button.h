@@ -14,7 +14,7 @@ enum class ib {
 class Button : public Widget<Button>
 {
 public:
-    Button(layout::Align align, layout::Orientation orientation, std::shared_ptr<layout::Rect> rect, std::string label);
+    Button(layout::Orientation orientation, layout::Align align, std::shared_ptr<layout::Rect> rect, std::string label);
     ~Button() override = default;
 
     Button(const Button&) = default;

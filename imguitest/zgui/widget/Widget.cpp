@@ -5,9 +5,9 @@
 #include <memory>
 #include <utility>
 namespace widget {
-WidgetBase::WidgetBase(layout::Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
-    : baseAlign{_align}
-    , baseOrientation{_orientation}
+WidgetBase::WidgetBase(layout::Orientation _orientation, layout::Align _align, std::shared_ptr<layout::Rect> _rect)
+    : baseOrientation{_orientation}
+    , baseAlign{_align}
     , rectPtr{std::move(_rect)}
 {
 }

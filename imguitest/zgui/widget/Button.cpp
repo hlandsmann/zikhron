@@ -10,8 +10,8 @@
 #include <utility>
 namespace widget {
 
-Button::Button(layout::Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect, std::string _label)
-    : Widget<Button>{_align, _orientation, std::move(_rect)}
+Button::Button(layout::Orientation _orientation, layout::Align _align, std::shared_ptr<layout::Rect> _rect, std::string _label)
+    : Widget<Button>{_orientation, _align, std::move(_rect)}
     , label{std::move(_label)}
 {}
 

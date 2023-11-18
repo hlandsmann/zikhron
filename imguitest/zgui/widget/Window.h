@@ -13,7 +13,7 @@ class WindowDrop;
 class Window : public Widget<Window>
 {
 public:
-    Window(layout::Align align, layout::Orientation, const std::shared_ptr<layout::Rect>& rect,
+    Window(layout::Orientation, layout::Align align, const std::shared_ptr<layout::Rect>& rect,
            layout::SizeType sizeTypeWidth, layout::SizeType sizeTypeHeight,
            std::string name);
     ~Window() override = default;

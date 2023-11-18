@@ -19,12 +19,12 @@ namespace views = std::ranges::views;
 namespace widget {
 Box::Box(layout::Orientation _orientation)
     : Box{_orientation, std::make_shared<layout::Rect>()} {}
-Box::Box(Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
-    : Widget<Box>{_align, _orientation, _rect}
+Box::Box(layout::Orientation _orientation, Align _align, std::shared_ptr<layout::Rect> _rect)
+    : Widget<Box>{_orientation, _align, _rect}
     , orientation{_orientation}
     , layoutRect{std::move(_rect)} {}
 Box::Box(layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
-    : Widget<Box>{Align::start, _orientation, _rect}
+    : Widget<Box>{_orientation, Align::start, _rect}
     , orientation{_orientation}
     , layoutRect{std::move(_rect)}
 {}

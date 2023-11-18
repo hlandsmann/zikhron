@@ -11,11 +11,11 @@
 #include <utility>
 
 namespace widget {
-Window::Window(layout::Align _align, layout::Orientation _orientation, const std::shared_ptr<layout::Rect>& _rect,
+Window::Window(layout::Orientation _orientation, layout::Align _align, const std::shared_ptr<layout::Rect>& _rect,
                layout::SizeType _sizeTypeWidth, layout::SizeType _sizeTypeHeight,
                std::string _name)
-    : Widget<Window>{_align, _orientation, _rect}
-    , layout{_align, _orientation, _rect}
+    : Widget<Window>{_orientation, _align, _rect}
+    , layout{_orientation, _align, _rect}
     , sizeTypeWidth{_sizeTypeWidth}
     , sizeTypeHeight{_sizeTypeHeight}
     , name{std::move(_name)}

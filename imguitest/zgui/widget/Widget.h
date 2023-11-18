@@ -51,7 +51,7 @@ struct WidgetSize
 class WidgetBase
 {
 public:
-    WidgetBase(layout::Align align, layout::Orientation orientation, std::shared_ptr<layout::Rect> rect);
+    WidgetBase(layout::Orientation orientation, layout::Align align, std::shared_ptr<layout::Rect> rect);
     virtual ~WidgetBase() = default;
     WidgetBase(const WidgetBase&) = default;
     WidgetBase(WidgetBase&&) = default;
@@ -66,8 +66,8 @@ protected:
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
 
 private:
-    layout::Align baseAlign;
     layout::Orientation baseOrientation;
+    layout::Align baseAlign;
     std::shared_ptr<layout::Rect> rectPtr;
 };
 
@@ -75,8 +75,8 @@ template<class WidgetImpl>
 class Widget : public WidgetBase
 {
 public:
-    Widget(layout::Align _align, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
-        : WidgetBase{_align, _orientation, std::move(_rect)} {}
+    Widget(layout::Orientation _orientation, layout::Align _align, std::shared_ptr<layout::Rect> _rect)
+        : WidgetBase{_orientation, _align, std::move(_rect)} {}
     ~Widget() override = default;
     Widget(const Widget&) = default;
     Widget(Widget&&) = default;
