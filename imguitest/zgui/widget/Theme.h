@@ -1,6 +1,6 @@
 #pragma once
 #include <imgui.h>
-
+namespace widget {
 class Theme
 { // clang-format off
     static constexpr ImVec4 s_colorButton         = {0.2F, 0.2F, 0.2F, 1.0F};
@@ -32,3 +32,4 @@ private:
     ImVec4 colorToggleButtonDisabled{s_colorToggleButtonDisabled};
     ImVec4 colorToggleButtonDisabledHovered{s_colorToggleButtonDisabledHovered};
 };
+} // namespace widget

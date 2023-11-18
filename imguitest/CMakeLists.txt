@@ -20,8 +20,6 @@ target_sources(imguitest
         zgui/SideBar.h
         zgui/TextDraw.cpp
         zgui/TextDraw.h
-        zgui/Theme.cpp
-        zgui/Theme.h
         zgui/Token.cpp
         zgui/Token.h
         zgui/TokenText.cpp
@@ -32,6 +30,8 @@ target_sources(imguitest
         zgui/widget/Button.h
         zgui/widget/ImageButton.cpp
         zgui/widget/ImageButton.h
+        zgui/widget/Theme.cpp
+        zgui/widget/Theme.h
         zgui/widget/Widget.cpp
         zgui/widget/Widget.h
         zgui/widget/Window.cpp

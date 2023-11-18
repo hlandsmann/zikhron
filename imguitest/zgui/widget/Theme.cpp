@@ -1,6 +1,7 @@
-#include <Theme.h>
-#include <imgui.h>
+#include "Theme.h"
 
+#include <imgui.h>
+namespace widget {
 auto Theme::ColorButton() const -> const ImVec4&
 {
     return colorButton;
@@ -35,3 +36,4 @@ auto Theme::ColorToggleButtonDisabledHovered() const -> const ImVec4&
 {
     return colorToggleButtonDisabledHovered;
 }
+} // namespace widget
