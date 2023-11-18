@@ -8,6 +8,7 @@
 class Token
 {
 public:
+    Token(utl::StringU8 token);
     Token(std::string token);
     Token(const Token&) = default;
     Token(Token&&) = default;

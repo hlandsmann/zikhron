@@ -15,6 +15,7 @@
 #include <iterator>
 #include <numeric>
 #include <string>
+#include <utility>
 
 #include <sys/types.h>
 
@@ -26,7 +27,7 @@ auto Word::joinCharactersNonBreakable(const utl::StringU8& word) -> std::string
 {
     std::string result = std::accumulate(
             word.cbegin(), std::prev(word.cend()), std::string{}, [](std::string&& a, const std::string& b) {
-                return a += (b + "&#8288;");
+                return std::move(a) += (b + "&#8288;");
             });
     result += word.back();
     return result;
