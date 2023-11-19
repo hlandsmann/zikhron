@@ -1,16 +1,16 @@
 #pragma once
-#include "AsyncTreeWalker.h"
 #include "CardDisplay.h"
+#include "SideBar.h"
 
-#include <Fonts.h>
 #include <GLFW/glfw3.h>
-#include <MediaPlayer.h>
-#include <SideBar.h>
 #include <folly/executors/ManualExecutor.h>
 #include <imgui.h>
-#include <widget/Box.h>
-#include <widget/Widget.h>
-#include <widget/Window.h>
+#include <multimedia/MpvWrapper.h>
+#include <spaced_repetition/AsyncTreeWalker.h>
+#include <widgets/Box.h>
+#include <widgets/Fonts.h>
+#include <widgets/Widget.h>
+#include <widgets/Window.h>
 
 #include <memory>
 #include <string>
@@ -19,7 +19,7 @@ class MainWindow
 {
 public:
     MainWindow(std::shared_ptr<folly::ManualExecutor> executor,
-               std::shared_ptr<AsyncTreeWalker> asyncTreeWalker);
+               std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
     ~MainWindow();
     MainWindow(const MainWindow&) = delete;
     MainWindow(MainWindow&&) = delete;
@@ -45,8 +45,8 @@ private:
 
     // async
     std::shared_ptr<folly::ManualExecutor> synchronousExecutor;
-    std::shared_ptr<AsyncTreeWalker> asyncTreeWalker;
-    std::shared_ptr<MediaPlayer> videoPlayer;
+    std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker;
+    std::shared_ptr<MpvWrapper> videoPlayer;
 
     CardDisplay cardDisplay;
 };

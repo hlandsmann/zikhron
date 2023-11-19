@@ -6,50 +6,23 @@ add_executable(imguitest)
 target_sources(imguitest
     PRIVATE
         main.cpp
-        zgui/AsyncTreeWalker.cpp
-        zgui/AsyncTreeWalker.h
-        zgui/CardDisplay.cpp
-        zgui/CardDisplay.h
-        zgui/Fonts.cpp
-        zgui/Fonts.h
-        zgui/MainWindow.cpp
-        zgui/MainWindow.h
-        zgui/MediaPlayer.cpp
-        zgui/MediaPlayer.h
-        zgui/SideBar.cpp
-        zgui/SideBar.h
-        zgui/TextDraw.cpp
-        zgui/TextDraw.h
         zgui/Token.cpp
         zgui/Token.h
-        zgui/TokenText.cpp
-        zgui/TokenText.h
-        zgui/widget/Box.cpp
-        zgui/widget/Box.h
-        zgui/widget/Button.cpp
-        zgui/widget/Button.h
-        zgui/widget/ImageButton.cpp
-        zgui/widget/ImageButton.h
-        zgui/widget/Theme.cpp
-        zgui/widget/Theme.h
-        zgui/widget/Widget.cpp
-        zgui/widget/Widget.h
-        zgui/widget/Window.cpp
-        zgui/widget/Window.h
-        zgui/widget/imglog.cpp
-        zgui/widget/imglog.h
 )
 
 target_link_libraries(imguitest
     PRIVATE
         ${OPENGL_LIBRARIES}
-        glfw
-        mpv
         epoxy
-        imgui::imgui
-        spdlog::spdlog
         folly
-        # zikhron::multimedia
+        glfw
+        imgui::imgui
+        mpv
+        spdlog::spdlog
+        stb::image
+        zgui::gui
+        zgui::widgets
+        zikhron::multimedia
         zikhron::annotation
         zikhron::dictionary
         zikhron::miscellaneous

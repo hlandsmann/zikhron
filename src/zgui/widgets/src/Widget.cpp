@@ -1,4 +1,4 @@
-#include "Widget.h"
+#include <Widget.h>
 
 #include <spdlog/spdlog.h>
 

@@ -21,6 +21,7 @@ add_subdirectory(misc)
 add_subdirectory(multimedia)
 add_subdirectory(spaced_repetition)
 add_subdirectory(utils)
+add_subdirectory(zgui)
 
 add_executable(zikhron)
 set_target_properties(zikhron

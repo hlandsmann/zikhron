@@ -6,7 +6,7 @@
 #include <GL/gl.h>
 #include <GL/glext.h>
 #include <GLFW/glfw3.h>
-#include <MediaPlayer.h>
+#include <MpvWrapper.h>
 #include <mpv/client.h>
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
@@ -32,13 +32,13 @@
 #endif
 
 namespace {
-auto get_proc_address(void* fn_ctx, const char* name)->void* 
+auto get_proc_address(void* fn_ctx, const char* name) -> void*
 {
     return reinterpret_cast<void*>(glfwGetProcAddress(name));
 }
 } // namespace
 
-MediaPlayer::MediaPlayer()
+MpvWrapper::MpvWrapper()
 {
     // dispatch_render.connect([this]() {
     //     if (glArea)
@@ -73,7 +73,7 @@ MediaPlayer::MediaPlayer()
     // });
 }
 
-void MediaPlayer::openFile(const std::filesystem::path& mediaFile_in)
+void MpvWrapper::openFile(const std::filesystem::path& mediaFile_in)
 {
     duration = 0.;
     timePos = 0.;
@@ -89,19 +89,19 @@ void MediaPlayer::openFile(const std::filesystem::path& mediaFile_in)
     pause();
 }
 
-void MediaPlayer::closeFile()
+void MpvWrapper::closeFile()
 {
     duration = 0.;
     timePos = 0.;
 }
 
-void MediaPlayer::play_fragment(double start, double end)
+void MpvWrapper::play_fragment(double start, double end)
 {
     seek(start);
     play(end);
 }
 
-void MediaPlayer::play(double until)
+void MpvWrapper::play(double until)
 {
     if (until == 0) {
         until = duration;
@@ -112,13 +112,13 @@ void MediaPlayer::play(double until)
     mpv_set_property_async(mpv.get(), 0, "ao-volume", MPV_FORMAT_DOUBLE, &volume);
 }
 
-void MediaPlayer::pause()
+void MpvWrapper::pause()
 {
     mpv_flag_paused = 1;
     mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
 }
 
-void MediaPlayer::seek(double pos)
+void MpvWrapper::seek(double pos)
 {
     static std::string seek_position;
     seek_position = std::to_string(pos);
@@ -126,7 +126,7 @@ void MediaPlayer::seek(double pos)
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
 }
 
-void MediaPlayer::initGL(/* const std::shared_ptr<Gtk::GLArea>& glArea_in */)
+void MpvWrapper::initGL(/* const std::shared_ptr<Gtk::GLArea>& glArea_in */)
 {
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr};
     static std::string renderType = MPV_RENDER_API_TYPE_OPENGL;
@@ -142,7 +142,7 @@ void MediaPlayer::initGL(/* const std::shared_ptr<Gtk::GLArea>& glArea_in */)
     mpv_gl = decltype(mpv_gl)(mpv_gl_temp, renderCtx_deleter);
 }
 
-auto MediaPlayer::render(int width, int height) -> bool
+auto MpvWrapper::render(int width, int height) -> bool
 {
     if (mpv_gl == nullptr /* || glArea == nullptr */) {
         return false;
@@ -161,7 +161,7 @@ auto MediaPlayer::render(int width, int height) -> bool
     return true;
 }
 
-void MediaPlayer::on_mpv_events()
+void MpvWrapper::on_mpv_events()
 {
     // Process all events, until the event queue is empty.
     while (mpv) {
@@ -173,7 +173,7 @@ void MediaPlayer::on_mpv_events()
     }
 }
 
-void MediaPlayer::handle_mpv_event(mpv_event* event)
+void MpvWrapper::handle_mpv_event(mpv_event* event)
 {
     switch (event->event_id) {
     case MPV_EVENT_PROPERTY_CHANGE: {
@@ -203,19 +203,19 @@ void MediaPlayer::handle_mpv_event(mpv_event* event)
     }
 }
 
-// void MediaPlayer::observe_duration(const std::function<void(double)> observer)
+// void MpvWrapper::observe_duration(const std::function<void(double)> observer)
 // {
 //     auto durationObserver = duration.observe(observer);
 //     observers.push(durationObserver);
 // }
 
-// void MediaPlayer::observe_timePos(const std::function<void(double)> observer)
+// void MpvWrapper::observe_timePos(const std::function<void(double)> observer)
 // {
 //     auto timePosObserver = timePos.observe(observer);
 //     observers.push(timePosObserver);
 // }
 
-void MediaPlayer::enable_stop_timer()
+void MpvWrapper::enable_stop_timer()
 {
     // if (!timer_running) {
     //     sigc::slot<bool()> slot = sigc::bind([this](int _timer_id) { return timer_stop(_timer_id); },
@@ -225,14 +225,14 @@ void MediaPlayer::enable_stop_timer()
     timer_running = true;
 }
 
-void MediaPlayer::disable_stop_timer()
+void MpvWrapper::disable_stop_timer()
 {
     spdlog::info("Stop emergency disabled!");
     // timer_connection.disconnect();
     timer_running = false;
 }
 
-auto MediaPlayer::timer_stop(int /*timer_id*/) -> bool
+auto MpvWrapper::timer_stop(int /*timer_id*/) -> bool
 {
     if (paused) {
         disable_stop_timer();

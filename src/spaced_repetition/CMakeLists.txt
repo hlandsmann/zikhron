@@ -8,6 +8,7 @@ target_include_directories(zikhron_spaced_repetition
 )
 target_sources(zikhron_spaced_repetition
     PRIVATE
+        include/spaced_repetition/AsyncTreeWalker.h
         include/spaced_repetition/CardMeta.h
         include/spaced_repetition/CardProgress.h
         include/spaced_repetition/DataBase.h
@@ -15,6 +16,7 @@ target_sources(zikhron_spaced_repetition
         include/spaced_repetition/VocableMeta.h
         include/spaced_repetition/VocableProgress.h
         include/spaced_repetition/srtypes.h
+        src/AsyncTreeWalker.cpp
         src/CardMeta.cpp
         src/CardProgress.cpp
         src/DataBase.cpp

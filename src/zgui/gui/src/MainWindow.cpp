@@ -6,23 +6,23 @@
 // #include <epoxy/egl.h>
 // #include <epoxy/gl_generated.h>
 // clang-format on
-#include <AsyncTreeWalker.h>
-#include <Fonts.h>
+#include <widgets/Fonts.h>
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
 #include <MainWindow.h>
-#include <MediaPlayer.h>
+#include <multimedia/MpvWrapper.h>
 #include <SideBar.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/executors/ManualExecutor.h>
 #include <imgui.h>
+#include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
-#include <widget/Box.h>
-#include <widget/Button.h>
-#include <widget/Widget.h>
-#include <widget/imglog.h>
+#include <widgets/Box.h>
+#include <widgets/Button.h>
+#include <widgets/Widget.h>
+#include <widgets/imglog.h>
 
 #include <memory>
 #include <stdexcept>
@@ -36,10 +36,10 @@ void glfw_error_callback(int error, const char* description)
 } // namespace
 
 MainWindow::MainWindow(std::shared_ptr<folly::ManualExecutor> _synchronousExecutor,
-                       std::shared_ptr<AsyncTreeWalker> _asyncTreeWalker)
+                       std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
     : synchronousExecutor{std::move(_synchronousExecutor)}
     , asyncTreeWalker{std::move(_asyncTreeWalker)}
-    , videoPlayer{std::make_shared<MediaPlayer>()}
+    , videoPlayer{std::make_shared<MpvWrapper>()}
     , cardDisplay{synchronousExecutor, asyncTreeWalker}
 {
     initOpenglContext();

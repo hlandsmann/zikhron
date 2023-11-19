@@ -1,4 +1,5 @@
 find_package(PkgConfig)
+find_package(OpenGL REQUIRED)
 pkg_check_modules(GTKMM gtkmm-4.0)
 
 add_library(zikhron_multimedia)
@@ -7,9 +8,11 @@ target_sources(zikhron_multimedia
     PRIVATE
         include/multimedia/CardAudioGroup.h
         include/multimedia/MediaPlayer.h
+        include/multimedia/MpvWrapper.h
         include/multimedia/Subtitles.h
         src/CardAudioGroup.cpp
         src/MediaPlayer.cpp
+        src/MpvWrapper.cpp
         src/Subtitles.cpp
 )
 target_include_directories(zikhron_multimedia
@@ -28,11 +31,13 @@ target_link_libraries(zikhron_multimedia
         mpv
         nlohmann_json::nlohmann_json
     PRIVATE
+        ${OPENGL_LIBRARIES}
         ${GTKMM_LIBRARIES}
         Microsoft.GSL::GSL
         ctre::ctre
         epoxy
         fmt::fmt
+        glfw
         spdlog::spdlog
         zikhron::miscellaneous
         zikhron::utils

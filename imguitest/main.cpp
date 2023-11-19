@@ -1,9 +1,9 @@
-#include <AsyncTreeWalker.h>
-#include <MainWindow.h>
 #include <folly/executors/CPUThreadPoolExecutor.h>
 #include <folly/executors/ManualExecutor.h>
 #include <folly/executors/thread_factory/NamedThreadFactory.h>
 #include <folly/init/Init.h>
+#include <gui/MainWindow.h>
+#include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -18,7 +18,7 @@ auto main(int argc, char** argv) -> int
             1, std::thread::hardware_concurrency(),
             std::make_shared<folly::NamedThreadFactory>("thread_pool"));
 
-    auto asyncTreeWalker = std::make_shared<AsyncTreeWalker>(executor, threadPoolExecutor);
+    auto asyncTreeWalker = std::make_shared<sr::AsyncTreeWalker>(executor, threadPoolExecutor);
 
     MainWindow mainWindow{executor, asyncTreeWalker};
     while (!mainWindow.shouldClose()) {

@@ -23,3 +23,14 @@ target_link_libraries(imgui
     PUBLIC
         glfw
 )
+
+add_library(stb_image INTERFACE)
+add_library(stb::image ALIAS stb_image)
+target_sources(stb_image
+    PRIVATE
+        stb/include/stb/stb_image.h
+)
+target_include_directories(stb_image
+    INTERFACE
+        stb/include
+)

@@ -8,10 +8,10 @@
 #include <memory>
 #include <string>
 
-class MediaPlayer
+class MpvWrapper
 {
 public:
-    MediaPlayer();
+    MpvWrapper();
 
     // auto property_duration() const -> const utl::Property<double>& { return duration; }
     // auto property_paused() const -> const utl::Property<bool>& { return paused; }
