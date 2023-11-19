@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CPM_SOURCE_CACHE "${CMAKE_SOURCE_DIR}/build_modules")
 include(cmake/CPM.cmake)
+CPMAddPackage("gh:boost-ext/di@1.3.0")
 CPMAddPackage("gh:catchorg/Catch2@3.3.2")
 CPMAddPackage("gh:facebook/folly@2023.11.06.00")
 CPMAddPackage("gh:fmtlib/fmt#9.1.0")

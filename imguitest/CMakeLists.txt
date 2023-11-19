@@ -13,6 +13,7 @@ target_sources(imguitest
 target_link_libraries(imguitest
     PRIVATE
         ${OPENGL_LIBRARIES}
+        Boost.DI
         epoxy
         folly
         glfw
@@ -22,10 +23,10 @@ target_link_libraries(imguitest
         stb::image
         zgui::gui
         zgui::widgets
-        zikhron::multimedia
         zikhron::annotation
         zikhron::dictionary
         zikhron::miscellaneous
+        zikhron::multimedia
         zikhron::spaced_repetition
         zikhron::warnings
 )

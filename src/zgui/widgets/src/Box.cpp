@@ -1,7 +1,7 @@
 #include <Box.h>
-#include <Theme.h>
 #include <Widget.h>
-#include <imglog.h>
+#include <context/Theme.h>
+#include <context/imglog.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
