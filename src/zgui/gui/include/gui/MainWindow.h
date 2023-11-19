@@ -9,6 +9,7 @@
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <widgets/Box.h>
 #include <widgets/Fonts.h>
+#include <widgets/Theme.h>
 #include <widgets/Widget.h>
 #include <widgets/Window.h>
 
@@ -41,7 +42,8 @@ private:
     // ImGui widgets
     SideBar sideBar{};
     std::unique_ptr<Fonts> fonts;
-    widget::Box layout{widget::layout::Orientation::horizontal};
+    std::shared_ptr<widget::Theme> theme;
+    widget::Box layout{theme, widget::layout::Orientation::horizontal};
 
     // async
     std::shared_ptr<folly::ManualExecutor> synchronousExecutor;

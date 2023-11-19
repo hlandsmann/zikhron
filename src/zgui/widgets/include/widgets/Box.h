@@ -1,4 +1,5 @@
 #pragma once
+#include "Theme.h"
 #include "Widget.h"
 
 #include <imgui.h>
@@ -16,8 +17,8 @@ class Box : public Widget<Box>
 
 public:
     constexpr static float s_padding = 16.F;
-    Box(layout::Orientation);
-    Box(layout::Orientation, Align, std::shared_ptr<layout::Rect>);
+    Box(std::shared_ptr<Theme> theme, layout::Orientation);
+    Box(std::shared_ptr<Theme> theme, layout::Orientation, Align, std::shared_ptr<layout::Rect>);
 
     void arrange(const layout::Rect&);
     void arrange();
@@ -29,7 +30,7 @@ public:
         auto widgetOrientation = Orientation() == layout::Orientation::vertical
                                          ? layout::Orientation::horizontal
                                          : layout::Orientation::vertical;
-        auto widget = std::make_shared<WidgetType>(widgetOrientation, widgetAlign, widgetRect, std::forward<Args>(args)...);
+        auto widget = std::make_shared<WidgetType>(getThemePtr(), widgetOrientation, widgetAlign, widgetRect, std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
         // spdlog::warn("a: {}, w: {}, b: {}, f: {}",
         //              static_cast<int>(align),
@@ -53,7 +54,7 @@ private:
         width,
         height
     };
-    Box(layout::Orientation, std::shared_ptr<layout::Rect>);
+    Box(std::shared_ptr<Theme> theme, layout::Orientation, std::shared_ptr<layout::Rect>);
     friend class Widget<Box>;
     auto calculateSize() const -> WidgetSize;
     static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;

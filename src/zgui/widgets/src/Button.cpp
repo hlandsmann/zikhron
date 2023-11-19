@@ -1,8 +1,8 @@
-#include <Button.h>
-
-#include <Widget.h>
 #include "imglog.h"
 
+#include <Button.h>
+#include <Theme.h>
+#include <Widget.h>
 #include <imgui.h>
 
 #include <memory>
@@ -10,8 +10,12 @@
 #include <utility>
 namespace widget {
 
-Button::Button(layout::Orientation _orientation, layout::Align _align, std::shared_ptr<layout::Rect> _rect, std::string _label)
-    : Widget<Button>{_orientation, _align, std::move(_rect)}
+Button::Button(std::shared_ptr<Theme> _theme,
+               layout::Orientation _orientation,
+               layout::Align _align,
+               std::shared_ptr<layout::Rect> _rect,
+               std::string _label)
+    : Widget<Button>{std::move(_theme), _orientation, _align, std::move(_rect)}
     , label{std::move(_label)}
 {}
 

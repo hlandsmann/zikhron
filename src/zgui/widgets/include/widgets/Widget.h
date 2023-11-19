@@ -1,4 +1,6 @@
 #pragma once
+#include "Theme.h"
+
 #include <imgui.h>
 
 #include <memory>
@@ -51,7 +53,10 @@ struct WidgetSize
 class WidgetBase
 {
 public:
-    WidgetBase(layout::Orientation orientation, layout::Align align, std::shared_ptr<layout::Rect> rect);
+    WidgetBase(std::shared_ptr<Theme> theme,
+               layout::Orientation orientation,
+               layout::Align align,
+               std::shared_ptr<layout::Rect> rect);
     virtual ~WidgetBase() = default;
     WidgetBase(const WidgetBase&) = default;
     WidgetBase(WidgetBase&&) = default;
@@ -59,13 +64,16 @@ public:
     auto operator=(WidgetBase&&) -> WidgetBase& = default;
 
     [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
-    [[nodiscard]] auto Align() const -> layout::Align;
+    [[nodiscard]] auto getTheme() const -> const Theme&;
     [[nodiscard]] auto Orientation() const -> layout::Orientation;
+    [[nodiscard]] auto Align() const -> layout::Align;
 
 protected:
+    [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<Theme>;
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
 
 private:
+    std::shared_ptr<Theme> theme;
     layout::Orientation baseOrientation;
     layout::Align baseAlign;
     std::shared_ptr<layout::Rect> rectPtr;
@@ -75,8 +83,11 @@ template<class WidgetImpl>
 class Widget : public WidgetBase
 {
 public:
-    Widget(layout::Orientation _orientation, layout::Align _align, std::shared_ptr<layout::Rect> _rect)
-        : WidgetBase{_orientation, _align, std::move(_rect)} {}
+    Widget(std::shared_ptr<Theme> _theme,
+           layout::Orientation _orientation,
+           layout::Align _align,
+           std::shared_ptr<layout::Rect> _rect)
+        : WidgetBase{_theme, _orientation, _align, std::move(_rect)} {}
     ~Widget() override = default;
     Widget(const Widget&) = default;
     Widget(Widget&&) = default;

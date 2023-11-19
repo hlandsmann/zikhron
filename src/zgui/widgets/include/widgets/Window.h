@@ -1,4 +1,5 @@
 #include "Box.h"
+#include "Theme.h"
 #include "Widget.h"
 
 #include <imgui.h>
@@ -13,7 +14,7 @@ class WindowDrop;
 class Window : public Widget<Window>
 {
 public:
-    Window(layout::Orientation, layout::Align align, const std::shared_ptr<layout::Rect>& rect,
+    Window(std::shared_ptr<Theme> theme, layout::Orientation, layout::Align align, const std::shared_ptr<layout::Rect>& rect,
            layout::SizeType sizeTypeWidth, layout::SizeType sizeTypeHeight,
            std::string name);
     ~Window() override = default;
@@ -29,7 +30,7 @@ public:
 private:
     friend class Widget<Window>;
     auto calculateSize() const -> WidgetSize;
-    Box layout;
+    Box box;
     // float width;
     // float height;
     layout::SizeType sizeTypeWidth;

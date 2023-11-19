@@ -1,4 +1,5 @@
 #pragma once
+#include "Theme.h"
 #include "Widget.h"
 
 #include <imgui.h>
@@ -14,7 +15,11 @@ enum class ib {
 class Button : public Widget<Button>
 {
 public:
-    Button(layout::Orientation orientation, layout::Align align, std::shared_ptr<layout::Rect> rect, std::string label);
+    Button(std::shared_ptr<Theme> theme,
+           layout::Orientation orientation,
+           layout::Align align,
+           std::shared_ptr<layout::Rect> rect,
+           std::string label);
     ~Button() override = default;
 
     Button(const Button&) = default;

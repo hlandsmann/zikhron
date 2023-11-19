@@ -1,9 +1,9 @@
-#include <Window.h>
-
 #include "Box.h"
 #include "Widget.h"
 #include "imglog.h"
 
+#include <Theme.h>
+#include <Window.h>
 #include <imgui.h>
 
 #include <memory>
@@ -11,11 +11,14 @@
 #include <utility>
 
 namespace widget {
-Window::Window(layout::Orientation _orientation, layout::Align _align, const std::shared_ptr<layout::Rect>& _rect,
+Window::Window(std::shared_ptr<Theme> _theme,
+               layout::Orientation _orientation,
+               layout::Align _align,
+               const std::shared_ptr<layout::Rect>& _rect,
                layout::SizeType _sizeTypeWidth, layout::SizeType _sizeTypeHeight,
                std::string _name)
-    : Widget<Window>{_orientation, _align, _rect}
-    , layout{_orientation, _align, _rect}
+    : Widget<Window>{std::move(_theme), _orientation, _align, _rect}
+    , box{std::move(_theme), _orientation, _align, _rect}
     , sizeTypeWidth{_sizeTypeWidth}
     , sizeTypeHeight{_sizeTypeHeight}
     , name{std::move(_name)}
@@ -25,18 +28,18 @@ auto Window::dropWindow() -> WindowDrop
 {
     layout::Rect rect = Rect();
     layout::Rect layoutRect = {.x = 0, .y = 0, .width = rect.width, .height = rect.height};
-    layout.arrange(layoutRect);
+    box.arrange(layoutRect);
     return {name, rect};
 }
 
 auto Window::getLayout() -> Box&
 {
-    return layout;
+    return box;
 }
 
 auto Window::calculateSize() const -> WidgetSize
 {
-    auto size = layout.getWidgetSize();
+    auto size = box.getWidgetSize();
     return {.widthType = sizeTypeWidth,
             .heightType = sizeTypeHeight,
             .width = size.width,
