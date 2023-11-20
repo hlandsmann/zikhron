@@ -11,7 +11,8 @@ class FontDrop;
 class Fonts
 {
 public:
-    Fonts(std::shared_ptr<GlfwImguiContext> glfwImguiContext);
+    // the GlfwImguiContext needs to be initialized before this class is constructed
+    Fonts(std::shared_ptr<GlfwImguiContext> /* glfwImguiContext */);
     [[nodiscard]] auto dropChineseBig() const -> FontDrop;
     [[nodiscard]] auto dropChineseSmall() const -> FontDrop;
     [[nodiscard]] auto dropGui() const -> FontDrop;

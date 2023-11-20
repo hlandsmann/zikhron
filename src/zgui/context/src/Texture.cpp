@@ -1,15 +1,18 @@
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb/stb_image.h>
+#include "GlfwImguiContext.h"
+
 #include <GL/gl.h>
 #include <Texture.h>
+#include <spdlog/spdlog.h>
 
 #include <filesystem>
 #include <map>
+#include <memory>
+#include <string>
 
-#include <sys/types.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb/stb_image.h>
 namespace context {
-Texture::Texture()
+Texture::Texture(std::shared_ptr<GlfwImguiContext> /* glfwImguiContext */)
     : textureMap{loadTextureMap()}
 {}
 
@@ -24,6 +27,7 @@ auto Texture::loadTextureFromFile(const std::filesystem::path& imageFile) -> Tex
     int image_height = 0;
     unsigned char* image_data = stbi_load(imageFile.c_str(), &image_width, &image_height, nullptr, 4);
     if (image_data == nullptr) {
+        spdlog::error("Failed to load '{}'", std::string{imageFile});
         return {};
     }
 

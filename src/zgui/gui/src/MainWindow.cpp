@@ -25,7 +25,7 @@ void MainWindow::doImGui(const widget::layout::Rect& rect)
     {
         auto droppedWindow = layout.next<widget::Window>().dropWindow();
         {
-            auto chineseBig = theme->Font().dropChineseBig();
+            auto chineseBig = theme->getFont().dropChineseBig();
             ImGui::Text("位置");
             ImGui::Text("1");
         }
@@ -33,7 +33,7 @@ void MainWindow::doImGui(const widget::layout::Rect& rect)
         // {
         //     auto droppedWindow = layout.next<widget::Window>().dropWindow();
         {
-            auto chineseSmall = theme->Font().dropChineseSmall();
+            auto chineseSmall = theme->getFont().dropChineseSmall();
             ImGui::Text("位置");
             ImGui::Text("2");
         }
@@ -41,10 +41,16 @@ void MainWindow::doImGui(const widget::layout::Rect& rect)
         // {
         //     auto droppedWindow = layout.next<widget::Window>().dropWindow();
         {
-            auto gui = theme->Font().dropGui();
+            auto gui = theme->getFont().dropGui();
             ImGui::Text("Hello World");
             ImGui::Text("3");
         }
+        ImGui::Begin("OpenGL Texture Text");
+        auto tex = theme->getTexture().get(context::Image::cards);
+        ImGui::Text("pointer = %p", tex.data);
+        ImGui::Text("size = %d x %d", tex.width, tex.height);
+        ImGui::Image((void*)(intptr_t)tex.data, ImVec2(tex.width, tex.height));
+        ImGui::End();
     }
     {
         auto& window = layout.next<widget::Window>();

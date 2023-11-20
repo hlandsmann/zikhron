@@ -1,9 +1,9 @@
 #pragma once
+#include "Texture.h"
 #include "Fonts.h"
 
 #include <imgui.h>
 
-#include <memory>
 namespace context {
 class Theme
 { // clang-format off
@@ -17,7 +17,7 @@ class Theme
     static constexpr ImVec4 s_colorToggleButtonDisabledHovered  = {0.3F, 0.3F, 0.3F, 1.0F};
     // clang-format on
 public:
-    Theme(Fonts);
+    Theme(Fonts, Texture);
 
     [[nodiscard]] auto ColorButton() const -> const ImVec4&;
     [[nodiscard]] auto ColorButtonHovered() const -> const ImVec4&;
@@ -27,7 +27,8 @@ public:
     [[nodiscard]] auto ColorToggleButtonDisabled() const -> const ImVec4&;
     [[nodiscard]] auto ColorToggleButtonDisabledHovered() const -> const ImVec4&;
 
-    [[nodiscard]] auto Font() const -> const Fonts&;
+    [[nodiscard]] auto getFont() const -> const Fonts&;
+    [[nodiscard]] auto getTexture() const -> const Texture&;
 
 private:
     ImVec4 colorButton{s_colorButton};
@@ -38,5 +39,6 @@ private:
     ImVec4 colorToggleButtonDisabled{s_colorToggleButtonDisabled};
     ImVec4 colorToggleButtonDisabledHovered{s_colorToggleButtonDisabledHovered};
     Fonts fonts;
+    Texture texture;
 };
 } // namespace context

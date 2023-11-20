@@ -1,10 +1,12 @@
 #pragma once
-#include <map>
+#include "GlfwImguiContext.h"
+
 #include <GL/gl.h>
 
 #include <filesystem>
+#include <map>
+#include <memory>
 
-#include <sys/types.h>
 namespace context {
 
 enum class Image {
@@ -18,7 +20,8 @@ class Texture
     static constexpr auto cards_tex = "/home/harmen/src/zikhron/resources/icons/cards_64px.png";
 
 public:
-    Texture();
+    // the GlfwImguiContext needs to be initialized before this class is constructed
+    Texture(std::shared_ptr<GlfwImguiContext> /* glfwImguiContext */);
     [[nodiscard]] auto get(Image image) const -> const TextureData&;
 
 private:

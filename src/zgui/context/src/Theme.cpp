@@ -1,13 +1,14 @@
 #include <Fonts.h>
+#include <Texture.h>
 #include <Theme.h>
 #include <imgui.h>
 
-#include <memory>
 #include <utility>
 namespace context {
 
-Theme::Theme(Fonts _fonts)
+Theme::Theme(Fonts _fonts, Texture _texture)
     : fonts{std::move(_fonts)}
+    , texture{std::move(_texture)}
 {}
 
 auto Theme::ColorButton() const -> const ImVec4&
@@ -45,8 +46,13 @@ auto Theme::ColorToggleButtonDisabledHovered() const -> const ImVec4&
     return colorToggleButtonDisabledHovered;
 }
 
-auto Theme::Font() const -> const Fonts&
+auto Theme::getFont() const -> const Fonts&
 {
     return fonts;
+}
+
+auto Theme::getTexture() const -> const Texture&
+{
+    return texture;
 }
 } // namespace context
