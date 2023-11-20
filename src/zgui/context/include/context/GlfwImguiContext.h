@@ -2,7 +2,7 @@
 #include <GLFW/glfw3.h>
 
 #include <string>
-
+namespace context {
 class GlfwImguiContext
 {
 public:
@@ -20,3 +20,4 @@ private:
     GLFWwindow* glfwWindow{nullptr};
     std::string glsl_version{"#version 130"};
 };
+} // namespace context

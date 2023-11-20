@@ -19,13 +19,13 @@ class GlWindow
 {
 public:
     GlWindow(std::shared_ptr<folly::ManualExecutor> synchronousExecutor,
-             std::shared_ptr<GlfwImguiContext> glfwImguiContext,
+             std::shared_ptr<context::GlfwImguiContext> glfwImguiContext,
              MainWindow _mainWindow);
     void run();
     [[nodiscard]] auto shouldClose() const -> bool;
 
 private:
-    std::shared_ptr<GlfwImguiContext> glfwImguiContext;
+    std::shared_ptr<context::GlfwImguiContext> glfwImguiContext;
 
     bool close{false};
     constexpr static ImVec4 bgColor = {0.2F, 0.2F, 0.2F, 1.0F};

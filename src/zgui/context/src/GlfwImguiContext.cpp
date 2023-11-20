@@ -14,6 +14,7 @@ void glfw_error_callback(int error, const char* description)
 }
 } // namespace
 
+namespace context {
 GlfwImguiContext::GlfwImguiContext()
 {
     initOpenglContext();
@@ -71,3 +72,4 @@ void GlfwImguiContext::initImGui()
     // io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 20, nullptr,
     //                              io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
 }
+} // namespace context

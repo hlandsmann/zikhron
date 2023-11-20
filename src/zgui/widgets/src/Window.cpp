@@ -11,7 +11,7 @@
 #include <utility>
 
 namespace widget {
-Window::Window(std::shared_ptr<Theme> _theme,
+Window::Window(std::shared_ptr<context::Theme> _theme,
                layout::Orientation _orientation,
                layout::Align _align,
                const std::shared_ptr<layout::Rect>& _rect,

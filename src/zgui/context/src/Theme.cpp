@@ -1,7 +1,15 @@
+#include <Fonts.h>
 #include <Theme.h>
-
 #include <imgui.h>
-namespace widget {
+
+#include <memory>
+#include <utility>
+namespace context {
+
+Theme::Theme(std::shared_ptr<Fonts> _fonts)
+    : fonts{std::move(_fonts)}
+{}
+
 auto Theme::ColorButton() const -> const ImVec4&
 {
     return colorButton;
@@ -36,4 +44,9 @@ auto Theme::ColorToggleButtonDisabledHovered() const -> const ImVec4&
 {
     return colorToggleButtonDisabledHovered;
 }
-} // namespace widget
+
+auto Theme::Font() const -> const Fonts&
+{
+    return *fonts;
+}
+} // namespace context

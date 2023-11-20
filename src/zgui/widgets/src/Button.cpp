@@ -9,7 +9,7 @@
 #include <utility>
 namespace widget {
 
-Button::Button(std::shared_ptr<Theme> _theme,
+Button::Button(std::shared_ptr<context::Theme> _theme,
                layout::Orientation _orientation,
                layout::Align _align,
                std::shared_ptr<layout::Rect> _rect,

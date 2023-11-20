@@ -1,7 +1,7 @@
 #pragma once
-#include <context/Theme.h>
 #include "Widget.h"
 
+#include <context/Theme.h>
 #include <imgui.h>
 
 #include <memory>
@@ -15,7 +15,7 @@ enum class ib {
 class Button : public Widget<Button>
 {
 public:
-    Button(std::shared_ptr<Theme> theme,
+    Button(std::shared_ptr<context::Theme> theme,
            layout::Orientation orientation,
            layout::Align align,
            std::shared_ptr<layout::Rect> rect,

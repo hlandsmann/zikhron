@@ -32,7 +32,7 @@
 #include <utility>
 
 GlWindow::GlWindow(std::shared_ptr<folly::ManualExecutor> _synchronousExecutor,
-                   std::shared_ptr<GlfwImguiContext> _glfwImguiContext,
+                   std::shared_ptr<context::GlfwImguiContext> _glfwImguiContext,
                    MainWindow _mainWindow)
     : glfwImguiContext{std::move(_glfwImguiContext)}
     , mainWindow{std::move(_mainWindow)}

@@ -1,18 +1,20 @@
 #include <CardDisplay.h>
 #include <MainWindow.h>
+#include <context/Fonts.h>
+#include <context/Theme.h>
 #include <imgui.h>
 #include <widgets/Button.h>
-#include <context/Fonts.h>
 #include <widgets/Widget.h>
 #include <widgets/Window.h>
 
 #include <memory>
 #include <utility>
 
-MainWindow::MainWindow(CardDisplay _cardDisplay)
-    : cardDisplay{std::move(_cardDisplay)}
+MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
+                       CardDisplay _cardDisplay)
+    : theme{std::move(_theme)}
+    , cardDisplay{std::move(_cardDisplay)}
 {
-    fonts = std::make_unique<Fonts>();
 }
 
 void MainWindow::doImGui(const widget::layout::Rect& rect)
@@ -22,24 +24,27 @@ void MainWindow::doImGui(const widget::layout::Rect& rect)
     layout.arrange(rect);
     {
         auto droppedWindow = layout.next<widget::Window>().dropWindow();
-        ImGui::PushFont(fonts->ChineseBig());
-        ImGui::Text("位置");
-        ImGui::Text("1");
-        ImGui::PopFont();
+        {
+            auto chineseBig = theme->Font().dropChineseBig();
+            ImGui::Text("位置");
+            ImGui::Text("1");
+        }
         // }
         // {
         //     auto droppedWindow = layout.next<widget::Window>().dropWindow();
-        ImGui::PushFont(fonts->ChineseSmall());
-        ImGui::Text("位置");
-        ImGui::Text("2");
-        ImGui::PopFont();
+        {
+            auto chineseSmall = theme->Font().dropChineseSmall();
+            ImGui::Text("位置");
+            ImGui::Text("2");
+        }
         // }
         // {
         //     auto droppedWindow = layout.next<widget::Window>().dropWindow();
-        ImGui::PushFont(fonts->Gui());
-        ImGui::Text("Hello World");
-        ImGui::Text("3");
-        ImGui::PopFont();
+        {
+            auto gui = theme->Font().dropGui();
+            ImGui::Text("Hello World");
+            ImGui::Text("3");
+        }
     }
     {
         auto& window = layout.next<widget::Window>();

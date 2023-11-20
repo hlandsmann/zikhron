@@ -53,7 +53,7 @@ struct WidgetSize
 class WidgetBase
 {
 public:
-    WidgetBase(std::shared_ptr<Theme> theme,
+    WidgetBase(std::shared_ptr<context::Theme> theme,
                layout::Orientation orientation,
                layout::Align align,
                std::shared_ptr<layout::Rect> rect);
@@ -64,16 +64,16 @@ public:
     auto operator=(WidgetBase&&) -> WidgetBase& = default;
 
     [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
-    [[nodiscard]] auto getTheme() const -> const Theme&;
+    [[nodiscard]] auto getTheme() const -> const context::Theme&;
     [[nodiscard]] auto Orientation() const -> layout::Orientation;
     [[nodiscard]] auto Align() const -> layout::Align;
 
 protected:
-    [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<Theme>;
+    [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
 
 private:
-    std::shared_ptr<Theme> theme;
+    std::shared_ptr<context::Theme> theme;
     layout::Orientation baseOrientation;
     layout::Align baseAlign;
     std::shared_ptr<layout::Rect> rectPtr;
@@ -83,7 +83,7 @@ template<class WidgetImpl>
 class Widget : public WidgetBase
 {
 public:
-    Widget(std::shared_ptr<Theme> _theme,
+    Widget(std::shared_ptr<context::Theme> _theme,
            layout::Orientation _orientation,
            layout::Align _align,
            std::shared_ptr<layout::Rect> _rect)

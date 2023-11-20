@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 namespace widget {
-WidgetBase::WidgetBase(std::shared_ptr<Theme> _theme,
+WidgetBase::WidgetBase(std::shared_ptr<context::Theme> _theme,
                        layout::Orientation _orientation,
                        layout::Align _align,
                        std::shared_ptr<layout::Rect> _rect)
@@ -21,7 +21,7 @@ auto WidgetBase::Rect() const -> const layout::Rect&
     return *rectPtr;
 }
 
-auto WidgetBase::getTheme() const -> const Theme&
+auto WidgetBase::getTheme() const -> const context::Theme&
 {
     return *theme;
 }
@@ -36,7 +36,7 @@ auto WidgetBase::Align() const -> layout::Align
     return baseAlign;
 }
 
-auto WidgetBase::getThemePtr() const -> std::shared_ptr<Theme>
+auto WidgetBase::getThemePtr() const -> std::shared_ptr<context::Theme>
 {
     return theme;
 }

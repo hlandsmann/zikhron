@@ -1,7 +1,12 @@
 #include <Fonts.h>
+#include <GlfwImguiContext.h>
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 
-Fonts::Fonts()
+#include <memory>
+
+namespace context {
+Fonts::Fonts(std::shared_ptr<GlfwImguiContext> _glfwImguiContext)
 {
     ImGuiIO& io = ImGui::GetIO();
     gui = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/IBM_Plex_Sans/IBMPlexSans-Regular.ttf",
@@ -11,7 +16,21 @@ Fonts::Fonts()
                                               io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
     chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
                                                 io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+}
 
+auto Fonts::dropChineseBig() const -> FontDrop
+{
+    return {ChineseBig()};
+}
+
+auto Fonts::dropChineseSmall() const -> FontDrop
+{
+    return {ChineseSmall()};
+}
+
+auto Fonts::dropGui() const -> FontDrop
+{
+    return {Gui()};
 }
 
 auto Fonts::ChineseBig() const -> ImFont*
@@ -28,3 +47,14 @@ auto Fonts::Gui() const -> ImFont*
 {
     return gui;
 }
+
+FontDrop::FontDrop(ImFont* font)
+{
+    ImGui::PushFont(font);
+}
+
+FontDrop::~FontDrop()
+{
+    ImGui::PopFont();
+}
+} // namespace context

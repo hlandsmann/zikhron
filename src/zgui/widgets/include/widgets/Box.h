@@ -17,8 +17,8 @@ class Box : public Widget<Box>
 
 public:
     constexpr static float s_padding = 16.F;
-    Box(std::shared_ptr<Theme> theme, layout::Orientation);
-    Box(std::shared_ptr<Theme> theme, layout::Orientation, Align, std::shared_ptr<layout::Rect>);
+    Box(std::shared_ptr<context::Theme> theme, layout::Orientation);
+    Box(std::shared_ptr<context::Theme> theme, layout::Orientation, Align, std::shared_ptr<layout::Rect>);
 
     void arrange(const layout::Rect&);
     void arrange();
@@ -54,7 +54,7 @@ private:
         width,
         height
     };
-    Box(std::shared_ptr<Theme> theme, layout::Orientation, std::shared_ptr<layout::Rect>);
+    Box(std::shared_ptr<context::Theme> theme, layout::Orientation, std::shared_ptr<layout::Rect>);
     friend class Widget<Box>;
     auto calculateSize() const -> WidgetSize;
     static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;

@@ -1,6 +1,10 @@
 #pragma once
+#include "Fonts.h"
+
 #include <imgui.h>
-namespace widget {
+
+#include <memory>
+namespace context {
 class Theme
 { // clang-format off
     static constexpr ImVec4 s_colorButton         = {0.2F, 0.2F, 0.2F, 1.0F};
@@ -13,7 +17,7 @@ class Theme
     static constexpr ImVec4 s_colorToggleButtonDisabledHovered  = {0.3F, 0.3F, 0.3F, 1.0F};
     // clang-format on
 public:
-    Theme() = default;
+    Theme(std::shared_ptr<Fonts>);
 
     [[nodiscard]] auto ColorButton() const -> const ImVec4&;
     [[nodiscard]] auto ColorButtonHovered() const -> const ImVec4&;
@@ -23,6 +27,8 @@ public:
     [[nodiscard]] auto ColorToggleButtonDisabled() const -> const ImVec4&;
     [[nodiscard]] auto ColorToggleButtonDisabledHovered() const -> const ImVec4&;
 
+    [[nodiscard]] auto Font() const -> const Fonts&;
+
 private:
     ImVec4 colorButton{s_colorButton};
     ImVec4 colorButtonHovered{s_colorButtonHovered};
@@ -31,5 +37,6 @@ private:
     ImVec4 colorToggleButtonEnabledHovered{s_colorToggleButtonEnabledHovered};
     ImVec4 colorToggleButtonDisabled{s_colorToggleButtonDisabled};
     ImVec4 colorToggleButtonDisabledHovered{s_colorToggleButtonDisabledHovered};
+    std::shared_ptr<Fonts> fonts;
 };
-} // namespace widget
+} // namespace context
