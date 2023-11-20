@@ -17,7 +17,7 @@ class Theme
     static constexpr ImVec4 s_colorToggleButtonDisabledHovered  = {0.3F, 0.3F, 0.3F, 1.0F};
     // clang-format on
 public:
-    Theme(std::shared_ptr<Fonts>);
+    Theme(Fonts);
 
     [[nodiscard]] auto ColorButton() const -> const ImVec4&;
     [[nodiscard]] auto ColorButtonHovered() const -> const ImVec4&;
@@ -37,6 +37,6 @@ private:
     ImVec4 colorToggleButtonEnabledHovered{s_colorToggleButtonEnabledHovered};
     ImVec4 colorToggleButtonDisabled{s_colorToggleButtonDisabled};
     ImVec4 colorToggleButtonDisabledHovered{s_colorToggleButtonDisabledHovered};
-    std::shared_ptr<Fonts> fonts;
+    Fonts fonts;
 };
 } // namespace context

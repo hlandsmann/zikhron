@@ -6,7 +6,7 @@
 #include <utility>
 namespace context {
 
-Theme::Theme(std::shared_ptr<Fonts> _fonts)
+Theme::Theme(Fonts _fonts)
     : fonts{std::move(_fonts)}
 {}
 
@@ -47,6 +47,6 @@ auto Theme::ColorToggleButtonDisabledHovered() const -> const ImVec4&
 
 auto Theme::Font() const -> const Fonts&
 {
-    return *fonts;
+    return fonts;
 }
 } // namespace context

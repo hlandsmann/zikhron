@@ -20,7 +20,6 @@ target_link_libraries(imguitest
         imgui::imgui
         mpv
         spdlog::spdlog
-        stb::image
         zgui::gui
         zgui::widgets
         zikhron::annotation

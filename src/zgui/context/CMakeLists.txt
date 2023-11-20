@@ -5,10 +5,12 @@ target_sources(zgui_context
     PRIVATE
         include/context/Fonts.h
         include/context/GlfwImguiContext.h
+        include/context/Texture.h
         include/context/Theme.h
         include/context/imglog.h
         src/Fonts.cpp
         src/GlfwImguiContext.cpp
+        src/Texture.cpp
         src/Theme.cpp
         src/imglog.cpp
 )
@@ -26,5 +28,6 @@ target_link_libraries(zgui_context
         glfw
         imgui::imgui
         spdlog::spdlog
+        stb::image
 )
 set_property(TARGET zgui_context PROPERTY CXX_STANDARD 23)
