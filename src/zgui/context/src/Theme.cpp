@@ -46,6 +46,41 @@ auto Theme::ColorToggleButtonDisabledHovered() const -> const ImVec4&
     return colorToggleButtonDisabledHovered;
 }
 
+auto Theme::ColorImage() const -> const ImVec4&
+{
+    return colorImage;
+}
+
+auto Theme::ColorImageHovered() const -> const ImVec4&
+{
+    return colorImageHovered;
+}
+
+auto Theme::ColorImageActive() const -> const ImVec4&
+{
+    return colorImageActive;
+}
+
+auto Theme::ColorImageEnabled() const -> const ImVec4&
+{
+    return colorImageEnabled;
+}
+
+auto Theme::ColorImageEnabledHovered() const -> const ImVec4&
+{
+    return colorImageEnabledHovered;
+}
+
+auto Theme::ColorImageDisabled() const -> const ImVec4&
+{
+    return colorImageDisabled;
+}
+
+auto Theme::ColorImageDisabledHovered() const -> const ImVec4&
+{
+    return colorImageDisabledHovered;
+}
+
 auto Theme::getFont() const -> const Fonts&
 {
     return fonts;
