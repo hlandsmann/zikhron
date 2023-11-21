@@ -11,13 +11,19 @@ namespace context {
 
 enum class Image {
     cards,
+    audio,
+    configure,
+    video,
 };
 
 struct TextureData;
 
 class Texture
 {
+    static constexpr auto audio_tex = "/home/harmen/src/zikhron/resources/icons/audio_64px.png";
     static constexpr auto cards_tex = "/home/harmen/src/zikhron/resources/icons/cards_64px.png";
+    static constexpr auto configure_tex = "/home/harmen/src/zikhron/resources/icons/configure_64px.png";
+    static constexpr auto video_tex = "/home/harmen/src/zikhron/resources/icons/video_64px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed
@@ -33,8 +39,8 @@ private:
 
 struct TextureData
 {
-    int width{};
-    int height{};
+    float width{};
+    float height{};
     GLuint data{};
 };
 

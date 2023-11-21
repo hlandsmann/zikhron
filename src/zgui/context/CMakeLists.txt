@@ -8,6 +8,7 @@ target_sources(zgui_context
         include/context/Texture.h
         include/context/Theme.h
         include/context/imglog.h
+        src/stb_image.c
         src/Fonts.cpp
         src/GlfwImguiContext.cpp
         src/Texture.cpp

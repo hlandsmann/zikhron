@@ -1,4 +1,3 @@
-#define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #include "GlfwImguiContext.h"
 
@@ -46,15 +45,18 @@ auto Texture::loadTextureFromFile(const std::filesystem::path& imageFile) -> Tex
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
     stbi_image_free(image_data);
 
-    return {.width = image_width,
-            .height = image_height,
+    return {.width = static_cast<float>(image_width),
+            .height = static_cast<float>(image_height),
             .data = image_texture};
 }
 
 auto Texture::loadTextureMap() -> std::map<Image, TextureData>
 {
     std::map<Image, TextureData> textureMap;
+    textureMap[Image::audio] = loadTextureFromFile(audio_tex);
     textureMap[Image::cards] = loadTextureFromFile(cards_tex);
+    textureMap[Image::configure] = loadTextureFromFile(configure_tex);
+    textureMap[Image::video] = loadTextureFromFile(video_tex);
     return textureMap;
 }
 } // namespace context

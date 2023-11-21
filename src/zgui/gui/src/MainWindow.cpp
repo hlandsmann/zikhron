@@ -47,9 +47,14 @@ void MainWindow::doImGui(const widget::layout::Rect& rect)
         }
         ImGui::Begin("OpenGL Texture Text");
         auto tex = theme->getTexture().get(context::Image::cards);
-        ImGui::Text("pointer = %p", tex.data);
-        ImGui::Text("size = %d x %d", tex.width, tex.height);
-        ImGui::Image((void*)(intptr_t)tex.data, ImVec2(tex.width, tex.height));
+
+        static ImVec4 color_multipler(1, 1, 1, 1);
+        ImGui::ColorEdit4("color_multiplier", &color_multipler.x);
+        ImGui::Image(reinterpret_cast<void*>(tex.data), ImVec2(tex.width, tex.height),
+                     ImVec2(0.0F, 0.0F),
+                     ImVec2(1.0F, 1.0F),
+                     color_multipler);
+        
         ImGui::End();
     }
     {
