@@ -1,6 +1,5 @@
 #pragma once
 #include <context/Theme.h>
-
 #include <imgui.h>
 
 #include <memory>
@@ -50,13 +49,18 @@ struct WidgetSize
     float height{};
 };
 
+struct WidgetInit
+{
+    std::shared_ptr<context::Theme> theme;
+    std::shared_ptr<layout::Rect> rect;
+    layout::Orientation orientation;
+    layout::Align align;
+};
+
 class WidgetBase
 {
 public:
-    WidgetBase(std::shared_ptr<context::Theme> theme,
-               layout::Orientation orientation,
-               layout::Align align,
-               std::shared_ptr<layout::Rect> rect);
+    WidgetBase(WidgetInit init);
     virtual ~WidgetBase() = default;
     WidgetBase(const WidgetBase&) = default;
     WidgetBase(WidgetBase&&) = default;
@@ -74,20 +78,17 @@ protected:
 
 private:
     std::shared_ptr<context::Theme> theme;
+    std::shared_ptr<layout::Rect> rectPtr;
     layout::Orientation baseOrientation;
     layout::Align baseAlign;
-    std::shared_ptr<layout::Rect> rectPtr;
 };
 
 template<class WidgetImpl>
 class Widget : public WidgetBase
 {
 public:
-    Widget(std::shared_ptr<context::Theme> _theme,
-           layout::Orientation _orientation,
-           layout::Align _align,
-           std::shared_ptr<layout::Rect> _rect)
-        : WidgetBase{_theme, _orientation, _align, std::move(_rect)} {}
+    Widget(WidgetInit init)
+        : WidgetBase{std::move(init)} {}
     ~Widget() override = default;
     Widget(const Widget&) = default;
     Widget(Widget&&) = default;

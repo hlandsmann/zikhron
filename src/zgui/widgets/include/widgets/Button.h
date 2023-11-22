@@ -15,10 +15,7 @@ enum class ib {
 class Button : public Widget<Button>
 {
 public:
-    Button(std::shared_ptr<context::Theme> theme,
-           layout::Orientation orientation,
-           layout::Align align,
-           std::shared_ptr<layout::Rect> rect,
+    Button(WidgetInit init,
            std::string label);
     ~Button() override = default;
 

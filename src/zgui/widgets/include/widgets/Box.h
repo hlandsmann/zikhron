@@ -18,7 +18,7 @@ class Box : public Widget<Box>
 public:
     constexpr static float s_padding = 16.F;
     Box(std::shared_ptr<context::Theme> theme, layout::Orientation);
-    Box(std::shared_ptr<context::Theme> theme, layout::Orientation, Align, std::shared_ptr<layout::Rect>);
+    Box(const WidgetInit& init);
 
     void arrange(const layout::Rect&);
     void arrange();
@@ -30,7 +30,11 @@ public:
         auto widgetOrientation = Orientation() == layout::Orientation::vertical
                                          ? layout::Orientation::horizontal
                                          : layout::Orientation::vertical;
-        auto widget = std::make_shared<WidgetType>(getThemePtr(), widgetOrientation, widgetAlign, widgetRect, std::forward<Args>(args)...);
+        WidgetInit init = {.theme = getThemePtr(),
+                           .rect = widgetRect,
+                           .orientation = widgetOrientation,
+                           .align = widgetAlign};
+        auto widget = std::make_shared<WidgetType>(std::move(init), std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
         // spdlog::warn("a: {}, w: {}, b: {}, f: {}",
         //              static_cast<int>(align),

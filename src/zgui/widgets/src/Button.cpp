@@ -4,17 +4,13 @@
 #include <context/imglog.h>
 #include <imgui.h>
 
-#include <memory>
 #include <string>
 #include <utility>
 namespace widget {
 
-Button::Button(std::shared_ptr<context::Theme> _theme,
-               layout::Orientation _orientation,
-               layout::Align _align,
-               std::shared_ptr<layout::Rect> _rect,
+Button::Button(WidgetInit init,
                std::string _label)
-    : Widget<Button>{std::move(_theme), _orientation, _align, std::move(_rect)}
+    : Widget<Button>{std::move(init)}
     , label{std::move(_label)}
 {}
 

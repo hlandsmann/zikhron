@@ -5,14 +5,11 @@
 #include <memory>
 #include <utility>
 namespace widget {
-WidgetBase::WidgetBase(std::shared_ptr<context::Theme> _theme,
-                       layout::Orientation _orientation,
-                       layout::Align _align,
-                       std::shared_ptr<layout::Rect> _rect)
-    : theme{std::move(_theme)}
-    , baseOrientation{_orientation}
-    , baseAlign{_align}
-    , rectPtr{std::move(_rect)}
+WidgetBase::WidgetBase(WidgetInit init)
+    : theme{std::move(init.theme)}
+    , baseOrientation{init.orientation}
+    , baseAlign{init.align}
+    , rectPtr{std::move(init.rect)}
 {
 }
 

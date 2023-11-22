@@ -4,7 +4,6 @@
 #include <context/Theme.h>
 #include <imgui.h>
 
-#include <memory>
 #include <string>
 
 namespace widget {
@@ -14,7 +13,7 @@ class WindowDrop;
 class Window : public Widget<Window>
 {
 public:
-    Window(std::shared_ptr<context::Theme> theme, layout::Orientation, layout::Align align, const std::shared_ptr<layout::Rect>& rect,
+    Window(const WidgetInit& init,
            layout::SizeType sizeTypeWidth, layout::SizeType sizeTypeHeight,
            std::string name);
     ~Window() override = default;

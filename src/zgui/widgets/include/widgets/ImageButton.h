@@ -15,10 +15,7 @@ enum class ib {
 class ImageButton : public Widget<ImageButton>
 {
 public:
-    ImageButton(std::shared_ptr<context::Theme> theme,
-                layout::Orientation orientation,
-                layout::Align align,
-                std::shared_ptr<layout::Rect> rect,
+    ImageButton(WidgetInit init,
                 context::Image image);
     ~ImageButton() override = default;
 
