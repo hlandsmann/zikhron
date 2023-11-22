@@ -6,6 +6,7 @@
 #include <imgui.h>
 
 #include <memory>
+#include <string>
 
 namespace widget {
 enum class ib {
@@ -16,6 +17,7 @@ class ImageButton : public Widget<ImageButton>
 {
 public:
     ImageButton(WidgetInit init,
+                std::string label,
                 context::Image image);
     ~ImageButton() override = default;
 
@@ -30,6 +32,10 @@ private:
     friend class Widget<ImageButton>;
     auto calculateSize() const -> WidgetSize;
 
+    ImVec4 backGroundColor{};
+    ImVec4 iconColor{};
+
+    std::string label;
     context::Image image;
 };
 
