@@ -11,6 +11,27 @@ Theme::Theme(Fonts _fonts, Texture _texture)
     , texture{std::move(_texture)}
 {}
 
+auto Theme::ColorButton(WidgetState state) const -> const ImVec4&
+{
+    switch (state) {
+    case WidgetState::default_state:
+        return ColorButton();
+    case WidgetState::hovered:
+        return ColorButtonHovered();
+    case WidgetState::active:
+        return ColorButtonActive();
+    case WidgetState::enabled:
+        return ColorToggleButtonEnabled();
+    case WidgetState::enabled_hovered:
+        return ColorToggleButtonEnabledHovered();
+    case WidgetState::disabled:
+        return ColorToggleButtonDisabled();
+    case WidgetState::disabled_hovered:
+        return ColorToggleButtonDisabledHovered();
+    }
+    std::unreachable();
+}
+
 auto Theme::ColorButton() const -> const ImVec4&
 {
     return colorButton;
@@ -44,6 +65,27 @@ auto Theme::ColorToggleButtonDisabled() const -> const ImVec4&
 auto Theme::ColorToggleButtonDisabledHovered() const -> const ImVec4&
 {
     return colorToggleButtonDisabledHovered;
+}
+
+auto Theme::ColorImage(WidgetState state) const -> const ImVec4&
+{
+    switch (state) {
+    case WidgetState::default_state:
+        return ColorImage();
+    case WidgetState::hovered:
+        return ColorImageHovered();
+    case WidgetState::active:
+        return ColorImageActive();
+    case WidgetState::enabled:
+        return ColorImageEnabled();
+    case WidgetState::enabled_hovered:
+        return ColorImageEnabledHovered();
+    case WidgetState::disabled:
+        return ColorImageDisabled();
+    case WidgetState::disabled_hovered:
+        return ColorImageDisabledHovered();
+    }
+    std::unreachable();
 }
 
 auto Theme::ColorImage() const -> const ImVec4&
