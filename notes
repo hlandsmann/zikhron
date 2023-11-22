@@ -1,2 +1,0 @@
-To compile QT for me this worked:
-./configure -xplatform android-clang --disable-rpath -nomake tests -nomake examples -android-ndk /home/harmen/android/sdk/ndk/21.0.6113669/ -android-sdk /home/harmen/android/sdk -android-ndk-host linux-x86_64 -skip qttranslations -skip qtserialport -no-warnings-are-errors -android-abis arm64-v8a
