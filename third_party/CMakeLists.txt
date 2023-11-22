@@ -24,13 +24,16 @@ target_link_libraries(imgui
         glfw
 )
 
-add_library(stb_image INTERFACE)
+add_library(stb_image)
 add_library(stb::image ALIAS stb_image)
 target_sources(stb_image
     PRIVATE
         stb/include/stb/stb_image.h
+        stb/src/stb_image.c
 )
 target_include_directories(stb_image
     INTERFACE
         stb/include
+    PRIVATE
+        stb/include/stb
 )
