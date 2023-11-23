@@ -16,17 +16,21 @@ ImageButton::ImageButton(WidgetInit init,
     , label{std::move(_label)}
     , image{_image} {}
 
-auto ImageButton::clicked() const -> bool
+auto ImageButton::clicked() -> bool
 {
     const auto& btnRect = Rect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
     auto tex = getTheme().getTexture().get(image);
 
-    return ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), {btnRect.width, btnRect.height},
-                              ImVec2(0.0F, 0.0F),
-                              ImVec2(1.0F, 1.0F),
-                              backGroundColor,
-                              iconColor);
+    auto clicked = ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), {btnRect.width, btnRect.height},
+                                      ImVec2(0.0F, 0.0F),
+                                      ImVec2(1.0F, 1.0F),
+                                      backGroundColor,
+                                      iconColor);
+    context::WidgetState widgetState = context::getWidgetState(disabled, enabled);
+    backGroundColor = getTheme().ColorButton(widgetState);
+    iconColor = getTheme().ColorImage(widgetState);
+    return clicked;
 }
 
 auto ImageButton::calculateSize() const -> WidgetSize

@@ -15,6 +15,32 @@ enum class WidgetState {
     disabled_hovered
 };
 
+inline auto getWidgetState(bool disabled, bool enabled) -> WidgetState
+{
+    bool hovered = ImGui::IsItemHovered();
+    bool active = ImGui::IsItemClicked();
+    if (disabled) {
+        if (hovered) {
+            return WidgetState::disabled_hovered;
+        }
+        return WidgetState::disabled;
+    }
+    if (active) {
+        return WidgetState::active;
+    }
+    if (enabled) {
+        if (hovered) {
+            return WidgetState::enabled_hovered;
+        }
+        return WidgetState::enabled;
+    }
+    if (hovered) {
+        return WidgetState::hovered;
+    }
+
+    return WidgetState::default_state;
+}
+
 class Theme
 { // clang-format off
     static constexpr ImVec4 s_colorButton                       = {0.2F, 0.2F, 0.2F, 1.0F};

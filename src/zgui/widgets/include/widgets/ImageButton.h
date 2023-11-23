@@ -26,7 +26,7 @@ public:
     auto operator=(const ImageButton&) -> ImageButton& = default;
     auto operator=(ImageButton&&) -> ImageButton& = default;
 
-    auto clicked() const -> bool;
+    auto clicked() -> bool;
 
 private:
     friend class Widget<ImageButton>;
@@ -34,7 +34,8 @@ private:
 
     ImVec4 backGroundColor{};
     ImVec4 iconColor{};
-
+    bool disabled{false};
+    bool enabled{false};
     std::string label;
     context::Image image;
 };
