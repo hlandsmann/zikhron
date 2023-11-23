@@ -16,7 +16,6 @@ add_library(zikhron::warnings ALIAS zikhron-warnings)
 
 add_subdirectory(annotation)
 add_subdirectory(dictionary)
-add_subdirectory(gtkgui)
 add_subdirectory(misc)
 add_subdirectory(multimedia)
 add_subdirectory(spaced_repetition)

@@ -21,6 +21,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
 gen_cfg_json()
 add_subdirectory(src)
 add_subdirectory(third_party)
+add_subdirectory(gtkgui)
 option(ENABLE_TESTING "Enable Test Builds" ON)
 
 if(ENABLE_TESTING)
