@@ -9,9 +9,6 @@
 #include <string>
 
 namespace widget {
-enum class ib {
-    cards,
-};
 
 class ImageButton : public Widget<ImageButton>
 {

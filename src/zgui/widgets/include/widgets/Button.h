@@ -8,9 +8,6 @@
 #include <string>
 
 namespace widget {
-enum class ib {
-    cards,
-};
 
 class Button : public Widget<Button>
 {

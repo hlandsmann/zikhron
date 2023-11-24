@@ -22,7 +22,7 @@ auto ImageButton::clicked() -> bool
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
     auto tex = getTheme().getTexture().get(image);
 
-    auto clicked = ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), {btnRect.width, btnRect.height},
+    auto clicked = ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), {tex.width, tex.height},
                                       ImVec2(0.0F, 0.0F),
                                       ImVec2(1.0F, 1.0F),
                                       backGroundColor,
