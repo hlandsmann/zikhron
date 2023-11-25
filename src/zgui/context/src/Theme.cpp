@@ -1,6 +1,7 @@
 #include <Fonts.h>
 #include <Texture.h>
 #include <Theme.h>
+#include <WidgetState.h>
 #include <imgui.h>
 
 #include <utility>
@@ -10,6 +11,16 @@ Theme::Theme(Fonts _fonts, Texture _texture)
     : fonts{std::move(_fonts)}
     , texture{std::move(_texture)}
 {}
+
+auto Theme::dropImGuiStyleVars() -> StyleVarsDrop
+{
+    return {};
+}
+
+auto Theme::dropImGuiStyleColors() const -> StyleColorsDrop
+{
+    return {*this};
+}
 
 auto Theme::ColorButton(WidgetState state) const -> const ImVec4&
 {
@@ -132,4 +143,46 @@ auto Theme::getTexture() const -> const Texture&
 {
     return texture;
 }
+
+StyleVarsDrop::StyleVarsDrop()
+{
+    PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0F, 0.0F));
+    PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0F, 0.0F));
+}
+
+StyleVarsDrop::~StyleVarsDrop()
+{
+    ImGui::PopStyleVar(countStyleVars);
+}
+
+void StyleVarsDrop::PushStyleVar(ImGuiStyleVar idx, float val)
+{
+    ImGui::PushStyleVar(idx, val);
+    countStyleVars++;
+}
+
+void StyleVarsDrop::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
+{
+    ImGui::PushStyleVar(idx, val);
+    countStyleVars++;
+}
+
+StyleColorsDrop::StyleColorsDrop(const Theme& theme)
+{
+    PushStyleColor(ImGuiCol_Button, theme.ColorButton());
+    PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorButtonHovered());
+    PushStyleColor(ImGuiCol_ButtonActive, theme.ColorButtonActive());
+}
+
+StyleColorsDrop::~StyleColorsDrop()
+{
+    ImGui::PopStyleColor(countStyleColors);
+}
+
+void StyleColorsDrop::PushStyleColor(ImGuiCol idx, const ImVec4& col)
+{
+    ImGui::PushStyleColor(idx, col);
+    countStyleColors++;
+}
+
 } // namespace context

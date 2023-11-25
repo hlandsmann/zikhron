@@ -2,6 +2,7 @@
 #include <Widget.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
+#include <context/WidgetState.h>
 #include <imgui.h>
 
 #include <string>

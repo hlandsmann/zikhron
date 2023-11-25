@@ -30,8 +30,6 @@ private:
     friend class Widget<Window>;
     auto calculateSize() const -> WidgetSize;
     Box box;
-    // float width;
-    // float height;
     layout::SizeType sizeTypeWidth;
     layout::SizeType sizeTypeHeight;
 

@@ -6,7 +6,8 @@
 #include <imgui.h>
 
 namespace context {
-
+class StyleVarsDrop;
+class StyleColorsDrop;
 class Theme
 { // clang-format off
     static constexpr ImVec4 s_colorButton                       = {0.2F, 0.2F, 0.2F, 1.0F};
@@ -27,6 +28,9 @@ class Theme
     // clang-format on
 public:
     Theme(Fonts, Texture);
+
+    [[nodiscard]] static auto dropImGuiStyleVars() -> StyleVarsDrop;
+    [[nodiscard]] auto dropImGuiStyleColors() const -> StyleColorsDrop;
 
     [[nodiscard]] auto ColorButton(WidgetState state) const -> const ImVec4&;
     [[nodiscard]] auto ColorButton() const -> const ImVec4&;
@@ -68,5 +72,39 @@ private:
 
     Fonts fonts;
     Texture texture;
+};
+
+class StyleVarsDrop
+{
+public:
+    StyleVarsDrop();
+    ~StyleVarsDrop();
+
+    StyleVarsDrop(const StyleVarsDrop&) = delete;
+    StyleVarsDrop(StyleVarsDrop&&) = default;
+    auto operator=(const StyleVarsDrop&) -> StyleVarsDrop& = delete;
+    auto operator=(StyleVarsDrop&&) -> StyleVarsDrop& = default;
+
+private:
+    void PushStyleVar(ImGuiStyleVar idx, float val);
+    void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
+
+    int countStyleVars{0};
+};
+
+class StyleColorsDrop
+{
+public:
+    StyleColorsDrop(const Theme& theme);
+    ~StyleColorsDrop();
+
+    StyleColorsDrop(const StyleColorsDrop&) = delete;
+    StyleColorsDrop(StyleColorsDrop&&) = default;
+    auto operator=(const StyleColorsDrop&) -> StyleColorsDrop& = delete;
+    auto operator=(StyleColorsDrop&&) -> StyleColorsDrop& = default;
+
+private:
+    void PushStyleColor(ImGuiCol idx, const ImVec4& col);
+    int countStyleColors{0};
 };
 } // namespace context

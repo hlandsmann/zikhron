@@ -24,6 +24,7 @@ public:
     auto clicked() const -> bool;
 
 private:
+    static constexpr float buttonPadding = 4;
     friend class Widget<Button>;
     auto calculateSize() const -> WidgetSize;
 
