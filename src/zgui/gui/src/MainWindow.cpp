@@ -42,22 +42,6 @@ void MainWindow::doImGui(const widget::layout::Rect& rect)
             ImGui::Text("Hello World");
             ImGui::Text("3");
         }
-        ImGui::Begin("OpenGL Texture Text");
-        auto tex = theme->getTexture().get(context::Image::configure);
-
-        static ImVec4 color_multipler(1, 1, 1, 1);
-        ImGui::ColorEdit4("color_multiplier", &color_multipler.x);
-        ImGui::Image(reinterpret_cast<void*>(tex.data), ImVec2(tex.width, tex.height),
-                     ImVec2(0.0F, 0.0F),
-                     ImVec2(1.0F, 1.0F),
-                     color_multipler);
-        ImGui::ImageButton("configure", reinterpret_cast<void*>(tex.data), ImVec2(tex.width, tex.height),
-                           ImVec2(0.0F, 0.0F),
-                           ImVec2(1.0F, 1.0F),
-                           ImVec4(0.2F, 0.2F, 0.2F, 1.0F),
-                           color_multipler);
-
-        ImGui::End();
     }
     {
         auto& window = layout.next<widget::Window>();
@@ -70,6 +54,7 @@ void MainWindow::doImGui(const widget::layout::Rect& rect)
     }
     bool show_demo_window = true;
     if (show_demo_window) {
+        // ImGui::SetNextWindowFocus();
         ImGui::ShowDemoWindow(&show_demo_window);
     }
 }
@@ -79,6 +64,7 @@ void MainWindow::arrangeLayout()
     using Align = widget::layout::Align;
     using namespace widget::layout;
 
+    layout.setPadding(0.F);
     layout.add<widget::Window>(Align::start, width_expand, height_expand, "win1");
     // layout.add<widget::Window>(Align::center, 80, 0, width_fixed, height_expand, "win2");
     // layout.add<widget::Window>(Align::center, 80, 0, width_expand, height_expand, "win3");

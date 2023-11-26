@@ -39,12 +39,17 @@ private:
 class WindowDrop
 {
 public:
-    WindowDrop(const std::string& name, const widget::layout::Rect& rect);
+    WindowDrop(const std::string& name,
+        const widget::layout::Rect& rect,
+        context::StyleColorsDrop styleColorsDrop);
     ~WindowDrop();
 
-    WindowDrop(const WindowDrop&) = default;
+    WindowDrop(const WindowDrop&) = delete;
     WindowDrop(WindowDrop&&) = default;
-    auto operator=(const WindowDrop&) -> WindowDrop& = default;
+    auto operator=(const WindowDrop&) -> WindowDrop& = delete;
     auto operator=(WindowDrop&&) -> WindowDrop& = default;
+
+private:
+    context::StyleColorsDrop styleColorsDrop;
 };
 } // namespace widget

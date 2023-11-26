@@ -17,9 +17,9 @@ auto Theme::dropImGuiStyleVars() -> StyleVarsDrop
     return {};
 }
 
-auto Theme::dropImGuiStyleColors() const -> StyleColorsDrop
+auto Theme::dropImGuiStyleColors(ColorTheme colorTheme) const -> StyleColorsDrop
 {
-    return {*this};
+    return {*this, colorTheme};
 }
 
 auto Theme::ColorButton(WidgetState state) const -> const ImVec4&
@@ -134,6 +134,11 @@ auto Theme::ColorImageInsensitiveHovered() const -> const ImVec4&
     return colorImageInsensitiveHovered;
 }
 
+auto Theme::ColorWindowBackground() const -> const ImVec4&
+{
+    return colorWindowBackground;
+}
+
 auto Theme::getFont() const -> const Fonts&
 {
     return fonts;
@@ -148,6 +153,17 @@ StyleVarsDrop::StyleVarsDrop()
 {
     PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0F, 0.0F));
     PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0F, 0.0F));
+}
+
+StyleVarsDrop::StyleVarsDrop(StyleVarsDrop&& other) noexcept
+    : countStyleVars{std::exchange(other.countStyleVars, 0)}
+{
+}
+
+auto StyleVarsDrop::operator=(StyleVarsDrop&& other) noexcept -> StyleVarsDrop&
+{
+    countStyleVars = std::exchange(other.countStyleVars, 0);
+    return *this;
 }
 
 StyleVarsDrop::~StyleVarsDrop()
@@ -167,11 +183,29 @@ void StyleVarsDrop::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
     countStyleVars++;
 }
 
-StyleColorsDrop::StyleColorsDrop(const Theme& theme)
+StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
 {
-    PushStyleColor(ImGuiCol_Button, theme.ColorButton());
-    PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorButtonHovered());
-    PushStyleColor(ImGuiCol_ButtonActive, theme.ColorButtonActive());
+    switch (colorTheme) {
+    case ColorTheme::ButtonDefault:
+        PushStyleColor(ImGuiCol_Button, theme.ColorButton());
+        PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorButtonHovered());
+        PushStyleColor(ImGuiCol_ButtonActive, theme.ColorButtonActive());
+        break;
+    case ColorTheme::Window:
+        PushStyleColor(ImGuiCol_WindowBg, theme.ColorWindowBackground());
+        break;
+    }
+}
+
+StyleColorsDrop::StyleColorsDrop(StyleColorsDrop&& other) noexcept
+    : countStyleColors{std::exchange(other.countStyleColors, 0)}
+{
+}
+
+auto StyleColorsDrop::operator=(StyleColorsDrop&& other) noexcept -> StyleColorsDrop&
+{
+    countStyleColors = std::exchange(other.countStyleColors, 0);
+    return *this;
 }
 
 StyleColorsDrop::~StyleColorsDrop()

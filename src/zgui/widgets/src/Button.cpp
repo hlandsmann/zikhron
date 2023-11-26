@@ -26,7 +26,8 @@ auto Button::calculateSize() const -> WidgetSize
 
 auto Button::clicked() const -> bool
 {
-    auto styleColorDrop = getTheme().dropImGuiStyleColors();
+    using ColorTheme = context::ColorTheme;
+    auto styleColorDrop = getTheme().dropImGuiStyleColors(ColorTheme::ButtonDefault);
     const auto& btnRect = Rect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
 

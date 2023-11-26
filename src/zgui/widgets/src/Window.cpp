@@ -1,9 +1,9 @@
 #include "Box.h"
 #include "Widget.h"
-#include <context/imglog.h>
 
-#include <context/Theme.h>
 #include <Window.h>
+#include <context/Theme.h>
+#include <context/imglog.h>
 #include <imgui.h>
 
 #include <string>
@@ -25,7 +25,7 @@ auto Window::dropWindow() -> WindowDrop
     layout::Rect rect = Rect();
     layout::Rect layoutRect = {.x = 0, .y = 0, .width = rect.width, .height = rect.height};
     box.arrange(layoutRect);
-    return {name, rect};
+    return {name, rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
 }
 
 auto Window::getLayout() -> Box&
@@ -42,7 +42,9 @@ auto Window::calculateSize() const -> WidgetSize
             .height = size.height};
 }
 
-WindowDrop::WindowDrop(const std::string& name, const widget::layout::Rect& rect)
+WindowDrop::WindowDrop(const std::string& name, const widget::layout::Rect& rect,
+                       context::StyleColorsDrop _styleColorsDrop)
+    : styleColorsDrop{std::move(_styleColorsDrop)}
 {
     ImGui::SetNextWindowPos({rect.x, rect.y});
     ImGui::SetNextWindowSize({rect.width, rect.height});

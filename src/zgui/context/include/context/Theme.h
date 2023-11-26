@@ -8,6 +8,12 @@
 namespace context {
 class StyleVarsDrop;
 class StyleColorsDrop;
+
+enum class ColorTheme {
+    ButtonDefault,
+    Window,
+};
+
 class Theme
 { // clang-format off
     static constexpr ImVec4 s_colorButton                          = {0.2F, 0.2F, 0.2F, 1.0F};
@@ -18,19 +24,21 @@ class Theme
     static constexpr ImVec4 s_colorToggleButtonInsensitive         = {0.2F, 0.2F, 0.2F, 1.0F};
     static constexpr ImVec4 s_colorToggleButtonInsensitiveHovered  = {0.3F, 0.3F, 0.3F, 1.0F};
 
-    static constexpr ImVec4 s_colorImage                    = {1.0F, 1.0F, 1.0F, 1.0F};
-    static constexpr ImVec4 s_colorImageHovered             = {0.4F, 0.8F, 1.0F, 1.0F};
+    static constexpr ImVec4 s_colorImage                    = {0.8F, 0.8F, 0.8F, 1.0F};
+    static constexpr ImVec4 s_colorImageHovered             = {0.8F, 0.9F, 1.0F, 1.0F};
     static constexpr ImVec4 s_colorImageActive              = {1.0F, 1.0F, 1.0F, 1.0F};
-    static constexpr ImVec4 s_colorImageChecked             = {1.0F, 1.0F, 1.0F, 1.0F};
-    static constexpr ImVec4 s_colorImageCheckedHovered      = {0.4F, 0.8F, 1.0F, 1.0F};
+    static constexpr ImVec4 s_colorImageChecked             = {0.9F, 0.9F, 0.9F, 1.0F};
+    static constexpr ImVec4 s_colorImageCheckedHovered      = {0.9F, 1.0F, 1.0F, 1.0F};
     static constexpr ImVec4 s_colorImageInsensitive         = {0.6F, 0.6F, 0.6F, 1.0F};
-    static constexpr ImVec4 s_colorImageInsensitiveHovered  = {0.4F, 1.0F, 1.0F, 1.0F};
+    static constexpr ImVec4 s_colorImageInsensitiveHovered  = {0.6F, 0.6F, 0.6F, 1.0F};
+
+    static constexpr ImVec4 s_colorWindowBackground = {0.15F, 0.15F, 0.15F, 1.0F};
     // clang-format on
 public:
     Theme(Fonts, Texture);
 
     [[nodiscard]] static auto dropImGuiStyleVars() -> StyleVarsDrop;
-    [[nodiscard]] auto dropImGuiStyleColors() const -> StyleColorsDrop;
+    [[nodiscard]] auto dropImGuiStyleColors(ColorTheme) const -> StyleColorsDrop;
 
     [[nodiscard]] auto ColorButton(WidgetState state) const -> const ImVec4&;
     [[nodiscard]] auto ColorButton() const -> const ImVec4&;
@@ -49,6 +57,8 @@ public:
     [[nodiscard]] auto ColorImageCheckedHovered() const -> const ImVec4&;
     [[nodiscard]] auto ColorImageInsensitive() const -> const ImVec4&;
     [[nodiscard]] auto ColorImageInsensitiveHovered() const -> const ImVec4&;
+
+    [[nodiscard]] auto ColorWindowBackground() const -> const ImVec4&;
 
     [[nodiscard]] auto getFont() const -> const Fonts&;
     [[nodiscard]] auto getTexture() const -> const Texture&;
@@ -70,6 +80,8 @@ private:
     ImVec4 colorImageInsensitive{s_colorImageInsensitive};
     ImVec4 colorImageInsensitiveHovered{s_colorImageInsensitiveHovered};
 
+    ImVec4 colorWindowBackground{s_colorWindowBackground};
+
     Fonts fonts;
     Texture texture;
 };
@@ -81,9 +93,9 @@ public:
     ~StyleVarsDrop();
 
     StyleVarsDrop(const StyleVarsDrop&) = delete;
-    StyleVarsDrop(StyleVarsDrop&&) = default;
+    StyleVarsDrop(StyleVarsDrop&&) noexcept;
     auto operator=(const StyleVarsDrop&) -> StyleVarsDrop& = delete;
-    auto operator=(StyleVarsDrop&&) -> StyleVarsDrop& = default;
+    auto operator=(StyleVarsDrop&&) noexcept -> StyleVarsDrop&;
 
 private:
     void PushStyleVar(ImGuiStyleVar idx, float val);
@@ -95,13 +107,13 @@ private:
 class StyleColorsDrop
 {
 public:
-    StyleColorsDrop(const Theme& theme);
+    StyleColorsDrop(const Theme& theme, ColorTheme);
     ~StyleColorsDrop();
 
     StyleColorsDrop(const StyleColorsDrop&) = delete;
-    StyleColorsDrop(StyleColorsDrop&&) = default;
+    StyleColorsDrop(StyleColorsDrop&&) noexcept;
     auto operator=(const StyleColorsDrop&) -> StyleColorsDrop& = delete;
-    auto operator=(StyleColorsDrop&&) -> StyleColorsDrop& = default;
+    auto operator=(StyleColorsDrop&&) noexcept -> StyleColorsDrop&;
 
 private:
     void PushStyleColor(ImGuiCol idx, const ImVec4& col);
