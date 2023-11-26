@@ -31,5 +31,6 @@ target_link_libraries(zgui_context
         imgui::imgui
         spdlog::spdlog
         stb::image
+        zikhron::warnings
 )
 set_property(TARGET zgui_context PROPERTY CXX_STANDARD 23)

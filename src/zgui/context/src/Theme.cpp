@@ -31,14 +31,14 @@ auto Theme::ColorButton(WidgetState state) const -> const ImVec4&
         return ColorButtonHovered();
     case WidgetState::active:
         return ColorButtonActive();
-    case WidgetState::enabled:
-        return ColorToggleButtonEnabled();
-    case WidgetState::enabled_hovered:
-        return ColorToggleButtonEnabledHovered();
-    case WidgetState::disabled:
-        return ColorToggleButtonDisabled();
-    case WidgetState::disabled_hovered:
-        return ColorToggleButtonDisabledHovered();
+    case WidgetState::checked:
+        return ColorToggleButtonChecked();
+    case WidgetState::checked_hovered:
+        return ColorToggleButtonCheckedHovered();
+    case WidgetState::insensitive:
+        return ColorToggleButtonInsensitive();
+    case WidgetState::insensitive_hovered:
+        return ColorToggleButtonInsensitiveHovered();
     }
     std::unreachable();
 }
@@ -58,24 +58,24 @@ auto Theme::ColorButtonActive() const -> const ImVec4&
     return colorButtonActive;
 }
 
-auto Theme::ColorToggleButtonEnabled() const -> const ImVec4&
+auto Theme::ColorToggleButtonChecked() const -> const ImVec4&
 {
-    return colorToggleButtonEnabled;
+    return colorToggleButtonChecked;
 }
 
-auto Theme::ColorToggleButtonEnabledHovered() const -> const ImVec4&
+auto Theme::ColorToggleButtonCheckedHovered() const -> const ImVec4&
 {
-    return colorToggleButtonEnabledHovered;
+    return colorToggleButtonCheckedHovered;
 }
 
-auto Theme::ColorToggleButtonDisabled() const -> const ImVec4&
+auto Theme::ColorToggleButtonInsensitive() const -> const ImVec4&
 {
-    return colorToggleButtonDisabled;
+    return colorToggleButtonInsensitive;
 }
 
-auto Theme::ColorToggleButtonDisabledHovered() const -> const ImVec4&
+auto Theme::ColorToggleButtonInsensitiveHovered() const -> const ImVec4&
 {
-    return colorToggleButtonDisabledHovered;
+    return colorToggleButtonInsensitiveHovered;
 }
 
 auto Theme::ColorImage(WidgetState state) const -> const ImVec4&
@@ -87,14 +87,14 @@ auto Theme::ColorImage(WidgetState state) const -> const ImVec4&
         return ColorImageHovered();
     case WidgetState::active:
         return ColorImageActive();
-    case WidgetState::enabled:
-        return ColorImageEnabled();
-    case WidgetState::enabled_hovered:
-        return ColorImageEnabledHovered();
-    case WidgetState::disabled:
-        return ColorImageDisabled();
-    case WidgetState::disabled_hovered:
-        return ColorImageDisabledHovered();
+    case WidgetState::checked:
+        return ColorImageChecked();
+    case WidgetState::checked_hovered:
+        return ColorImageCheckedHovered();
+    case WidgetState::insensitive:
+        return ColorImageInsensitive();
+    case WidgetState::insensitive_hovered:
+        return ColorImageInsensitiveHovered();
     }
     std::unreachable();
 }
@@ -114,24 +114,24 @@ auto Theme::ColorImageActive() const -> const ImVec4&
     return colorImageActive;
 }
 
-auto Theme::ColorImageEnabled() const -> const ImVec4&
+auto Theme::ColorImageChecked() const -> const ImVec4&
 {
-    return colorImageEnabled;
+    return colorImageChecked;
 }
 
-auto Theme::ColorImageEnabledHovered() const -> const ImVec4&
+auto Theme::ColorImageCheckedHovered() const -> const ImVec4&
 {
-    return colorImageEnabledHovered;
+    return colorImageCheckedHovered;
 }
 
-auto Theme::ColorImageDisabled() const -> const ImVec4&
+auto Theme::ColorImageInsensitive() const -> const ImVec4&
 {
-    return colorImageDisabled;
+    return colorImageInsensitive;
 }
 
-auto Theme::ColorImageDisabledHovered() const -> const ImVec4&
+auto Theme::ColorImageInsensitiveHovered() const -> const ImVec4&
 {
-    return colorImageDisabledHovered;
+    return colorImageInsensitiveHovered;
 }
 
 auto Theme::getFont() const -> const Fonts&

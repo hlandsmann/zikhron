@@ -33,4 +33,14 @@ auto Button::clicked() const -> bool
     return ImGui::Button(label.c_str(), {btnRect.width, btnRect.height});
 }
 
+void Button::setChecked(bool _checked)
+{
+    checked = _checked;
+}
+
+void Button::setSensitive(bool _sensitive)
+{
+    sensitive = not _sensitive;
+}
+
 } // namespace widget

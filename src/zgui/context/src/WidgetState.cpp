@@ -9,18 +9,18 @@ auto getWidgetState(bool disabled, bool enabled) -> WidgetState
     bool active = ImGui::IsItemActive();
     if (disabled) {
         if (hovered) {
-            return WidgetState::disabled_hovered;
+            return WidgetState::insensitive_hovered;
         }
-        return WidgetState::disabled;
+        return WidgetState::insensitive;
     }
     if (active) {
         return WidgetState::active;
     }
     if (enabled) {
         if (hovered) {
-            return WidgetState::enabled_hovered;
+            return WidgetState::checked_hovered;
         }
-        return WidgetState::enabled;
+        return WidgetState::checked;
     }
     if (hovered) {
         return WidgetState::hovered;

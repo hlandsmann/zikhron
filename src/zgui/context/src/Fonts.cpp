@@ -6,7 +6,7 @@
 #include <memory>
 
 namespace context {
-Fonts::Fonts(std::shared_ptr<GlfwImguiContext> _glfwImguiContext)
+Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
 {
     ImGuiIO& io = ImGui::GetIO();
     gui = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/IBM_Plex_Sans/IBMPlexSans-Regular.ttf",

@@ -5,7 +5,9 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
+#include <cstddef>
 #include <memory>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -22,12 +24,14 @@ public:
 
     void arrange(const layout::Rect&);
     void arrange();
+    void setFlipChildrensOrientation(bool flip);
+    void setPadding(float padding);
 
     template<class WidgetType, class... Args>
     auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
     {
         auto widgetRect = std::make_shared<layout::Rect>();
-        auto widgetOrientation = Orientation() == layout::Orientation::vertical
+        auto widgetOrientation = Orientation() == layout::Orientation::vertical && flipChildrensOrientation
                                          ? layout::Orientation::horizontal
                                          : layout::Orientation::vertical;
         WidgetInit init = {.theme = getThemePtr(),
@@ -36,22 +40,21 @@ public:
                            .align = widgetAlign};
         auto widget = std::make_shared<WidgetType>(std::move(init), std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
-        // spdlog::warn("a: {}, w: {}, b: {}, f: {}",
-        //              static_cast<int>(align),
-        //              static_cast<int>(widget->Align()),
-        //              static_cast<int>(widgets.back()->Align()),
-        //              static_cast<int>(widgets.front()->Align()));
         rects.push_back(std::move(widgetRect));
         return widget;
     }
     template<class WidgetType>
     auto next() -> WidgetType&
     {
+        if (!(currentWidgetIt < widgets.end())) {
+            throw std::out_of_range("Bad call of next(). Forgot to call start()?");
+        }
         auto& result = dynamic_cast<WidgetType&>(**currentWidgetIt);
         currentWidgetIt++;
         return result;
     }
     void start();
+    auto numberOfWidgets() const -> std::size_t;
 
 private:
     enum class Measure {
@@ -88,6 +91,7 @@ private:
 
     std::shared_ptr<layout::Rect> layoutRect;
     float padding{s_padding};
+    bool flipChildrensOrientation{true};
 };
 
 } // namespace widget

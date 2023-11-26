@@ -5,16 +5,16 @@
 #include <context/WidgetState.h>
 #include <imgui.h>
 
+#include <magic_enum.hpp>
 #include <string>
 #include <utility>
 
 namespace widget {
 
 ImageButton::ImageButton(WidgetInit init,
-                         std::string _label,
                          context::Image _image)
     : Widget<ImageButton>{std::move(init)}
-    , label{std::move(_label)}
+    , label{magic_enum::enum_name(_image)}
     , image{_image} {}
 
 auto ImageButton::clicked() -> bool
@@ -32,6 +32,16 @@ auto ImageButton::clicked() -> bool
     backGroundColor = getTheme().ColorButton(widgetState);
     iconColor = getTheme().ColorImage(widgetState);
     return clicked;
+}
+
+void ImageButton::setChecked(bool _checked)
+{
+    enabled = _checked;
+}
+
+void ImageButton::setSensitive(bool _sensitive)
+{
+    disabled = not _sensitive;
 }
 
 auto ImageButton::calculateSize() const -> WidgetSize

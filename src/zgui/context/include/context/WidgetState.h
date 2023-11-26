@@ -6,10 +6,10 @@ enum class WidgetState {
     default_state,
     hovered,
     active,
-    enabled,
-    enabled_hovered,
-    disabled,
-    disabled_hovered
+    checked,
+    checked_hovered,
+    insensitive,
+    insensitive_hovered
 };
 
 auto getWidgetState(bool disabled, bool enabled) -> WidgetState;

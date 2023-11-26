@@ -7,6 +7,7 @@ target_sources(zgui_widgets
         include/widgets/Button.h
         include/widgets/ImageButton.h
         include/widgets/TextDraw.h
+        include/widgets/ToggleButtonGroup.h
         include/widgets/TokenText.h
         include/widgets/Widget.h
         include/widgets/Window.h
@@ -14,6 +15,7 @@ target_sources(zgui_widgets
         src/Button.cpp
         src/ImageButton.cpp
         src/TextDraw.cpp
+        src/ToggleButtonGroup.cpp
         src/TokenText.cpp
         src/Widget.cpp
         src/Window.cpp
@@ -28,9 +30,12 @@ target_include_directories(zgui_widgets
 
 target_link_libraries(zgui_widgets
     PUBLIC
+        magic_enum::magic_enum
         imgui::imgui
         zgui::context
     PRIVATE
+        zikhron::warnings
+        zikhron::utils
         spdlog::spdlog
 )
 

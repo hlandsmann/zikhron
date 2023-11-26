@@ -5,7 +5,6 @@
 #include <context/Theme.h>
 #include <imgui.h>
 
-#include <memory>
 #include <string>
 
 namespace widget {
@@ -14,7 +13,6 @@ class ImageButton : public Widget<ImageButton>
 {
 public:
     ImageButton(WidgetInit init,
-                std::string label,
                 context::Image image);
     ~ImageButton() override = default;
 
@@ -24,6 +22,8 @@ public:
     auto operator=(ImageButton&&) -> ImageButton& = default;
 
     auto clicked() -> bool;
+    void setChecked(bool checked);
+    void setSensitive(bool sensitive);
 
 private:
     friend class Widget<ImageButton>;

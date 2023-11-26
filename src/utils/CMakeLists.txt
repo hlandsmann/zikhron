@@ -14,6 +14,7 @@ target_sources(zikhron_utils
         include/utils/counting_iterator.h
         include/utils/index_map.h
         include/utils/min_element_val.h
+        include/utils/variant_cast.h
         src/Property.cpp
         src/StringU8.cpp
 )

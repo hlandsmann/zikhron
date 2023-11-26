@@ -5,6 +5,7 @@
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <iterator>
 #include <memory>
 #include <numeric>
@@ -47,9 +48,24 @@ void Box::arrange()
     start();
 }
 
+void Box::setFlipChildrensOrientation(bool flip)
+{
+    flipChildrensOrientation = flip;
+}
+
+void Box::setPadding(float _padding)
+{
+    padding = _padding;
+}
+
 void Box::start()
 {
     currentWidgetIt = widgets.begin();
+}
+
+auto Box::numberOfWidgets() const -> std::size_t
+{
+    return widgets.size();
 }
 
 auto Box::calculateSize() const -> WidgetSize
