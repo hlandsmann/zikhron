@@ -16,7 +16,9 @@
 #include <memory>
 #include <numeric>
 #include <ranges>
+#include <set>
 #include <span>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -29,26 +31,29 @@ auto GetCandidates(const utl::StringU8& text,
 {
     std::vector<std::vector<ZH_Tokenizer::ZH_dicItemVec>> candidates;
     candidates.reserve(text.length());
-    for (size_t indexBegin = 0; indexBegin < text.length(); indexBegin++) {
+    for (int indexBegin = 0; indexBegin < static_cast<int>(text.length()); indexBegin++) {
         const auto span_lower = ZH_Dictionary::Lower_bound(text.substr(indexBegin, 1), dict.Simplified());
         const auto span_now = ZH_Dictionary::Upper_bound(text.substr(indexBegin, 1), span_lower);
 
         std::vector<ZH_Tokenizer::ZH_dicItemVec> Items;
-        for (size_t indexEnd = indexBegin + 1; indexEnd <= text.length(); indexEnd++) {
+        for (int indexEnd = indexBegin + 1; indexEnd <= static_cast<int>(text.length()); indexEnd++) {
             const auto key = text.substr(indexBegin, indexEnd - indexBegin);
             const auto found = ZH_Dictionary::Lower_bound(key, span_now);
 
-            if (found.empty() || found.begin()->key.substr(0, key.length()) != key)
+            if (found.empty() || found.begin()->key.substr(0, key.length()) != key) {
                 break;
+            }
             ZH_Tokenizer::ZH_dicItemVec dicEntries;
             for (ZH_Dictionary::Key dictionaryKey : found) {
                 if (dictionaryKey.key == key) {
                     dicEntries.push_back(dict.EntryFromPosition(dictionaryKey.pos, characterSet));
-                } else
+                } else {
                     break;
+                }
             }
-            if (!dicEntries.empty())
+            if (!dicEntries.empty()) {
                 Items.push_back(std::move(dicEntries));
+            }
         }
         candidates.push_back(std::move(Items));
     }
@@ -113,8 +118,9 @@ auto ZH_Tokenizer::get_combinations(const std::vector<Combination>& chunk) -> st
     auto fill_foward = [&pos, &comb, &chunk]() {
         while (pos < chunk.size()) {
             const auto& node = chunk[pos];
-            if (node.empty())
+            if (node.empty()) {
                 break;
+            }
             pos += static_cast<size_t>(node.back());
             comb.push_back(node.back());
         }
@@ -229,8 +235,9 @@ void ZH_Tokenizer::annotate()
                     const auto& possibleChoice = std::vector<utl::CharU8>(
                             text.cbegin() + pos, text.cbegin() + pos + combinationLength);
                     const auto& choiceIt = choices->find(possibleChoice);
-                    if (choiceIt != choices->end())
+                    if (choiceIt != choices->end()) {
                         return choiceIt->second;
+                    }
                 }
                 return *std::min_element(combs.begin(), combs.end(), compare_combination);
             });
