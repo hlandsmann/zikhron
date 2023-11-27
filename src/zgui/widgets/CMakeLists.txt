@@ -6,17 +6,17 @@ target_sources(zgui_widgets
         include/widgets/Box.h
         include/widgets/Button.h
         include/widgets/ImageButton.h
-        include/widgets/TextDraw.h
+        include/widgets/TextToken.h
+        include/widgets/TextTokenSeq.h
         include/widgets/ToggleButtonGroup.h
-        include/widgets/TokenText.h
         include/widgets/Widget.h
         include/widgets/Window.h
         src/Box.cpp
         src/Button.cpp
         src/ImageButton.cpp
-        src/TextDraw.cpp
+        src/TextToken.cpp
+        src/TextTokenSeq.cpp
         src/ToggleButtonGroup.cpp
-        src/TokenText.cpp
         src/Widget.cpp
         src/Window.cpp
 )

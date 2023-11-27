@@ -42,13 +42,13 @@ auto ToggleButtonGroup::getActive() -> std::size_t
     box.arrange();
     for (std::size_t index = 0; index < box.numberOfWidgets(); index++) {
         auto& widget = box.next<WidgetBase>();
-        auto button = utl::variant_cast<Button, ImageButton>(&widget);
+        auto buttonVariant = utl::variant_cast<Button, ImageButton>(&widget);
         // auto& button = dynamic_cast<ImageButton&>(widget);
         if (std::visit([&](auto* button) {
                 button->setChecked(active == index);
                 return button->clicked();
             },
-                       button)) {
+                       buttonVariant)) {
             active = index;
         }
     }
