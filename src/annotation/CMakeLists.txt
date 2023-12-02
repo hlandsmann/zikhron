@@ -9,6 +9,7 @@ PUBLIC
 )
 target_sources(zikhron_annotation
     PRIVATE
+        include/annotation/Card.h
         include/annotation/CardDB.h
         include/annotation/Ease.h
         include/annotation/Markup.h
@@ -16,6 +17,7 @@ target_sources(zikhron_annotation
         include/annotation/TokenText.h
         include/annotation/Word.h
         include/annotation/ZH_Tokenizer.h
+        src/Card.cpp
         src/CardDB.cpp
         src/Ease.cpp
         src/Markup.cpp
