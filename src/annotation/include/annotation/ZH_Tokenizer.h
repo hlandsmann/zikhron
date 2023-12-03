@@ -27,22 +27,22 @@ public:
                  std::shared_ptr<const AnnotationChoiceMap> choices = {});
     [[nodiscard]] auto Annotated() const -> const std::string&;
 
-    struct Item
+    struct Token
     {
         template<class string_t>
-        explicit Item(const string_t& _text)
+        explicit Token(const string_t& _text)
             : text(_text)
         {}
-        Item(utl::StringU8 _text, const ZH_dicItemVec&& _dicItem)
+        Token(utl::StringU8 _text, const ZH_dicItemVec&& _dicItem)
             : text(std::move(_text)), dicItemVec(_dicItem) {}
 
-        auto operator<=>(const Item&) const -> std::weak_ordering;
+        auto operator<=>(const Token&) const -> std::weak_ordering;
 
         utl::StringU8 text;
         ZH_dicItemVec dicItemVec;
     };
-    [[nodiscard]] auto Items() const -> const std::vector<Item>&;
-    [[nodiscard]] auto UniqueItems() const -> std::set<Item>;
+    [[nodiscard]] auto Tokens() const -> const std::vector<Token>&;
+    [[nodiscard]] auto UniqueItems() const -> std::set<Token>;
     [[nodiscard]] auto Candidates() const -> const std::vector<std::vector<ZH_dicItemVec>>&;
     [[nodiscard]] auto Chunks() const -> const std::vector<std::vector<std::vector<int>>>&;
     [[nodiscard]] auto Dictionary() const -> const std::shared_ptr<const ZH_Dictionary>&;
@@ -57,7 +57,7 @@ private:
     void annotate();
     std::shared_ptr<const ZH_Dictionary> dictionary;
     std::string annotated_text;
-    std::vector<Item> items;
+    std::vector<Token> tokens;
     std::vector<std::vector<std::vector<int>>> chunks;
     std::vector<std::vector<ZH_dicItemVec>> candidates;
     std::shared_ptr<const AnnotationChoiceMap> choices;

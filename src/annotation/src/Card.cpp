@@ -27,7 +27,7 @@ Card::Card(std::string _filename,
     , dictionary{std::move(_dictionary)}
     , annotationChoices{std::move(_annotationChoices)} {};
 
-auto Card::getTokenizer() -> ZH_Tokenizer&
+auto Card::getTokenizer() const -> ZH_Tokenizer&
 {
     if (not tokenizer.has_value()) {
         tokenizer.emplace(getText(), dictionary, annotationChoices);

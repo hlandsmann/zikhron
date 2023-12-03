@@ -1,9 +1,11 @@
 #include <CardMeta.h>
 #include <CardProgress.h>
 #include <VocableProgress.h>
+#include <annotation/Card.h>
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
+#include <annotation/TokenText.h>
 #include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <folly/sorted_vector_types.h>
@@ -107,6 +109,14 @@ auto CardMeta::getStudyMarkup() -> std::unique_ptr<markup::Paragraph>
     return studyMarkup;
 }
 
+auto CardMeta::getStudyTokenText() -> std::unique_ptr<annotation::TokenText>
+{
+    std::vector<VocableId> vocableIds = generateVocableIDs();
+    mapVocableChoices(vocableIds);
+    auto studyTokenText = std::make_unique<annotation::TokenText>(card, std::move(vocableIds));
+    return studyTokenText;
+}
+
 auto CardMeta::getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>
 {
     auto annotationMarkup = std::make_unique<markup::Paragraph>(card);
@@ -173,11 +183,11 @@ auto CardMeta::generateVocableIDs() const -> std::vector<VocableId>
 {
     const ZH_Tokenizer& tokenizer = card->getTokenizer();
     auto vocableIds = std::vector<VocableId>{};
-    ranges::transform(tokenizer.Items() | std::views::filter([](const ZH_Tokenizer::Item& item) {
+    ranges::transform(tokenizer.Tokens() | std::views::filter([](const ZH_Tokenizer::Token& item) {
                           return not item.dicItemVec.empty();
                       }),
                       std::inserter(vocableIds, vocableIds.begin()),
-                      [](const ZH_Tokenizer::Item& item) -> VocableId {
+                      [](const ZH_Tokenizer::Token& item) -> VocableId {
                           // TODO remove static_cast
                           auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
                           return vocId;

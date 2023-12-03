@@ -157,7 +157,7 @@ auto ZH_Tokenizer::get_combinations(const std::vector<Combination>& chunk) -> st
     return combis;
 }
 
-auto ZH_Tokenizer::Item::operator<=>(const Item& other) const -> std::weak_ordering
+auto ZH_Tokenizer::Token::operator<=>(const Token& other) const -> std::weak_ordering
 {
     if (auto cmp = text <=> other.text; cmp != nullptr) {
         return cmp;
@@ -180,19 +180,19 @@ auto ZH_Tokenizer::Annotated() const -> const std::string&
     return annotated_text;
 }
 
-auto ZH_Tokenizer::Items() const -> const std::vector<Item>&
+auto ZH_Tokenizer::Tokens() const -> const std::vector<Token>&
 {
-    return items;
+    return tokens;
 }
 
-auto ZH_Tokenizer::UniqueItems() const -> std::set<Item>
+auto ZH_Tokenizer::UniqueItems() const -> std::set<Token>
 {
-    std::set<Item> uniqueItems;
+    std::set<Token> uniqueItems;
 
-    std::copy_if(items.begin(),
-                 items.end(),
+    std::copy_if(tokens.begin(),
+                 tokens.end(),
                  std::inserter(uniqueItems, uniqueItems.begin()),
-                 [](const Item& item) { return not item.dicItemVec.empty(); });
+                 [](const Token& item) { return not item.dicItemVec.empty(); });
 
     return uniqueItems;
 }
@@ -244,18 +244,18 @@ void ZH_Tokenizer::annotate()
     size_t pos = 0;
     for (const auto& comb : min_combis) {
         if (comb.empty()) {
-            items.emplace_back(text.at(pos));
+            tokens.emplace_back(text.at(pos));
             pos++;
             continue;
         }
 
-        ranges::transform(comb, std::back_inserter(items), [&](const size_t length) {
+        ranges::transform(comb, std::back_inserter(tokens), [&](const size_t length) {
             const auto itemIt = ranges::find(candidates[pos], size_t(length), [](const auto& itemVec) {
                 return StringU8(itemVec.front().key).length();
             });
 
             pos += length;
-            return Item((*itemIt).front().key, std::move(*itemIt));
+            return Token((*itemIt).front().key, std::move(*itemIt));
         });
     }
 }
@@ -267,7 +267,7 @@ void ZH_Tokenizer::annotate()
 
 void ZH_Tokenizer::Reannotate()
 {
-    items.clear();
+    tokens.clear();
     annotate();
 }
 

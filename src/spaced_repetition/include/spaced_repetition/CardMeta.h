@@ -2,9 +2,11 @@
 #include "VocableMeta.h"
 #include "srtypes.h"
 
+#include <annotation/Card.h>
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/Markup.h>
+#include <annotation/TokenText.h>
 #include <annotation/ZH_Tokenizer.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
@@ -34,6 +36,8 @@ struct CardMeta
     void addVocableChoice(VocableId oldVocId, VocableId newVocId);
 
     [[nodiscard]] auto getStudyMarkup() -> std::unique_ptr<markup::Paragraph>;
+    [[nodiscard]] auto getStudyTokenText() -> std::unique_ptr<annotation::TokenText>;
+
     [[nodiscard]] auto getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>;
     [[nodiscard]] auto getRelevantEase() const -> std::map<VocableId, Ease>;
 
