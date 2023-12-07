@@ -7,9 +7,9 @@
 namespace widget {
 WidgetBase::WidgetBase(WidgetInit init)
     : theme{std::move(init.theme)}
+    , rectPtr{std::move(init.rect)}
     , baseOrientation{init.orientation}
     , baseAlign{init.align}
-    , rectPtr{std::move(init.rect)}
 {
 }
 

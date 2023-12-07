@@ -1,6 +1,7 @@
 #include <Token.h>
 #include <utils/StringU8.h>
 
+#include <string>
 #include <utility>
 
 namespace annotation {
@@ -21,10 +22,25 @@ auto Token::getNoBreak() const -> NoBreak
 
 auto Token::getColorId(ColorId maxId) const -> ColorId
 {
-    if (color == 0) {
-        return color;
+    if (colorId == 0) {
+        return colorId;
     }
-    return static_cast<ColorId>((color - 1) % maxId + 1);
+    return static_cast<ColorId>((colorId - 1) % maxId + 1);
+}
+
+void Token::setColorId(unsigned _colorId)
+{
+    colorId = static_cast<ColorId>(_colorId);
+}
+
+auto Token::string() const -> std::string
+{
+    return value.string();
+}
+
+Token::operator std::string() const
+{
+    return value;
 }
 
 } // namespace annotation

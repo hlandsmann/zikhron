@@ -33,6 +33,7 @@ target_link_libraries(zgui_widgets
         magic_enum::magic_enum
         imgui::imgui
         zgui::context
+        zikhron::annotation
     PRIVATE
         zikhron::warnings
         zikhron::utils

@@ -78,9 +78,7 @@ auto TokenText::findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
         -> std::vector<ZH_Tokenizer::Token>::const_iterator
 {
     std::size_t size{};
-    spdlog::info("thr: {}", threshold);
     for (auto it = tokens.begin(); it != tokens.end(); it++) {
-        spdlog::info("t: {}", it->text);
         size += it->text.length();
         if (size == threshold) {
             return it + 1;

@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "ZH_Tokenizer.h"
 
 #include <dictionary/ZH_Dictionary.h>
@@ -27,10 +28,15 @@ public:
     [[nodiscard]] auto getValue() const -> utl::StringU8;
     [[nodiscard]] auto getNoBreak() const -> NoBreak;
     [[nodiscard]] auto getColorId(ColorId maxId) const -> ColorId;
+    void setColorId(unsigned colorId);
+
+    [[nodiscard]] auto string() const -> std::string;
+    operator std::string() const;
+
 
 private:
     utl::StringU8 value;
-    ColorId color{0};
+    ColorId colorId{0};
     NoBreak noBreak{NoBreak::none};
     std::size_t dictionaryEntryIndex{0};
     ZH_dicItemVec dictionaryEntries;
