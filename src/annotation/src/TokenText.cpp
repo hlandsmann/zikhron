@@ -35,17 +35,21 @@ auto TokenText::getType() const -> TextType
     return textType;
 }
 
+auto TokenText::getParagraph() const -> const Paragraph&
+{
+    return paragraphSeq.front();
+}
+
 void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)
 {
     const ZH_Tokenizer& zh_tokenizer = dialogueCard.getTokenizer();
     auto fragmentBegin = zh_tokenizer.Tokens().begin();
     auto fragmentEnd = zh_tokenizer.Tokens().begin();
-    std::size_t threshold = 0;
     auto textToParagraph = [&](const utl::StringU8& text) -> std::vector<Token> {
-        threshold += utl::StringU8(text).length();
+        auto threshold = utl::StringU8(text).length();
         fragmentEnd = findItAtThreshold({fragmentBegin, zh_tokenizer.Tokens().end()}, threshold);
         auto paragraph = tokenVector({fragmentBegin, fragmentEnd});
-        fragmentBegin = fragmentEnd;
+        fragmentBegin = fragmentEnd + 1; // +1 a '~'-character is generated at the end of each subtext (speaker, dialogue)
         return paragraph;
     };
     for (const auto& dialogue : dialogueCard.dialogue) {
@@ -58,7 +62,6 @@ void TokenText::setupTextCard(const TextCard& textCard)
 {
     const ZH_Tokenizer& zh_tokenizer = textCard.getTokenizer();
     paragraphSeq.push_back(tokenVector({zh_tokenizer.Tokens()}));
-
 }
 
 auto TokenText::tokenVector(tokenSubrange tokens) -> std::vector<Token>
@@ -75,7 +78,9 @@ auto TokenText::findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
         -> std::vector<ZH_Tokenizer::Token>::const_iterator
 {
     std::size_t size{};
+    spdlog::info("thr: {}", threshold);
     for (auto it = tokens.begin(); it != tokens.end(); it++) {
+        spdlog::info("t: {}", it->text);
         size += it->text.length();
         if (size == threshold) {
             return it + 1;

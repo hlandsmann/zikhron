@@ -1,5 +1,6 @@
 #pragma once
-#include <fmt/format.h>
+#include <fmt/format.h> // IWYU pragma: export core.h
+#include <fmt/core.h>
 
 #include <compare>
 #include <cstddef>
@@ -83,7 +84,7 @@ private:
 } // namespace utl
 
 template<>
-struct std::formatter<utl::CharU8>
+struct fmt::formatter<utl::CharU8>
 {
     template<typename ParseContext>
     constexpr auto parse(ParseContext& ctx)
@@ -91,8 +92,23 @@ struct std::formatter<utl::CharU8>
         return ctx.begin();
     }
     template<typename FormatContext>
-    auto format(const utl::CharU8& itemU8, FormatContext& ctx)
+    auto format(const utl::CharU8& charU8, FormatContext& ctx)
     {
-        return std::format_to(ctx.out(), "{}", std::string(itemU8));
+        return std::format_to(ctx.out(), "{}", std::string(charU8));
+    }
+};
+
+template<>
+struct fmt::formatter<utl::StringU8>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+    template<typename FormatContext>
+    auto format(const utl::StringU8& stringU8, FormatContext& ctx)
+    {
+        return std::format_to(ctx.out(), "{}", std::string(stringU8));
     }
 };

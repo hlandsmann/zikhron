@@ -20,11 +20,12 @@ enum class TextType {
 class TokenText
 {
 public:
+    using Paragraph = std::vector<Token>;
     TokenText(std::shared_ptr<Card> card, std::vector<VocableId> vocableIds);
     [[nodiscard]] auto getType() const -> TextType;
+    [[nodiscard]] auto getParagraph() const -> const Paragraph&;
 
 private:
-    using Paragraph = std::vector<Token>;
     using tokenSubrange = std::ranges::subrange<std::vector<ZH_Tokenizer::Token>::const_iterator>;
     void setupDialogueCard(const DialogueCard&);
     void setupTextCard(const TextCard&);
