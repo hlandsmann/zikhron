@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 
 #include <memory>
+#include <utility>
 
 namespace context {
 Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
@@ -16,6 +17,19 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
                                               io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
     chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
                                                 io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+}
+
+auto Fonts::dropFont(FontType fontType) const -> FontDrop
+{
+    switch (fontType) {
+    case FontType::chineseSmall:
+        return dropChineseSmall();
+    case FontType::chineseBig:
+        return dropChineseBig();
+    case FontType::Gui:
+        return dropGui();
+    }
+    std::unreachable();
 }
 
 auto Fonts::dropChineseBig() const -> FontDrop

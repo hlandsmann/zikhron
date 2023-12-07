@@ -8,11 +8,18 @@ namespace context {
 
 class FontDrop;
 
+enum class FontType{
+  chineseBig,
+  chineseSmall,
+  Gui,
+};
+
 class Fonts
 {
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed
     Fonts(std::shared_ptr<GlfwImguiContext> /* glfwImguiContext */);
+    [[nodiscard]] auto dropFont(FontType) const -> FontDrop;
     [[nodiscard]] auto dropChineseBig() const -> FontDrop;
     [[nodiscard]] auto dropChineseSmall() const -> FontDrop;
     [[nodiscard]] auto dropGui() const -> FontDrop;

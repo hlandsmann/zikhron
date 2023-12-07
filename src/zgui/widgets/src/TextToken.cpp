@@ -1,6 +1,7 @@
 #include <TextToken.h>
 #include <Widget.h>
 #include <annotation/Token.h>
+#include <context/Fonts.h>
 #include <imgui.h>
 
 #include <utility>
@@ -9,6 +10,15 @@ namespace widget {
 TextToken::TextToken(const WidgetInit& _init, annotation::Token _token)
     : Widget<TextToken>{std::move(_init)}
     , token{std::move(_token)}
+{
+}
+
+void TextToken::setFontType(context::FontType _fontType)
+{
+    fontType = _fontType;
+}
+
+void TextToken::renderShadow()
 {
 }
 
