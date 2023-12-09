@@ -53,9 +53,10 @@ WindowDrop::WindowDrop(const std::string& name, const widget::layout::Rect& rect
                  ImGuiWindowFlags_NoTitleBar
                          | ImGuiWindowFlags_NoMove
                          | ImGuiWindowFlags_NoResize);
+    incPopCount();
 }
 
-WindowDrop::~WindowDrop()
+void WindowDrop::pop()
 {
     ImGui::End();
 }

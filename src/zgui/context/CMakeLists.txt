@@ -3,6 +3,7 @@ add_library(zgui::context ALIAS zgui_context)
 
 target_sources(zgui_context
     PRIVATE
+        include/context/Drop.h
         include/context/Fonts.h
         include/context/GlfwImguiContext.h
         include/context/Texture.h
@@ -32,5 +33,6 @@ target_link_libraries(zgui_context
         spdlog::spdlog
         stb::image
         zikhron::warnings
+        zikhron::miscellaneous
 )
 set_property(TARGET zgui_context PROPERTY CXX_STANDARD 23)

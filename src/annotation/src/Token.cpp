@@ -1,4 +1,5 @@
 #include <Token.h>
+#include <misc/Identifier.h>
 #include <utils/StringU8.h>
 
 #include <string>

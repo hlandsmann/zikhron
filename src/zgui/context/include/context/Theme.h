@@ -1,4 +1,5 @@
 #pragma once
+#include "Drop.h"
 #include "Fonts.h"
 #include "Texture.h"
 #include "WidgetState.h"
@@ -15,11 +16,6 @@ enum class ColorTheme {
     ButtonDefault,
     Window,
 };
-
-constexpr auto bToColor(unsigned char r, unsigned char g, unsigned char b) -> ImVec4
-{
-    return {static_cast<float>(r) / 255, static_cast<float>(g) / 255, static_cast<float>(b) / 255, 1.F};
-}
 
 class Theme
 { // clang-format off
@@ -41,19 +37,9 @@ class Theme
 
     static constexpr ImVec4 s_colorWindowBackground = {0.15F, 0.15F, 0.15F, 1.0F};
     // clang-format on
-    static constexpr std::array<ImVec4, 11> colors = {bToColor(0xff, 0xe1, 0x19),
-                                                      bToColor(0x3c, 0xd4, 0x4b),
-                                                      bToColor(0x42, 0xd4, 0xf4),
-                                                      bToColor(0xf5, 0x82, 0x31),
-                                                      bToColor(0xf0, 0x32, 0xe6),
-                                                      bToColor(0xfa, 0xbe, 0xd4),
-                                                      bToColor(0x91, 0x3e, 0xc4),
-                                                      bToColor(0xff, 0x29, 0x4B),
-                                                      bToColor(0x43, 0x63, 0xff),
-                                                      bToColor(0xbf, 0xef, 0x45),
-                                                      bToColor(0x46, 0x99, 0x90)};
 
-    public : Theme(Fonts, Texture);
+public:
+    Theme(Fonts, Texture);
 
     [[nodiscard]] static auto dropImGuiStyleVars() -> StyleVarsDrop;
     [[nodiscard]] auto dropImGuiStyleColors(ColorTheme) const -> StyleColorsDrop;
@@ -104,37 +90,27 @@ private:
     Texture texture;
 };
 
-class StyleVarsDrop
+class StyleVarsDrop : public Drop<StyleVarsDrop>
 {
 public:
     StyleVarsDrop();
-    ~StyleVarsDrop();
-
-    StyleVarsDrop(const StyleVarsDrop&) = delete;
-    StyleVarsDrop(StyleVarsDrop&&) noexcept;
-    auto operator=(const StyleVarsDrop&) -> StyleVarsDrop& = delete;
-    auto operator=(StyleVarsDrop&&) noexcept -> StyleVarsDrop&;
 
 private:
+    friend class Drop<StyleVarsDrop>;
+    static void pop();
+
     void PushStyleVar(ImGuiStyleVar idx, float val);
     void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
-
-    int countStyleVars{0};
 };
 
-class StyleColorsDrop
+class StyleColorsDrop: public Drop<StyleColorsDrop>
 {
 public:
     StyleColorsDrop(const Theme& theme, ColorTheme);
-    ~StyleColorsDrop();
-
-    StyleColorsDrop(const StyleColorsDrop&) = delete;
-    StyleColorsDrop(StyleColorsDrop&&) noexcept;
-    auto operator=(const StyleColorsDrop&) -> StyleColorsDrop& = delete;
-    auto operator=(StyleColorsDrop&&) noexcept -> StyleColorsDrop&;
 
 private:
+    friend class Drop<StyleColorsDrop>;
+    static void pop();
     void PushStyleColor(ImGuiCol idx, const ImVec4& col);
-    int countStyleColors{0};
 };
 } // namespace context

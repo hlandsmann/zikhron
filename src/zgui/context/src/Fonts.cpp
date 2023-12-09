@@ -1,6 +1,7 @@
 #include <Fonts.h>
 #include <GlfwImguiContext.h>
 #include <imgui.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -62,13 +63,41 @@ auto Fonts::Gui() const -> ImFont*
     return gui;
 }
 
+auto Fonts::getDefaultFontColor() -> const ImVec4&
+{
+    return defaultFontColor;
+}
+
+auto Fonts::getShadowFontColor() -> const ImVec4&
+{
+    return shadowFontColor;
+}
+
+auto Fonts::getFontColor(ColorId colorId, ColorId maxColorId) -> const ImVec4&
+{
+    if (colorId == 0) {
+        return getDefaultFontColor();
+    }
+
+    maxColorId = static_cast<ColorId>(fontColors.size());
+    auto colorIndex = static_cast<ColorId>((colorId - 1) % maxColorId + 1);
+
+    return fontColors.at(colorIndex);
+}
+
 FontDrop::FontDrop(ImFont* font)
 {
     ImGui::PushFont(font);
+    incPopCount();
 }
 
-FontDrop::~FontDrop()
+void FontDrop::pop()
 {
     ImGui::PopFont();
+}
+
+FontColorDrop::FontColorDrop(ImVec4* fontColor) {}
+void FontColorDrop::pop()
+{
 }
 } // namespace context

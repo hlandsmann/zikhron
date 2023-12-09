@@ -1,16 +1,16 @@
 #pragma once
-#include <string>
 #include "ZH_Tokenizer.h"
 
 #include <dictionary/ZH_Dictionary.h>
+#include <misc/Identifier.h>
 #include <utils/StringU8.h>
 
 #include <cstddef>
 #include <memory>
 #include <optional>
+#include <string>
 
 namespace annotation {
-enum ColorId : unsigned;
 enum class NoBreak {
     front,
     back,
@@ -32,7 +32,6 @@ public:
 
     [[nodiscard]] auto string() const -> std::string;
     operator std::string() const;
-
 
 private:
     utl::StringU8 value;

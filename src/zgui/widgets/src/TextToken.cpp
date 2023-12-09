@@ -7,7 +7,7 @@
 #include <utility>
 namespace widget {
 
-TextToken::TextToken(const WidgetInit& _init, annotation::Token _token)
+TextToken::TextToken(WidgetInit _init, annotation::Token _token)
     : Widget<TextToken>{std::move(_init)}
     , token{std::move(_token)}
 {
@@ -20,10 +20,19 @@ void TextToken::setFontType(context::FontType _fontType)
 
 void TextToken::renderShadow()
 {
+    auto fontDrop = getTheme().getFont().dropFont(fontType);
+}
+
+void TextToken::clicked()
+{
+    auto fontDrop = getTheme().getFont().dropFont(fontType);
+    const auto& btnRect = Rect();
+    ImGui::SetCursorPos({btnRect.x, btnRect.y});
 }
 
 auto TextToken::calculateSize() const -> WidgetSize
 {
+    auto fontDrop = getTheme().getFont().dropFont(fontType);
     auto string = token.string();
     auto textSize = ImGui::CalcTextSize(string.cbegin().base(), string.cend().base());
 

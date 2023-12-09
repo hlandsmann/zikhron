@@ -1,6 +1,7 @@
 #include "Box.h"
 #include "Widget.h"
 
+#include <context/Drop.h>
 #include <context/Theme.h>
 #include <imgui.h>
 
@@ -36,20 +37,16 @@ private:
     std::string name;
 };
 
-class WindowDrop
+class WindowDrop : public context::Drop<WindowDrop>
 {
 public:
     WindowDrop(const std::string& name,
-        const widget::layout::Rect& rect,
-        context::StyleColorsDrop styleColorsDrop);
-    ~WindowDrop();
-
-    WindowDrop(const WindowDrop&) = delete;
-    WindowDrop(WindowDrop&&) = default;
-    auto operator=(const WindowDrop&) -> WindowDrop& = delete;
-    auto operator=(WindowDrop&&) -> WindowDrop& = default;
+               const widget::layout::Rect& rect,
+               context::StyleColorsDrop styleColorsDrop);
 
 private:
+    friend class Drop<WindowDrop>;
+    static void pop();
     context::StyleColorsDrop styleColorsDrop;
 };
 } // namespace widget

@@ -7,9 +7,10 @@ namespace widget {
 class TextToken : public Widget<TextToken>
 {
 public:
-    TextToken(const WidgetInit& init, annotation::Token token);
+    TextToken(WidgetInit init, annotation::Token token);
     void setFontType(context::FontType fontType);
     void renderShadow();
+    void clicked();
 
 private:
     using FontType = context::FontType;

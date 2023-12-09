@@ -4,6 +4,7 @@
 #include <WidgetState.h>
 #include <imgui.h>
 
+#include <cstddef>
 #include <utility>
 namespace context {
 
@@ -155,32 +156,21 @@ StyleVarsDrop::StyleVarsDrop()
     PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0F, 0.0F));
 }
 
-StyleVarsDrop::StyleVarsDrop(StyleVarsDrop&& other) noexcept
-    : countStyleVars{std::exchange(other.countStyleVars, 0)}
-{
-}
-
-auto StyleVarsDrop::operator=(StyleVarsDrop&& other) noexcept -> StyleVarsDrop&
-{
-    countStyleVars = std::exchange(other.countStyleVars, 0);
-    return *this;
-}
-
-StyleVarsDrop::~StyleVarsDrop()
-{
-    ImGui::PopStyleVar(countStyleVars);
-}
-
 void StyleVarsDrop::PushStyleVar(ImGuiStyleVar idx, float val)
 {
     ImGui::PushStyleVar(idx, val);
-    countStyleVars++;
+    incPopCount();
 }
 
 void StyleVarsDrop::PushStyleVar(ImGuiStyleVar idx, const ImVec2& val)
 {
     ImGui::PushStyleVar(idx, val);
-    countStyleVars++;
+    incPopCount();
+}
+
+void StyleVarsDrop::pop()
+{
+    ImGui::PopStyleVar();
 }
 
 StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
@@ -197,26 +187,15 @@ StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
     }
 }
 
-StyleColorsDrop::StyleColorsDrop(StyleColorsDrop&& other) noexcept
-    : countStyleColors{std::exchange(other.countStyleColors, 0)}
+void StyleColorsDrop::pop()
 {
-}
-
-auto StyleColorsDrop::operator=(StyleColorsDrop&& other) noexcept -> StyleColorsDrop&
-{
-    countStyleColors = std::exchange(other.countStyleColors, 0);
-    return *this;
-}
-
-StyleColorsDrop::~StyleColorsDrop()
-{
-    ImGui::PopStyleColor(countStyleColors);
+    ImGui::PopStyleColor();
 }
 
 void StyleColorsDrop::PushStyleColor(ImGuiCol idx, const ImVec4& col)
 {
     ImGui::PushStyleColor(idx, col);
-    countStyleColors++;
+    incPopCount();
 }
 
 } // namespace context
