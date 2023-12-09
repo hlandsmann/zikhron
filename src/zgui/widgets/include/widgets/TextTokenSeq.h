@@ -1,7 +1,18 @@
 #pragma once
+#include "TextToken.h"
+#include "Widget.h"
+
+#include <annotation/TokenText.h>
 #include <imgui.h>
+
 #include <string>
-namespace ImGui
+namespace widget {
+class TextTokenSeq : public Widget<TextTokenSeq>
 {
-    void TextWithHoverColor(ImVec4 col, const std::string& fmt);
+public:
+    TextTokenSeq(WidgetInit init);
+
+private:
 };
+
+} // namespace widget
