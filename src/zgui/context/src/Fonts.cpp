@@ -48,6 +48,21 @@ auto Fonts::dropGui() const -> FontDrop
     return {Gui()};
 }
 
+auto Fonts::dropDefaultFontColor() const -> FontColorDrop
+{
+    return getDefaultFontColor();
+}
+
+auto Fonts::dropShadowFontColor() const -> FontColorDrop
+{
+    return getShadowFontColor();
+}
+
+auto Fonts::dropFontColor(ColorId colorId, ColorId maxColorId) const -> FontColorDrop
+{
+    return getFontColor(colorId, maxColorId);
+}
+
 auto Fonts::ChineseBig() const -> ImFont*
 {
     return chineseBig;
@@ -63,17 +78,17 @@ auto Fonts::Gui() const -> ImFont*
     return gui;
 }
 
-auto Fonts::getDefaultFontColor() -> const ImVec4&
+auto Fonts::getDefaultFontColor() const -> const ImVec4&
 {
     return defaultFontColor;
 }
 
-auto Fonts::getShadowFontColor() -> const ImVec4&
+auto Fonts::getShadowFontColor() const -> const ImVec4&
 {
     return shadowFontColor;
 }
 
-auto Fonts::getFontColor(ColorId colorId, ColorId maxColorId) -> const ImVec4&
+auto Fonts::getFontColor(ColorId colorId, ColorId maxColorId) const -> const ImVec4&
 {
     if (colorId == 0) {
         return getDefaultFontColor();
@@ -96,8 +111,14 @@ void FontDrop::pop()
     ImGui::PopFont();
 }
 
-FontColorDrop::FontColorDrop(ImVec4* fontColor) {}
+FontColorDrop::FontColorDrop(ImVec4 fontColor)
+{
+    ImGui::PushStyleColor(ImGuiCol_Text, fontColor);
+    incPopCount();
+}
+
 void FontColorDrop::pop()
 {
+    ImGui::PopStyleColor();
 }
 } // namespace context
