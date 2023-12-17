@@ -3,6 +3,8 @@
 #include <kocoro/kocoro.hpp>
 #include <memory>
 
+#include <unistd.h>
+
 auto subcoro(std::shared_ptr<kocoro::Signal<int>> signal0)
         -> kocoro::Task<int>
 {
@@ -16,6 +18,7 @@ auto coro_await_signal(std::shared_ptr<kocoro::Signal<int>> signal0,
                        std::shared_ptr<kocoro::Signal<int>> signal1)
         -> kocoro::Task<void>
 {
+    spdlog::info("coro_await_signal");
     int val{};
     for (int i = 0; i < 5; i++) {
         val = co_await subcoro(signal0);
@@ -27,13 +30,37 @@ auto coro_await_signal(std::shared_ptr<kocoro::Signal<int>> signal0,
     co_return;
 }
 
+auto coro_await_async(std::shared_ptr<kocoro::Async<int>> async0) -> kocoro::Task<void>
+{
+    spdlog::info("coro_await_async");
+    int val{};
+    val = co_await *async0;
+    spdlog::info("async0: {}", val);
+    val = co_await *async0;
+    spdlog::info("async0: {}", val);
+
+    spdlog::info("async reset..");
+    async0->reset();
+    val = co_await *async0;
+    spdlog::info("async0: {}", val);
+    co_return;
+}
+
 auto main() -> int
 {
     spdlog::info("kocoro_main");
     kocoro::SynchronousExecutor synchronousExecutor;
     auto signal0 = synchronousExecutor.makeSignal<int>();
     auto signal1 = synchronousExecutor.makeSignal<int>();
+    auto async0 = synchronousExecutor.makeAsync<int>();
     synchronousExecutor.startCoro(coro_await_signal(signal0, signal1));
+    synchronousExecutor.startCoro(coro_await_async(async0));
+    async0->runAsync([]() {
+        spdlog::info("async start...");
+        sleep(1);
+        spdlog::info("async stop...");
+        return 1;
+    });
     // signal0->set(42);
     // spdlog::info("main");
     // auto handle = coro_await_signal(signal0, signal1);
@@ -51,6 +78,9 @@ auto main() -> int
         } else {
             signal1->set(i);
         }
+        synchronousExecutor.run();
+    }
+    while (true) {
         synchronousExecutor.run();
     }
     return 0;

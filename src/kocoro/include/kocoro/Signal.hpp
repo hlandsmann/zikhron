@@ -27,14 +27,13 @@ struct SignalAwaiter
         , resultMutex{_resultMutex} {}
     [[nodiscard]] auto await_ready() const noexcept -> bool
     {
+        auto lock = std::lock_guard{resultMutex.get()};
         return result->has_value();
     }
 
     void await_suspend(std::coroutine_handle<> _handle) noexcept
     {
         handle.get() = std::move(_handle);
-        if (handle.get().has_value()) {
-        }
     }
 
     [[nodiscard]] auto await_resume() const noexcept -> result_type

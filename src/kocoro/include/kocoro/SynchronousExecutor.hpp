@@ -20,12 +20,22 @@ public:
         taskPtr->resume();
         tasks.push_back(std::move(taskPtr));
     }
+
     template<class result_type>
     [[nodiscard]] auto makeSignal() -> std::shared_ptr<Signal<result_type>>
     {
         auto signalEntry = std::make_shared<Signal<result_type>>();
         scheduleEntries.push_back(signalEntry);
         return signalEntry;
+    }
+
+    template<class result_type>
+    [[nodiscard]] auto makeAsync() -> std::shared_ptr<Async<result_type>>
+    {
+        auto asyncEntry = std::make_shared<Async<result_type>>();
+        scheduleEntries.push_back(asyncEntry);
+        return asyncEntry;
+
     }
     auto run() -> bool;
 
