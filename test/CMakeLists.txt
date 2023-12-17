@@ -15,3 +15,15 @@ target_link_libraries(sr_treewalker
         zikhron::warnings
 )
 set_property(TARGET sr_treewalker PROPERTY CXX_STANDARD 23)
+
+add_executable(kocoro_signal)
+target_sources(kocoro_signal
+    PRIVATE
+        kocoro_signal.cpp
+)
+target_link_libraries(kocoro_signal
+    PRIVATE
+        zikhron::kocoro
+        spdlog::spdlog
+)
+set_property(TARGET kocoro_signal PROPERTY CXX_STANDARD 23)
