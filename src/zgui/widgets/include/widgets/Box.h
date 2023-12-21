@@ -41,8 +41,10 @@ public:
         auto widget = std::make_shared<WidgetType>(std::move(init), std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
         rects.push_back(std::move(widgetRect));
+        resetWidgetSize();
         return widget;
     }
+
     template<class WidgetType>
     auto next() -> WidgetType&
     {
@@ -53,6 +55,9 @@ public:
         currentWidgetIt++;
         return result;
     }
+    [[nodiscard]] auto isLast() const -> bool;
+    void clear();
+    void pop();
     void start();
     auto numberOfWidgets() const -> std::size_t;
 

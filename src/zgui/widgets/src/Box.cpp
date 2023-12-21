@@ -57,6 +57,24 @@ void Box::setPadding(float _padding)
 {
     padding = _padding;
 }
+auto Box::isLast() const -> bool
+{
+    return currentWidgetIt == widgets.end();
+}
+
+void Box::clear()
+{
+    rects.clear();
+    widgets.clear();
+    resetWidgetSize();
+}
+
+void Box::pop()
+{
+    rects.pop_back();
+    widgets.pop_back();
+    resetWidgetSize();
+}
 
 void Box::start()
 {
@@ -142,7 +160,8 @@ auto Box::rectSizeProjection(layout::Rect& rect, Measure measure) -> float&
 
 auto Box::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
                              std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
-                             Measure measure) -> float
+                             Measure measure)
+        -> float
 {
     if (first == last) {
         return 0.0F;
@@ -246,7 +265,7 @@ void Box::setChildWidgetsInitialRect()
 
 void Box::doLayout(Measure measure)
 {
-    imglog::log("layout x: {}, y: {}, w: {}, h: {}", layoutRect->x, layoutRect->y, layoutRect->width, layoutRect->height);
+    // imglog::log("layout x: {}, y: {}, w: {}, h: {}", layoutRect->x, layoutRect->y, layoutRect->width, layoutRect->height);
     if (widgets.empty()) {
         return;
     }
