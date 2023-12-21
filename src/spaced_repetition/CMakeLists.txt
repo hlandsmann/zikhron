@@ -38,6 +38,7 @@ target_link_libraries(zikhron_spaced_repetition
         nlohmann_json::nlohmann_json
         zikhron::annotation
         zikhron::dictionary
+        zikhron::kocoro
         zikhron::miscellaneous
         zikhron::utils
     PRIVATE

@@ -1,10 +1,3 @@
-
-// folly headers must be included before epoxy/glx.h
-// #include <folly/Executor.h>
-// epoxy/glx must be included before opengl headers can be included
-// #include <epoxy/glx.h>
-// #include <epoxy/egl.h>
-// #include <epoxy/gl_generated.h>
 // clang-format on
 #include <GL/gl.h>
 #include <GLFW/glfw3.h>
@@ -13,25 +6,22 @@
 #include <SideBar.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
-#include <folly/executors/CPUThreadPoolExecutor.h>
-#include <folly/executors/ManualExecutor.h>
+#include <context/Fonts.h>
+#include <context/GlfwImguiContext.h>
+#include <context/imglog.h>
 #include <imgui.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
-#include <context/Fonts.h>
 #include <widgets/Widget.h>
-#include <context/imglog.h>
-#include <context/GlfwImguiContext.h>
 
+#include <kocoro/kocoro.hpp>
 #include <memory>
-#include <stdexcept>
-#include <string>
 #include <utility>
 
-GlWindow::GlWindow(std::shared_ptr<folly::ManualExecutor> _synchronousExecutor,
+GlWindow::GlWindow(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                    std::shared_ptr<context::GlfwImguiContext> _glfwImguiContext,
                    MainWindow _mainWindow)
     : glfwImguiContext{std::move(_glfwImguiContext)}

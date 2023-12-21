@@ -10,37 +10,35 @@
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
+#include <kocoro/kocoro.hpp>
 #include <memory>
 #include <utility>
 
 namespace fs = std::filesystem;
 namespace sr {
-AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<folly::ManualExecutor> _synchronousExecutor,
-                                 std::shared_ptr<folly::CPUThreadPoolExecutor> _threadPoolExecutor)
-    : threadPoolExecutor{std::move(_threadPoolExecutor)}
-    , synchronousExecutor{std::move(_synchronousExecutor)}
+AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor)
+    : synchronousExecutor{std::move(_synchronousExecutor)}
+    , asyncDataBase{synchronousExecutor->makeAsync<DataBasePtr>()}
+    , asyncTreewalker{synchronousExecutor->makeAsync<TreeWalkerPtr>()}
+    , asyncNextCard{synchronousExecutor->makeAsync<CardMeta>()}
 {
-    taskFullfillPromises().semi().via(synchronousExecutor.get());
+    synchronousExecutor->startCoro(taskFullfillPromises());
 }
 
-auto AsyncTreeWalker::getDataBase() const -> folly::Future<DataBasePtr>
+auto AsyncTreeWalker::getDataBase() const -> kocoro::Async<DataBasePtr>&
 {
-    return dataBasePromise.getFuture();
+    return *asyncDataBase;
 }
 
-auto AsyncTreeWalker::getTreeWalker() const -> folly::Future<TreeWalkerPtr>
+auto AsyncTreeWalker::getTreeWalker() const -> kocoro::Async<TreeWalkerPtr>&
 {
-    return treeWalkerPromise.getFuture();
+    return *asyncTreewalker;
 }
 
-auto AsyncTreeWalker::getNextCardChoice() -> folly::coro::Task<CardMeta>
+auto AsyncTreeWalker::getNextCardChoice() -> kocoro::Async<CardMeta>&
 {
-    auto treeWalker = co_await getTreeWalker();
-    auto treeWalker_getNextCardChoice = [](TreeWalkerPtr _treeWalker) -> folly::coro::Task<CardMeta> {
-        co_return _treeWalker->getNextCardChoice();
-    };
-
-    co_return co_await treeWalker_getNextCardChoice(treeWalker).semi().via(threadPoolExecutor.get());
+    asyncNextCard->reset();
+    return *asyncNextCard;
 }
 
 auto AsyncTreeWalker::get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
@@ -50,19 +48,23 @@ auto AsyncTreeWalker::get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
 }
 
-auto AsyncTreeWalker::taskFullfillPromises() -> folly::coro::Task<>
+auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
 {
-    auto dbPtr = co_await taskCreateDataBase().scheduleOn(threadPoolExecutor.get());
-    dataBasePromise.setValue(dbPtr);
-    auto treeWalkerPtr = ITreeWalker::createTreeWalker(std::move(dbPtr));
-    treeWalkerPromise.setValue(std::move(treeWalkerPtr));
+    asyncDataBase->runAsync([]() -> DataBasePtr {
+        auto zikhron_cfg = get_zikhron_cfg();
+        auto db = std::make_shared<DataBase>(zikhron_cfg);
+        return db;
+    });
+
+    DataBasePtr dbPtr = co_await *asyncDataBase;
+    asyncTreewalker->runAsync([=]() -> TreeWalkerPtr {
+        return ITreeWalker::createTreeWalker(std::move(dbPtr));
+    });
+    auto treeWalker = co_await getTreeWalker();
+    asyncNextCard->runAsync([_treeWalker = std::move(treeWalker)]() {
+        return _treeWalker->getNextCardChoice();
+    });
     co_return;
 }
 
-auto AsyncTreeWalker::taskCreateDataBase() -> folly::coro::Task<DataBasePtr>
-{
-    auto zikhron_cfg = get_zikhron_cfg();
-    auto db = std::make_unique<DataBase>(zikhron_cfg);
-    co_return db;
-}
 } // namespace sr

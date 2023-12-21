@@ -23,6 +23,7 @@ namespace sr {
 
 struct CardMeta
 {
+    CardMeta() = default;
     CardMeta(std::shared_ptr<Card> card,
              std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables,
              vocId_vocId_map vocableChoices);

@@ -31,10 +31,11 @@ target_link_libraries(zgui_gui
         spdlog::spdlog
         zgui::context
         zgui::widgets
-        zikhron::multimedia
         zikhron::annotation
         zikhron::dictionary
+        zikhron::kocoro
         zikhron::miscellaneous
+        zikhron::multimedia
         zikhron::spaced_repetition
         zikhron::warnings
 )

@@ -1,24 +1,23 @@
 #pragma once
-#include <context/GlfwImguiContext.h>
 #include "MainWindow.h"
 
+#include <context/Fonts.h>
+#include <context/GlfwImguiContext.h>
 #include <context/Theme.h>
-#include <folly/executors/ManualExecutor.h>
 #include <imgui.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <widgets/Box.h>
-#include <context/Fonts.h>
 #include <widgets/Widget.h>
 #include <widgets/Window.h>
 
+#include <kocoro/kocoro.hpp>
 #include <memory>
-#include <string>
 
 class GlWindow
 {
 public:
-    GlWindow(std::shared_ptr<folly::ManualExecutor> synchronousExecutor,
+    GlWindow(std::shared_ptr<kocoro::SynchronousExecutor>,
              std::shared_ptr<context::GlfwImguiContext> glfwImguiContext,
              MainWindow _mainWindow);
     void run();
@@ -32,6 +31,6 @@ private:
 
     MainWindow mainWindow;
 
-    std::shared_ptr<folly::ManualExecutor> synchronousExecutor;
+    std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor;
     std::shared_ptr<MpvWrapper> videoPlayer;
 };

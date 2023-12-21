@@ -8,9 +8,11 @@
 #include <exception>
 #include <functional>
 #include <future>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <utility>
+#include <vector>
 namespace kocoro {
 
 template<class result_type>
@@ -19,14 +21,14 @@ struct AsyncAwaiter
     using optional_handle = std::optional<std::coroutine_handle<>>;
     using optional_result = std::optional<result_type>;
     std::reference_wrapper<optional_result> result;
-    std::reference_wrapper<optional_handle> handle;
+    std::reference_wrapper<std::vector<std::coroutine_handle<>>> handles;
     std::reference_wrapper<std::mutex> resultMutex;
 
     AsyncAwaiter(std::reference_wrapper<optional_result> _result,
-                 std::reference_wrapper<optional_handle> _handle,
+                 std::reference_wrapper<std::vector<std::coroutine_handle<>>> _handles,
                  std::reference_wrapper<std::mutex> _resultMutex)
         : result{_result}
-        , handle{_handle}
+        , handles{_handles}
         , resultMutex{_resultMutex} {}
     [[nodiscard]] auto await_ready() const noexcept -> bool
     {
@@ -35,7 +37,7 @@ struct AsyncAwaiter
 
     void await_suspend(std::coroutine_handle<> _handle) noexcept
     {
-        handle.get() = std::move(_handle);
+        handles.get().push_back(std::move(_handle));
     }
 
     [[nodiscard]] auto await_resume() const noexcept -> result_type
@@ -53,7 +55,8 @@ class Async : public ScheduleEntry
 {
     using optional_result = std::optional<result_type>;
     using optional_handle = std::optional<std::coroutine_handle<>>;
-    optional_handle handle;
+    // optional_handle handle;
+    std::vector<std::coroutine_handle<>> handles;
     optional_result result;
     std::mutex resultMutex;
     std::future<result_type> future;
@@ -66,17 +69,28 @@ public:
     void runAsync(std::function<result_type()> _fun) { fun = std::move(_fun); }
     auto operator co_await() -> AsyncAwaiter<result_type>
     {
-        return {std::ref(result), std::ref(handle), std::ref(resultMutex)};
+        return {std::ref(result), std::ref(handles), std::ref(resultMutex)};
     }
     auto resume() -> bool override
     {
         progressFuture();
-        if (handle.has_value() && !handle->done() && result.has_value()) {
-            auto tempHandle = std::exchange(handle, std::nullopt);
-            tempHandle->resume();
-            return true;
+        {
+            auto lock = std::lock_guard{resultMutex};
+            if (!result.has_value()) {
+                return false;
+            }
         }
-        return false;
+        if (handles.empty()) {
+            return false;
+        }
+        auto handle = std::move(handles.back());
+        handles.pop_back();
+
+        if (handle == nullptr || handle.done()) {
+            return false;
+        }
+        handle.resume();
+        return true;
     }
     void reset()
     {
@@ -103,5 +117,8 @@ private:
         }
     }
 };
+
+template<class result_type>
+using AsyncPtr = std::shared_ptr<kocoro::Async<result_type>>;
 
 } // namespace kocoro

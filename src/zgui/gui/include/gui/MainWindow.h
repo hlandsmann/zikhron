@@ -12,7 +12,7 @@ class MainWindow
 {
 public:
     MainWindow(std::shared_ptr<context::Theme> theme,
-               CardDisplay cardDisplay);
+               std::unique_ptr<CardDisplay> cardDisplay);
 
     void doImGui(const widget::layout::Rect& rect);
     void arrangeLayout();
@@ -20,5 +20,5 @@ public:
 private:
     std::shared_ptr<context::Theme> theme;
     widget::Box layout{theme, widget::layout::Orientation::horizontal};
-    CardDisplay cardDisplay;
+    std::unique_ptr<CardDisplay> cardDisplay;
 };

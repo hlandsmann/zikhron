@@ -4,6 +4,8 @@
 #include "Signal.hpp"
 #include "Task.hpp"
 
+#include <spdlog/spdlog.h>
+
 #include <memory>
 #include <vector>
 namespace kocoro {
@@ -35,7 +37,6 @@ public:
         auto asyncEntry = std::make_shared<Async<result_type>>();
         scheduleEntries.push_back(asyncEntry);
         return asyncEntry;
-
     }
     auto run() -> bool;
 

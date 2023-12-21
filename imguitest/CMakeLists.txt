@@ -24,6 +24,7 @@ target_link_libraries(imguitest
         zgui::widgets
         zikhron::annotation
         zikhron::dictionary
+        zikhron::kocoro
         zikhron::miscellaneous
         zikhron::multimedia
         zikhron::spaced_repetition
