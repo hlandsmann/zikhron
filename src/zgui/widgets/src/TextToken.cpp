@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 
+#include <string>
 #include <utility>
 namespace widget {
 

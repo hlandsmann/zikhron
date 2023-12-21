@@ -1,3 +1,4 @@
+#pragma once
 #include "Box.h"
 #include "Widget.h"
 
@@ -24,7 +25,7 @@ public:
     auto operator=(const Window&) -> Window& = default;
     auto operator=(Window&&) -> Window& = default;
 
-    auto dropWindow() -> WindowDrop;
+    [[nodiscard]] auto dropWindow() -> WindowDrop;
     auto getLayout() -> Box&;
 
 private:

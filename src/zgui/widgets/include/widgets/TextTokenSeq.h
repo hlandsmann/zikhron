@@ -1,4 +1,5 @@
 #pragma once
+#include "Box.h"
 #include "TextToken.h"
 #include "Widget.h"
 
@@ -6,13 +7,22 @@
 #include <imgui.h>
 
 #include <string>
+#include <vector>
 namespace widget {
 class TextTokenSeq : public Widget<TextTokenSeq>
 {
 public:
-    TextTokenSeq(WidgetInit init);
+    using Paragraph = annotation::TokenText::Paragraph;
+    TextTokenSeq(WidgetInit init, Paragraph paragraph);
+    void arrange();
+    void draw();
 
 private:
+    friend class Widget<TextTokenSeq>;
+    auto calculateSize() const -> WidgetSize;
+
+    Box lines;
+    Paragraph paragraph;
 };
 
 } // namespace widget
