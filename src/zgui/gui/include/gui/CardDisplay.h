@@ -6,8 +6,8 @@
 #include <widgets/Window.h>
 
 #include <kocoro/kocoro.hpp>
+#include <map>
 #include <memory>
-#include <utility>
 
 class CardDisplay
 {
@@ -25,6 +25,5 @@ private:
     std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor;
 
     using BoxPtr = std::shared_ptr<widget::Box>;
-    // std::pair<folly::Promise<BoxPtr>, folly::SemiFuture<BoxPtr>> cardBoxContract;
     std::shared_ptr<kocoro::Signal<VocableId_Ease>> signalVocIdEase;
 };

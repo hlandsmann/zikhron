@@ -12,8 +12,9 @@ Diagnostics:
       - modernize*
       - readability*
     Remove:
-      - cppcoreguidelines-avoid-magic-numbers
       - cppcoreguidelines-avoid-c-arrays
+      - cppcoreguidelines-avoid-magic-numbers
+      - cppcoreguidelines-avoid-reference-coroutine-parameters
       - cppcoreguidelines-pro-type-reinterpret-cast
       - readability-magic-numbers
       - modernize-avoid-c-arrays

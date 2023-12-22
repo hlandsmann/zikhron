@@ -69,19 +69,17 @@ auto CardDisplay::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalk
 
     while (true) {
         auto cardMeta = co_await asyncTreeWalker->getNextCardChoice();
+        auto tokenText = cardMeta.getStudyTokenText();
+        // for (const auto& token : tokenText.getParagraph()) {
+        //     spdlog::info("{}", token.getValue());
+        // }
+        // cardBox->clear();
+        // cardBox->add<widget::TextTokenSeq>(Align::start, tokenText.getParagraph());
 
         // signalVocIdEase
         auto& signalVoIdEase = *signalVocIdEase;
         const auto& vocIdEase = co_await signalVoIdEase;
     }
-
-    // auto tokenText = cardMeta.getStudyTokenText();
-
-    // cardBox->clear();
-    // cardBox->add<widget::TextTokenSeq>(Align::start, tokenText.getParagraph());
-    // for (const auto& token : tokenText.getParagraph()) {
-    //     spdlog::info("{}", token.getValue());
-    // }
 
     co_return;
 }
