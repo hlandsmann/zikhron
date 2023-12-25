@@ -14,7 +14,7 @@ public:
     MainWindow(std::shared_ptr<context::Theme> theme,
                std::unique_ptr<CardDisplay> cardDisplay);
 
-    void doImGui(const widget::layout::Rect& rect);
+    void doImGui(int width, int height);
     void arrangeLayout();
 
 private:

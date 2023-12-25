@@ -1,6 +1,8 @@
 #pragma once
+#include <utility>
 #include "MainWindow.h"
 
+#include <context/Drop.h>
 #include <context/Fonts.h>
 #include <context/GlfwImguiContext.h>
 #include <context/Theme.h>
@@ -14,6 +16,8 @@
 #include <kocoro/kocoro.hpp>
 #include <memory>
 
+class FrameDrop;
+
 class GlWindow
 {
 public:
@@ -24,6 +28,9 @@ public:
     [[nodiscard]] auto shouldClose() const -> bool;
 
 private:
+    auto startImGuiFrame()->std::pair<int, int>;
+    void finishFrame();
+    void render();
     std::shared_ptr<context::GlfwImguiContext> glfwImguiContext;
 
     bool close{false};
@@ -31,6 +38,9 @@ private:
 
     MainWindow mainWindow;
 
-    std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor;
+    std::shared_ptr<kocoro::SynchronousExecutor> executor;
     std::shared_ptr<MpvWrapper> videoPlayer;
+    int displayWidth{};
+    int displayHeight{};
 };
+

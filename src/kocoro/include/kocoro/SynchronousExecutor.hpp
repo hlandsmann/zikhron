@@ -24,9 +24,9 @@ public:
     }
 
     template<class result_type>
-    [[nodiscard]] auto makeSignal() -> std::shared_ptr<Signal<result_type>>
+    [[nodiscard]] auto makeSignal() -> std::shared_ptr<VolatileSignal<result_type>>
     {
-        auto signalEntry = std::make_shared<Signal<result_type>>();
+        auto signalEntry = std::make_shared<VolatileSignal<result_type>>();
         scheduleEntries.push_back(signalEntry);
         return signalEntry;
     }

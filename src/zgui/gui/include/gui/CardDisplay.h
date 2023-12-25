@@ -22,8 +22,8 @@ private:
     auto feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>;
     auto setUpBoxTask(std::shared_ptr<widget::Box> cardBox) -> kocoro::Task<>;
 
-    std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor;
+    std::shared_ptr<kocoro::SynchronousExecutor> executor;
 
     using BoxPtr = std::shared_ptr<widget::Box>;
-    std::shared_ptr<kocoro::Signal<VocableId_Ease>> signalVocIdEase;
+    std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;
 };

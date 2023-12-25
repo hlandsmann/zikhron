@@ -10,7 +10,7 @@
 #include <optional>
 #include <utility>
 namespace kocoro {
-template<class result_type>
+template<class result_type, bool persistent>
 struct SignalAwaiter
 {
     using optional_handle = std::optional<std::coroutine_handle<>>;
@@ -42,11 +42,15 @@ struct SignalAwaiter
         if (!result->has_value()) {
             return {};
         }
-        return *std::exchange(*(result.get()), std::nullopt);
+        if constexpr (persistent) {
+            return *(result.get());
+        } else {
+            return *std::exchange(*(result.get()), std::nullopt);
+        }
     }
 };
 
-template<class result_type>
+template<class result_type, bool persistent>
 class Signal : public ScheduleEntry
 {
     using optional_result = std::optional<result_type>;
@@ -57,7 +61,7 @@ class Signal : public ScheduleEntry
 
 public:
     Signal() = default;
-    auto operator co_await() -> SignalAwaiter<result_type>
+    auto operator co_await() -> SignalAwaiter<result_type, persistent>
     {
         return {result, std::ref(handle), std::ref(resultMutex)};
     }
@@ -76,4 +80,11 @@ public:
         return false;
     }
 };
+
+template<class result_type>
+using VolatileSignal = Signal<result_type, false>;
+
+template<class result_type>
+using PersistentSignal = Signal<result_type, true>;
+
 } // namespace kocoro

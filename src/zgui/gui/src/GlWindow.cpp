@@ -26,7 +26,7 @@ GlWindow::GlWindow(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExec
                    MainWindow _mainWindow)
     : glfwImguiContext{std::move(_glfwImguiContext)}
     , mainWindow{std::move(_mainWindow)}
-    , synchronousExecutor{std::move(_synchronousExecutor)}
+    , executor{std::move(_synchronousExecutor)}
     , videoPlayer{std::make_shared<MpvWrapper>()}
 {
     videoPlayer->initGL();
@@ -37,15 +37,36 @@ GlWindow::GlWindow(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExec
 
 void GlWindow::run()
 {
-    int display_w{};
-    int display_h{};
-    glfwGetFramebufferSize(glfwImguiContext->getGLFWwindow(), &display_w, &display_h);
+    while (true) {
+        const auto& [width, height] = startImGuiFrame();
+        if (shouldClose()) {
+            break;
+        }
 
-    widget::layout::Rect rect{0, 0, static_cast<float>(display_w), static_cast<float>(display_h)};
+        executor->run();
+
+        mainWindow.doImGui(width, height);
+        imglog::renderLogMessages();
+
+        finishFrame();
+
+        videoPlayer->render(width, height);
+        render();
+    }
+}
+
+auto GlWindow::shouldClose() const -> bool
+{
+    return close;
+}
+
+auto GlWindow::startImGuiFrame() -> std::pair<int, int>
+{
+    glfwGetFramebufferSize(glfwImguiContext->getGLFWwindow(), &displayWidth, &displayHeight);
 
     if (glfwWindowShouldClose(glfwImguiContext->getGLFWwindow()) != 0) {
         close = true;
-        return;
+        return {0, 0};
     }
     glfwPollEvents();
     // Start the Dear ImGui frame
@@ -53,23 +74,23 @@ void GlWindow::run()
     ImGui_ImplGlfw_NewFrame();
 
     ImGui::NewFrame();
-    mainWindow.doImGui(rect);
-    imglog::renderLogMessages();
+    return {displayWidth, displayHeight};
+}
+
+void GlWindow::finishFrame()
+{
     ImGui::Render();
 
-    glViewport(0, 0, display_w, display_h);
+    glViewport(0, 0, displayWidth, displayHeight);
     glClearColor(bgColor.x * bgColor.w,
                  bgColor.y * bgColor.w,
                  bgColor.z * bgColor.w,
                  bgColor.w);
     glClear(GL_COLOR_BUFFER_BIT);
-    videoPlayer->render(display_w, display_h);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    glfwSwapBuffers(glfwImguiContext->getGLFWwindow());
 }
 
-auto GlWindow::shouldClose() const -> bool
+void GlWindow::render()
 {
-    return close;
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glfwSwapBuffers(glfwImguiContext->getGLFWwindow());
 }

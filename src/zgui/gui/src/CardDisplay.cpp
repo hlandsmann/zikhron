@@ -14,14 +14,14 @@
 
 CardDisplay::CardDisplay(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                          std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
-    : synchronousExecutor{std::move(_synchronousExecutor)}
-    , signalVocIdEase{synchronousExecutor->makeSignal<VocableId_Ease>()}
+    : executor{std::move(_synchronousExecutor)}
+    , signalVocIdEase{executor->makeSignal<VocableId_Ease>()}
 // , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
 
 {
     // feedingTask(std::move(_asyncTreeWalker)).semi().via(synchronousExecutor.get());
     // signalVocIdEase->set(3);
-    synchronousExecutor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
+    executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
 void CardDisplay::arrange(widget::Window& window)

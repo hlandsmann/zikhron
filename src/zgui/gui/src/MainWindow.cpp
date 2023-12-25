@@ -21,8 +21,9 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
 {
 }
 
-void MainWindow::doImGui(const widget::layout::Rect& rect)
+void MainWindow::doImGui(int width, int height)
 {
+    widget::layout::Rect rect{0, 0, static_cast<float>(width), static_cast<float>(height)};
     auto drop = context::Theme::dropImGuiStyleVars();
     layout.arrange(rect);
     {

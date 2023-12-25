@@ -5,7 +5,7 @@
 
 #include <unistd.h>
 
-auto subcoro(std::shared_ptr<kocoro::Signal<int>> signal0)
+auto subcoro(std::shared_ptr<kocoro::VolatileSignal<int>> signal0)
         -> kocoro::Task<int>
 {
     int val{};
@@ -14,8 +14,8 @@ auto subcoro(std::shared_ptr<kocoro::Signal<int>> signal0)
     co_return val;
 }
 
-auto coro_await_signal(std::shared_ptr<kocoro::Signal<int>> signal0,
-                       std::shared_ptr<kocoro::Signal<int>> signal1)
+auto coro_await_signal(std::shared_ptr<kocoro::VolatileSignal<int>> signal0,
+                       std::shared_ptr<kocoro::VolatileSignal<int>> signal1)
         -> kocoro::Task<void>
 {
     spdlog::info("coro_await_signal");
