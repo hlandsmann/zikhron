@@ -50,8 +50,8 @@ auto main() -> int
 {
     spdlog::info("kocoro_main");
     kocoro::SynchronousExecutor synchronousExecutor;
-    auto signal0 = synchronousExecutor.makeSignal<int>();
-    auto signal1 = synchronousExecutor.makeSignal<int>();
+    auto signal0 = synchronousExecutor.makeVolatileSignal<int>();
+    auto signal1 = synchronousExecutor.makeVolatileSignal<int>();
     auto async0 = synchronousExecutor.makeAsync<int>();
     synchronousExecutor.startCoro(coro_await_signal(signal0, signal1));
     synchronousExecutor.startCoro(coro_await_async(async0));

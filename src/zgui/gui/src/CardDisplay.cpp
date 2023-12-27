@@ -15,7 +15,8 @@
 CardDisplay::CardDisplay(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                          std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
     : executor{std::move(_synchronousExecutor)}
-    , signalVocIdEase{executor->makeSignal<VocableId_Ease>()}
+    , signalVocIdEase{executor->makeVolatileSignal<VocableId_Ease>()}
+    , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
 // , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
 
 {
@@ -27,12 +28,9 @@ CardDisplay::CardDisplay(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
 void CardDisplay::arrange(widget::Window& window)
 {
     using Align = widget::layout::Align;
-    // auto c = folly::makePromiseContract<std::shared_ptr<widget::Box>>();
     auto& box = window.getLayout();
-    auto cardBox = box.add<widget::Box>(widget::layout::Align::start);
-    // cardBoxContract.first.setValue(cardBox);
-    // cardBoxPromise.setValue(cardBox);
-    // setUpBoxTask(std::move(cardBox)).semi().via(synchronousExecutor.get());
+    auto cardBox = box.add<widget::Box>(Align::start);
+    signalCardBox->set(cardBox);
     spdlog::info("arrange");
 }
 
@@ -61,15 +59,14 @@ auto CardDisplay::setUpBoxTask(std::shared_ptr<widget::Box> cardBox) -> kocoro::
 auto CardDisplay::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     using Align = widget::layout::Align;
-    // auto cardBox = co_await std::move(cardBoxContract.second);
-    spdlog::info("feedingTask");
-    // cardBoxContract = folly::makePromiseContract<std::shared_ptr<widget::Box>>();
-    // cardBox->add<widget::Button>(Align::start, "hello world");
-    // cardBox->add<widget::Button>(Align::start, "mytest");
+    auto& cardBox = *co_await *signalCardBox;
 
     while (true) {
         auto cardMeta = co_await asyncTreeWalker->getNextCardChoice();
         auto tokenText = cardMeta.getStudyTokenText();
+        cardBox.clear();
+        cardBox.add<widget::TextTokenSeq>(Align::start, tokenText.getParagraph());
+
         // for (const auto& token : tokenText.getParagraph()) {
         //     spdlog::info("{}", token.getValue());
         // }

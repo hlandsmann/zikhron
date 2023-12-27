@@ -26,4 +26,5 @@ private:
 
     using BoxPtr = std::shared_ptr<widget::Box>;
     std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;
+    std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
 };

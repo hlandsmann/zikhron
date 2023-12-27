@@ -43,7 +43,7 @@ struct SignalAwaiter
             return {};
         }
         if constexpr (persistent) {
-            return *(result.get());
+            return result.get()->value();
         } else {
             return *std::exchange(*(result.get()), std::nullopt);
         }

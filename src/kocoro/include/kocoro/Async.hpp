@@ -105,6 +105,9 @@ private:
     void progressFuture()
     {
         auto lock = std::lock_guard{resultMutex};
+        if (handles.empty()) {
+            return;
+        }
         if (!result.has_value() && !future.valid() && fun) {
             future = std::async(fun);
         }

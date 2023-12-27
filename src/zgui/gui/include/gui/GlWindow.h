@@ -1,5 +1,4 @@
 #pragma once
-#include <utility>
 #include "MainWindow.h"
 
 #include <context/Drop.h>
@@ -15,6 +14,7 @@
 
 #include <kocoro/kocoro.hpp>
 #include <memory>
+#include <utility>
 
 class FrameDrop;
 
@@ -28,8 +28,8 @@ public:
     [[nodiscard]] auto shouldClose() const -> bool;
 
 private:
-    auto startImGuiFrame()->std::pair<int, int>;
-    void finishFrame();
+    auto startImGuiFrame() -> std::pair<int, int>;
+    void finishFrame() const;
     void render();
     std::shared_ptr<context::GlfwImguiContext> glfwImguiContext;
 
@@ -43,4 +43,3 @@ private:
     int displayWidth{};
     int displayHeight{};
 };
-

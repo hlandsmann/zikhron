@@ -66,7 +66,7 @@ auto GlWindow::startImGuiFrame() -> std::pair<int, int>
 
     if (glfwWindowShouldClose(glfwImguiContext->getGLFWwindow()) != 0) {
         close = true;
-        return {0, 0};
+        return {};
     }
     glfwPollEvents();
     // Start the Dear ImGui frame
@@ -77,7 +77,7 @@ auto GlWindow::startImGuiFrame() -> std::pair<int, int>
     return {displayWidth, displayHeight};
 }
 
-void GlWindow::finishFrame()
+void GlWindow::finishFrame() const
 {
     ImGui::Render();
 
