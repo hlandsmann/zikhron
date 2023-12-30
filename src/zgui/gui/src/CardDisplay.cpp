@@ -42,6 +42,9 @@ void CardDisplay::displayOnWindow(widget::Window& window)
     box.arrange();
     auto& cardBox = box.next<widget::Box>();
     cardBox.arrange();
+    if (!cardBox.isLast()) {
+        cardBox.next<widget::TextTokenSeq>().draw();
+    }
     imglog::log("width: {}, height: {}", window.getWidgetSize().width, window.getWidgetSize().height);
     // while (!cardBox.isLast()) {
     // cardBox.next<widget::Button>().clicked();
