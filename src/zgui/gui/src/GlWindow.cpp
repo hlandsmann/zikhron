@@ -8,6 +8,7 @@
 #include <backends/imgui_impl_opengl3.h>
 #include <context/Fonts.h>
 #include <context/GlfwImguiContext.h>
+#include <context/Theme.h>
 #include <context/imglog.h>
 #include <imgui.h>
 #include <multimedia/MpvWrapper.h>
@@ -30,7 +31,7 @@ GlWindow::GlWindow(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExec
     , videoPlayer{std::make_shared<MpvWrapper>()}
 {
     videoPlayer->initGL();
-    mainWindow.arrangeLayout();
+    mainWindow.setUp();
     // videoPlayer->openFile("/home/harmen/Videos/chinesisch/Cute Programmer E01 1080p WEB-DL AAC H.264-Luvmichelle.mkv");
     // videoPlayer->play();
 }
@@ -45,7 +46,13 @@ void GlWindow::run()
 
         executor->run();
 
-        mainWindow.doImGui(width, height);
+        widget::layout::Rect rect{.x = 0, .y = 0, .width = static_cast<float>(width), .height = static_cast<float>(height)};
+
+        {
+            auto styleVarsDrop = context::Theme::dropImGuiStyleVars();
+            mainWindow.arrange(rect);
+            mainWindow.doImGui();
+        }
         imglog::renderLogMessages();
 
         finishFrame();

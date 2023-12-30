@@ -25,23 +25,23 @@ CardDisplay::CardDisplay(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-void CardDisplay::arrange(widget::Window& window)
+void CardDisplay::setUp(widget::Window& window)
 {
     using Align = widget::layout::Align;
-    auto& box = window.getLayout();
+    auto& box = window.getBox();
     auto cardBox = box.add<widget::Box>(Align::start);
     signalCardBox->set(cardBox);
-    spdlog::info("arrange");
+    spdlog::info("setUp");
 }
 
 void CardDisplay::displayOnWindow(widget::Window& window)
 {
     auto droppedWindow = window.dropWindow();
 
-    auto& box = window.getLayout();
-    box.arrange();
+    auto& box = window.getBox();
+    box.start();
     auto& cardBox = box.next<widget::Box>();
-    cardBox.arrange();
+    cardBox.start();
     if (!cardBox.isLast()) {
         cardBox.next<widget::TextTokenSeq>().draw();
     }
@@ -49,14 +49,6 @@ void CardDisplay::displayOnWindow(widget::Window& window)
     // while (!cardBox.isLast()) {
     // cardBox.next<widget::Button>().clicked();
     // }
-}
-
-auto CardDisplay::setUpBoxTask(std::shared_ptr<widget::Box> cardBox) -> kocoro::Task<>
-{
-    // spdlog::critical("setUpBoxTask");
-    // cardBoxPromise.setValue(std::move(cardBox));
-    // spdlog::critical("exit");
-    co_return;
 }
 
 auto CardDisplay::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>

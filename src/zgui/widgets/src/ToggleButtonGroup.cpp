@@ -1,4 +1,5 @@
 #include <Button.h>
+#include <context/imglog.h>
 #include <ImageButton.h>
 #include <ToggleButtonGroup.h>
 #include <Widget.h>
@@ -39,7 +40,7 @@ auto ToggleButtonGroup::calculateSize() const -> WidgetSize
 
 auto ToggleButtonGroup::getActive() -> std::size_t
 {
-    box.arrange();
+    box.start();
     for (std::size_t index = 0; index < box.numberOfWidgets(); index++) {
         auto& widget = box.next<WidgetBase>();
         auto buttonVariant = utl::variant_cast<Button, ImageButton>(&widget);
@@ -53,6 +54,11 @@ auto ToggleButtonGroup::getActive() -> std::size_t
         }
     }
     return active;
+}
+
+auto ToggleButtonGroup::arrange() -> bool
+{
+    return box.arrange();
 }
 
 } // namespace widget

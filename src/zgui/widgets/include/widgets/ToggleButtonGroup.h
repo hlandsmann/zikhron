@@ -25,6 +25,7 @@ public:
     auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = default;
 
     auto getActive() -> std::size_t;
+    auto arrange() -> bool override;
 
 private:
     friend class Widget<ToggleButtonGroup>;

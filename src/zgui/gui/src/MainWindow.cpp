@@ -3,6 +3,7 @@
 #include <context/Fonts.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
+#include <context/imglog.h>
 #include <imgui.h>
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
@@ -17,27 +18,39 @@
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::unique_ptr<CardDisplay> _cardDisplay)
     : theme{std::move(_theme)}
+    , box{theme, widget::layout::Orientation::horizontal}
     , cardDisplay{std::move(_cardDisplay)}
 {
 }
 
-void MainWindow::doImGui(int width, int height)
+void MainWindow::arrange(const widget::layout::Rect& _rect)
 {
-    widget::layout::Rect rect{0, 0, static_cast<float>(width), static_cast<float>(height)};
-    auto drop = context::Theme::dropImGuiStyleVars();
-    layout.arrange(rect);
+    arrangeDone &= (rect == _rect);
+    rect = _rect;
+    imglog::log("mainWindow arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    if (!arrangeDone) {
+        box.arrange(rect);
+    }
+}
+
+void MainWindow::doImGui()
+{
+    box.start();
     {
-        auto& cardDisplayWindow = layout.next<widget::Window>();
+        auto& cardDisplayWindow = box.next<widget::Window>();
         cardDisplay->displayOnWindow(cardDisplayWindow);
     }
     {
-        auto& window = layout.next<widget::Window>();
-        auto droppedWindow = window.dropWindow();
+        auto& tabWindow = box.next<widget::Window>();
+        auto droppedWindow = tabWindow.dropWindow();
         // window.getLayout().next<widget::Button>().clicked();
         // window.getLayout().next<widget::Button>().clicked();
         // window.getLayout().next<widget::Button>().clicked();
         // window.getLayout().next<widget::ImageButton>().clicked();
-        window.getLayout().next<widget::ToggleButtonGroup>().getActive();
+        auto& tabBox = tabWindow.getBox();
+        tabBox.start();
+        tabBox.next<widget::ToggleButtonGroup>().getActive();
+        tabBox.next<widget::ToggleButtonGroup>().getActive();
     }
 
     // bool show_demo_window = true;
@@ -47,20 +60,28 @@ void MainWindow::doImGui(int width, int height)
     // }
 }
 
-void MainWindow::arrangeLayout()
+void MainWindow::setUp()
 {
     using Align = widget::layout::Align;
     using namespace widget::layout;
 
-    layout.setPadding(0.F);
-    auto& cardDisplayWin = *layout.add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
-    cardDisplay->arrange(cardDisplayWin);
+    box.setPadding(0.F);
+    auto& cardDisplayWin = *box.add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
+    cardDisplay->setUp(cardDisplayWin);
 
-    auto& window = *layout.add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
-    window.getLayout().setFlipChildrensOrientation(false);
-    window.getLayout().add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
-                                                                            context::Image::cards,
-                                                                            context::Image::video,
-                                                                            context::Image::audio,
-                                                                            context::Image::configure});
+    auto& window = *box.add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
+    window.getBox().setOrientationVertical();
+    window.getBox().setFlipChildrensOrientation(false);
+    window.getBox().setPadding(0);
+
+    window.getBox().add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
+                                                                         context::Image::cards,
+                                                                         context::Image::video,
+                                                                         context::Image::audio,
+                                                                         context::Image::configure});
+    window.getBox().add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
+                                                                         context::Image::cards,
+                                                                         context::Image::video,
+                                                                         context::Image::audio,
+                                                                         context::Image::configure});
 }

@@ -3,7 +3,9 @@
 #include <context/Texture.h>
 #include <context/Theme.h>
 #include <context/WidgetState.h>
+#include <context/imglog.h>
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 
 #include <magic_enum.hpp>
 #include <string>

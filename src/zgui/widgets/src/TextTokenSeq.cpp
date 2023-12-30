@@ -4,6 +4,7 @@
 #include <context/Fonts.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
+#include <context/imglog.h>
 
 #include <algorithm>
 #include <string>
@@ -16,7 +17,6 @@ TextTokenSeq::TextTokenSeq(WidgetInit init, Paragraph _paragraph)
     , lines{std::move(init)}
     , paragraph{std::move(_paragraph)}
 {
-    arrange();
 }
 
 auto TextTokenSeq::calculateSize() const -> WidgetSize
@@ -24,22 +24,32 @@ auto TextTokenSeq::calculateSize() const -> WidgetSize
     return lines.getWidgetSize();
 }
 
-void TextTokenSeq::arrange()
+auto TextTokenSeq::arrange() -> bool
 {
     using Align = widget::layout::Align;
     // auto it = paragraph.begin();
 
+    lines.setPadding(0);
+    lines.setBorder(16);
+    lines.setOrientationHorizontal();
+    // lines.setOrientationVertical();
+    // lines.setFlipChildrensOrientation(false);
+    // spdlog::warn("rect w: {}, h: {}", Rect().width, Rect().height);
+    const auto& rect = Rect();
+    imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    lines.clear();
     for (const auto& token : paragraph) {
         auto textToken = lines.add<TextToken>(Align::start, token);
         textToken->setFontType(context::FontType::chineseBig);
-        spdlog::info("{}", token.getValue());
+        // spdlog::info("{}", token.getValue());
     }
-    lines.setPadding(0);
+    return lines.arrange();
+    // return true;
 }
 
 void TextTokenSeq::draw()
 {
-    lines.arrange();
+    lines.start();
     while (!lines.isLast()) {
         auto& textToken = lines.next<TextToken>();
         textToken.clicked();

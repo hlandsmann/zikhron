@@ -34,21 +34,25 @@ Box::Box(std::shared_ptr<context::Theme> _theme, layout::Orientation _orientatio
     , borderedRect{std::make_shared<layout::Rect>(*layoutRect)}
 {}
 
-void Box::arrange(const layout::Rect& rect)
+auto Box::arrange(const layout::Rect& rect) -> bool
 {
     *layoutRect = rect;
-    setBorder(border);
-    arrange();
+    return arrange();
 }
 
-void Box::arrange()
+auto Box::arrange() -> bool
 {
+    setBorder(border);
     if (orientation == layout::Orientation::horizontal) {
         doLayout(Measure::width);
     } else {
         doLayout(Measure::height);
     }
-    start();
+    bool success = true;
+    for (const auto& widget : widgets) {
+        success &= widget->arrange();
+    }
+    return success;
 }
 
 void Box::setBorder(float _border)

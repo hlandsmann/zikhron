@@ -22,8 +22,8 @@ public:
     Box(std::shared_ptr<context::Theme> theme, layout::Orientation);
     Box(const WidgetInit& init);
 
-    void arrange(const layout::Rect&);
-    void arrange();
+    [[nodiscard]] auto arrange(const layout::Rect&) -> bool;
+    [[nodiscard]] auto arrange() -> bool override;
     void setBorder(float border);
     void setOrientationHorizontal();
     void setOrientationVertical();

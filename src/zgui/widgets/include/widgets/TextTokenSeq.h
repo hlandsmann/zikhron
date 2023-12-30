@@ -14,7 +14,7 @@ class TextTokenSeq : public Widget<TextTokenSeq>
 public:
     using Paragraph = annotation::TokenText::Paragraph;
     TextTokenSeq(WidgetInit init, Paragraph paragraph);
-    void arrange();
+    auto arrange() -> bool override;
     void draw();
 
 private:

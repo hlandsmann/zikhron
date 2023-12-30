@@ -14,11 +14,14 @@ public:
     MainWindow(std::shared_ptr<context::Theme> theme,
                std::unique_ptr<CardDisplay> cardDisplay);
 
-    void doImGui(int width, int height);
-    void arrangeLayout();
+    void arrange(const widget::layout::Rect& rect);
+    void doImGui();
+    void setUp();
 
 private:
     std::shared_ptr<context::Theme> theme;
-    widget::Box layout{theme, widget::layout::Orientation::horizontal};
+    widget::Box box;
     std::unique_ptr<CardDisplay> cardDisplay;
+    widget::layout::Rect rect;
+    bool arrangeDone = false;
 };

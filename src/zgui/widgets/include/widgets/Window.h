@@ -26,7 +26,8 @@ public:
     auto operator=(Window&&) -> Window& = default;
 
     [[nodiscard]] auto dropWindow() -> WindowDrop;
-    auto getLayout() -> Box&;
+    [[nodiscard]] auto arrange() -> bool override;
+    auto getBox() -> Box&;
 
 private:
     friend class Widget<Window>;

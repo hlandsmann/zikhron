@@ -14,7 +14,7 @@ Window::Window(const WidgetInit& init,
                layout::SizeType _sizeTypeWidth, layout::SizeType _sizeTypeHeight,
                std::string _name)
     : Widget<Window>{init}
-    , box{init}
+    , box{init.theme, init.orientation}
     , sizeTypeWidth{_sizeTypeWidth}
     , sizeTypeHeight{_sizeTypeHeight}
     , name{std::move(_name)}
@@ -23,12 +23,17 @@ Window::Window(const WidgetInit& init,
 auto Window::dropWindow() -> WindowDrop
 {
     layout::Rect rect = Rect();
-    layout::Rect layoutRect = {.x = 0, .y = 0, .width = rect.width, .height = rect.height};
-    box.arrange(layoutRect);
     return {name, rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
 }
 
-auto Window::getLayout() -> Box&
+auto Window::arrange() -> bool
+{
+    layout::Rect rect = Rect();
+    layout::Rect layoutRect = {.x = 0, .y = 0, .width = rect.width, .height = rect.height};
+    return box.arrange(layoutRect);
+}
+
+auto Window::getBox() -> Box&
 {
     return box;
 }
@@ -48,7 +53,6 @@ WindowDrop::WindowDrop(const std::string& name, const widget::layout::Rect& rect
 {
     ImGui::SetNextWindowPos({rect.x, rect.y});
     ImGui::SetNextWindowSize({rect.width, rect.height});
-    imglog::log("name: {}, x: {}, y: {}, w: {}, h: {}", name, rect.x, rect.y, rect.width, rect.height);
     ImGui::Begin(name.c_str(), nullptr,
                  ImGuiWindowFlags_NoTitleBar
                          | ImGuiWindowFlags_NoMove

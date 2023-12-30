@@ -10,6 +10,7 @@ namespace widget {
 namespace layout {
 struct Rect
 {
+    auto operator==(Rect const&) const -> bool = default;
     float x{};
     float y{};
     float width{};
@@ -67,6 +68,7 @@ public:
     auto operator=(const WidgetBase&) -> WidgetBase& = default;
     auto operator=(WidgetBase&&) -> WidgetBase& = default;
 
+    virtual auto arrange() -> bool { return true; };
     [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
     [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
