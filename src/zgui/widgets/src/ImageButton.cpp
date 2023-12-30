@@ -49,8 +49,8 @@ auto ImageButton::calculateSize() const -> WidgetSize
     auto tex = getTheme().getTexture().get(image);
     ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), ImVec2(tex.width, tex.height));
     auto size = ImGui::GetItemRectSize();
-    return {.widthType = Orientation() == layout::Orientation::horizontal ? layout::width_expand : layout::width_fixed,
-            .heightType = Orientation() == layout::Orientation::vertical ? layout::height_expand : layout::height_fixed,
+    return {.widthType = PassiveOrientation() == layout::Orientation::horizontal ? layout::width_expand : layout::width_fixed,
+            .heightType = PassiveOrientation() == layout::Orientation::vertical ? layout::height_expand : layout::height_fixed,
             .width = size.x,
             .height = size.y};
 }

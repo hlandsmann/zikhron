@@ -69,7 +69,7 @@ public:
 
     [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
-    [[nodiscard]] auto Orientation() const -> layout::Orientation;
+    [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
     [[nodiscard]] auto Align() const -> layout::Align;
 
 protected:
@@ -79,7 +79,7 @@ protected:
 private:
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<layout::Rect> rectPtr;
-    layout::Orientation baseOrientation;
+    layout::Orientation passiveOrientation;
     layout::Align baseAlign;
 };
 

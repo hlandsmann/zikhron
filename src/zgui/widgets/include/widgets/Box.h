@@ -24,6 +24,8 @@ public:
 
     void arrange(const layout::Rect&);
     void arrange();
+    void setOrientationHorizontal();
+    void setOrientationVertical();
     void setFlipChildrensOrientation(bool flip);
     void setPadding(float padding);
 
@@ -31,7 +33,7 @@ public:
     auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
     {
         auto widgetRect = std::make_shared<layout::Rect>();
-        auto widgetOrientation = Orientation() == layout::Orientation::vertical && flipChildrensOrientation
+        auto widgetOrientation = PassiveOrientation() == layout::Orientation::vertical && flipChildrensOrientation
                                          ? layout::Orientation::horizontal
                                          : layout::Orientation::vertical;
         WidgetInit init = {.theme = getThemePtr(),

@@ -48,6 +48,16 @@ void Box::arrange()
     start();
 }
 
+void Box::setOrientationHorizontal()
+{
+    orientation = layout::Orientation::horizontal;
+}
+
+void Box::setOrientationVertical()
+{
+    orientation = layout::Orientation::vertical;
+}
+
 void Box::setFlipChildrensOrientation(bool flip)
 {
     flipChildrensOrientation = flip;

@@ -1,5 +1,5 @@
-#include <context/Theme.h>
 #include <Widget.h>
+#include <context/Theme.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -8,7 +8,7 @@ namespace widget {
 WidgetBase::WidgetBase(WidgetInit init)
     : theme{std::move(init.theme)}
     , rectPtr{std::move(init.rect)}
-    , baseOrientation{init.orientation}
+    , passiveOrientation{init.orientation}
     , baseAlign{init.align}
 {
 }
@@ -23,9 +23,9 @@ auto WidgetBase::getTheme() const -> const context::Theme&
     return *theme;
 }
 
-auto WidgetBase::Orientation() const -> layout::Orientation
+auto WidgetBase::PassiveOrientation() const -> layout::Orientation
 {
-    return baseOrientation;
+    return passiveOrientation;
 }
 
 auto WidgetBase::Align() const -> layout::Align
