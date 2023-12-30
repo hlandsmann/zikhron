@@ -24,6 +24,7 @@ public:
 
     void arrange(const layout::Rect&);
     void arrange();
+    void setBorder(float border);
     void setOrientationHorizontal();
     void setOrientationVertical();
     void setFlipChildrensOrientation(bool flip);
@@ -92,11 +93,13 @@ private:
     void doLayout(Measure measure);
 
     layout::Orientation orientation;
+    float border{};
     std::vector<std::shared_ptr<WidgetBase>> widgets;
     std::vector<std::shared_ptr<layout::Rect>> rects;
     std::vector<std::shared_ptr<WidgetBase>>::iterator currentWidgetIt;
 
     std::shared_ptr<layout::Rect> layoutRect;
+    std::shared_ptr<layout::Rect> borderedRect;
     float padding{s_padding};
     bool flipChildrensOrientation{true};
 };

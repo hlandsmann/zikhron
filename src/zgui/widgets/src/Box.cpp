@@ -22,7 +22,8 @@ Box::Box(std::shared_ptr<context::Theme> _theme, layout::Orientation _orientatio
 Box::Box(const WidgetInit& init)
     : Widget<Box>{init}
     , orientation{init.orientation}
-    , layoutRect{init.rect} {}
+    , layoutRect{init.rect}
+    , borderedRect{std::make_shared<layout::Rect>(*layoutRect)} {}
 Box::Box(std::shared_ptr<context::Theme> _theme, layout::Orientation _orientation, std::shared_ptr<layout::Rect> _rect)
     : Widget<Box>{{.theme = std::move(_theme),
                    .rect = _rect,
@@ -30,11 +31,13 @@ Box::Box(std::shared_ptr<context::Theme> _theme, layout::Orientation _orientatio
                    .align = Align::start}}
     , orientation{_orientation}
     , layoutRect{std::move(_rect)}
+    , borderedRect{std::make_shared<layout::Rect>(*layoutRect)}
 {}
 
 void Box::arrange(const layout::Rect& rect)
 {
     *layoutRect = rect;
+    setBorder(border);
     arrange();
 }
 
@@ -46,6 +49,15 @@ void Box::arrange()
         doLayout(Measure::height);
     }
     start();
+}
+
+void Box::setBorder(float _border)
+{
+    border = _border;
+    borderedRect->x = layoutRect->x + border;
+    borderedRect->y = layoutRect->y + border;
+    borderedRect->width = layoutRect->width - border * 2;
+    borderedRect->height = layoutRect->height - border * 2;
 }
 
 void Box::setOrientationHorizontal()
@@ -215,7 +227,7 @@ auto Box::getNextAlign(Align oldAlign, Align nextAlign)
 auto Box::getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
                              float centerSize, float endSize, Measure measure) const -> float
 {
-    float rectSize = rectSizeProjection(*layoutRect, measure);
+    float rectSize = rectSizeProjection(*borderedRect, measure);
     float widgetSize = widgetSizeProjection(widget.getWidgetSize(), measure);
     // imglog::log("wsize: {}, align {}", widgetSize, static_cast<int>(align));
     switch (align) {
@@ -265,11 +277,11 @@ auto Box::getWidgetNewSize(Align align, Align alignNextWidget,
 void Box::setChildWidgetsInitialRect()
 {
     for (const auto& [widget, rect] : views::zip(widgets, rects)) {
-        rect->x = layoutRect->x;
-        rect->y = layoutRect->y;
+        rect->x = borderedRect->x;
+        rect->y = borderedRect->y;
         auto widgetSize = widget->getWidgetSize();
-        rect->width = widgetSize.widthType == SizeType::fixed ? widgetSize.width : layoutRect->width;
-        rect->height = widgetSize.heightType == SizeType::fixed ? widgetSize.height : layoutRect->height;
+        rect->width = widgetSize.widthType == SizeType::fixed ? widgetSize.width : borderedRect->width;
+        rect->height = widgetSize.heightType == SizeType::fixed ? widgetSize.height : borderedRect->height;
     }
 }
 
@@ -304,7 +316,12 @@ void Box::doLayout(Measure measure)
     auto widget0 = widgets.front();
     Align align0 = getNextAlign(Align::start, widget0->Align());
     Align align1 = align0;
-    float cursor0 = getWidgetNewCursor(align0, rectPositionProjection(*layoutRect, measure), *widget0, centerSize, endSize, measure);
+    float cursor0 = getWidgetNewCursor(align0,
+                                       rectPositionProjection(*borderedRect, measure),
+                                       *widget0,
+                                       centerSize, endSize,
+                                       measure);
+
     float cursor1 = cursor0;
     for (const auto& [widget1, widgetRect0] : views::zip(std::span{std::next(widgets.begin()), widgets.end()}, rects)) {
         // auto& widget0 = *std::get<0>(widgetPair);
@@ -335,7 +352,7 @@ void Box::doLayout(Measure measure)
     //                  static_cast<int>(widgets.front()->Align()));
     // }
     auto& widgetRect = *rects.back();
-    cursor1 = rectSizeProjection(*layoutRect, measure);
+    cursor1 = rectSizeProjection(*borderedRect, measure);
     auto size = getWidgetNewSize(align0, align0, cursor0, cursor1, *widget0, measure);
 
     // imglog::log("SetCursor {}", cursor0);
