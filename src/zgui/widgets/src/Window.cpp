@@ -14,7 +14,7 @@ Window::Window(const WidgetInit& init,
                layout::SizeType _sizeTypeWidth, layout::SizeType _sizeTypeHeight,
                std::string _name)
     : Widget<Window>{init}
-    , box{init.theme, init.orientation}
+    , box{init.theme, init.orientation, shared_from_this()}
     , sizeTypeWidth{_sizeTypeWidth}
     , sizeTypeHeight{_sizeTypeHeight}
     , name{std::move(_name)}

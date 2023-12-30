@@ -10,6 +10,7 @@ WidgetBase::WidgetBase(WidgetInit init)
     , rectPtr{std::move(init.rect)}
     , passiveOrientation{init.orientation}
     , baseAlign{init.align}
+    , parent{std::move(init.parent)}
 {
 }
 

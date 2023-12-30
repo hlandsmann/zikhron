@@ -50,15 +50,18 @@ struct WidgetSize
     float height{};
 };
 
+class WidgetBase;
+
 struct WidgetInit
 {
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<layout::Rect> rect;
     layout::Orientation orientation;
     layout::Align align;
+    std::weak_ptr<WidgetBase> parent;
 };
 
-class WidgetBase
+class WidgetBase : public std::enable_shared_from_this<WidgetBase>
 {
 public:
     WidgetBase(WidgetInit init);
@@ -83,6 +86,7 @@ private:
     std::shared_ptr<layout::Rect> rectPtr;
     layout::Orientation passiveOrientation;
     layout::Align baseAlign;
+    std::weak_ptr<WidgetBase> parent;
 };
 
 template<class WidgetImpl>

@@ -18,7 +18,7 @@
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::unique_ptr<CardDisplay> _cardDisplay)
     : theme{std::move(_theme)}
-    , box{theme, widget::layout::Orientation::horizontal}
+    , box{theme, widget::layout::Orientation::horizontal, std::weak_ptr<widget::WidgetBase>{}}
     , cardDisplay{std::move(_cardDisplay)}
 {
 }
@@ -29,7 +29,7 @@ void MainWindow::arrange(const widget::layout::Rect& _rect)
     rect = _rect;
     imglog::log("mainWindow arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     if (!arrangeDone) {
-        box.arrange(rect);
+        arrangeDone = box.arrange(rect);
     }
 }
 
