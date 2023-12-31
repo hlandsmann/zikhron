@@ -15,7 +15,7 @@ void TextToken::setup(annotation::Token _token)
 }
 
 TextToken::TextToken(WidgetInit _init)
-    : Widget<TextToken>{std::move(_init)}
+    : Widget{std::move(_init)}
 {
 }
 

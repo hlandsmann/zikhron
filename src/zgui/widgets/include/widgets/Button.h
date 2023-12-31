@@ -8,7 +8,7 @@
 
 namespace widget {
 
-class Button : public Widget<Button>
+class Button : public Widget
 {
   friend class Box;
   void setup(std::string label);
@@ -25,10 +25,10 @@ public:
     void setChecked(bool checked);
     void setSensitive(bool sensitive);
 
+protected:
+    auto calculateSize() const -> WidgetSize override;
 private:
     static constexpr float buttonPadding = 4;
-    friend class Widget<Button>;
-    auto calculateSize() const -> WidgetSize;
 
     bool sensitive{true};
     bool checked{false};

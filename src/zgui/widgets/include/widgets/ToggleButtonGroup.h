@@ -11,7 +11,7 @@
 #include <string>
 
 namespace widget {
-class ToggleButtonGroup : public Widget<ToggleButtonGroup>
+class ToggleButtonGroup : public Widget
 {
     friend class Box;
     void setup(std::initializer_list<context::Image> images);
@@ -29,9 +29,9 @@ public:
     auto getActive() -> std::size_t;
     auto arrange() -> bool override;
 
+protected:
+    auto calculateSize() const -> WidgetSize override;
 private:
-    friend class Widget<ToggleButtonGroup>;
-    auto calculateSize() const -> WidgetSize;
     std::size_t active{0};
     std::shared_ptr<Box> box;
 };

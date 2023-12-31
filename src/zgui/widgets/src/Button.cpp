@@ -13,7 +13,7 @@ void Button::setup(std::string _label)
 }
 
 Button::Button(WidgetInit init)
-    : Widget<Button>{std::move(init)}
+    : Widget{std::move(init)}
 {}
 
 auto Button::calculateSize() const -> WidgetSize

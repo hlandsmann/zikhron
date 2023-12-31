@@ -19,7 +19,7 @@
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::unique_ptr<CardDisplay> _cardDisplay)
     : theme{std::move(_theme)}
-    , box{std::make_shared<widget::Box>(theme, widget::layout::Orientation::horizontal, std::weak_ptr<widget::WidgetBase>{})}
+    , box{std::make_shared<widget::Box>(theme, widget::layout::Orientation::horizontal, std::weak_ptr<widget::Widget>{})}
     , cardDisplay{std::move(_cardDisplay)}
 {
 }

@@ -13,7 +13,7 @@ namespace widget {
 
 class WindowDrop;
 
-class Window : public Widget<Window>
+class Window : public Widget
 {
     friend class Box;
     void setup(layout::SizeType sizeTypeWidth,
@@ -33,9 +33,9 @@ public:
     [[nodiscard]] auto arrange() -> bool override;
     [[nodiscard]] auto getBox() -> Box&;
 
+protected:
+    auto calculateSize() const -> WidgetSize override;
 private:
-    friend class Widget<Window>;
-    auto calculateSize() const -> WidgetSize;
     std::shared_ptr<Box> box;
     layout::SizeType sizeTypeWidth{};
     layout::SizeType sizeTypeHeight{};

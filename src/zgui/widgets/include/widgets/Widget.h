@@ -1,7 +1,9 @@
 #pragma once
 #include <context/Theme.h>
+#include <fmt/format.h>
 #include <imgui.h>
 
+#include <magic_enum.hpp>
 #include <memory>
 #include <optional>
 #include <utility>
@@ -50,7 +52,7 @@ struct WidgetSize
     float height{};
 };
 
-class WidgetBase;
+class Widget;
 
 struct WidgetInit
 {
@@ -58,18 +60,18 @@ struct WidgetInit
     std::shared_ptr<layout::Rect> rect;
     layout::Orientation orientation;
     layout::Align align;
-    std::weak_ptr<WidgetBase> parent;
+    std::weak_ptr<Widget> parent;
 };
 
-class WidgetBase : public std::enable_shared_from_this<WidgetBase>
+class Widget : public std::enable_shared_from_this<Widget>
 {
 public:
-    WidgetBase(WidgetInit init);
-    virtual ~WidgetBase() = default;
-    WidgetBase(const WidgetBase&) = default;
-    WidgetBase(WidgetBase&&) = default;
-    auto operator=(const WidgetBase&) -> WidgetBase& = default;
-    auto operator=(WidgetBase&&) -> WidgetBase& = default;
+    Widget(WidgetInit init);
+    virtual ~Widget() = default;
+    Widget(const Widget&) = default;
+    Widget(Widget&&) = default;
+    auto operator=(const Widget&) -> Widget& = default;
+    auto operator=(Widget&&) -> Widget& = default;
 
     /* Arrange
      * return true if (re)arrange  is necessary
@@ -77,12 +79,14 @@ public:
     virtual auto arrange() -> bool { return false; };
     [[nodiscard]] auto arrangeIsNecessary() -> bool;
     void setArrangeIsNecessary();
-    [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
     [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
     [[nodiscard]] auto Align() const -> layout::Align;
+    [[nodiscard]] auto getWidgetSize() const -> const WidgetSize&;
+    void resetWidgetSize();
 
 protected:
+    [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
     [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
 
@@ -91,37 +95,52 @@ private:
     std::shared_ptr<layout::Rect> rectPtr;
     layout::Orientation passiveOrientation;
     layout::Align baseAlign;
-    std::weak_ptr<WidgetBase> parent;
+    std::weak_ptr<Widget> parent;
+    mutable std::optional<WidgetSize> optWidgetSize;
     bool arrangeNecessary{true};
 };
 
-template<class WidgetImpl>
-class Widget : public WidgetBase
-{
-public:
-    Widget(WidgetInit init)
-        : WidgetBase{std::move(init)} {}
-    ~Widget() override = default;
-    Widget(const Widget&) = default;
-    Widget(Widget&&) = default;
-    auto operator=(const Widget&) -> Widget& = default;
-    auto operator=(Widget&&) -> Widget& = default;
-
-    [[nodiscard]] auto getWidgetSize() const -> const WidgetSize& override
-    {
-        if (optWidgetSize.has_value()) {
-            return *optWidgetSize;
-        }
-        return optWidgetSize.emplace(static_cast<WidgetImpl const*>(this)->calculateSize());
-    }
-
-    void resetWidgetSize()
-    {
-        optWidgetSize.reset();
-    }
-
-private:
-    mutable std::optional<WidgetSize> optWidgetSize;
-};
-
 } // namespace widget
+
+template<>
+struct fmt::formatter<widget::layout::Align>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+    template<typename FormatContext>
+    auto format(widget::layout::Align align, FormatContext& ctx)
+    {
+        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(align));
+    }
+};
+template<>
+struct fmt::formatter<widget::layout::SizeType>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+    template<typename FormatContext>
+    auto format(widget::layout::SizeType sizeType, FormatContext& ctx)
+    {
+        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(sizeType));
+    }
+};
+template<>
+struct fmt::formatter<widget::layout::Orientation>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+    template<typename FormatContext>
+    auto format(widget::layout::Orientation orientation, FormatContext& ctx)
+    {
+        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(orientation));
+    }
+};

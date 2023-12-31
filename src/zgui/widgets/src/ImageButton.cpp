@@ -20,7 +20,7 @@ void ImageButton::setup(context::Image _image)
 }
 
 ImageButton::ImageButton(WidgetInit init)
-    : Widget<ImageButton>{std::move(init)}
+    : Widget{std::move(init)}
 {}
 
 auto ImageButton::clicked() -> bool

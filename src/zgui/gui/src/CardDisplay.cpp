@@ -29,7 +29,9 @@ void CardDisplay::setUp(widget::Window& window)
 {
     using Align = widget::layout::Align;
     auto& box = window.getBox();
+    box.setFlipChildrensOrientation(false);
     auto cardBox = box.add<widget::Box>(Align::start);
+    cardBox->setFlipChildrensOrientation(false);
     signalCardBox->set(cardBox);
     spdlog::info("setUp");
 }
@@ -39,13 +41,16 @@ void CardDisplay::displayOnWindow(widget::Window& window)
     auto droppedWindow = window.dropWindow();
 
     auto& box = window.getBox();
+    // auto size = box.getExpandedSize();
+    // auto size = box.getWidgetSize();
+    // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
     box.start();
     auto& cardBox = box.next<widget::Box>();
     cardBox.start();
     if (!cardBox.isLast()) {
         cardBox.next<widget::TextTokenSeq>().draw();
     }
-    imglog::log("width: {}, height: {}", window.getWidgetSize().width, window.getWidgetSize().height);
+    // imglog::log("width: {}, height: {}", window.getWidgetSize().width, window.getWidgetSize().height);
     // while (!cardBox.isLast()) {
     // cardBox.next<widget::Button>().clicked();
     // }

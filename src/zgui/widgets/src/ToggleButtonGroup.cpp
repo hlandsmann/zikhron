@@ -32,7 +32,7 @@ void ToggleButtonGroup::setup(std::initializer_list<std::string> labels)
 }
 
 ToggleButtonGroup::ToggleButtonGroup(WidgetInit init)
-    : Widget<ToggleButtonGroup>{init}
+    : Widget{init}
 {
 }
 
@@ -46,7 +46,7 @@ auto ToggleButtonGroup::getActive() -> std::size_t
 {
     box->start();
     for (std::size_t index = 0; index < box->numberOfWidgets(); index++) {
-        auto& widget = box->next<WidgetBase>();
+        auto& widget = box->next<Widget>();
         auto buttonVariant = utl::variant_cast<Button, ImageButton>(&widget);
         // auto& button = dynamic_cast<ImageButton&>(widget);
         if (std::visit([&](auto* button) {

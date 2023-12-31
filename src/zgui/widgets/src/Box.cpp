@@ -17,23 +17,32 @@
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 namespace widget {
-Box::Box(std::shared_ptr<context::Theme> _theme, layout::Orientation _orientation, std::weak_ptr<WidgetBase> _parent)
+Box::Box(std::shared_ptr<context::Theme> _theme, layout::Orientation _orientation, std::weak_ptr<Widget> _parent)
     : Box{std::move(_theme), _orientation, std::make_shared<layout::Rect>(), std::move(_parent)} {}
 Box::Box(const WidgetInit& init)
-    : Widget<Box>{init}
+    : Widget{init}
     , orientation{init.orientation}
+    // , expandWidth{orientation == layout::Orientation::horizontal ? layout::SizeType::width_expand
+    //                                                              : layout::SizeType::width_fixed}
+    // , expandHeight{orientation == layout::Orientation::vertical ? layout::SizeType::height_expand
+    //                                                             : layout::SizeType::height_fixed}
     , layoutRect{init.rect}
-    , borderedRect{std::make_shared<layout::Rect>(*layoutRect)} {}
+    , borderedRect{std::make_shared<layout::Rect>(*layoutRect)}
+{}
 Box::Box(std::shared_ptr<context::Theme> _theme,
          layout::Orientation _orientation,
          std::shared_ptr<layout::Rect> _rect,
-         std::weak_ptr<WidgetBase> _parent)
-    : Widget<Box>{{.theme = std::move(_theme),
-                   .rect = _rect,
-                   .orientation = _orientation,
-                   .align = Align::start,
-                   .parent = std::move(_parent)}}
+         std::weak_ptr<Widget> _parent)
+    : Widget{{.theme = std::move(_theme),
+              .rect = _rect,
+              .orientation = _orientation,
+              .align = Align::start,
+              .parent = std::move(_parent)}}
     , orientation{_orientation}
+    // , expandWidth{orientation == layout::Orientation::horizontal ? layout::SizeType::width_expand
+    //                                                              : layout::SizeType::width_fixed}
+    // , expandHeight{orientation == layout::Orientation::vertical ? layout::SizeType::height_expand
+    //                                                             : layout::SizeType::height_fixed}
     , layoutRect{std::move(_rect)}
     , borderedRect{std::make_shared<layout::Rect>(*layoutRect)}
 {}
@@ -87,6 +96,16 @@ void Box::setPadding(float _padding)
 {
     padding = _padding;
 }
+
+auto Box::getExpandedSize() const -> WidgetSize
+{
+    auto rect = *borderedRect;
+    auto widgetSize = getWidgetSize();
+    widgetSize.width = rect.width;
+    widgetSize.height = rect.height;
+    return widgetSize;
+}
+
 auto Box::isLast() const -> bool
 {
     return currentWidgetIt == widgets.end();
@@ -120,23 +139,23 @@ auto Box::numberOfWidgets() const -> std::size_t
 auto Box::calculateSize() const -> WidgetSize
 {
     WidgetSize result{};
-    if (widgets.empty()) {
-        return result;
-    }
+    // if (widgets.empty()) {
+    //     return result;
+    // }
     using layout::Orientation;
     switch (orientation) {
     case Orientation::horizontal:
         result = {
-                .widthType = SizeType::expand,
-                .heightType = SizeType::fixed,
+                .widthType = expandWidth,
+                .heightType = expandHeight,
                 .width = accumulateMeasure(widgets.begin(), widgets.end(), Measure::width),
                 .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::height),
         };
         break;
     case Orientation::vertical:
         result = {
-                .widthType = SizeType::expand,
-                .heightType = SizeType::fixed,
+                .widthType = expandWidth,
+                .heightType = expandHeight,
                 .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::width),
                 .height = accumulateMeasure(widgets.begin(), widgets.end(), Measure::height)};
 
@@ -189,8 +208,8 @@ auto Box::rectSizeProjection(layout::Rect& rect, Measure measure) -> float&
     std::unreachable();
 }
 
-auto Box::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
-                             std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
+auto Box::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
+                             std::vector<std::shared_ptr<Widget>>::const_iterator last,
                              Measure measure)
         -> float
 {
@@ -199,8 +218,8 @@ auto Box::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_ite
     }
     return widgetSizeProjection(
             (*std::max_element(first, last,
-                               [measure](const std::shared_ptr<WidgetBase>& widget_a,
-                                         const std::shared_ptr<WidgetBase>& widget_b) -> bool {
+                               [measure](const std::shared_ptr<Widget>& widget_a,
+                                         const std::shared_ptr<Widget>& widget_b) -> bool {
                                    return widgetSizeProjection(widget_a->getWidgetSize(), measure)
                                           < widgetSizeProjection(widget_b->getWidgetSize(), measure);
                                }))
@@ -208,11 +227,11 @@ auto Box::max_elementMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_ite
             measure);
 }
 
-auto Box::accumulateMeasure(std::vector<std::shared_ptr<WidgetBase>>::const_iterator first,
-                            std::vector<std::shared_ptr<WidgetBase>>::const_iterator last,
+auto Box::accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
+                            std::vector<std::shared_ptr<Widget>>::const_iterator last,
                             Measure measure) const -> float
 {
-    return std::accumulate(first, last, float{}, [this, measure](float val, const std::shared_ptr<WidgetBase>& widget) -> float {
+    return std::accumulate(first, last, float{}, [this, measure](float val, const std::shared_ptr<Widget>& widget) -> float {
         return val + widgetSizeProjection(widget->getWidgetSize(), measure) + ((val == 0.F) ? 0.F : padding);
     });
 }
@@ -233,7 +252,7 @@ auto Box::getNextAlign(Align oldAlign, Align nextAlign)
     std::unreachable();
 }
 
-auto Box::getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget,
+auto Box::getWidgetNewCursor(Align align, float cursor, const Widget& widget,
                              float centerSize, float endSize, Measure measure) const -> float
 {
     float rectSize = rectSizeProjection(*borderedRect, measure);
@@ -262,7 +281,7 @@ auto Box::getWidgetNewCursor(Align align, float cursor, const WidgetBase& widget
 
 auto Box::getWidgetNewSize(Align align, Align alignNextWidget,
                            float cursor, float cursorNextWidget,
-                           const WidgetBase& widget,
+                           const Widget& widget,
                            Measure measure) const -> float
 {
     float projectedSize = widgetSizeProjection(widget.getWidgetSize(), measure);

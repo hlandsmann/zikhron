@@ -5,7 +5,7 @@
 #include <memory>
 #include <utility>
 namespace widget {
-WidgetBase::WidgetBase(WidgetInit init)
+Widget::Widget(WidgetInit init)
     : theme{std::move(init.theme)}
     , rectPtr{std::move(init.rect)}
     , passiveOrientation{init.orientation}
@@ -14,14 +14,14 @@ WidgetBase::WidgetBase(WidgetInit init)
 {
 }
 
-auto WidgetBase::arrangeIsNecessary() -> bool
+auto Widget::arrangeIsNecessary() -> bool
 {
     bool tmpArrangeNecessary = arrangeNecessary;
     arrangeNecessary = false;
     return tmpArrangeNecessary;
 }
 
-void WidgetBase::setArrangeIsNecessary()
+void Widget::setArrangeIsNecessary()
 {
     if (auto parentPtr = parent.lock()) {
         parentPtr->setArrangeIsNecessary();
@@ -30,27 +30,43 @@ void WidgetBase::setArrangeIsNecessary()
     }
 }
 
-auto WidgetBase::getTheme() const -> const context::Theme&
+auto Widget::getTheme() const -> const context::Theme&
 {
     return *theme;
 }
 
-auto WidgetBase::PassiveOrientation() const -> layout::Orientation
+auto Widget::PassiveOrientation() const -> layout::Orientation
 {
     return passiveOrientation;
 }
 
-auto WidgetBase::Align() const -> layout::Align
+auto Widget::Align() const -> layout::Align
 {
     return baseAlign;
 }
 
-auto WidgetBase::getThemePtr() const -> std::shared_ptr<context::Theme>
+auto Widget::getWidgetSize() const -> const WidgetSize&
+{
+    if (optWidgetSize.has_value()) {
+        return *optWidgetSize;
+    }
+    return optWidgetSize.emplace(calculateSize());
+}
+
+void Widget::resetWidgetSize()
+{
+    if (auto parentPtr = parent.lock()) {
+        parentPtr->resetWidgetSize();
+    }
+    optWidgetSize.reset();
+}
+
+auto Widget::getThemePtr() const -> std::shared_ptr<context::Theme>
 {
     return theme;
 }
 
-auto WidgetBase::Rect() const -> const layout::Rect&
+auto Widget::Rect() const -> const layout::Rect&
 {
     return *rectPtr;
 }

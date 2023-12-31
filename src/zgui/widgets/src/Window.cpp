@@ -22,7 +22,7 @@ void Window::setup(layout::SizeType _sizeTypeWidth,
 }
 
 Window::Window(const WidgetInit& init)
-    : Widget<Window>{init}
+    : Widget{init}
 {}
 
 auto Window::dropWindow() -> WindowDrop

@@ -5,7 +5,7 @@
 #include <context/Fonts.h>
 namespace widget {
 
-class TextToken : public Widget<TextToken>
+class TextToken : public Widget
 {
     friend class Box;
     void setup(annotation::Token token);
@@ -16,11 +16,12 @@ public:
     void renderShadow();
     void clicked();
 
+protected:
+    auto calculateSize() const -> WidgetSize override;
+
 private:
     using FontType = context::FontType;
 
-    friend class Widget<TextToken>;
-    auto calculateSize() const -> WidgetSize;
     annotation::Token token;
 
     context::FontType fontType{FontType::Gui};

@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 namespace widget {
-class TextTokenSeq : public Widget<TextTokenSeq>
+class TextTokenSeq : public Widget
 {
     using Paragraph = annotation::TokenText::Paragraph;
     friend class Box;
@@ -21,9 +21,10 @@ public:
     auto arrange() -> bool override;
     void draw();
 
+    protected:
+    auto calculateSize() const -> WidgetSize override;
 private:
-    friend class Widget<TextTokenSeq>;
-    auto calculateSize() const -> WidgetSize;
+    auto linesFit() const -> bool;
 
     std::shared_ptr<Box> lines;
     Paragraph paragraph;

@@ -9,7 +9,7 @@
 
 namespace widget {
 
-class ImageButton : public Widget<ImageButton>
+class ImageButton : public Widget
 {
     friend class Box;
     void setup(context::Image image);
@@ -27,9 +27,10 @@ public:
     void setChecked(bool checked);
     void setSensitive(bool sensitive);
 
+protected:
+    auto calculateSize() const -> WidgetSize override;
+
 private:
-    friend class Widget<ImageButton>;
-    auto calculateSize() const -> WidgetSize;
 
     ImVec4 backGroundColor{};
     ImVec4 iconColor{};
