@@ -71,7 +71,12 @@ public:
     auto operator=(const WidgetBase&) -> WidgetBase& = default;
     auto operator=(WidgetBase&&) -> WidgetBase& = default;
 
-    virtual auto arrange() -> bool { return true; };
+    /* Arrange
+     * return true if (re)arrange  is necessary
+     */
+    virtual auto arrange() -> bool { return false; };
+    [[nodiscard]] auto arrangeIsNecessary() -> bool;
+    void setArrangeIsNecessary();
     [[nodiscard]] virtual auto getWidgetSize() const -> const WidgetSize& = 0;
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
     [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
@@ -87,6 +92,7 @@ private:
     layout::Orientation passiveOrientation;
     layout::Align baseAlign;
     std::weak_ptr<WidgetBase> parent;
+    bool arrangeNecessary{true};
 };
 
 template<class WidgetImpl>

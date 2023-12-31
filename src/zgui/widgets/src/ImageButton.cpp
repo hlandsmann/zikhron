@@ -13,11 +13,15 @@
 
 namespace widget {
 
-ImageButton::ImageButton(WidgetInit init,
-                         context::Image _image)
+void ImageButton::setup(context::Image _image)
+{
+    label = magic_enum::enum_name(_image);
+    image = _image;
+}
+
+ImageButton::ImageButton(WidgetInit init)
     : Widget<ImageButton>{std::move(init)}
-    , label{magic_enum::enum_name(_image)}
-    , image{_image} {}
+{}
 
 auto ImageButton::clicked() -> bool
 {

@@ -6,6 +6,7 @@
 #include <context/Theme.h>
 #include <imgui.h>
 
+#include <memory>
 #include <string>
 
 namespace widget {
@@ -14,10 +15,13 @@ class WindowDrop;
 
 class Window : public Widget<Window>
 {
+    friend class Box;
+    void setup(layout::SizeType sizeTypeWidth,
+               layout::SizeType sizeTypeHeight,
+               std::string name);
+
 public:
-    Window(const WidgetInit& init,
-           layout::SizeType sizeTypeWidth, layout::SizeType sizeTypeHeight,
-           std::string name);
+    Window(const WidgetInit& init);
     ~Window() override = default;
 
     Window(const Window&) = default;
@@ -27,14 +31,14 @@ public:
 
     [[nodiscard]] auto dropWindow() -> WindowDrop;
     [[nodiscard]] auto arrange() -> bool override;
-    auto getBox() -> Box&;
+    [[nodiscard]] auto getBox() -> Box&;
 
 private:
     friend class Widget<Window>;
     auto calculateSize() const -> WidgetSize;
-    Box box;
-    layout::SizeType sizeTypeWidth;
-    layout::SizeType sizeTypeHeight;
+    std::shared_ptr<Box> box;
+    layout::SizeType sizeTypeWidth{};
+    layout::SizeType sizeTypeHeight{};
 
     std::string name;
 };

@@ -10,9 +10,10 @@ namespace widget {
 
 class Button : public Widget<Button>
 {
+  friend class Box;
+  void setup(std::string label);
 public:
-    Button(WidgetInit init,
-           std::string label);
+    Button(WidgetInit init);
     ~Button() override = default;
 
     Button(const Button&) = default;

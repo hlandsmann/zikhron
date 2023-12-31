@@ -1,13 +1,17 @@
 #pragma once
 #include "Widget.h"
+
 #include <annotation/Token.h>
 #include <context/Fonts.h>
 namespace widget {
 
 class TextToken : public Widget<TextToken>
 {
+    friend class Box;
+    void setup(annotation::Token token);
+
 public:
-    TextToken(WidgetInit init, annotation::Token token);
+    TextToken(WidgetInit init);
     void setFontType(context::FontType fontType);
     void renderShadow();
     void clicked();

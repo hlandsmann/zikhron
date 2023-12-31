@@ -9,9 +9,13 @@
 #include <utility>
 namespace widget {
 
-TextToken::TextToken(WidgetInit _init, annotation::Token _token)
+void TextToken::setup(annotation::Token _token)
+{
+    token = std::move(_token);
+}
+
+TextToken::TextToken(WidgetInit _init)
     : Widget<TextToken>{std::move(_init)}
-    , token{std::move(_token)}
 {
 }
 

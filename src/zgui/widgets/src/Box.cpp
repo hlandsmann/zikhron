@@ -52,11 +52,11 @@ auto Box::arrange() -> bool
     } else {
         doLayout(Measure::height);
     }
-    bool success = true;
+    bool needArrange = false;
     for (const auto& widget : widgets) {
-        success &= widget->arrange();
+        needArrange |= widget->arrange();
     }
-    return success;
+    return needArrange;
 }
 
 void Box::setBorder(float _border)
@@ -94,6 +94,7 @@ auto Box::isLast() const -> bool
 
 void Box::clear()
 {
+    setArrangeIsNecessary();
     rects.clear();
     widgets.clear();
     resetWidgetSize();

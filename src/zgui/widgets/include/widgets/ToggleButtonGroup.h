@@ -7,16 +7,18 @@
 #include <cstddef>
 #include <initializer_list>
 #include <magic_enum.hpp>
+#include <memory>
 #include <string>
 
 namespace widget {
 class ToggleButtonGroup : public Widget<ToggleButtonGroup>
 {
+    friend class Box;
+    void setup(std::initializer_list<context::Image> images);
+    void setup(std::initializer_list<std::string> labels);
+
 public:
-    ToggleButtonGroup(WidgetInit init,
-                      std::initializer_list<context::Image> images);
-    ToggleButtonGroup(const WidgetInit& init,
-                      std::initializer_list<std::string> labels);
+    ToggleButtonGroup(WidgetInit init);
 
     ~ToggleButtonGroup() override = default;
     ToggleButtonGroup(const ToggleButtonGroup&) = default;
@@ -31,6 +33,6 @@ private:
     friend class Widget<ToggleButtonGroup>;
     auto calculateSize() const -> WidgetSize;
     std::size_t active{0};
-    Box box;
+    std::shared_ptr<Box> box;
 };
 } // namespace widget

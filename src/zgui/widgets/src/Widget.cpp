@@ -14,9 +14,20 @@ WidgetBase::WidgetBase(WidgetInit init)
 {
 }
 
-auto WidgetBase::Rect() const -> const layout::Rect&
+auto WidgetBase::arrangeIsNecessary() -> bool
 {
-    return *rectPtr;
+    bool tmpArrangeNecessary = arrangeNecessary;
+    arrangeNecessary = false;
+    return tmpArrangeNecessary;
+}
+
+void WidgetBase::setArrangeIsNecessary()
+{
+    if (auto parentPtr = parent.lock()) {
+        parentPtr->setArrangeIsNecessary();
+    } else {
+        arrangeNecessary = true;
+    }
 }
 
 auto WidgetBase::getTheme() const -> const context::Theme&
@@ -37,6 +48,11 @@ auto WidgetBase::Align() const -> layout::Align
 auto WidgetBase::getThemePtr() const -> std::shared_ptr<context::Theme>
 {
     return theme;
+}
+
+auto WidgetBase::Rect() const -> const layout::Rect&
+{
+    return *rectPtr;
 }
 
 } // namespace widget

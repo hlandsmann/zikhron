@@ -16,6 +16,7 @@ class Box : public Widget<Box>
 {
     using SizeType = layout::SizeType;
     using Align = layout::Align;
+    void setup(){};
 
 public:
     constexpr static float s_padding = 16.F;
@@ -42,10 +43,12 @@ public:
                            .orientation = widgetOrientation,
                            .align = widgetAlign,
                            .parent = shared_from_this()};
-        auto widget = std::make_shared<WidgetType>(std::move(init), std::forward<Args>(args)...);
+        auto widget = std::make_shared<WidgetType>(std::move(init));
+        widget->setup(std::forward<Args>(args)...);
         widgets.push_back(static_cast<std::shared_ptr<WidgetBase>>(widget));
         rects.push_back(std::move(widgetRect));
         resetWidgetSize();
+        setArrangeIsNecessary();
         return widget;
     }
 

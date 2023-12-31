@@ -7,11 +7,13 @@
 #include <string>
 #include <utility>
 namespace widget {
+void Button::setup(std::string _label)
+{
+    label = std::move(_label);
+}
 
-Button::Button(WidgetInit init,
-               std::string _label)
+Button::Button(WidgetInit init)
     : Widget<Button>{std::move(init)}
-    , label{std::move(_label)}
 {}
 
 auto Button::calculateSize() const -> WidgetSize

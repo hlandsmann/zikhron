@@ -11,9 +11,11 @@ namespace widget {
 
 class ImageButton : public Widget<ImageButton>
 {
+    friend class Box;
+    void setup(context::Image image);
+
 public:
-    ImageButton(WidgetInit init,
-                context::Image image);
+    ImageButton(WidgetInit init);
     ~ImageButton() override = default;
 
     ImageButton(const ImageButton&) = default;
@@ -34,7 +36,7 @@ private:
     bool disabled{false};
     bool enabled{false};
     std::string label;
-    context::Image image;
+    context::Image image{};
 };
 
 }; // namespace widget

@@ -6,14 +6,18 @@
 #include <annotation/TokenText.h>
 #include <imgui.h>
 
+#include <memory>
 #include <string>
 #include <vector>
 namespace widget {
 class TextTokenSeq : public Widget<TextTokenSeq>
 {
-public:
     using Paragraph = annotation::TokenText::Paragraph;
-    TextTokenSeq(WidgetInit init, Paragraph paragraph);
+    friend class Box;
+    void setup(Paragraph paragraph);
+
+public:
+    TextTokenSeq(WidgetInit init);
     auto arrange() -> bool override;
     void draw();
 
@@ -21,7 +25,7 @@ private:
     friend class Widget<TextTokenSeq>;
     auto calculateSize() const -> WidgetSize;
 
-    Box lines;
+    std::shared_ptr<Box> lines;
     Paragraph paragraph;
 };
 
