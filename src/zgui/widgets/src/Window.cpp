@@ -15,7 +15,13 @@ void Window::setup(layout::SizeType _sizeTypeWidth,
                    layout::SizeType _sizeTypeHeight,
                    std::string _name)
 {
-    box = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
+    boxRect = std::make_shared<layout::Rect>();
+    // box = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
+    box = std::make_shared<Box>(WidgetInit{.theme = getThemePtr(),
+                                           .rect = boxRect,
+                                           .orientation = PassiveOrientation(),
+                                           .align = layout::Align::start,
+                                           .parent = std::weak_ptr{shared_from_this()}});
     sizeTypeWidth = _sizeTypeWidth;
     sizeTypeHeight = _sizeTypeHeight;
     name = std::move(_name);
@@ -33,9 +39,10 @@ auto Window::dropWindow() -> WindowDrop
 
 auto Window::arrange() -> bool
 {
-    layout::Rect rect = Rect();
-    layout::Rect layoutRect = {.x = 0, .y = 0, .width = rect.width, .height = rect.height};
-    return box->arrange(layoutRect);
+    *boxRect = Rect();
+    boxRect->x = 0;
+    boxRect->y = 0;
+    return box->arrange();
 }
 
 auto Window::getBox() -> Box&

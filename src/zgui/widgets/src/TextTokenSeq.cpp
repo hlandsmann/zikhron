@@ -1,6 +1,7 @@
 #include <TextToken.h>
 #include <TextTokenSeq.h>
 #include <Widget.h>
+#include <annotation/Token.h>
 #include <context/Fonts.h>
 #include <context/imglog.h>
 #include <imgui.h>
@@ -18,8 +19,12 @@ void TextTokenSeq::setup(Paragraph _paragraph)
     paragraph = std::move(_paragraph);
     lines = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
     lines->setPadding(0);
-    lines->setBorder(0);
+    lines->setBorder(border);
     lines->setOrientationVertical();
+    scratchBox = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr<Widget>{});
+    scratchBox->setPadding(0);
+    scratchBox->setBorder(border);
+    scratchBox->setOrientationVertical();
 }
 
 TextTokenSeq::TextTokenSeq(WidgetInit init)
@@ -43,12 +48,35 @@ auto TextTokenSeq::calculateSize() const -> WidgetSize
 auto TextTokenSeq::linesFit() const -> bool
 {
     const auto& rect = Rect();
-    bool allLinesFit = true;
-    while (!lines->isLast()) {
-        auto line = lines->next<Box>();
-        allLinesFit &= (line.getWidgetSize().width <= rect.width);
+    if (lines->getWidgetSize().width > rect.width) {
+        return false;
     }
-    return allLinesFit;
+    lines->start();
+    auto tokenIt = paragraph.begin();
+    while (!lines->isLast()) {
+        auto& line = lines->next<Box>();
+        line.start();
+        while (!line.isLast() && tokenIt < paragraph.end()) {
+            line.next<TextToken>();
+            tokenIt++;
+        }
+        if (tokenIt >= paragraph.end()) {
+            return true;
+        }
+        scratchBox->clear();
+        addTextToken(*scratchBox, *tokenIt);
+        if (scratchBox->getWidgetSize().width + line.getWidgetSize().width <= rect.width) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token)
+{
+    auto textToken = box.add<TextToken>(Align::start, token);
+    textToken->setFontType(context::FontType::chineseBig);
 }
 
 auto TextTokenSeq::arrange() -> bool
@@ -60,30 +88,26 @@ auto TextTokenSeq::arrange() -> bool
     if (!lines->isLast() && linesFit()) {
         return lines->arrange();
     }
-    // auto it = paragraph.begin();
 
-    // lines.setOrientationVertical();
-    // lines.setFlipChildrensOrientation(false);
-    // spdlog::warn("rect w: {}, h: {}", Rect().width, Rect().height);
 
-    using Align = widget::layout::Align;
     const auto& rect = Rect();
-    spdlog::critical("w: {}, h: {}", rect.width, rect.height);
+    // auto width = lines->getWidgetSize().width;
+    // spdlog::critical("x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
     imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     lines->clear();
     auto line = lines->add<Box>(Align::start);
-    bool lineAdded = true;
     for (const auto& token : paragraph) {
-        auto textToken = line->add<TextToken>(Align::start, token);
-        textToken->setFontType(context::FontType::chineseBig);
-        if (line->getWidgetSize().width > rect.width) {
+        // auto textToken = line->add<TextToken>(Align::start, token);
+        // textToken->setFontType(context::FontType::chineseBig);
+        addTextToken(*line, token);
+        if (lines->getWidgetSize().width > rect.width) {
             line->pop();
             line = lines->add<Box>(Align::start);
-            textToken = line->add<TextToken>(Align::start, token);
-            textToken->setFontType(context::FontType::chineseBig);
+            addTextToken(*line, token);
         }
         // spdlog::info("{}", token.getValue());
     }
+    // spdlog::warn("width: {}", width);
     // resetWidgetSize();
     return lines->arrange();
     // return true;

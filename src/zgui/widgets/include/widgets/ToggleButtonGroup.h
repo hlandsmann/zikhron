@@ -32,6 +32,7 @@ public:
 protected:
     auto calculateSize() const -> WidgetSize override;
 private:
+    auto createBox() -> std::shared_ptr<Box>;
     std::size_t active{0};
     std::shared_ptr<Box> box;
 };

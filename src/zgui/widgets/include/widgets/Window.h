@@ -37,6 +37,7 @@ protected:
     auto calculateSize() const -> WidgetSize override;
 private:
     std::shared_ptr<Box> box;
+    std::shared_ptr<layout::Rect> boxRect;
     layout::SizeType sizeTypeWidth{};
     layout::SizeType sizeTypeHeight{};
 

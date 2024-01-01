@@ -1,5 +1,4 @@
 #include <Button.h>
-#include <memory>
 #include <ImageButton.h>
 #include <ToggleButtonGroup.h>
 #include <Widget.h>
@@ -9,13 +8,14 @@
 
 #include <cstddef>
 #include <initializer_list>
+#include <memory>
 #include <string>
 #include <variant>
 
 namespace widget {
 void ToggleButtonGroup::setup(std::initializer_list<context::Image> images)
 {
-    box = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
+    box = createBox();
     box->setPadding(0.F);
     for (const auto& image : images) {
         box->add<ImageButton>(layout::Align::start, image);
@@ -24,7 +24,7 @@ void ToggleButtonGroup::setup(std::initializer_list<context::Image> images)
 
 void ToggleButtonGroup::setup(std::initializer_list<std::string> labels)
 {
-    box = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
+    box = createBox();
     box->setPadding(0.F);
     for (const auto& label : labels) {
         box->add<Button>(layout::Align::start, label);
@@ -35,7 +35,6 @@ ToggleButtonGroup::ToggleButtonGroup(WidgetInit init)
     : Widget{init}
 {
 }
-
 
 auto ToggleButtonGroup::calculateSize() const -> WidgetSize
 {
@@ -65,4 +64,12 @@ auto ToggleButtonGroup::arrange() -> bool
     return box->arrange();
 }
 
+auto ToggleButtonGroup::createBox() -> std::shared_ptr<Box>
+{
+    return std::make_shared<Box>(WidgetInit{.theme = getThemePtr(),
+                                            .rect = getRectPtr(),
+                                            .orientation = PassiveOrientation(),
+                                            .align = layout::Align::start,
+                                            .parent = std::weak_ptr{shared_from_this()}});
+}
 } // namespace widget

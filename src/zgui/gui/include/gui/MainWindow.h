@@ -20,8 +20,8 @@ public:
 
 private:
     std::shared_ptr<context::Theme> theme;
+    std::shared_ptr<widget::layout::Rect> boxRect;
     std::shared_ptr<widget::Box> box;
     std::unique_ptr<CardDisplay> cardDisplay;
-    widget::layout::Rect rect;
     bool needArrange = false;
 };

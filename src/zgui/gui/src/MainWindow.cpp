@@ -19,20 +19,28 @@
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::unique_ptr<CardDisplay> _cardDisplay)
     : theme{std::move(_theme)}
-    , box{std::make_shared<widget::Box>(theme, widget::layout::Orientation::horizontal, std::weak_ptr<widget::Widget>{})}
+    , boxRect{std::make_shared<widget::layout::Rect>()}
+    , box{std::make_shared<widget::Box>(widget::WidgetInit{
+              .theme = theme,
+              .rect = boxRect,
+              .orientation = widget::layout::Orientation::horizontal,
+              .align = widget::layout::Align::start,
+              .parent = std::weak_ptr<widget::Widget>{}
+
+      })}
     , cardDisplay{std::move(_cardDisplay)}
 {
 }
 
-void MainWindow::arrange(const widget::layout::Rect& _rect)
+void MainWindow::arrange(const widget::layout::Rect& rect)
 {
-    needArrange |= (rect != _rect);
+    needArrange |= (*boxRect != rect);
     needArrange |= box->arrangeIsNecessary();
 
-    rect = _rect;
+    *boxRect = rect;
     imglog::log("mainWindow arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     if (needArrange) {
-        needArrange = box->arrange(rect);
+        needArrange = box->arrange();
     }
 }
 

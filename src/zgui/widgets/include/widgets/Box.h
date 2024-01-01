@@ -24,7 +24,7 @@ public:
     Box(std::shared_ptr<context::Theme> theme, layout::Orientation, std::weak_ptr<Widget> parent);
     Box(const WidgetInit& init);
 
-    [[nodiscard]] auto arrange(const layout::Rect&) -> bool;
+    // [[nodiscard]] auto arrange(const layout::Rect&) -> bool;
     [[nodiscard]] auto arrange() -> bool override;
     void setBorder(float border);
     void setOrientationHorizontal();
@@ -111,7 +111,6 @@ private:
     std::vector<std::shared_ptr<layout::Rect>> rects;
     std::vector<std::shared_ptr<Widget>>::iterator currentWidgetIt;
 
-    std::shared_ptr<layout::Rect> layoutRect;
     std::shared_ptr<layout::Rect> borderedRect;
     float padding{s_padding};
     bool flipChildrensOrientation{true};

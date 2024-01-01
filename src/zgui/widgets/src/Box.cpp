@@ -26,8 +26,8 @@ Box::Box(const WidgetInit& init)
     //                                                              : layout::SizeType::width_fixed}
     // , expandHeight{orientation == layout::Orientation::vertical ? layout::SizeType::height_expand
     //                                                             : layout::SizeType::height_fixed}
-    , layoutRect{init.rect}
-    , borderedRect{std::make_shared<layout::Rect>(*layoutRect)}
+    // , layoutRect{init.rect}
+    , borderedRect{std::make_shared<layout::Rect>()}
 {}
 Box::Box(std::shared_ptr<context::Theme> _theme,
          layout::Orientation _orientation,
@@ -43,15 +43,15 @@ Box::Box(std::shared_ptr<context::Theme> _theme,
     //                                                              : layout::SizeType::width_fixed}
     // , expandHeight{orientation == layout::Orientation::vertical ? layout::SizeType::height_expand
     //                                                             : layout::SizeType::height_fixed}
-    , layoutRect{std::move(_rect)}
-    , borderedRect{std::make_shared<layout::Rect>(*layoutRect)}
+    // , layoutRect{std::move(_rect)}
+    , borderedRect{std::make_shared<layout::Rect>()}
 {}
 
-auto Box::arrange(const layout::Rect& rect) -> bool
-{
-    *layoutRect = rect;
-    return arrange();
-}
+// auto Box::arrange(const layout::Rect& rect) -> bool
+// {
+//     *layoutRect = rect;
+//     return arrange();
+// }
 
 auto Box::arrange() -> bool
 {
@@ -71,10 +71,11 @@ auto Box::arrange() -> bool
 void Box::setBorder(float _border)
 {
     border = _border;
-    borderedRect->x = layoutRect->x + border;
-    borderedRect->y = layoutRect->y + border;
-    borderedRect->width = layoutRect->width - border * 2;
-    borderedRect->height = layoutRect->height - border * 2;
+    const auto& rect = Rect();
+    borderedRect->x = rect.x + border;
+    borderedRect->y = rect.y + border;
+    borderedRect->width = rect.width - border * 2;
+    borderedRect->height = rect.height - border * 2;
 }
 
 void Box::setOrientationHorizontal()
@@ -161,6 +162,8 @@ auto Box::calculateSize() const -> WidgetSize
 
         break;
     }
+    result.width += border * 2;
+    result.height += border * 2;
     return result;
 }
 

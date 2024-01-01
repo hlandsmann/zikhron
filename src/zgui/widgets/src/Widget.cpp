@@ -71,4 +71,9 @@ auto Widget::Rect() const -> const layout::Rect&
     return *rectPtr;
 }
 
+auto Widget::getRectPtr() const -> std::shared_ptr<layout::Rect>
+{
+    return rectPtr;
+}
+
 } // namespace widget

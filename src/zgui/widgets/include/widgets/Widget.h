@@ -89,6 +89,7 @@ protected:
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
     [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
+    [[nodiscard]] auto getRectPtr() const -> std::shared_ptr<layout::Rect>;
 
 private:
     std::shared_ptr<context::Theme> theme;
