@@ -17,8 +17,6 @@
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 namespace widget {
-Box::Box(std::shared_ptr<context::Theme> _theme, layout::Orientation _orientation, std::weak_ptr<Widget> _parent)
-    : Box{std::move(_theme), _orientation, std::make_shared<layout::Rect>(), std::move(_parent)} {}
 Box::Box(const WidgetInit& init)
     : Widget{init}
     , orientation{init.orientation}
@@ -29,29 +27,6 @@ Box::Box(const WidgetInit& init)
     // , layoutRect{init.rect}
     , borderedRect{std::make_shared<layout::Rect>()}
 {}
-Box::Box(std::shared_ptr<context::Theme> _theme,
-         layout::Orientation _orientation,
-         std::shared_ptr<layout::Rect> _rect,
-         std::weak_ptr<Widget> _parent)
-    : Widget{{.theme = std::move(_theme),
-              .rect = _rect,
-              .orientation = _orientation,
-              .align = Align::start,
-              .parent = std::move(_parent)}}
-    , orientation{_orientation}
-    // , expandWidth{orientation == layout::Orientation::horizontal ? layout::SizeType::width_expand
-    //                                                              : layout::SizeType::width_fixed}
-    // , expandHeight{orientation == layout::Orientation::vertical ? layout::SizeType::height_expand
-    //                                                             : layout::SizeType::height_fixed}
-    // , layoutRect{std::move(_rect)}
-    , borderedRect{std::make_shared<layout::Rect>()}
-{}
-
-// auto Box::arrange(const layout::Rect& rect) -> bool
-// {
-//     *layoutRect = rect;
-//     return arrange();
-// }
 
 auto Box::arrange() -> bool
 {

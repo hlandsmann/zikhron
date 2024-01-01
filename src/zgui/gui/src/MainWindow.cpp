@@ -3,6 +3,7 @@
 #include <context/Fonts.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
+#include <context/WidgetIdGenerator.h>
 #include <context/imglog.h>
 #include <imgui.h>
 #include <widgets/Box.h>
@@ -17,11 +18,13 @@
 #include <utility>
 
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
+                       std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
                        std::unique_ptr<CardDisplay> _cardDisplay)
     : theme{std::move(_theme)}
     , boxRect{std::make_shared<widget::layout::Rect>()}
     , box{std::make_shared<widget::Box>(widget::WidgetInit{
               .theme = theme,
+              .widgetIdGenerator = std::move(widgetIdGenerator),
               .rect = boxRect,
               .orientation = widget::layout::Orientation::horizontal,
               .align = widget::layout::Align::start,

@@ -21,7 +21,6 @@ class Box : public Widget
 
 public:
     constexpr static float s_padding = 16.F;
-    Box(std::shared_ptr<context::Theme> theme, layout::Orientation, std::weak_ptr<Widget> parent);
     Box(const WidgetInit& init);
 
     // [[nodiscard]] auto arrange(const layout::Rect&) -> bool;
@@ -41,6 +40,7 @@ public:
                                          ? layout::Orientation::horizontal
                                          : layout::Orientation::vertical;
         WidgetInit init = {.theme = getThemePtr(),
+                           .widgetIdGenerator = getWidgetIdGenerator(),
                            .rect = widgetRect,
                            .orientation = widgetOrientation,
                            .align = widgetAlign,
@@ -82,7 +82,6 @@ private:
         width,
         height
     };
-    Box(std::shared_ptr<context::Theme> theme, layout::Orientation, std::shared_ptr<layout::Rect>, std::weak_ptr<Widget> parent);
     static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;
     static auto widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType;
     static auto rectPositionProjection(layout::Rect& rect, Measure measure) -> float&;

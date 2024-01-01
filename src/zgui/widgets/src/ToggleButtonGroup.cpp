@@ -67,6 +67,7 @@ auto ToggleButtonGroup::arrange() -> bool
 auto ToggleButtonGroup::createBox() -> std::shared_ptr<Box>
 {
     return std::make_shared<Box>(WidgetInit{.theme = getThemePtr(),
+                                            .widgetIdGenerator = getWidgetIdGenerator(),
                                             .rect = getRectPtr(),
                                             .orientation = PassiveOrientation(),
                                             .align = layout::Align::start,

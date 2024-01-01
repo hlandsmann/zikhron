@@ -3,6 +3,7 @@
 
 #include <context/GlfwImguiContext.h>
 #include <context/Theme.h>
+#include <context/WidgetIdGenerator.h>
 #include <widgets/Box.h>
 #include <widgets/Widget.h>
 
@@ -12,6 +13,7 @@ class MainWindow
 {
 public:
     MainWindow(std::shared_ptr<context::Theme> theme,
+               std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
                std::unique_ptr<CardDisplay> cardDisplay);
 
     void arrange(const widget::layout::Rect& rect);

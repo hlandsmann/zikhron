@@ -18,6 +18,7 @@ void Window::setup(layout::SizeType _sizeTypeWidth,
     boxRect = std::make_shared<layout::Rect>();
     // box = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
     box = std::make_shared<Box>(WidgetInit{.theme = getThemePtr(),
+                                           .widgetIdGenerator = getWidgetIdGenerator(),
                                            .rect = boxRect,
                                            .orientation = PassiveOrientation(),
                                            .align = layout::Align::start,

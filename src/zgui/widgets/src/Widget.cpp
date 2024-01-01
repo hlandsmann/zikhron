@@ -1,5 +1,7 @@
 #include <Widget.h>
+#include <cstddef>
 #include <context/Theme.h>
+#include <context/WidgetIdGenerator.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -7,10 +9,12 @@
 namespace widget {
 Widget::Widget(WidgetInit init)
     : theme{std::move(init.theme)}
+    , widgetIdGenerator{std::move(init.widgetIdGenerator)}
     , rectPtr{std::move(init.rect)}
     , passiveOrientation{init.orientation}
     , baseAlign{init.align}
     , parent{std::move(init.parent)}
+    , widgetId{widgetIdGenerator->getNextId()}
 {
 }
 
@@ -33,6 +37,11 @@ void Widget::setArrangeIsNecessary()
 auto Widget::getTheme() const -> const context::Theme&
 {
     return *theme;
+}
+
+auto Widget::getWidgetId() const -> int
+{
+    return widgetId;
 }
 
 auto Widget::PassiveOrientation() const -> layout::Orientation
@@ -64,6 +73,11 @@ void Widget::resetWidgetSize()
 auto Widget::getThemePtr() const -> std::shared_ptr<context::Theme>
 {
     return theme;
+}
+
+auto Widget::getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGenerator>
+{
+    return widgetIdGenerator;
 }
 
 auto Widget::Rect() const -> const layout::Rect&

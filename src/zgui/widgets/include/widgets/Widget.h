@@ -1,5 +1,7 @@
 #pragma once
+#include <cstddef>
 #include <context/Theme.h>
+#include <context/WidgetIdGenerator.h>
 #include <fmt/format.h>
 #include <imgui.h>
 
@@ -57,6 +59,7 @@ class Widget;
 struct WidgetInit
 {
     std::shared_ptr<context::Theme> theme;
+    std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     std::shared_ptr<layout::Rect> rect;
     layout::Orientation orientation;
     layout::Align align;
@@ -80,6 +83,7 @@ public:
     [[nodiscard]] auto arrangeIsNecessary() -> bool;
     void setArrangeIsNecessary();
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
+    [[nodiscard]] auto getWidgetId() const -> int;
     [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
     [[nodiscard]] auto Align() const -> layout::Align;
     [[nodiscard]] auto getWidgetSize() const -> const WidgetSize&;
@@ -88,17 +92,20 @@ public:
 protected:
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
     [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;
+    [[nodiscard]] auto getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGenerator>;
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
     [[nodiscard]] auto getRectPtr() const -> std::shared_ptr<layout::Rect>;
 
 private:
     std::shared_ptr<context::Theme> theme;
+    std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     std::shared_ptr<layout::Rect> rectPtr;
     layout::Orientation passiveOrientation;
     layout::Align baseAlign;
     std::weak_ptr<Widget> parent;
     mutable std::optional<WidgetSize> optWidgetSize;
     bool arrangeNecessary{true};
+    int widgetId;
 };
 
 } // namespace widget

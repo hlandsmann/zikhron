@@ -8,12 +8,14 @@ target_sources(zgui_context
         include/context/GlfwImguiContext.h
         include/context/Texture.h
         include/context/Theme.h
+        include/context/WidgetIdGenerator.h
         include/context/WidgetState.h
         include/context/imglog.h
         src/Fonts.cpp
         src/GlfwImguiContext.cpp
         src/Texture.cpp
         src/Theme.cpp
+        src/WidgetIdGenerator.cpp
         src/WidgetState.cpp
         src/imglog.cpp
 )
