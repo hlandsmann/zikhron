@@ -1,10 +1,10 @@
 #pragma once
-#include <cstddef>
 #include <context/Theme.h>
 #include <context/WidgetIdGenerator.h>
 #include <fmt/format.h>
 #include <imgui.h>
 
+#include <cstddef>
 #include <magic_enum.hpp>
 #include <memory>
 #include <optional>
@@ -76,6 +76,28 @@ public:
     auto operator=(const Widget&) -> Widget& = default;
     auto operator=(Widget&&) -> Widget& = default;
 
+    template<class WidgetType, class... Args>
+    auto create(Args... args) -> std::shared_ptr<WidgetType>
+    {
+        auto init = makeWidgetInit();
+
+        auto widget = std::make_shared<WidgetType>(std::move(init));
+        widget->setup(std::forward<Args>(args)...);
+        return widget;
+    }
+
+    /* reset funktions for arange and size calculation will not propagate to ancestors */
+    template<class WidgetType, class... Args>
+    auto createOrphan(Args... args) -> std::shared_ptr<WidgetType>
+    {
+        auto init = makeWidgetInit();
+        init.parent = std::weak_ptr<Widget>{};
+
+        auto widget = std::make_shared<WidgetType>(std::move(init));
+        widget->setup(std::forward<Args>(args)...);
+        return widget;
+    }
+
     /* Arrange
      * return true if (re)arrange  is necessary
      */
@@ -98,6 +120,7 @@ protected:
     [[nodiscard]] auto getRectPtr() const -> std::shared_ptr<layout::Rect>;
 
 private:
+    auto makeWidgetInit() -> WidgetInit;
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     std::shared_ptr<layout::Rect> rectPtr;

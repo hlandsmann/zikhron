@@ -15,7 +15,7 @@
 namespace widget {
 void ToggleButtonGroup::setup(std::initializer_list<context::Image> images)
 {
-    box = createBox();
+    box = create<Box>();
     box->setPadding(0.F);
     for (const auto& image : images) {
         box->add<ImageButton>(layout::Align::start, image);
@@ -24,7 +24,7 @@ void ToggleButtonGroup::setup(std::initializer_list<context::Image> images)
 
 void ToggleButtonGroup::setup(std::initializer_list<std::string> labels)
 {
-    box = createBox();
+    box = create<Box>();
     box->setPadding(0.F);
     for (const auto& label : labels) {
         box->add<Button>(layout::Align::start, label);
@@ -47,7 +47,6 @@ auto ToggleButtonGroup::getActive() -> std::size_t
     for (std::size_t index = 0; index < box->numberOfWidgets(); index++) {
         auto& widget = box->next<Widget>();
         auto buttonVariant = utl::variant_cast<Button, ImageButton>(&widget);
-        // auto& button = dynamic_cast<ImageButton&>(widget);
         if (std::visit([&](auto* button) {
                 button->setChecked(active == index);
                 return button->clicked();
@@ -64,13 +63,4 @@ auto ToggleButtonGroup::arrange() -> bool
     return box->arrange();
 }
 
-auto ToggleButtonGroup::createBox() -> std::shared_ptr<Box>
-{
-    return std::make_shared<Box>(WidgetInit{.theme = getThemePtr(),
-                                            .widgetIdGenerator = getWidgetIdGenerator(),
-                                            .rect = getRectPtr(),
-                                            .orientation = PassiveOrientation(),
-                                            .align = layout::Align::start,
-                                            .parent = std::weak_ptr{shared_from_this()}});
-}
 } // namespace widget

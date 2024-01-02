@@ -95,4 +95,15 @@ auto Widget::getRectPtr() const -> std::shared_ptr<layout::Rect>
     return rectPtr;
 }
 
+auto Widget::makeWidgetInit() -> WidgetInit
+{
+    WidgetInit init = {.theme = theme,
+                       .widgetIdGenerator = widgetIdGenerator,
+                       .rect = rectPtr,
+                       .orientation = passiveOrientation,
+                       .align = baseAlign,
+                       .parent = shared_from_this()};
+    return init;
+}
+
 } // namespace widget

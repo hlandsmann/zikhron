@@ -11,6 +11,7 @@ namespace widget {
 
 class ImageButton : public Widget
 {
+    friend class Widget;
     friend class Box;
     void setup(context::Image image);
 

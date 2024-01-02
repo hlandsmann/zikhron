@@ -15,6 +15,7 @@ class WindowDrop;
 
 class Window : public Widget
 {
+    friend class Widget;
     friend class Box;
     void setup(layout::SizeType sizeTypeWidth,
                layout::SizeType sizeTypeHeight,

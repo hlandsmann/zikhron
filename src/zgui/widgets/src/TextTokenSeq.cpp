@@ -17,23 +17,13 @@ namespace widget {
 void TextTokenSeq::setup(Paragraph _paragraph)
 {
     paragraph = std::move(_paragraph);
-    lines = std::make_shared<Box>(WidgetInit{
-            .theme = getThemePtr(),
-            .widgetIdGenerator = getWidgetIdGenerator(),
-            .rect = std::make_shared<widget::layout::Rect>(),
-            .orientation = PassiveOrientation(),
-            .align = layout::Align::start,
-            .parent = std::weak_ptr{shared_from_this()}});
+
+    lines = create<Box>();
     lines->setPadding(0);
     lines->setBorder(border);
     lines->setOrientationVertical();
-    scratchBox = std::make_shared<Box>(WidgetInit{
-            .theme = getThemePtr(),
-            .widgetIdGenerator = getWidgetIdGenerator(),
-            .rect = std::make_shared<widget::layout::Rect>(),
-            .orientation = PassiveOrientation(),
-            .align = layout::Align::start,
-            .parent = std::weak_ptr<widget::Widget>{}});
+
+    scratchBox = createOrphan<Box>();
     scratchBox->setPadding(0);
     scratchBox->setBorder(border);
     scratchBox->setOrientationVertical();

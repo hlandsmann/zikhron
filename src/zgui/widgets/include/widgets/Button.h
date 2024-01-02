@@ -10,8 +10,10 @@ namespace widget {
 
 class Button : public Widget
 {
-  friend class Box;
-  void setup(std::string label);
+    friend class Widget;
+    friend class Box;
+    void setup(std::string label);
+
 public:
     Button(WidgetInit init);
     ~Button() override = default;
@@ -27,6 +29,7 @@ public:
 
 protected:
     auto calculateSize() const -> WidgetSize override;
+
 private:
     static constexpr float buttonPadding = 4;
 

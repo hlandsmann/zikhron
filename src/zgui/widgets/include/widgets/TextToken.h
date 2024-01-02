@@ -7,6 +7,7 @@ namespace widget {
 
 class TextToken : public Widget
 {
+    friend class Widget;
     friend class Box;
     void setup(annotation::Token token);
 

@@ -15,6 +15,7 @@
 namespace widget {
 class Box : public Widget
 {
+    friend class Widget;
     using SizeType = layout::SizeType;
     using Align = layout::Align;
     void setup(){};
@@ -23,7 +24,6 @@ public:
     constexpr static float s_padding = 16.F;
     Box(const WidgetInit& init);
 
-    // [[nodiscard]] auto arrange(const layout::Rect&) -> bool;
     [[nodiscard]] auto arrange() -> bool override;
     void setBorder(float border);
     void setOrientationHorizontal();
