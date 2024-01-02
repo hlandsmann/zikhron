@@ -84,6 +84,7 @@ public:
     void setArrangeIsNecessary();
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
     [[nodiscard]] auto getWidgetId() const -> int;
+    [[nodiscard]] auto dropWidgetId() const -> context::WidgetIdDrop;
     [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
     [[nodiscard]] auto Align() const -> layout::Align;
     [[nodiscard]] auto getWidgetSize() const -> const WidgetSize&;

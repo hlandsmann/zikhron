@@ -25,6 +25,7 @@ ImageButton::ImageButton(WidgetInit init)
 
 auto ImageButton::clicked() -> bool
 {
+    auto widgetIdDrop = dropWidgetId();
     const auto& btnRect = Rect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
     auto tex = getTheme().getTexture().get(image);

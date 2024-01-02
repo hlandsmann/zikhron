@@ -1,9 +1,9 @@
 #include <Widget.h>
-#include <cstddef>
 #include <context/Theme.h>
 #include <context/WidgetIdGenerator.h>
 #include <spdlog/spdlog.h>
 
+#include <cstddef>
 #include <memory>
 #include <utility>
 namespace widget {
@@ -42,6 +42,11 @@ auto Widget::getTheme() const -> const context::Theme&
 auto Widget::getWidgetId() const -> int
 {
     return widgetId;
+}
+
+auto Widget::dropWidgetId() const -> context::WidgetIdDrop
+{
+    return {widgetId};
 }
 
 auto Widget::PassiveOrientation() const -> layout::Orientation
