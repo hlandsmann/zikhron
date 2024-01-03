@@ -11,11 +11,8 @@ namespace widget {
 
 class ImageButton : public Widget
 {
-    friend class Widget;
-    friend class Box;
-    void setup(context::Image image);
-
 public:
+    void setup(context::Image image);
     ImageButton(WidgetInit init);
     ~ImageButton() override = default;
 
@@ -32,7 +29,6 @@ protected:
     auto calculateSize() const -> WidgetSize override;
 
 private:
-
     ImVec4 backGroundColor{};
     ImVec4 iconColor{};
     bool disabled{false};

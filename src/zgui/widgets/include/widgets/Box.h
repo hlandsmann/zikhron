@@ -15,12 +15,12 @@
 namespace widget {
 class Box : public Widget
 {
-    friend class Widget;
     using SizeType = layout::SizeType;
     using Align = layout::Align;
-    void setup(){};
 
 public:
+    void setup(){};
+
     constexpr static float s_padding = 16.F;
     Box(const WidgetInit& init);
 

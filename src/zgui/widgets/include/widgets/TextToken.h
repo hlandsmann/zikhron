@@ -7,12 +7,10 @@ namespace widget {
 
 class TextToken : public Widget
 {
-    friend class Widget;
-    friend class Box;
-    void setup(annotation::Token token);
-
 public:
+    void setup(annotation::Token token);
     TextToken(WidgetInit init);
+
     void setFontType(context::FontType fontType);
     void renderShadow();
     void clicked();

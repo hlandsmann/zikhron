@@ -15,13 +15,10 @@ class WindowDrop;
 
 class Window : public Widget
 {
-    friend class Widget;
-    friend class Box;
+public:
     void setup(layout::SizeType sizeTypeWidth,
                layout::SizeType sizeTypeHeight,
                std::string name);
-
-public:
     Window(const WidgetInit& init);
     ~Window() override = default;
 
@@ -36,6 +33,7 @@ public:
 
 protected:
     auto calculateSize() const -> WidgetSize override;
+
 private:
     std::shared_ptr<Box> box;
     std::shared_ptr<layout::Rect> boxRect;

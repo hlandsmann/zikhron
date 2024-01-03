@@ -15,12 +15,11 @@ class TextTokenSeq : public Widget
 {
     using Paragraph = annotation::TokenText::Paragraph;
     using Align = widget::layout::Align;
-    friend class Widget;
-    friend class Box;
-    void setup(Paragraph paragraph);
 
 public:
+    void setup(Paragraph paragraph);
     TextTokenSeq(WidgetInit init);
+
     auto arrange() -> bool override;
     void draw();
 
