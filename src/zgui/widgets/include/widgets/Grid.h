@@ -1,5 +1,5 @@
 #pragma once
-#include "Widget.h"
+#include "detail/Widget.h"
 
 #include <cstddef>
 #include <memory>
@@ -39,6 +39,8 @@ public:
         setArrangeIsNecessary();
         return widget;
     }
+    void pop();
+    void clear();
 
     void start();
     template<class WidgetType>
@@ -51,8 +53,10 @@ public:
         currentWidgetIt++;
         return result;
     }
+    [[nodiscard]] auto isLast() const -> bool;
 
     constexpr static float s_padding = 16.F;
+
 private:
     auto calculateSize() const -> WidgetSize override;
     auto getRowHeight(std::size_t row) const -> float;

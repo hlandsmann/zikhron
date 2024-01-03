@@ -1,9 +1,8 @@
-#include "Box.h"
-#include "Widget.h"
-
+#include <Box.h>
 #include <Window.h>
 #include <context/Theme.h>
 #include <context/imglog.h>
+#include <detail/Widget.h>
 #include <imgui.h>
 
 #include <memory>

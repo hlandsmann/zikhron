@@ -1,6 +1,6 @@
 #include <TextToken.h>
 #include <TextTokenSeq.h>
-#include <Widget.h>
+#include <detail/Widget.h>
 #include <annotation/Token.h>
 #include <context/Fonts.h>
 #include <context/imglog.h>
@@ -106,7 +106,7 @@ auto TextTokenSeq::arrange() -> bool
             line = lines->add<Box>(Align::start);
             addTextToken(*line, token);
         }
-        // spdlog::info("{}", token.getValue());
+        spdlog::info("{}", token.getValue());
     }
     // spdlog::warn("width: {}", width);
     // resetWidgetSize();

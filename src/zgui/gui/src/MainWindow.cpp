@@ -10,7 +10,7 @@
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
 #include <widgets/ToggleButtonGroup.h>
-#include <widgets/Widget.h>
+#include <widgets/detail/Widget.h>
 #include <widgets/Window.h>
 
 #include <initializer_list>

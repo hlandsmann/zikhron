@@ -5,7 +5,7 @@
 #include <context/Theme.h>
 #include <context/WidgetIdGenerator.h>
 #include <widgets/Box.h>
-#include <widgets/Widget.h>
+#include <widgets/detail/Widget.h>
 
 #include <memory>
 

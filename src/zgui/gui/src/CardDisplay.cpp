@@ -5,7 +5,7 @@
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/TextTokenSeq.h>
-#include <widgets/Widget.h>
+#include <widgets/detail/Widget.h>
 #include <widgets/Window.h>
 
 #include <kocoro/kocoro.hpp>

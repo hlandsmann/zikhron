@@ -9,7 +9,7 @@
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <widgets/Box.h>
-#include <widgets/Widget.h>
+#include <widgets/detail/Widget.h>
 #include <widgets/Window.h>
 
 #include <kocoro/kocoro.hpp>

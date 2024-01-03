@@ -1,6 +1,6 @@
 #pragma once
 #include "Box.h"
-#include "Widget.h"
+#include "detail/Widget.h"
 
 #include <context/Drop.h>
 #include <context/Theme.h>

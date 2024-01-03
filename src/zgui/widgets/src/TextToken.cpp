@@ -1,7 +1,7 @@
 #include <TextToken.h>
-#include <Widget.h>
 #include <annotation/Token.h>
 #include <context/Fonts.h>
+#include <detail/Widget.h>
 #include <imgui.h>
 // #include <imgui_internal.h>
 

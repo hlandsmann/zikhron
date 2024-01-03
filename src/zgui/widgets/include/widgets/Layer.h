@@ -1,5 +1,5 @@
 #pragma once
-#include "Widget.h"
+#include "detail/Widget.h"
 namespace widget {
 class Layer : public Widget
 {

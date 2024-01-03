@@ -1,6 +1,6 @@
 #pragma once
 #include "Box.h"
-#include "Widget.h"
+#include "detail/Widget.h"
 
 #include <context/Texture.h>
 
@@ -13,7 +13,6 @@
 namespace widget {
 class ToggleButtonGroup : public Widget
 {
-
 public:
     void setup(std::initializer_list<context::Image> images);
     void setup(std::initializer_list<std::string> labels);
@@ -30,6 +29,7 @@ public:
 
 protected:
     auto calculateSize() const -> WidgetSize override;
+
 private:
     std::size_t active{0};
     std::shared_ptr<Box> box;

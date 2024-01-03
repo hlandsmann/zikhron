@@ -1,9 +1,9 @@
 #include <ImageButton.h>
-#include <Widget.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
 #include <context/WidgetState.h>
 #include <context/imglog.h>
+#include <detail/Widget.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 

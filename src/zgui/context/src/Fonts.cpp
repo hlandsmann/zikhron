@@ -15,9 +15,9 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
                                        18, nullptr,
                                        io.Fonts->GetGlyphRangesDefault());
     chineseBig = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 50, nullptr,
-                                              io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+                                              io.Fonts->GetGlyphRangesChineseFull());
     chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
-                                                io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+                                                io.Fonts->GetGlyphRangesChineseFull());
 }
 
 auto Fonts::dropFont(FontType fontType) const -> FontDrop

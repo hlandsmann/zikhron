@@ -1,7 +1,7 @@
 #pragma once
 #include "Box.h"
 #include "TextToken.h"
-#include "Widget.h"
+#include "detail/Widget.h"
 
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>

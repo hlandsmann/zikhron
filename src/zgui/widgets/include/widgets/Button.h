@@ -1,5 +1,5 @@
 #pragma once
-#include "Widget.h"
+#include "detail/Widget.h"
 
 #include <context/Theme.h>
 #include <imgui.h>

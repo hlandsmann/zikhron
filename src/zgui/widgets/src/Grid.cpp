@@ -1,6 +1,6 @@
 #include <Grid.h>
 #include <memory>
-#include <Widget.h>
+#include <detail/Widget.h>
 
 namespace widget {
 
@@ -18,6 +18,11 @@ auto Grid::arrange() -> bool
     return needArrange;
 }
 
+void Grid::setPadding(float _padding)
+{
+    padding = _padding;
+}
+
 void Grid::setBorder(float _border)
 {
     border = _border;
@@ -27,4 +32,10 @@ void Grid::setBorder(float _border)
     borderedRect->width = rect.width - border * 2;
     borderedRect->height = rect.height - border * 2;
 }
+
+void Grid::start()
+{
+    currentWidgetIt = widgets.begin();
+}
+
 }

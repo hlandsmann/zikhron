@@ -11,13 +11,15 @@ target_sources(zgui_widgets
         include/widgets/TextToken.h
         include/widgets/TextTokenSeq.h
         include/widgets/ToggleButtonGroup.h
-        include/widgets/Widget.h
         include/widgets/Window.h
+        include/widgets/detail/MetaBox.h
+        include/widgets/detail/Widget.h
         src/Box.cpp
         src/Button.cpp
         src/Grid.cpp
         src/ImageButton.cpp
         src/Layer.cpp
+        src/MetaBox.cpp
         src/TextToken.cpp
         src/TextTokenSeq.cpp
         src/ToggleButtonGroup.cpp

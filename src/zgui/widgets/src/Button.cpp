@@ -1,7 +1,7 @@
 #include <Button.h>
-#include <Widget.h>
 #include <context/Theme.h>
 #include <context/imglog.h>
+#include <detail/Widget.h>
 #include <imgui.h>
 
 #include <string>

@@ -1,5 +1,6 @@
 #pragma once
-#include "Widget.h"
+#include "detail/Widget.h"
+#include "detail/MetaBox.h"
 
 #include <context/Theme.h>
 #include <imgui.h>
@@ -13,15 +14,15 @@
 #include <vector>
 
 namespace widget {
-class Box : public Widget
+class Box : public MetaBox<Box>
 {
-    using SizeType = layout::SizeType;
     using Align = layout::Align;
+    using Orientation = layout::Orientation;
+    using SizeType = layout::SizeType;
 
 public:
     void setup(){};
 
-    constexpr static float s_padding = 16.F;
     Box(const WidgetInit& init);
 
     [[nodiscard]] auto arrange() -> bool override;
@@ -37,8 +38,8 @@ public:
     {
         auto widgetRect = std::make_shared<layout::Rect>();
         auto widgetOrientation = PassiveOrientation() == layout::Orientation::vertical && flipChildrensOrientation
-                                         ? layout::Orientation::horizontal
-                                         : layout::Orientation::vertical;
+                                         ? Orientation::horizontal
+                                         : Orientation::vertical;
         WidgetInit init = {.theme = getThemePtr(),
                            .widgetIdGenerator = getWidgetIdGenerator(),
                            .rect = widgetRect,
@@ -74,10 +75,10 @@ public:
     void start();
     auto numberOfWidgets() const -> std::size_t;
 
-protected:
-    auto calculateSize() const -> WidgetSize override;
+    constexpr static float s_padding = 16.F;
 
 private:
+    auto calculateSize() const -> WidgetSize override;
     enum class Measure {
         width,
         height

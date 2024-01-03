@@ -1,5 +1,5 @@
 #include <Box.h>
-#include <Widget.h>
+#include <detail/Widget.h>
 #include <context/Theme.h>
 #include <context/imglog.h>
 #include <spdlog/spdlog.h>
@@ -18,7 +18,7 @@ namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 namespace widget {
 Box::Box(const WidgetInit& init)
-    : Widget{init}
+    : MetaBox<Box>{init}
     , orientation{init.orientation}
     // , expandWidth{orientation == layout::Orientation::horizontal ? layout::SizeType::width_expand
     //                                                              : layout::SizeType::width_fixed}

@@ -1,6 +1,6 @@
-#include <Widget.h>
 #include <context/Theme.h>
 #include <context/WidgetIdGenerator.h>
+#include <detail/Widget.h>
 #include <spdlog/spdlog.h>
 
 #include <cstddef>

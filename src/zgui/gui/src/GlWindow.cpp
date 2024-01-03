@@ -16,7 +16,7 @@
 #include <spdlog/spdlog.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
-#include <widgets/Widget.h>
+#include <widgets/detail/Widget.h>
 
 #include <kocoro/kocoro.hpp>
 #include <memory>

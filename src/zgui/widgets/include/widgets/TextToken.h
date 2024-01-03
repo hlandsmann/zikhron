@@ -1,5 +1,5 @@
 #pragma once
-#include "Widget.h"
+#include "detail/Widget.h"
 
 #include <annotation/Token.h>
 #include <context/Fonts.h>

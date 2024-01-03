@@ -1,7 +1,7 @@
 #include <Button.h>
 #include <ImageButton.h>
 #include <ToggleButtonGroup.h>
-#include <Widget.h>
+#include <detail/Widget.h>
 #include <context/Texture.h>
 #include <context/imglog.h>
 #include <utils/variant_cast.h>

@@ -1,10 +1,12 @@
 #pragma once
 #include <context/Theme.h>
 #include <context/WidgetIdGenerator.h>
-#include <fmt/format.h>
+#include <fmt/core.h>
+#include <fmt/format.h> // IWYU pragma: export core.h
 #include <imgui.h>
 
 #include <cstddef>
+#include <format>
 #include <magic_enum.hpp>
 #include <memory>
 #include <optional>
@@ -148,6 +150,7 @@ struct fmt::formatter<widget::layout::Align>
         return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(align));
     }
 };
+
 template<>
 struct fmt::formatter<widget::layout::SizeType>
 {
@@ -162,6 +165,7 @@ struct fmt::formatter<widget::layout::SizeType>
         return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(sizeType));
     }
 };
+
 template<>
 struct fmt::formatter<widget::layout::Orientation>
 {
