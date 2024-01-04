@@ -1,6 +1,6 @@
 #pragma once
-#include "detail/Widget.h"
 #include "detail/MetaBox.h"
+#include "detail/Widget.h"
 
 #include <context/Theme.h>
 #include <imgui.h>
@@ -16,9 +16,14 @@
 namespace widget {
 class Box : public MetaBox<Box>
 {
+    friend class MetaBox<Box>;
     using Align = layout::Align;
     using Orientation = layout::Orientation;
     using SizeType = layout::SizeType;
+    enum class Measure {
+        width,
+        height
+    };
 
 public:
     void setup(){};
@@ -33,56 +38,9 @@ public:
     void setPadding(float padding);
     auto getExpandedSize() const -> WidgetSize;
 
-    template<class WidgetType, class... Args>
-    auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
-    {
-        auto widgetRect = std::make_shared<layout::Rect>();
-        auto widgetOrientation = PassiveOrientation() == layout::Orientation::vertical && flipChildrensOrientation
-                                         ? Orientation::horizontal
-                                         : Orientation::vertical;
-        WidgetInit init = {.theme = getThemePtr(),
-                           .widgetIdGenerator = getWidgetIdGenerator(),
-                           .rect = widgetRect,
-                           .orientation = widgetOrientation,
-                           .align = widgetAlign,
-                           .parent = shared_from_this()};
-        auto widget = std::make_shared<WidgetType>(std::move(init));
-        widget->setup(std::forward<Args>(args)...);
-        if constexpr (std::is_same_v<WidgetType, Box>) {
-            widget->setPadding(padding);
-        }
-
-        widgets.push_back(static_cast<std::shared_ptr<Widget>>(widget));
-        rects.push_back(std::move(widgetRect));
-        resetWidgetSize();
-        setArrangeIsNecessary();
-        return widget;
-    }
-
-    template<class WidgetType>
-    auto next() -> WidgetType&
-    {
-        if (!(currentWidgetIt < widgets.end())) {
-            throw std::out_of_range("Bad call of next(). Forgot to call start()?");
-        }
-        auto& result = dynamic_cast<WidgetType&>(**currentWidgetIt);
-        currentWidgetIt++;
-        return result;
-    }
-    [[nodiscard]] auto isLast() const -> bool;
-    void clear();
-    void pop();
-    void start();
-    auto numberOfWidgets() const -> std::size_t;
-
-    constexpr static float s_padding = 16.F;
-
 private:
     auto calculateSize() const -> WidgetSize override;
-    enum class Measure {
-        width,
-        height
-    };
+    auto getChildOrientation() const -> Orientation;
     static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;
     static auto widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType;
     static auto rectPositionProjection(layout::Rect& rect, Measure measure) -> float&;
@@ -109,7 +67,6 @@ private:
     float border{};
     std::vector<std::shared_ptr<Widget>> widgets;
     std::vector<std::shared_ptr<layout::Rect>> rects;
-    std::vector<std::shared_ptr<Widget>>::iterator currentWidgetIt;
 
     std::shared_ptr<layout::Rect> borderedRect;
     float padding{s_padding};

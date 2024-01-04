@@ -1,4 +1,5 @@
 #pragma once
+#include "detail/MetaBox.h"
 #include "detail/Widget.h"
 
 #include <cstddef>
@@ -9,6 +10,7 @@
 namespace widget {
 class Grid : public Widget
 {
+    friend class MetaBox<Grid>;
     using Align = layout::Align;
     using Orientation = layout::Orientation;
     using SizeType = layout::SizeType;

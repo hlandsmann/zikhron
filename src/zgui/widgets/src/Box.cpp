@@ -1,7 +1,7 @@
 #include <Box.h>
-#include <detail/Widget.h>
 #include <context/Theme.h>
 #include <context/imglog.h>
+#include <detail/Widget.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
@@ -81,35 +81,6 @@ auto Box::getExpandedSize() const -> WidgetSize
     return widgetSize;
 }
 
-auto Box::isLast() const -> bool
-{
-    return currentWidgetIt == widgets.end();
-}
-
-void Box::clear()
-{
-    setArrangeIsNecessary();
-    rects.clear();
-    widgets.clear();
-    resetWidgetSize();
-}
-
-void Box::pop()
-{
-    rects.pop_back();
-    widgets.pop_back();
-    resetWidgetSize();
-}
-
-void Box::start()
-{
-    currentWidgetIt = widgets.begin();
-}
-
-auto Box::numberOfWidgets() const -> std::size_t
-{
-    return widgets.size();
-}
 
 auto Box::calculateSize() const -> WidgetSize
 {
@@ -136,6 +107,16 @@ auto Box::calculateSize() const -> WidgetSize
     result.width += border * 2;
     result.height += border * 2;
     return result;
+}
+
+auto Box::getChildOrientation() const -> Orientation
+{
+    if (!flipChildrensOrientation) {
+        return PassiveOrientation();
+    }
+    return PassiveOrientation() == layout::Orientation::vertical
+                   ? Orientation::horizontal
+                   : Orientation::vertical;
 }
 
 auto Box::widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float
@@ -311,7 +292,6 @@ void Box::doLayout(Measure measure)
 
     float cursor1 = cursor0;
     for (const auto& [widget1, widgetRect0] : views::zip(std::span{std::next(widgets.begin()), widgets.end()}, rects)) {
-
         align1 = getNextAlign(align1, widget1->Align()); // old Align is here also align0
 
         cursor1 = cursor0 + widgetSizeProjection(widget0->getWidgetSize(), measure) + padding;
