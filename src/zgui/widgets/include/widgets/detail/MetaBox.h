@@ -63,9 +63,15 @@ public:
 
     constexpr static float s_padding = 16.F;
 
+protected:
+    auto getBorderedRect() const -> layout::Rect;
+    auto getBorder() const -> float;
+    auto getPadding() const -> float;
+
 private:
-    std::vector<std::shared_ptr<Widget>>::iterator currentWidgetIt;
     float padding{s_padding};
+    float border{};
+    std::vector<std::shared_ptr<Widget>>::iterator currentWidgetIt;
 };
 
 } // namespace widget

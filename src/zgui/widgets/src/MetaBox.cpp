@@ -12,6 +12,18 @@ MetaBox<BoxImpl>::MetaBox(const WidgetInit& init)
 {}
 
 template<class BoxImpl>
+void MetaBox<BoxImpl>::setPadding(float _padding)
+{
+    padding = _padding;
+}
+
+template<class BoxImpl>
+void MetaBox<BoxImpl>::setBorder(float _border)
+{
+    border = _border;
+}
+
+template<class BoxImpl>
 void MetaBox<BoxImpl>::pop()
 {
     auto* self = static_cast<BoxImpl*>(this);
@@ -49,6 +61,28 @@ auto MetaBox<BoxImpl>::numberOfWidgets() const -> std::size_t
 {
     auto* self = static_cast<const BoxImpl*>(this);
     return self->widgets.size();
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::getBorderedRect() const -> layout::Rect
+{
+    const auto& rect = Rect();
+    return {.x = rect.x + border,
+            .y = rect.y + border,
+            .width = rect.width - border * 2,
+            .height = rect.height - border * 2};
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::getBorder() const -> float
+{
+    return border;
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::getPadding() const -> float
+{
+    return padding;
 }
 
 template class MetaBox<Box>;

@@ -31,11 +31,9 @@ public:
     Box(const WidgetInit& init);
 
     [[nodiscard]] auto arrange() -> bool override;
-    void setBorder(float border);
     void setOrientationHorizontal();
     void setOrientationVertical();
     void setFlipChildrensOrientation(bool flip);
-    void setPadding(float padding);
     auto getExpandedSize() const -> WidgetSize;
 
 private:
@@ -64,12 +62,9 @@ private:
     layout::Orientation orientation;
     layout::SizeType expandWidth{SizeType::width_expand};
     layout::SizeType expandHeight{SizeType::height_expand};
-    float border{};
     std::vector<std::shared_ptr<Widget>> widgets;
     std::vector<std::shared_ptr<layout::Rect>> rects;
 
-    std::shared_ptr<layout::Rect> borderedRect;
-    float padding{s_padding};
     bool flipChildrensOrientation{true};
 };
 
