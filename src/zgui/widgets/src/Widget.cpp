@@ -12,7 +12,8 @@ Widget::Widget(WidgetInit init)
     , widgetIdGenerator{std::move(init.widgetIdGenerator)}
     , rectPtr{std::move(init.rect)}
     , passiveOrientation{init.orientation}
-    , baseAlign{init.align}
+    , horizontalAlign{init.horizontalAlign}
+    , verticalAlign{init.verticalAlign}
     , parent{std::move(init.parent)}
     , widgetId{widgetIdGenerator->getNextId()}
 {
@@ -54,9 +55,26 @@ auto Widget::PassiveOrientation() const -> layout::Orientation
     return passiveOrientation;
 }
 
-auto Widget::Align() const -> layout::Align
+auto Widget::HorizontalAlign() const -> layout::Align
 {
-    return baseAlign;
+    return horizontalAlign;
+}
+
+void Widget::setHorizontalAlign(layout::Align align)
+{
+    horizontalAlign = align;
+    setArrangeIsNecessary();
+}
+
+auto Widget::VerticalAlign() const -> layout::Align
+{
+    return verticalAlign;
+}
+
+void Widget::setVerticalAlign(layout::Align align)
+{
+    verticalAlign = align;
+    setArrangeIsNecessary();
 }
 
 auto Widget::getWidgetSize() const -> const WidgetSize&
@@ -101,7 +119,7 @@ auto Widget::makeWidgetInit() -> WidgetInit
                        .widgetIdGenerator = widgetIdGenerator,
                        .rect = rectPtr,
                        .orientation = passiveOrientation,
-                       .align = baseAlign,
+                       .horizontalAlign = horizontalAlign,
                        .parent = shared_from_this()};
     return init;
 }

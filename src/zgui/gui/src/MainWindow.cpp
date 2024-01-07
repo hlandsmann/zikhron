@@ -1,4 +1,5 @@
-#include <CardDisplay.h>
+#include <DisplayCard.h>
+#include <DisplayVideo.h>
 #include <MainWindow.h>
 #include <context/Fonts.h>
 #include <context/Texture.h>
@@ -10,8 +11,8 @@
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
 #include <widgets/ToggleButtonGroup.h>
-#include <widgets/detail/Widget.h>
 #include <widgets/Window.h>
+#include <widgets/detail/Widget.h>
 
 #include <initializer_list>
 #include <memory>
@@ -19,7 +20,8 @@
 
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
-                       std::unique_ptr<CardDisplay> _cardDisplay)
+                       std::unique_ptr<DisplayCard> _displayCard,
+                       std::unique_ptr<DisplayVideo> _displayVideo)
     : theme{std::move(_theme)}
     , boxRect{std::make_shared<widget::layout::Rect>()}
     , box{std::make_shared<widget::Box>(widget::WidgetInit{
@@ -27,11 +29,13 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
               .widgetIdGenerator = std::move(widgetIdGenerator),
               .rect = boxRect,
               .orientation = widget::layout::Orientation::horizontal,
-              .align = widget::layout::Align::start,
+              .horizontalAlign = widget::layout::Align::start,
+              .verticalAlign = widget::layout::Align::start,
               .parent = std::weak_ptr<widget::Widget>{}
 
       })}
-    , cardDisplay{std::move(_cardDisplay)}
+    , displayCard{std::move(_displayCard)}
+    , displayVideo{std::move(_displayVideo)}
 {
 }
 
@@ -51,8 +55,8 @@ void MainWindow::doImGui()
 {
     box->start();
     {
-        auto& cardDisplayWindow = box->next<widget::Window>();
-        cardDisplay->displayOnWindow(cardDisplayWindow);
+        auto& displayWindow = box->next<widget::Window>();
+        displayCard->displayOnWindow(displayWindow);
     }
     {
         auto& tabWindow = box->next<widget::Window>();
@@ -80,8 +84,8 @@ void MainWindow::setUp()
     using namespace widget::layout;
 
     box->setPadding(0.F);
-    auto& cardDisplayWin = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
-    cardDisplay->setUp(cardDisplayWin);
+    auto& displayWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
+    displayCard->setUp(displayWindow);
 
     auto& window = *box->add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
     window.getBox().setOrientationVertical();

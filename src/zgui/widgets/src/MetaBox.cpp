@@ -1,9 +1,13 @@
 #include <Box.h>
 #include <Grid.h>
+#include <Layer.h>
 #include <detail/MetaBox.h>
 #include <detail/Widget.h>
 
 #include <cstddef>
+#include <memory>
+#include <utility>
+#include <vector>
 
 namespace widget {
 template<class BoxImpl>
@@ -85,5 +89,64 @@ auto MetaBox<BoxImpl>::getPadding() const -> float
     return padding;
 }
 
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::getWidgetAlign(const Widget& widget, Measure measure) -> Align
+{
+    switch (measure) {
+    case Measure::horizontal:
+        return widget.HorizontalAlign();
+    case Measure::vertical:
+        return widget.VerticalAlign();
+    }
+    std::unreachable();
+}
+
+template<class BoxImpl>
+void MetaBox<BoxImpl>::setWidgetAlign(Widget& widget, Measure measure, Align align)
+{
+    switch (measure) {
+    case Measure::horizontal:
+        widget.setHorizontalAlign(align);
+        break;
+    case Measure::vertical:
+        widget.setVerticalAlign(align);
+        break;
+    }
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float
+{
+    switch (measure) {
+    case Measure::horizontal:
+        return widgetSize.width;
+    case Measure::vertical:
+        return widgetSize.height;
+    }
+    std::unreachable();
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
+                                          std::vector<std::shared_ptr<Widget>>::const_iterator last,
+                                          Measure measure)
+        -> float
+{
+    if (first == last) {
+        return 0.0F;
+    }
+    return widgetSizeProjection(
+            (*std::max_element(first, last,
+                               [measure](const std::shared_ptr<Widget>& widget_a,
+                                         const std::shared_ptr<Widget>& widget_b) -> bool {
+                                   return widgetSizeProjection(widget_a->getWidgetSize(), measure)
+                                          < widgetSizeProjection(widget_b->getWidgetSize(), measure);
+                               }))
+                    ->getWidgetSize(),
+            measure);
+}
+
 template class MetaBox<Box>;
+template class MetaBox<Grid>;
+template class MetaBox<Layer>;
 } // namespace widget

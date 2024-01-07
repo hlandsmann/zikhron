@@ -64,7 +64,8 @@ struct WidgetInit
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     std::shared_ptr<layout::Rect> rect;
     layout::Orientation orientation;
-    layout::Align align;
+    layout::Align horizontalAlign;
+    layout::Align verticalAlign;
     std::weak_ptr<Widget> parent;
 };
 
@@ -110,7 +111,10 @@ public:
     [[nodiscard]] auto getWidgetId() const -> int;
     [[nodiscard]] auto dropWidgetId() const -> context::WidgetIdDrop;
     [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
-    [[nodiscard]] auto Align() const -> layout::Align;
+    [[nodiscard]] auto HorizontalAlign() const -> layout::Align;
+    void setHorizontalAlign(layout::Align);
+    [[nodiscard]] auto VerticalAlign() const -> layout::Align;
+    void setVerticalAlign(layout::Align);
     [[nodiscard]] auto getWidgetSize() const -> const WidgetSize&;
     void resetWidgetSize();
 
@@ -127,7 +131,8 @@ private:
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     std::shared_ptr<layout::Rect> rectPtr;
     layout::Orientation passiveOrientation;
-    layout::Align baseAlign;
+    layout::Align horizontalAlign;
+    layout::Align verticalAlign;
     std::weak_ptr<Widget> parent;
     mutable std::optional<WidgetSize> optWidgetSize;
     bool arrangeNecessary{true};

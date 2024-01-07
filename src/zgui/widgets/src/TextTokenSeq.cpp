@@ -106,7 +106,7 @@ auto TextTokenSeq::arrange() -> bool
             line = lines->add<Box>(Align::start);
             addTextToken(*line, token);
         }
-        spdlog::info("{}", token.getValue());
+        // spdlog::info("{}", token.getValue());
     }
     // spdlog::warn("width: {}", width);
     // resetWidgetSize();

@@ -20,7 +20,8 @@ void Window::setup(layout::SizeType _sizeTypeWidth,
                                            .widgetIdGenerator = getWidgetIdGenerator(),
                                            .rect = boxRect,
                                            .orientation = PassiveOrientation(),
-                                           .align = layout::Align::start,
+                                           .horizontalAlign = layout::Align::start,
+                                           .verticalAlign = layout::Align::start,
                                            .parent = std::weak_ptr{shared_from_this()}});
     sizeTypeWidth = _sizeTypeWidth;
     sizeTypeHeight = _sizeTypeHeight;

@@ -7,6 +7,7 @@
 #include <utility>
 #include <vector>
 namespace widget {
+
 template<class BoxImpl>
 class MetaBox : public Widget
 {
@@ -29,7 +30,8 @@ public:
                            .widgetIdGenerator = getWidgetIdGenerator(),
                            .rect = widgetRect,
                            .orientation = self->getChildOrientation(),
-                           .align = widgetAlign,
+                           .horizontalAlign = self->newWidgetAlign(widgetAlign, Measure::horizontal),
+                           .verticalAlign = self->newWidgetAlign(widgetAlign, Measure::vertical),
                            .parent = shared_from_this()};
         auto widget = std::make_shared<WidgetType>(std::move(init));
         widget->setup(std::forward<Args>(args)...);
@@ -67,6 +69,17 @@ protected:
     auto getBorderedRect() const -> layout::Rect;
     auto getBorder() const -> float;
     auto getPadding() const -> float;
+
+    enum class Measure {
+        horizontal,
+        vertical
+    };
+    static auto getWidgetAlign(const Widget& widget, Measure measure) -> Align;
+    static void setWidgetAlign(Widget& widget, Measure measure, Align align);
+    static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;
+    static auto max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
+                                   std::vector<std::shared_ptr<Widget>>::const_iterator last,
+                                   Measure measure) -> float;
 
 private:
     float padding{s_padding};

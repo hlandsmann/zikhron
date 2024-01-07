@@ -10,10 +10,10 @@
 #include <map>
 #include <memory>
 
-class CardDisplay
+class DisplayCard
 {
 public:
-    CardDisplay(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
+    DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                 std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
     void setUp(widget::Window& window);
     void displayOnWindow(widget::Window& window);

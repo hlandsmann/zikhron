@@ -16,12 +16,14 @@ public:
         logMessages.push_back(std::move(logMessage));
     }
 
-    static void renderLogMessages()
+    static void renderLogMessages(bool render)
     {
         ImGui::Begin("logwindow", nullptr,
                      0);
-        for (const auto& logMessage : logMessages) {
-            ImGui::Text("%s", logMessage.c_str());
+        if (render) {
+            for (const auto& logMessage : logMessages) {
+                ImGui::Text("%s", logMessage.c_str());
+            }
         }
         logMessages.clear();
         ImGui::End();

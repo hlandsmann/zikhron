@@ -1,18 +1,18 @@
-#include <CardDisplay.h>
+#include <DisplayCard.h>
 #include <context/imglog.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/TextTokenSeq.h>
-#include <widgets/detail/Widget.h>
 #include <widgets/Window.h>
+#include <widgets/detail/Widget.h>
 
 #include <kocoro/kocoro.hpp>
 #include <memory>
 #include <utility>
 
-CardDisplay::CardDisplay(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
+DisplayCard::DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                          std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
     : executor{std::move(_synchronousExecutor)}
     , signalVocIdEase{executor->makeVolatileSignal<VocableId_Ease>()}
@@ -25,7 +25,7 @@ CardDisplay::CardDisplay(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-void CardDisplay::setUp(widget::Window& window)
+void DisplayCard::setUp(widget::Window& window)
 {
     using Align = widget::layout::Align;
     auto& box = window.getBox();
@@ -36,7 +36,7 @@ void CardDisplay::setUp(widget::Window& window)
     spdlog::info("setUp");
 }
 
-void CardDisplay::displayOnWindow(widget::Window& window)
+void DisplayCard::displayOnWindow(widget::Window& window)
 {
     auto droppedWindow = window.dropWindow();
 
@@ -56,7 +56,7 @@ void CardDisplay::displayOnWindow(widget::Window& window)
     // }
 }
 
-auto CardDisplay::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
+auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     using Align = widget::layout::Align;
     auto& cardBox = *co_await *signalCardBox;

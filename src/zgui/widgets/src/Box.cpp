@@ -30,9 +30,9 @@ Box::Box(const WidgetInit& init)
 auto Box::arrange() -> bool
 {
     if (orientation == layout::Orientation::horizontal) {
-        doLayout(Measure::width);
+        doLayout(Measure::horizontal);
     } else {
-        doLayout(Measure::height);
+        doLayout(Measure::vertical);
     }
     bool needArrange = false;
     for (const auto& widget : widgets) {
@@ -56,6 +56,11 @@ void Box::setFlipChildrensOrientation(bool flip)
     flipChildrensOrientation = flip;
 }
 
+void Box::setOrthogonalAlign(Align align)
+{
+    orthogonalAlign = align;
+}
+
 auto Box::getExpandedSize() const -> WidgetSize
 {
     const auto& rect = getBorderedRect();
@@ -74,16 +79,16 @@ auto Box::calculateSize() const -> WidgetSize
         result = {
                 .widthType = expandWidth,
                 .heightType = expandHeight,
-                .width = accumulateMeasure(widgets.begin(), widgets.end(), Measure::width),
-                .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::height),
+                .width = accumulateMeasure(widgets.begin(), widgets.end(), Measure::horizontal),
+                .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::vertical),
         };
         break;
     case Orientation::vertical:
         result = {
                 .widthType = expandWidth,
                 .heightType = expandHeight,
-                .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::width),
-                .height = accumulateMeasure(widgets.begin(), widgets.end(), Measure::height)};
+                .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::horizontal),
+                .height = accumulateMeasure(widgets.begin(), widgets.end(), Measure::vertical)};
 
         break;
     }
@@ -102,23 +107,21 @@ auto Box::getChildOrientation() const -> Orientation
                    : Orientation::vertical;
 }
 
-auto Box::widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float
+auto Box::newWidgetAlign(Align align, Measure measure) const -> Align
 {
-    switch (measure) {
-    case Measure::width:
-        return widgetSize.width;
-    case Measure::height:
-        return widgetSize.height;
+    if ((PassiveOrientation() == Orientation::horizontal && measure == Measure::horizontal)
+        || (PassiveOrientation() == Orientation::vertical && measure == Measure::vertical)) {
+        return align;
     }
-    std::unreachable();
+    return orthogonalAlign;
 }
 
 auto Box::widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType
 {
     switch (measure) {
-    case Measure::width:
+    case Measure::horizontal:
         return widgetSize.widthType;
-    case Measure::height:
+    case Measure::vertical:
         return widgetSize.heightType;
     }
     std::unreachable();
@@ -127,9 +130,9 @@ auto Box::widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure
 auto Box::rectPositionProjection(layout::Rect& rect, Measure measure) -> float&
 {
     switch (measure) {
-    case Measure::width:
+    case Measure::horizontal:
         return rect.x;
-    case Measure::height:
+    case Measure::vertical:
         return rect.y;
     }
     std::unreachable();
@@ -138,31 +141,12 @@ auto Box::rectPositionProjection(layout::Rect& rect, Measure measure) -> float&
 auto Box::rectSizeProjection(layout::Rect& rect, Measure measure) -> float&
 {
     switch (measure) {
-    case Measure::width:
+    case Measure::horizontal:
         return rect.width;
-    case Measure::height:
+    case Measure::vertical:
         return rect.height;
     }
     std::unreachable();
-}
-
-auto Box::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
-                             std::vector<std::shared_ptr<Widget>>::const_iterator last,
-                             Measure measure)
-        -> float
-{
-    if (first == last) {
-        return 0.0F;
-    }
-    return widgetSizeProjection(
-            (*std::max_element(first, last,
-                               [measure](const std::shared_ptr<Widget>& widget_a,
-                                         const std::shared_ptr<Widget>& widget_b) -> bool {
-                                   return widgetSizeProjection(widget_a->getWidgetSize(), measure)
-                                          < widgetSizeProjection(widget_b->getWidgetSize(), measure);
-                               }))
-                    ->getWidgetSize(),
-            measure);
 }
 
 auto Box::accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
@@ -258,17 +242,17 @@ void Box::doLayout(Measure measure)
     setChildWidgetsInitialRect();
 
     auto centerIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
-        return widgetPtr->Align() == Align::center
-               || widgetPtr->Align() == Align::end;
+        return widgetPtr->HorizontalAlign() == Align::center
+               || widgetPtr->HorizontalAlign() == Align::end;
     });
     auto endIt = ranges::find_if(widgets, [](const auto& widgetPtr) {
-        return widgetPtr->Align() == Align::end;
+        return widgetPtr->HorizontalAlign() == Align::end;
     });
     auto borderedRect = getBorderedRect();
     float centerSize = accumulateMeasure(centerIt, widgets.end(), measure);
     float endSize = accumulateMeasure(endIt, widgets.end(), measure);
     auto widget0 = widgets.front();
-    Align align0 = getNextAlign(Align::start, widget0->Align());
+    Align align0 = getNextAlign(Align::start, widget0->HorizontalAlign());
     Align align1 = align0;
     float cursor0 = getWidgetNewCursor(align0,
                                        rectPositionProjection(borderedRect, measure),
@@ -278,7 +262,7 @@ void Box::doLayout(Measure measure)
 
     float cursor1 = cursor0;
     for (const auto& [widget1, widgetRect0] : views::zip(std::span{std::next(widgets.begin()), widgets.end()}, rects)) {
-        align1 = getNextAlign(align1, widget1->Align()); // old Align is here also align0
+        align1 = getNextAlign(align1, widget1->HorizontalAlign()); // old Align is here also align0
 
         cursor1 = cursor0 + widgetSizeProjection(widget0->getWidgetSize(), measure) + getPadding();
         cursor1 = getWidgetNewCursor(align1, cursor1, *widget1, centerSize, endSize, measure);
