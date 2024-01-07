@@ -37,9 +37,24 @@ auto Layer::calculateSize() const -> WidgetSize
     return {
             .widthType = expandWidth,
             .heightType = expandHeight,
-            .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::horizontal),
-            .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::vertical),
+            .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::standard),
+            .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::standard),
     };
+}
+
+auto Layer::calculateMinSize() const -> WidgetSize
+{
+    return {
+            .widthType = expandWidth,
+            .heightType = expandHeight,
+            .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::min),
+            .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::min),
+    };
+}
+
+auto Layer::getChildOrientation() const -> Orientation
+{
+    return PassiveOrientation();
 }
 
 auto Layer::newWidgetAlign(Align align, Measure measure) const -> Align
@@ -70,18 +85,18 @@ auto Layer::sizeNewWidget(const Widget& widget, const Rect& borderedRect, Measur
     switch (measure) {
     case Measure::horizontal:
         switch (widgetSize.widthType) {
-        case SizeType::expand:
+        case ExpandType::expand:
             return widgetSize.width;
-        case SizeType::fixed:
+        case ExpandType::fixed:
             return borderedRect.width;
         }
         break;
 
     case Measure::vertical:
         switch (widgetSize.heightType) {
-        case SizeType::expand:
+        case ExpandType::expand:
             return widgetSize.height;
-        case SizeType::fixed:
+        case ExpandType::fixed:
             return borderedRect.height;
         }
         break;
@@ -95,9 +110,9 @@ auto Layer::posNewWidget(const Widget& widget, const Rect& borderedRect, Measure
     switch (measure) {
     case Measure::horizontal:
         switch (widgetSize.widthType) {
-        case SizeType::expand:
+        case ExpandType::expand:
             return borderedRect.x;
-        case SizeType::fixed:
+        case ExpandType::fixed:
             switch (widget.HorizontalAlign()) {
             case Align::start:
                 return borderedRect.x;
@@ -111,9 +126,9 @@ auto Layer::posNewWidget(const Widget& widget, const Rect& borderedRect, Measure
 
     case Measure::vertical:
         switch (widgetSize.heightType) {
-        case SizeType::expand:
+        case ExpandType::expand:
             return borderedRect.y;
-        case SizeType::fixed:
+        case ExpandType::fixed:
             switch (widget.HorizontalAlign()) {
             case Align::start:
                 return borderedRect.y;

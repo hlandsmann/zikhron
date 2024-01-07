@@ -1,30 +1,34 @@
 #include <Box.h>
+#include <Layer.h>
 #include <Window.h>
 #include <context/Theme.h>
 #include <context/imglog.h>
 #include <detail/Widget.h>
 #include <imgui.h>
 
+#include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
 
 namespace widget {
-void Window::setup(layout::SizeType _sizeTypeWidth,
-                   layout::SizeType _sizeTypeHeight,
+void Window::setup(layout::ExpandType _expandTypeWidth,
+                   layout::ExpandType _expandTypeHeight,
                    std::string _name)
 {
-    boxRect = std::make_shared<layout::Rect>();
+    layerRect = std::make_shared<layout::Rect>();
     // box = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
-    box = std::make_shared<Box>(WidgetInit{.theme = getThemePtr(),
+    layer = std::make_shared<Layer>(WidgetInit{.theme = getThemePtr(),
                                            .widgetIdGenerator = getWidgetIdGenerator(),
-                                           .rect = boxRect,
+                                           .rect = layerRect,
                                            .orientation = PassiveOrientation(),
-                                           .horizontalAlign = layout::Align::start,
-                                           .verticalAlign = layout::Align::start,
+                                           .horizontalAlign = Align::start,
+                                           .verticalAlign = Align::start,
                                            .parent = std::weak_ptr{shared_from_this()}});
-    sizeTypeWidth = _sizeTypeWidth;
-    sizeTypeHeight = _sizeTypeHeight;
+    
+    layer->add<Box>(Align::start);
+    expandTypeWidth = _expandTypeWidth;
+    expandTypeHeight = _expandTypeHeight;
     name = std::move(_name);
 }
 
@@ -40,22 +44,27 @@ auto Window::dropWindow() -> WindowDrop
 
 auto Window::arrange() -> bool
 {
-    *boxRect = Rect();
-    boxRect->x = 0;
-    boxRect->y = 0;
-    return box->arrange();
+    *layerRect = Rect();
+    layerRect->x = 0;
+    layerRect->y = 0;
+    return layer->arrange();
 }
 
 auto Window::getBox() -> Box&
 {
-    return *box;
+    return getBox(0);
+}
+
+auto Window::getBox(std::size_t index) -> Box&
+{
+    return layer->getLayer<Box>(index);
 }
 
 auto Window::calculateSize() const -> WidgetSize
 {
-    auto size = box->getWidgetSize();
-    return {.widthType = sizeTypeWidth,
-            .heightType = sizeTypeHeight,
+    auto size = layer->getWidgetSize();
+    return {.widthType = expandTypeWidth,
+            .heightType = expandTypeHeight,
             .width = size.width,
             .height = size.height};
 }

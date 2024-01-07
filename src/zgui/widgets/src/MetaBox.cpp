@@ -129,7 +129,7 @@ auto MetaBox<BoxImpl>::widgetSizeProjection(const WidgetSize& widgetSize, Measur
 template<class BoxImpl>
 auto MetaBox<BoxImpl>::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                                           std::vector<std::shared_ptr<Widget>>::const_iterator last,
-                                          Measure measure)
+                                          Measure measure, SizeType sizeType)
         -> float
 {
     if (first == last) {
@@ -137,10 +137,17 @@ auto MetaBox<BoxImpl>::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::
     }
     return widgetSizeProjection(
             (*std::max_element(first, last,
-                               [measure](const std::shared_ptr<Widget>& widget_a,
-                                         const std::shared_ptr<Widget>& widget_b) -> bool {
-                                   return widgetSizeProjection(widget_a->getWidgetSize(), measure)
-                                          < widgetSizeProjection(widget_b->getWidgetSize(), measure);
+                               [measure, sizeType](const std::shared_ptr<Widget>& widget_a,
+                                                   const std::shared_ptr<Widget>& widget_b) -> bool {
+                                   switch (sizeType) {
+                                   case SizeType::min:
+                                       return widgetSizeProjection(widget_a->getWidgetMinSize(), measure)
+                                              < widgetSizeProjection(widget_b->getWidgetMinSize(), measure);
+                                   case SizeType::standard:
+                                       return widgetSizeProjection(widget_a->getWidgetSize(), measure)
+                                              < widgetSizeProjection(widget_b->getWidgetSize(), measure);
+                                   }
+                                   std::unreachable();
                                }))
                     ->getWidgetSize(),
             measure);

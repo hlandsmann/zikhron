@@ -29,4 +29,8 @@ auto Grid::calculateSize() const -> WidgetSize
 {
     return {};
 }
+auto Grid::calculateMinSize() const -> WidgetSize
+{
+    return {};
+}
 } // namespace widget

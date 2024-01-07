@@ -85,12 +85,26 @@ auto Widget::getWidgetSize() const -> const WidgetSize&
     return optWidgetSize.emplace(calculateSize());
 }
 
+auto Widget::getWidgetMinSize() const -> const WidgetSize&
+{
+    if (optWidgetMinSize.has_value()) {
+        return *optWidgetMinSize;
+    }
+    return optWidgetMinSize.emplace(calculateMinSize());
+}
+
 void Widget::resetWidgetSize()
 {
     if (auto parentPtr = parent.lock()) {
         parentPtr->resetWidgetSize();
     }
     optWidgetSize.reset();
+    optWidgetMinSize.reset();
+}
+
+auto Widget::calculateMinSize() const -> WidgetSize
+{
+    return calculateSize();
 }
 
 auto Widget::getThemePtr() const -> std::shared_ptr<context::Theme>

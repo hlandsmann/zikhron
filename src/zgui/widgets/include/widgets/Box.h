@@ -15,7 +15,7 @@ class Box : public MetaBox<Box>
     friend class MetaBox<Box>;
     using Align = layout::Align;
     using Orientation = layout::Orientation;
-    using SizeType = layout::SizeType;
+    using ExpandType = layout::ExpandType;
 
 public:
     void setup(){};
@@ -29,19 +29,21 @@ public:
     auto getExpandedSize() const -> WidgetSize;
 
 private:
+    [[nodiscard]] auto calculateSize(SizeType sizeType) const -> WidgetSize;
     [[nodiscard]] auto calculateSize() const -> WidgetSize override;
+    [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
 
     /* shared functions via MetaBox */
     [[nodiscard]] auto getChildOrientation() const -> Orientation;
     auto newWidgetAlign(Align align, Measure measure) const -> Align;
 
     /* Box internal functions */
-    static auto widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType;
+    static auto widgetExpandTypeProjection(const WidgetSize& widgetSize, Measure measure) -> ExpandType;
     static auto rectPositionProjection(layout::Rect& rect, Measure measure) -> float&;
     static auto rectSizeProjection(layout::Rect& rect, Measure measure) -> float&;
     auto accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                            std::vector<std::shared_ptr<Widget>>::const_iterator last,
-                           Measure measure) const -> float;
+                           Measure measure, SizeType sizeType) const -> float;
     static auto getNextAlign(Align oldAlign, Align nextAlign);
     auto getWidgetNewCursor(Align align, float cursor, const Widget& widget,
                             float centerSize, float endSize, Measure measure) const -> float;
@@ -58,8 +60,8 @@ private:
 
     /* Box internal Members */
     layout::Orientation orientation;
-    layout::SizeType expandWidth{SizeType::width_expand};
-    layout::SizeType expandHeight{SizeType::height_expand};
+    layout::ExpandType expandWidth{ExpandType::width_expand};
+    layout::ExpandType expandHeight{ExpandType::height_expand};
     layout::Align orthogonalAlign{Align::start};
 
     bool flipChildrensOrientation{true};

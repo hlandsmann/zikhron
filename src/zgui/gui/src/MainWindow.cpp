@@ -10,6 +10,7 @@
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
+#include <widgets/Layer.h>
 #include <widgets/ToggleButtonGroup.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
@@ -55,8 +56,10 @@ void MainWindow::doImGui()
 {
     box->start();
     {
-        auto& displayWindow = box->next<widget::Window>();
-        displayCard->displayOnWindow(displayWindow);
+        box->next<widget::Layer>();
+        // auto& displayWindow = box->next<widget::Window>();
+        // displayCard->displayOnWindow(displayWindow);
+        // auto drop = displayWindow.dropWindow();
     }
     {
         auto& tabWindow = box->next<widget::Window>();
@@ -84,8 +87,10 @@ void MainWindow::setUp()
     using namespace widget::layout;
 
     box->setPadding(0.F);
-    auto& displayWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
-    displayCard->setUp(displayWindow);
+    box->add<widget::Layer>(Align::start);
+
+    // auto& displayWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
+    // displayCard->setUp(displayWindow);
 
     auto& window = *box->add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
     window.getBox().setOrientationVertical();

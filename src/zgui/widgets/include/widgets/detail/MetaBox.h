@@ -13,7 +13,7 @@ class MetaBox : public Widget
 {
     using Align = layout::Align;
     using Orientation = layout::Orientation;
-    using SizeType = layout::SizeType;
+    using ExpandType = layout::ExpandType;
 
 public:
     MetaBox(const WidgetInit& init);
@@ -66,10 +66,15 @@ public:
     constexpr static float s_padding = 16.F;
 
 protected:
+    auto calculateMinSize() const -> WidgetSize override = 0;
     auto getBorderedRect() const -> layout::Rect;
     auto getBorder() const -> float;
     auto getPadding() const -> float;
 
+    enum class SizeType {
+        min,
+        standard,
+    };
     enum class Measure {
         horizontal,
         vertical
@@ -79,7 +84,7 @@ protected:
     static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;
     static auto max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                                    std::vector<std::shared_ptr<Widget>>::const_iterator last,
-                                   Measure measure) -> float;
+                                   Measure measure, SizeType) -> float;
 
 private:
     float padding{s_padding};

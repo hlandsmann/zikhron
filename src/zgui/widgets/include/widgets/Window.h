@@ -1,11 +1,13 @@
 #pragma once
 #include "Box.h"
+#include "Layer.h"
 #include "detail/Widget.h"
 
 #include <context/Drop.h>
 #include <context/Theme.h>
 #include <imgui.h>
 
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -15,9 +17,10 @@ class WindowDrop;
 
 class Window : public Widget
 {
+  using Align = layout::Align;
 public:
-    void setup(layout::SizeType sizeTypeWidth,
-               layout::SizeType sizeTypeHeight,
+    void setup(layout::ExpandType expandTypeWidth,
+               layout::ExpandType expandTypeHeight,
                std::string name);
     Window(const WidgetInit& init);
     ~Window() override = default;
@@ -30,15 +33,16 @@ public:
     [[nodiscard]] auto dropWindow() -> WindowDrop;
     [[nodiscard]] auto arrange() -> bool override;
     [[nodiscard]] auto getBox() -> Box&;
+    [[nodiscard]] auto getBox(std::size_t index) -> Box&;
 
 protected:
     auto calculateSize() const -> WidgetSize override;
 
 private:
-    std::shared_ptr<Box> box;
-    std::shared_ptr<layout::Rect> boxRect;
-    layout::SizeType sizeTypeWidth{};
-    layout::SizeType sizeTypeHeight{};
+    std::shared_ptr<Layer> layer;
+    std::shared_ptr<layout::Rect> layerRect;
+    layout::ExpandType expandTypeWidth{};
+    layout::ExpandType expandTypeHeight{};
 
     std::string name;
 };

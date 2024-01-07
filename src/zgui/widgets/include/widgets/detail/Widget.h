@@ -33,7 +33,7 @@ enum class Align {
     center,
     end
 };
-enum class SizeType {
+enum class ExpandType {
     fixed,
     width_fixed = fixed,
     height_fixed = fixed,
@@ -41,17 +41,17 @@ enum class SizeType {
     width_expand = expand,
     height_expand = expand,
 };
-static auto constexpr width_fixed = SizeType::width_fixed;
-static auto constexpr height_fixed = SizeType::height_fixed;
-static auto constexpr width_expand = SizeType::width_expand;
-static auto constexpr height_expand = SizeType::height_expand;
+static auto constexpr width_fixed = ExpandType::width_fixed;
+static auto constexpr height_fixed = ExpandType::height_fixed;
+static auto constexpr width_expand = ExpandType::width_expand;
+static auto constexpr height_expand = ExpandType::height_expand;
 } // namespace layout
 
 struct WidgetSize
 {
-    using SizeType = layout::SizeType;
-    SizeType widthType{SizeType::fixed};
-    SizeType heightType{SizeType::fixed};
+    using ExpandType = layout::ExpandType;
+    ExpandType widthType{ExpandType::fixed};
+    ExpandType heightType{ExpandType::fixed};
     float width{};
     float height{};
 };
@@ -116,10 +116,12 @@ public:
     [[nodiscard]] auto VerticalAlign() const -> layout::Align;
     void setVerticalAlign(layout::Align);
     [[nodiscard]] auto getWidgetSize() const -> const WidgetSize&;
+    [[nodiscard]] auto getWidgetMinSize() const -> const WidgetSize&;
     void resetWidgetSize();
 
 protected:
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
+    [[nodiscard]] virtual auto calculateMinSize() const -> WidgetSize;
     [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;
     [[nodiscard]] auto getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGenerator>;
     [[nodiscard]] auto Rect() const -> const layout::Rect&;
@@ -135,6 +137,7 @@ private:
     layout::Align verticalAlign;
     std::weak_ptr<Widget> parent;
     mutable std::optional<WidgetSize> optWidgetSize;
+    mutable std::optional<WidgetSize> optWidgetMinSize;
     bool arrangeNecessary{true};
     int widgetId;
 };
@@ -157,7 +160,7 @@ struct fmt::formatter<widget::layout::Align>
 };
 
 template<>
-struct fmt::formatter<widget::layout::SizeType>
+struct fmt::formatter<widget::layout::ExpandType>
 {
     template<typename ParseContext>
     constexpr auto parse(ParseContext& ctx)
@@ -165,9 +168,9 @@ struct fmt::formatter<widget::layout::SizeType>
         return ctx.begin();
     }
     template<typename FormatContext>
-    auto format(widget::layout::SizeType sizeType, FormatContext& ctx)
+    auto format(widget::layout::ExpandType expandType, FormatContext& ctx)
     {
-        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(sizeType));
+        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(expandType));
     }
 };
 

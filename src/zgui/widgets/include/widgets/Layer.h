@@ -12,7 +12,7 @@ class Layer : public MetaBox<Layer>
     friend class MetaBox<Layer>;
     using Align = layout::Align;
     using Orientation = layout::Orientation;
-    using SizeType = layout::SizeType;
+    using ExpandType = layout::ExpandType;
     using Rect = layout::Rect;
 
 public:
@@ -29,7 +29,8 @@ public:
     }
 
 private:
-    auto calculateSize() const -> WidgetSize override;
+    [[nodiscard]] auto calculateSize() const -> WidgetSize override;
+    [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
 
     /* shared functions via MetaBox */
     [[nodiscard]] auto getChildOrientation() const -> Orientation;
@@ -45,8 +46,8 @@ private:
     std::vector<std::shared_ptr<layout::Rect>> rects;
 
     /* Layer internal Members */
-    layout::SizeType expandWidth{SizeType::width_expand};
-    layout::SizeType expandHeight{SizeType::height_expand};
+    layout::ExpandType expandWidth{ExpandType::width_expand};
+    layout::ExpandType expandHeight{ExpandType::height_expand};
 
     Align alignNewWidgetsVertical{Align::start};
 };

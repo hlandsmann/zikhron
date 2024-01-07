@@ -13,7 +13,7 @@ class Grid : public MetaBox<Grid>
     friend class MetaBox<Grid>;
     using Align = layout::Align;
     using Orientation = layout::Orientation;
-    using SizeType = layout::SizeType;
+    using ExpandType = layout::ExpandType;
 
 public:
     void setup(std::size_t rows);
@@ -22,7 +22,8 @@ public:
     [[nodiscard]] auto arrange() -> bool override;
 
 private:
-    auto calculateSize() const -> WidgetSize override;
+    [[nodiscard]] auto calculateSize() const -> WidgetSize override;
+    [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
 
     /* shared functions via MetaBox */
     [[nodiscard]] auto getChildOrientation() const -> Orientation;

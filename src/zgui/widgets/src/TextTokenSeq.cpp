@@ -40,10 +40,10 @@ auto TextTokenSeq::calculateSize() const -> WidgetSize
     // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
     // return lines->getWidgetSize();
     auto widgetSize = lines->getWidgetSize();
-    widgetSize.heightType = layout::SizeType::expand;
-    widgetSize.widthType = layout::SizeType::expand;
-    widgetSize.width = 1.F;
-    widgetSize.height = 1.F;
+    widgetSize.heightType = layout::ExpandType::expand;
+    widgetSize.widthType = layout::ExpandType::expand;
+    // widgetSize.width = 1.F;
+    // widgetSize.height = 1.F;
     return widgetSize;
 }
 
@@ -95,6 +95,7 @@ auto TextTokenSeq::arrange() -> bool
     // auto width = lines->getWidgetSize().width;
     // spdlog::critical("x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
     imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    spdlog::info("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     lines->clear();
     auto line = lines->add<Box>(Align::start);
     for (const auto& token : paragraph) {
