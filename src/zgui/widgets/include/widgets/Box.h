@@ -6,11 +6,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-#include <cstddef>
 #include <memory>
-#include <stdexcept>
-#include <type_traits>
-#include <utility>
 #include <vector>
 
 namespace widget {
@@ -23,7 +19,6 @@ class Box : public MetaBox<Box>
 
 public:
     void setup(){};
-
     Box(const WidgetInit& init);
 
     [[nodiscard]] auto arrange() -> bool override;
@@ -35,8 +30,12 @@ public:
 
 private:
     [[nodiscard]] auto calculateSize() const -> WidgetSize override;
+
+    /* shared functions via MetaBox */
     [[nodiscard]] auto getChildOrientation() const -> Orientation;
     auto newWidgetAlign(Align align, Measure measure) const -> Align;
+
+    /* Box internal functions */
     static auto widgetSizeTypeProjection(const WidgetSize& widgetSize, Measure measure) -> SizeType;
     static auto rectPositionProjection(layout::Rect& rect, Measure measure) -> float&;
     static auto rectSizeProjection(layout::Rect& rect, Measure measure) -> float&;
@@ -53,12 +52,15 @@ private:
     void setChildWidgetsInitialRect();
     void doLayout(Measure measure);
 
+    /* shared members via MetaBox */
+    std::vector<std::shared_ptr<Widget>> widgets;
+    std::vector<std::shared_ptr<layout::Rect>> rects;
+
+    /* Box internal Members */
     layout::Orientation orientation;
     layout::SizeType expandWidth{SizeType::width_expand};
     layout::SizeType expandHeight{SizeType::height_expand};
     layout::Align orthogonalAlign{Align::start};
-    std::vector<std::shared_ptr<Widget>> widgets;
-    std::vector<std::shared_ptr<layout::Rect>> rects;
 
     bool flipChildrensOrientation{true};
 };

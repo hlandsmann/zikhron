@@ -23,11 +23,21 @@ public:
 
 private:
     auto calculateSize() const -> WidgetSize override;
+
+    /* shared functions via MetaBox */
+    [[nodiscard]] auto getChildOrientation() const -> Orientation;
+    auto newWidgetAlign(Align align, Measure measure) const -> Align;
+
+    /* Grid internal functions */
     auto getRowHeight(std::size_t row) const -> float;
     auto getColumnWidth(std::size_t column) const -> float;
-    std::size_t rows{};
+
+    /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;
     std::vector<std::shared_ptr<layout::Rect>> rects;
+
+    /* Grid internal Members */
+    std::size_t rows{};
 };
 
 } // namespace widget
