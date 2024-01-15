@@ -21,7 +21,7 @@ public:
     void setup(){};
     Box(const WidgetInit& init);
 
-    [[nodiscard]] auto arrange() -> bool override;
+    [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
     void setOrientationHorizontal();
     void setOrientationVertical();
     void setFlipChildrensOrientation(bool flip);
@@ -39,8 +39,8 @@ private:
 
     /* Box internal functions */
     static auto widgetExpandTypeProjection(const WidgetSize& widgetSize, Measure measure) -> ExpandType;
-    static auto rectPositionProjection(layout::Rect& rect, Measure measure) -> float&;
-    static auto rectSizeProjection(layout::Rect& rect, Measure measure) -> float&;
+    // static auto rectPositionProjection(const layout::Rect& rect, Measure measure) -> float;
+    static auto rectSizeProjection(Measure measure, const layout::Rect& rect) -> float;
     auto accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                            std::vector<std::shared_ptr<Widget>>::const_iterator last,
                            Measure measure, SizeType sizeType) const -> float;
@@ -52,7 +52,25 @@ private:
                           const Widget& widget,
                           Measure measure) const -> float;
     void setChildWidgetsInitialRect();
-    void doLayout(Measure measure);
+
+    [[nodiscard]] static auto widgetNewRect(Measure measure,
+                                            const layout::Rect& rect,
+                                            float pos,
+                                            float size,
+                                            float orthogonalSize,
+                                            const std::shared_ptr<Widget>& widget) -> layout::Rect;
+    [[nodiscard]] static auto rectWithAdaptedSize(Measure measure, const layout::Rect& rect, float size) -> layout::Rect;
+    [[nodiscard]] static auto oppositeMeasure(Measure measure) -> Measure;
+    [[nodiscard]] static auto getSizeOfWidgetSize(Measure measure, WidgetSize widgetSize) -> float;
+    [[nodiscard]] static auto getWidgetAlign(Measure measure, const std::shared_ptr<Widget>& widget) -> Align;
+    [[nodiscard]] static auto getWidgetCursor(Measure measure,
+                                              Align oldAlign,
+                                              Align nextAlign,
+                                              float centerSize, float endSize,
+                                              const layout::Rect& rect,
+                                              float oldCursor) -> float;
+    [[nodiscard]] auto arrange(Measure measure, const layout::Rect& rect) -> bool;
+    [[nodiscard]] auto doLayout(Measure measure, const layout::Rect& rect) -> bool;
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;

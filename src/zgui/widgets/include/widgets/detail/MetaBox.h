@@ -67,7 +67,7 @@ public:
 
 protected:
     auto calculateMinSize() const -> WidgetSize override = 0;
-    auto getBorderedRect() const -> layout::Rect;
+    auto getBorderedRect(const layout::Rect& rect) const -> layout::Rect;
     auto getBorder() const -> float;
     auto getPadding() const -> float;
 

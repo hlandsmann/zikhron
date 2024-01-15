@@ -20,7 +20,7 @@ public:
     void setup(Paragraph paragraph);
     TextTokenSeq(WidgetInit init);
 
-    auto arrange() -> bool override;
+    auto arrange(const layout::Rect& /* rect */) -> bool override;
     void draw();
 
 protected:

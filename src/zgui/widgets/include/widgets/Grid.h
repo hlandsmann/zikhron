@@ -19,7 +19,7 @@ public:
     void setup(std::size_t rows);
     Grid(const WidgetInit& init);
 
-    [[nodiscard]] auto arrange() -> bool override;
+    [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
 
 private:
     [[nodiscard]] auto calculateSize() const -> WidgetSize override;

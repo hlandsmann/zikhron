@@ -104,7 +104,7 @@ public:
     /* Arrange
      * return true if (re)arrange  is necessary
      */
-    virtual auto arrange() -> bool { return false; };
+    virtual auto arrange(const layout::Rect& rect) -> bool ;
     [[nodiscard]] auto arrangeIsNecessary() -> bool;
     void setArrangeIsNecessary();
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
@@ -116,6 +116,7 @@ public:
     [[nodiscard]] auto VerticalAlign() const -> layout::Align;
     void setVerticalAlign(layout::Align);
     [[nodiscard]] auto getWidgetSize() const -> const WidgetSize&;
+    [[nodiscard]] virtual auto getWidgetSize(const layout::Rect&) -> WidgetSize;
     [[nodiscard]] auto getWidgetMinSize() const -> const WidgetSize&;
     void resetWidgetSize();
 
@@ -124,8 +125,8 @@ protected:
     [[nodiscard]] virtual auto calculateMinSize() const -> WidgetSize;
     [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;
     [[nodiscard]] auto getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGenerator>;
-    [[nodiscard]] auto Rect() const -> const layout::Rect&;
-    [[nodiscard]] auto getRectPtr() const -> std::shared_ptr<layout::Rect>;
+    [[nodiscard]] auto getRect() const -> const layout::Rect&;
+    void setRect(const layout::Rect&);
 
 private:
     auto makeWidgetInit() -> WidgetInit;

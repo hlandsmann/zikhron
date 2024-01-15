@@ -4,6 +4,7 @@
 #include <spdlog/spdlog.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
+#include <widgets/Layer.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
@@ -25,35 +26,39 @@ DisplayCard::DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-void DisplayCard::setUp(widget::Window& window)
+void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
 {
-    using Align = widget::layout::Align;
-    auto& box = window.getBox();
-    box.setFlipChildrensOrientation(false);
-    auto cardBox = box.add<widget::Box>(Align::start);
+    auto box = layer->add<widget::Box>(Align::start);
+    auto& window = *box->add<widget::Window>(Align::start, ExpandType::width_expand, ExpandType::height_fixed, "card_text");
+    auto cardBox = window.add<widget::Box>(Align::start);
+    cardBox->setFlipChildrensOrientation(false);
     cardBox->setFlipChildrensOrientation(false);
     signalCardBox->set(cardBox);
     spdlog::info("setUp");
 }
 
-void DisplayCard::displayOnWindow(widget::Window& window)
+void DisplayCard::displayOnWindow(std::shared_ptr<widget::Layer> layer)
 {
+    layer->start();
+    auto box = layer->next<widget::Box>();
+    box.start();
+    auto window = box.next<widget::Window>();
     auto droppedWindow = window.dropWindow();
 
-    auto& box = window.getBox();
-    // auto size = box.getExpandedSize();
-    // auto size = box.getWidgetSize();
-    // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
-    box.start();
-    auto& cardBox = box.next<widget::Box>();
-    cardBox.start();
-    if (!cardBox.isLast()) {
-        cardBox.next<widget::TextTokenSeq>().draw();
-    }
-    // imglog::log("width: {}, height: {}", window.getWidgetSize().width, window.getWidgetSize().height);
-    // while (!cardBox.isLast()) {
-    // cardBox.next<widget::Button>().clicked();
+    // auto& box = window.getBox();
+    // // auto size = box.getExpandedSize();
+    // // auto size = box.getWidgetSize();
+    // // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
+    // box.start();
+    // auto& cardBox = box.next<widget::Box>();
+    // cardBox.start();
+    // if (!cardBox.isLast()) {
+    //     cardBox.next<widget::TextTokenSeq>().draw();
     // }
+    // // imglog::log("width: {}, height: {}", window.getWidgetSize().width, window.getWidgetSize().height);
+    // // while (!cardBox.isLast()) {
+    // // cardBox.next<widget::Button>().clicked();
+    // // }
 }
 
 auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>

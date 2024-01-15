@@ -18,6 +18,11 @@ Widget::Widget(WidgetInit init)
     , widgetId{widgetIdGenerator->getNextId()}
 {
 }
+auto Widget::arrange(const layout::Rect& _rect) -> bool
+{
+    *rectPtr = _rect;
+    return false;
+}
 
 auto Widget::arrangeIsNecessary() -> bool
 {
@@ -84,6 +89,11 @@ auto Widget::getWidgetSize() const -> const WidgetSize&
     }
     return optWidgetSize.emplace(calculateSize());
 }
+auto Widget::getWidgetSize(const layout::Rect& /* rect */) -> WidgetSize
+{
+    // return min size - if not overridden
+    return getWidgetMinSize();
+}
 
 auto Widget::getWidgetMinSize() const -> const WidgetSize&
 {
@@ -117,15 +127,20 @@ auto Widget::getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGe
     return widgetIdGenerator;
 }
 
-auto Widget::Rect() const -> const layout::Rect&
+auto Widget::getRect() const -> const layout::Rect&
 {
     return *rectPtr;
 }
 
-auto Widget::getRectPtr() const -> std::shared_ptr<layout::Rect>
+void Widget::setRect(const layout::Rect& rect)
 {
-    return rectPtr;
+    *rectPtr = rect;
 }
+
+// auto Widget::getRectPtr() const -> std::shared_ptr<layout::Rect>
+// {
+//     return rectPtr;
+// }
 
 auto Widget::makeWidgetInit() -> WidgetInit
 {

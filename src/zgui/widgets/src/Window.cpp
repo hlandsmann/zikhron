@@ -16,17 +16,16 @@ void Window::setup(layout::ExpandType _expandTypeWidth,
                    layout::ExpandType _expandTypeHeight,
                    std::string _name)
 {
-    layerRect = std::make_shared<layout::Rect>();
-    // box = std::make_shared<Box>(getThemePtr(), PassiveOrientation(), std::weak_ptr{shared_from_this()});
-    layer = std::make_shared<Layer>(WidgetInit{.theme = getThemePtr(),
-                                           .widgetIdGenerator = getWidgetIdGenerator(),
-                                           .rect = layerRect,
-                                           .orientation = PassiveOrientation(),
-                                           .horizontalAlign = Align::start,
-                                           .verticalAlign = Align::start,
-                                           .parent = std::weak_ptr{shared_from_this()}});
-    
-    layer->add<Box>(Align::start);
+    layer = std::make_shared<widget::Layer>(widget::WidgetInit{
+            .theme = getThemePtr(),
+            .widgetIdGenerator = getWidgetIdGenerator(),
+            .rect = std::make_shared<layout::Rect>(),
+            .orientation = widget::layout::Orientation::horizontal,
+            .horizontalAlign = widget::layout::Align::start,
+            .verticalAlign = widget::layout::Align::start,
+            .parent = std::weak_ptr<widget::Widget>{}
+
+    });
     expandTypeWidth = _expandTypeWidth;
     expandTypeHeight = _expandTypeHeight;
     name = std::move(_name);
@@ -36,37 +35,31 @@ Window::Window(const WidgetInit& init)
     : Widget{init}
 {}
 
-auto Window::dropWindow() -> WindowDrop
+auto Window::arrange(const layout::Rect& rect) -> bool
 {
-    layout::Rect rect = Rect();
-    return {name, rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
-}
-
-auto Window::arrange() -> bool
-{
-    *layerRect = Rect();
-    layerRect->x = 0;
-    layerRect->y = 0;
-    return layer->arrange();
-}
-
-auto Window::getBox() -> Box&
-{
-    return getBox(0);
-}
-
-auto Window::getBox(std::size_t index) -> Box&
-{
-    return layer->getLayer<Box>(index);
+    return layer->arrange(rect);
 }
 
 auto Window::calculateSize() const -> WidgetSize
 {
-    auto size = layer->getWidgetSize();
-    return {.widthType = expandTypeWidth,
-            .heightType = expandTypeHeight,
-            .width = size.width,
-            .height = size.height};
+    auto widgetSize = layer->getWidgetSize();
+    widgetSize.widthType = expandTypeWidth;
+    widgetSize.heightType = expandTypeHeight;
+    return widgetSize;
+}
+
+auto Window::calculateMinSize() const -> WidgetSize
+{
+    auto widgetMinSize = layer->getWidgetMinSize();
+    widgetMinSize.widthType = expandTypeWidth;
+    widgetMinSize.heightType = expandTypeHeight;
+    return widgetMinSize;
+}
+
+auto Window::dropWindow() -> WindowDrop
+{
+    layout::Rect rect = getRect();
+    return {name, rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
 }
 
 WindowDrop::WindowDrop(const std::string& name, const widget::layout::Rect& rect,

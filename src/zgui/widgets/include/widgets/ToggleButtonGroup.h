@@ -25,7 +25,7 @@ public:
     auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = default;
 
     auto getActive() -> std::size_t;
-    auto arrange() -> bool override;
+    auto arrange(const layout::Rect& /* rect */) -> bool override;
 
 protected:
     auto calculateSize() const -> WidgetSize override;

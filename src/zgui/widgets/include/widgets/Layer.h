@@ -19,7 +19,7 @@ public:
     void setup();
     Layer(const WidgetInit& init);
 
-    [[nodiscard]] auto arrange() -> bool override;
+    [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
     void setAlignNewWidgetsVertical(Align newWidgetsVertical);
 
     template<class WidgetType>

@@ -4,7 +4,9 @@
 #include <misc/Identifier.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <widgets/Box.h>
+#include <widgets/Layer.h>
 #include <widgets/Window.h>
+#include <widgets/detail/Widget.h>
 
 #include <kocoro/kocoro.hpp>
 #include <map>
@@ -12,11 +14,14 @@
 
 class DisplayCard
 {
+    using Align = widget::layout::Align;
+    using ExpandType = widget::layout::ExpandType;
+
 public:
     DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                 std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
-    void setUp(widget::Window& window);
-    void displayOnWindow(widget::Window& window);
+    void setUp(std::shared_ptr<widget::Layer> layer);
+    void displayOnWindow(std::shared_ptr<widget::Layer> layer);
 
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;
@@ -27,4 +32,6 @@ private:
     using BoxPtr = std::shared_ptr<widget::Box>;
     std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;
     std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
+
+    // BoxPtr box;
 };

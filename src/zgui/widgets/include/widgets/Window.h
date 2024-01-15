@@ -17,7 +17,8 @@ class WindowDrop;
 
 class Window : public Widget
 {
-  using Align = layout::Align;
+    using Align = layout::Align;
+
 public:
     void setup(layout::ExpandType expandTypeWidth,
                layout::ExpandType expandTypeHeight,
@@ -30,19 +31,32 @@ public:
     auto operator=(const Window&) -> Window& = default;
     auto operator=(Window&&) -> Window& = default;
 
+    auto arrange(const layout::Rect& rect) -> bool override;
+
+    template<class WidgetType, class... Args>
+    auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
+    {
+        return layer->add<WidgetType>(widgetAlign, std::forward<Args>(args)...);
+    }
+    void clear() { layer->clear(); }
+
+    template<class WidgetType>
+    auto next() -> WidgetType&
+    {
+        return layer->next<WidgetType>();
+    }
+    void start() { layer->start(); }
+
     [[nodiscard]] auto dropWindow() -> WindowDrop;
-    [[nodiscard]] auto arrange() -> bool override;
-    [[nodiscard]] auto getBox() -> Box&;
-    [[nodiscard]] auto getBox(std::size_t index) -> Box&;
 
 protected:
     auto calculateSize() const -> WidgetSize override;
+    auto calculateMinSize() const -> WidgetSize override;
 
 private:
-    std::shared_ptr<Layer> layer;
-    std::shared_ptr<layout::Rect> layerRect;
-    layout::ExpandType expandTypeWidth{};
-    layout::ExpandType expandTypeHeight{};
+    std::shared_ptr<widget::Layer> layer;
+    layout::ExpandType expandTypeWidth;
+    layout::ExpandType expandTypeHeight;
 
     std::string name;
 };

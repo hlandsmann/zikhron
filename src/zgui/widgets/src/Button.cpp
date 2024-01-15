@@ -30,7 +30,7 @@ auto Button::clicked() const -> bool
 {
     using ColorTheme = context::ColorTheme;
     auto styleColorDrop = getTheme().dropImGuiStyleColors(ColorTheme::ButtonDefault);
-    const auto& btnRect = Rect();
+    const auto& btnRect = getRect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
 
     return ImGui::Button(label.c_str(), {btnRect.width, btnRect.height});

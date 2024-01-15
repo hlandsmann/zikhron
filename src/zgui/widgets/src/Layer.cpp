@@ -16,13 +16,14 @@ Layer::Layer(const WidgetInit& init)
     : MetaBox<Layer>{init}
 {}
 
-auto Layer::arrange() -> bool
+auto Layer::arrange(const layout::Rect& rect) -> bool
 {
+    setRect(rect);
     doLayout();
 
     bool needArrange = false;
     for (const auto& widget : widgets) {
-        needArrange |= widget->arrange();
+        needArrange |= widget->arrange(rect);
     }
     return needArrange;
 }
@@ -70,7 +71,7 @@ auto Layer::newWidgetAlign(Align align, Measure measure) const -> Align
 
 void Layer::doLayout()
 {
-    const auto& borderedRect = getBorderedRect();
+    const auto& borderedRect = getBorderedRect(getRect());
     for (const auto& [widget, rect] : views::zip(widgets, rects)) {
         rect->x = posNewWidget(*widget, borderedRect, Measure::horizontal);
         rect->y = posNewWidget(*widget, borderedRect, Measure::vertical);

@@ -33,7 +33,7 @@ void TextToken::clicked()
 {
     auto fontDrop = getTheme().getFont().dropFont(fontType);
     auto colorDrop = getTheme().getFont().dropDefaultFontColor();
-    const auto& btnRect = Rect();
+    const auto& btnRect = getRect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
     ImGui::Text("%s", token.string().data());
 }

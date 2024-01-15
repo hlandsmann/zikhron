@@ -16,11 +16,11 @@ Grid::Grid(const WidgetInit& init)
     : MetaBox<Grid>{init}
 {}
 
-auto Grid::arrange() -> bool
+auto Grid::arrange(const layout::Rect& rect) -> bool
 {
     bool needArrange = false;
     for (const auto& widget : widgets) {
-        needArrange |= widget->arrange();
+        needArrange |= widget->arrange(rect);
     }
     return needArrange;
 }

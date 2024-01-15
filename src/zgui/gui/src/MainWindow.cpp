@@ -47,9 +47,9 @@ void MainWindow::arrange(const widget::layout::Rect& rect)
 
     *boxRect = rect;
     imglog::log("mainWindow arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
-    if (needArrange) {
-        needArrange = box->arrange();
-    }
+    // if (needArrange) {
+        needArrange = box->arrange(rect);
+    // }
 }
 
 void MainWindow::doImGui()
@@ -68,10 +68,11 @@ void MainWindow::doImGui()
         // window.getLayout().next<widget::Button>().clicked();
         // window.getLayout().next<widget::Button>().clicked();
         // window.getLayout().next<widget::ImageButton>().clicked();
-        auto& tabBox = tabWindow.getBox();
+        tabWindow.start();
+        auto& tabBox = tabWindow.next<widget::Box>();
         tabBox.start();
         tabBox.next<widget::ToggleButtonGroup>().getActive();
-        tabBox.next<widget::ToggleButtonGroup>().getActive();
+        // tabBox.next<widget::ToggleButtonGroup>().getActive();
     }
 
     // bool show_demo_window = true;
@@ -92,19 +93,21 @@ void MainWindow::setUp()
     // auto& displayWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
     // displayCard->setUp(displayWindow);
 
-    auto& window = *box->add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
-    window.getBox().setOrientationVertical();
-    window.getBox().setFlipChildrensOrientation(false);
-    window.getBox().setPadding(0);
+    auto& toggleButtonMenu = *box->add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
+    auto tmbBox = toggleButtonMenu.add<widget::Box>(Align::start);
 
-    window.getBox().add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
-                                                                         context::Image::cards,
-                                                                         context::Image::video,
-                                                                         context::Image::audio,
-                                                                         context::Image::configure});
-    window.getBox().add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
-                                                                         context::Image::cards,
-                                                                         context::Image::video,
-                                                                         context::Image::audio,
-                                                                         context::Image::configure});
+    tmbBox->setOrientationVertical();
+    tmbBox->setFlipChildrensOrientation(false);
+    tmbBox->setPadding(0);
+
+    tmbBox->add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
+                                                                          context::Image::cards,
+                                                                          context::Image::video,
+                                                                          context::Image::audio,
+                                                                          context::Image::configure});
+    // tmbBox->add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
+    //                                                                       context::Image::cards,
+    //                                                                       context::Image::video,
+    //                                                                       context::Image::audio,
+    //                                                                       context::Image::configure});
 }

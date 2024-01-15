@@ -68,9 +68,8 @@ auto MetaBox<BoxImpl>::numberOfWidgets() const -> std::size_t
 }
 
 template<class BoxImpl>
-auto MetaBox<BoxImpl>::getBorderedRect() const -> layout::Rect
+auto MetaBox<BoxImpl>::getBorderedRect(const layout::Rect& rect) const -> layout::Rect
 {
-    const auto& rect = Rect();
     return {.x = rect.x + border,
             .y = rect.y + border,
             .width = rect.width - border * 2,

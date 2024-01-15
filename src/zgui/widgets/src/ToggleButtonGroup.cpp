@@ -1,9 +1,9 @@
 #include <Button.h>
 #include <ImageButton.h>
 #include <ToggleButtonGroup.h>
-#include <detail/Widget.h>
 #include <context/Texture.h>
 #include <context/imglog.h>
+#include <detail/Widget.h>
 #include <utils/variant_cast.h>
 
 #include <cstddef>
@@ -58,9 +58,9 @@ auto ToggleButtonGroup::getActive() -> std::size_t
     return active;
 }
 
-auto ToggleButtonGroup::arrange() -> bool
+auto ToggleButtonGroup::arrange(const layout::Rect& rect) -> bool
 {
-    return box->arrange();
+    return box->arrange(rect);
 }
 
 } // namespace widget

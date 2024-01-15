@@ -1,9 +1,9 @@
 #include <TextToken.h>
 #include <TextTokenSeq.h>
-#include <detail/Widget.h>
 #include <annotation/Token.h>
 #include <context/Fonts.h>
 #include <context/imglog.h>
+#include <detail/Widget.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
@@ -49,7 +49,7 @@ auto TextTokenSeq::calculateSize() const -> WidgetSize
 
 auto TextTokenSeq::linesFit() const -> bool
 {
-    const auto& rect = Rect();
+    const auto& rect = getRect();
     if (lines->getWidgetSize().width > rect.width) {
         return false;
     }
@@ -81,17 +81,16 @@ void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token)
     textToken->setFontType(context::FontType::chineseBig);
 }
 
-auto TextTokenSeq::arrange() -> bool
+auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 {
     lines->start();
     if (paragraph.empty()) {
-        return lines->arrange();
+        return lines->arrange(rect);
     }
     if (!lines->isLast() && linesFit()) {
-        return lines->arrange();
+        return lines->arrange(rect);
     }
 
-    const auto& rect = Rect();
     // auto width = lines->getWidgetSize().width;
     // spdlog::critical("x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
     imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
@@ -111,7 +110,7 @@ auto TextTokenSeq::arrange() -> bool
     }
     // spdlog::warn("width: {}", width);
     // resetWidgetSize();
-    return lines->arrange();
+    return lines->arrange(rect);
     // return true;
 }
 
