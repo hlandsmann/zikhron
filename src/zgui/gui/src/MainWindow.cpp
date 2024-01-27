@@ -1,6 +1,7 @@
+#include "MainWindow.h"
+
 #include <DisplayCard.h>
 #include <DisplayVideo.h>
-#include <MainWindow.h>
 #include <context/Fonts.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
@@ -48,7 +49,7 @@ void MainWindow::arrange(const widget::layout::Rect& rect)
     *boxRect = rect;
     imglog::log("mainWindow arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     // if (needArrange) {
-        needArrange = box->arrange(rect);
+    needArrange = box->arrange(rect);
     // }
 }
 
@@ -97,14 +98,14 @@ void MainWindow::setUp()
     auto tmbBox = toggleButtonMenu.add<widget::Box>(Align::start);
 
     tmbBox->setOrientationVertical();
-    tmbBox->setFlipChildrensOrientation(false);
+    // tmbBox->setFlipChildrensOrientation(false);
     tmbBox->setPadding(0);
 
     tmbBox->add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
-                                                                          context::Image::cards,
-                                                                          context::Image::video,
-                                                                          context::Image::audio,
-                                                                          context::Image::configure});
+                                                                 context::Image::cards,
+                                                                 context::Image::video,
+                                                                 context::Image::audio,
+                                                                 context::Image::configure});
     // tmbBox->add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
     //                                                                       context::Image::cards,
     //                                                                       context::Image::video,

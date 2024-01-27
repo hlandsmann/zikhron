@@ -1,6 +1,7 @@
+#include "Window.h"
+
 #include <Box.h>
 #include <Layer.h>
-#include <Window.h>
 #include <context/Theme.h>
 #include <context/imglog.h>
 #include <detail/Widget.h>
@@ -12,8 +13,8 @@
 #include <utility>
 
 namespace widget {
-void Window::setup(layout::ExpandType _expandTypeWidth,
-                   layout::ExpandType _expandTypeHeight,
+void Window::setup(ExpandType _expandTypeWidth,
+                   ExpandType _expandTypeHeight,
                    std::string _name)
 {
     layer = std::make_shared<widget::Layer>(widget::WidgetInit{
@@ -37,28 +38,39 @@ Window::Window(const WidgetInit& init)
 
 auto Window::arrange(const layout::Rect& rect) -> bool
 {
+    setRect(rect);
     return layer->arrange(rect);
+}
+
+auto Window::getWidgetSize(const layout::Rect& rect) -> WidgetSize
+{
+    imglog::log("win: {}, arrange, x: {}, y: {}, w: {}, h: {}", name, rect.x, rect.y, rect.width, rect.height);
+    auto widgetSize = dynamic_cast<const Widget&>(*layer).getWidgetSize();
+    if (expandTypeWidth == ExpandType::expand) {
+        widgetSize.width = rect.width;
+    }
+    if (expandTypeHeight == ExpandType::expand) {
+        widgetSize.height = rect.height;
+    }
+    return widgetSize;
 }
 
 auto Window::calculateSize() const -> WidgetSize
 {
-    auto widgetSize = layer->getWidgetSize();
-    widgetSize.widthType = expandTypeWidth;
-    widgetSize.heightType = expandTypeHeight;
+    auto widgetSize = dynamic_cast<const Widget&>(*layer).getWidgetSize();
     return widgetSize;
 }
 
 auto Window::calculateMinSize() const -> WidgetSize
 {
     auto widgetMinSize = layer->getWidgetMinSize();
-    widgetMinSize.widthType = expandTypeWidth;
-    widgetMinSize.heightType = expandTypeHeight;
     return widgetMinSize;
 }
 
 auto Window::dropWindow() -> WindowDrop
 {
     layout::Rect rect = getRect();
+    imglog::log("dropwin: {}, arrange, x: {}, y: {}, w: {}, h: {}", name, rect.x, rect.y, rect.width, rect.height);
     return {name, rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
 }
 

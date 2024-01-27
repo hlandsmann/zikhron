@@ -21,7 +21,7 @@ public:
     void setup(){};
     Box(const WidgetInit& init);
 
-    [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
+    [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;
     void setOrientationHorizontal();
     void setOrientationVertical();
     void setFlipChildrensOrientation(bool flip);
@@ -38,19 +38,19 @@ private:
     auto newWidgetAlign(Align align, Measure measure) const -> Align;
 
     /* Box internal functions */
-    static auto widgetExpandTypeProjection(const WidgetSize& widgetSize, Measure measure) -> ExpandType;
+    // static auto widgetExpandTypeProjection(const WidgetSize& widgetSize, Measure measure) -> ExpandType;
     // static auto rectPositionProjection(const layout::Rect& rect, Measure measure) -> float;
     static auto rectSizeProjection(Measure measure, const layout::Rect& rect) -> float;
     auto accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                            std::vector<std::shared_ptr<Widget>>::const_iterator last,
                            Measure measure, SizeType sizeType) const -> float;
     static auto getNextAlign(Align oldAlign, Align nextAlign);
-    auto getWidgetNewCursor(Align align, float cursor, const Widget& widget,
-                            float centerSize, float endSize, Measure measure) const -> float;
-    auto getWidgetNewSize(Align align, Align alignNextWidget,
-                          float cursor, float cursorNextWidget,
-                          const Widget& widget,
-                          Measure measure) const -> float;
+    // auto getWidgetNewCursor(Align align, float cursor, const Widget& widget,
+    //                         float centerSize, float endSize, Measure measure) const -> float;
+    // auto getWidgetNewSize(Align align, Align alignNextWidget,
+    //                       float cursor, float cursorNextWidget,
+    //                       const Widget& widget,
+    //                       Measure measure) const -> float;
     void setChildWidgetsInitialRect();
 
     [[nodiscard]] static auto widgetNewRect(Measure measure,
@@ -70,7 +70,7 @@ private:
                                               const layout::Rect& rect,
                                               float oldCursor) -> float;
     [[nodiscard]] auto arrange(Measure measure, const layout::Rect& rect) -> bool;
-    [[nodiscard]] auto doLayout(Measure measure, const layout::Rect& rect) -> bool;
+    // [[nodiscard]] auto doLayout(Measure measure, const layout::Rect& rect) -> bool;
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;

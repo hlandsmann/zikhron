@@ -44,9 +44,7 @@ auto TextToken::calculateSize() const -> WidgetSize
     auto string = token.string();
     auto textSize = ImGui::CalcTextSize(string.cbegin().base(), string.cend().base());
 
-    return {.widthType = layout::width_fixed,
-            .heightType = layout::height_fixed,
-            .width = textSize.x,
+    return {.width = textSize.x,
             .height = textSize.y};
 }
 } // namespace widget

@@ -20,6 +20,7 @@ public:
     Layer(const WidgetInit& init);
 
     [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
+    [[nodiscard]] auto getWidgetSize(const layout::Rect& rect) -> WidgetSize override;
     void setAlignNewWidgetsVertical(Align newWidgetsVertical);
 
     template<class WidgetType>
@@ -37,9 +38,9 @@ private:
     auto newWidgetAlign(Align align, Measure measure) const -> Align;
 
     /* Layer internal functions */
-    void doLayout();
-    static auto sizeNewWidget(const Widget& widget, const Rect& borderedRect, Measure measure) -> float;
-    static auto posNewWidget(const Widget& widget, const Rect& borderedRect, Measure measure) -> float;
+    [[nodiscard]] static auto posNewWidget(Align align, float widgetSize, float rectSize) -> float;
+    // static auto sizeNewWidget(const Widget& widget, const Rect& borderedRect, Measure measure) -> float;
+    // static auto posNewWidget(const Widget& widget, const Rect& borderedRect, Measure measure) -> float;
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;

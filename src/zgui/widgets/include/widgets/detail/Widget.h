@@ -49,11 +49,8 @@ static auto constexpr height_expand = ExpandType::height_expand;
 
 struct WidgetSize
 {
-    using ExpandType = layout::ExpandType;
-    ExpandType widthType{ExpandType::fixed};
-    ExpandType heightType{ExpandType::fixed};
-    float width{};
-    float height{};
+    float width{0.0F};
+    float height{0.0F};
 };
 
 class Widget;

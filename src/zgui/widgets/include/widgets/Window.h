@@ -7,7 +7,6 @@
 #include <context/Theme.h>
 #include <imgui.h>
 
-#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -18,10 +17,11 @@ class WindowDrop;
 class Window : public Widget
 {
     using Align = layout::Align;
+    using ExpandType = layout::ExpandType;
 
 public:
-    void setup(layout::ExpandType expandTypeWidth,
-               layout::ExpandType expandTypeHeight,
+    void setup(ExpandType expandTypeWidth,
+               ExpandType expandTypeHeight,
                std::string name);
     Window(const WidgetInit& init);
     ~Window() override = default;
@@ -32,6 +32,7 @@ public:
     auto operator=(Window&&) -> Window& = default;
 
     auto arrange(const layout::Rect& rect) -> bool override;
+    [[nodiscard]] auto getWidgetSize(const layout::Rect& rect) -> WidgetSize override;
 
     template<class WidgetType, class... Args>
     auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
@@ -55,8 +56,8 @@ protected:
 
 private:
     std::shared_ptr<widget::Layer> layer;
-    layout::ExpandType expandTypeWidth;
-    layout::ExpandType expandTypeHeight;
+    ExpandType expandTypeWidth{ExpandType::fixed};
+    ExpandType expandTypeHeight{ExpandType::fixed};
 
     std::string name;
 };

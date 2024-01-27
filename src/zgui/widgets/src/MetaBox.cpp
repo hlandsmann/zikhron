@@ -1,7 +1,8 @@
+#include "detail/MetaBox.h"
+
 #include <Box.h>
 #include <Grid.h>
 #include <Layer.h>
-#include <detail/MetaBox.h>
 #include <detail/Widget.h>
 
 #include <cstddef>

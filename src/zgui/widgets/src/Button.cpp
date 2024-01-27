@@ -20,9 +20,7 @@ auto Button::calculateSize() const -> WidgetSize
 {
     ImGui::Button(label.c_str());
     auto size = ImGui::GetItemRectSize();
-    return {.widthType = PassiveOrientation() == layout::Orientation::horizontal ? layout::width_expand : layout::width_fixed,
-            .heightType = PassiveOrientation() == layout::Orientation::vertical ? layout::height_expand : layout::height_fixed,
-            .width = size.x + buttonPadding * 2,
+    return {.width = size.x + buttonPadding * 2,
             .height = size.y + buttonPadding * 2};
 }
 

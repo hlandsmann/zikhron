@@ -96,6 +96,7 @@ PenaltyExcessCharacter: 50
 PenaltyReturnTypeOnItsOwnLine: 300
 PointerAlignment: Left
 ReflowComments:  true
+SeparateDefinitionBlocks: Always
 SortIncludes:    true
 SortUsingDeclarations: true
 SpaceAfterCStyleCast: false
