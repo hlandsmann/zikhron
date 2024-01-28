@@ -39,6 +39,7 @@ public:
     {
         return layer->add<WidgetType>(widgetAlign, std::forward<Args>(args)...);
     }
+
     void clear() { layer->clear(); }
 
     template<class WidgetType>
@@ -46,6 +47,7 @@ public:
     {
         return layer->next<WidgetType>();
     }
+
     void start() { layer->start(); }
 
     [[nodiscard]] auto dropWindow() -> WindowDrop;
@@ -58,8 +60,6 @@ private:
     std::shared_ptr<widget::Layer> layer;
     ExpandType expandTypeWidth{ExpandType::fixed};
     ExpandType expandTypeHeight{ExpandType::fixed};
-
-    std::string name;
 };
 
 class WindowDrop : public context::Drop<WindowDrop>

@@ -3,13 +3,15 @@
 #include <detail/Widget.h>
 #include <spdlog/spdlog.h>
 
-#include <cstddef>
 #include <memory>
+#include <string>
 #include <utility>
+
 namespace widget {
 Widget::Widget(WidgetInit init)
     : theme{std::move(init.theme)}
     , widgetIdGenerator{std::move(init.widgetIdGenerator)}
+    , name{std::move(init.name)}
     , rectPtr{std::move(init.rect)}
     , passiveOrientation{init.orientation}
     , horizontalAlign{init.horizontalAlign}
@@ -18,6 +20,7 @@ Widget::Widget(WidgetInit init)
     , widgetId{widgetIdGenerator->getNextId()}
 {
 }
+
 auto Widget::arrange(const layout::Rect& _rect) -> bool
 {
     *rectPtr = _rect;
@@ -89,6 +92,7 @@ auto Widget::getWidgetSize() const -> const WidgetSize&
     }
     return optWidgetSize.emplace(calculateSize());
 }
+
 auto Widget::getWidgetSize(const layout::Rect& /* rect */) -> WidgetSize
 {
     // return min size - if not overridden
@@ -110,6 +114,16 @@ void Widget::resetWidgetSize()
     }
     optWidgetSize.reset();
     optWidgetMinSize.reset();
+}
+
+void Widget::setName(const std::string& _name)
+{
+    name = _name;
+}
+
+auto Widget::getName() const -> const std::string&
+{
+    return name;
 }
 
 auto Widget::calculateMinSize() const -> WidgetSize

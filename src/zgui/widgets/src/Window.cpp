@@ -20,6 +20,7 @@ void Window::setup(ExpandType _expandTypeWidth,
     layer = std::make_shared<widget::Layer>(widget::WidgetInit{
             .theme = getThemePtr(),
             .widgetIdGenerator = getWidgetIdGenerator(),
+            .name = std::move(_name),
             .rect = std::make_shared<layout::Rect>(),
             .orientation = widget::layout::Orientation::horizontal,
             .horizontalAlign = widget::layout::Align::start,
@@ -29,7 +30,6 @@ void Window::setup(ExpandType _expandTypeWidth,
     });
     expandTypeWidth = _expandTypeWidth;
     expandTypeHeight = _expandTypeHeight;
-    name = std::move(_name);
 }
 
 Window::Window(const WidgetInit& init)
@@ -44,7 +44,7 @@ auto Window::arrange(const layout::Rect& rect) -> bool
 
 auto Window::getWidgetSize(const layout::Rect& rect) -> WidgetSize
 {
-    imglog::log("win: {}, arrange, x: {}, y: {}, w: {}, h: {}", name, rect.x, rect.y, rect.width, rect.height);
+    imglog::log("win: {}, arrange, x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     auto widgetSize = dynamic_cast<const Widget&>(*layer).getWidgetSize();
     if (expandTypeWidth == ExpandType::expand) {
         widgetSize.width = rect.width;
@@ -70,8 +70,8 @@ auto Window::calculateMinSize() const -> WidgetSize
 auto Window::dropWindow() -> WindowDrop
 {
     layout::Rect rect = getRect();
-    imglog::log("dropwin: {}, arrange, x: {}, y: {}, w: {}, h: {}", name, rect.x, rect.y, rect.width, rect.height);
-    return {name, rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
+    imglog::log("dropwin: {}, arrange, x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
+    return {getName(), rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
 }
 
 WindowDrop::WindowDrop(const std::string& name, const widget::layout::Rect& rect,

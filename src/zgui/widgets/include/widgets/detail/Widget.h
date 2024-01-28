@@ -1,15 +1,17 @@
 #pragma once
 #include <context/Theme.h>
 #include <context/WidgetIdGenerator.h>
+#include <context/imglog.h>
 #include <fmt/core.h>
 #include <fmt/format.h> // IWYU pragma: export core.h
 #include <imgui.h>
+#include <spdlog/spdlog.h>
 
-#include <cstddef>
 #include <format>
 #include <magic_enum.hpp>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 
 namespace widget {
@@ -59,6 +61,7 @@ struct WidgetInit
 {
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
+    std::string name;
     std::shared_ptr<layout::Rect> rect;
     layout::Orientation orientation;
     layout::Align horizontalAlign;
@@ -101,7 +104,7 @@ public:
     /* Arrange
      * return true if (re)arrange  is necessary
      */
-    virtual auto arrange(const layout::Rect& rect) -> bool ;
+    virtual auto arrange(const layout::Rect& rect) -> bool;
     [[nodiscard]] auto arrangeIsNecessary() -> bool;
     void setArrangeIsNecessary();
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
@@ -116,6 +119,25 @@ public:
     [[nodiscard]] virtual auto getWidgetSize(const layout::Rect&) -> WidgetSize;
     [[nodiscard]] auto getWidgetMinSize() const -> const WidgetSize&;
     void resetWidgetSize();
+    void setName(const std::string& name);
+    [[nodiscard]] auto getName() const -> const std::string&;
+
+    // debug functions
+    template<class... Args>
+    void winlog(const std::string& _name, std::format_string<Args...> fmt, Args&&... args)
+    {
+        if (_name.empty() || _name == name) {
+            imglog::log(fmt, std::forward<Args>(args)...);
+        }
+    }
+
+    template<class... Args>
+    void consoleLog(const std::string& _name, std::format_string<Args...> fmt, Args&&... args)
+    {
+        if (_name.empty() || _name == name) {
+            spdlog::info(fmt, std::forward<Args>(args)...);
+        }
+    }
 
 protected:
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
@@ -129,6 +151,7 @@ private:
     auto makeWidgetInit() -> WidgetInit;
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
+    std::string name;
     std::shared_ptr<layout::Rect> rectPtr;
     layout::Orientation passiveOrientation;
     layout::Align horizontalAlign;
@@ -150,6 +173,7 @@ struct fmt::formatter<widget::layout::Align>
     {
         return ctx.begin();
     }
+
     template<typename FormatContext>
     auto format(widget::layout::Align align, FormatContext& ctx)
     {
@@ -165,6 +189,7 @@ struct fmt::formatter<widget::layout::ExpandType>
     {
         return ctx.begin();
     }
+
     template<typename FormatContext>
     auto format(widget::layout::ExpandType expandType, FormatContext& ctx)
     {
@@ -180,6 +205,7 @@ struct fmt::formatter<widget::layout::Orientation>
     {
         return ctx.begin();
     }
+
     template<typename FormatContext>
     auto format(widget::layout::Orientation orientation, FormatContext& ctx)
     {

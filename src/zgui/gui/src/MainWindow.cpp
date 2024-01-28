@@ -29,6 +29,7 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
     , box{std::make_shared<widget::Box>(widget::WidgetInit{
               .theme = theme,
               .widgetIdGenerator = std::move(widgetIdGenerator),
+              .name = "MainWindowBox",
               .rect = boxRect,
               .orientation = widget::layout::Orientation::horizontal,
               .horizontalAlign = widget::layout::Align::start,
@@ -57,7 +58,8 @@ void MainWindow::doImGui()
 {
     box->start();
     {
-        box->next<widget::Layer>();
+        auto layer = box->next<widget::Layer>();
+        // displayCard->displayOnWindow(layer);
         // auto& displayWindow = box->next<widget::Window>();
         // displayCard->displayOnWindow(displayWindow);
         // auto drop = displayWindow.dropWindow();
@@ -95,17 +97,17 @@ void MainWindow::setUp()
     // displayCard->setUp(displayWindow);
 
     auto& toggleButtonMenu = *box->add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
-    auto tmbBox = toggleButtonMenu.add<widget::Box>(Align::start);
+    auto& tmbBox = *toggleButtonMenu.add<widget::Box>(Align::start);
 
-    tmbBox->setOrientationVertical();
+    tmbBox.setOrientationVertical();
     // tmbBox->setFlipChildrensOrientation(false);
-    tmbBox->setPadding(0);
+    tmbBox.setPadding(0);
 
-    tmbBox->add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
-                                                                 context::Image::cards,
-                                                                 context::Image::video,
-                                                                 context::Image::audio,
-                                                                 context::Image::configure});
+    tmbBox.add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
+                                                                context::Image::cards,
+                                                                context::Image::video,
+                                                                context::Image::audio,
+                                                                context::Image::configure});
     // tmbBox->add<widget::ToggleButtonGroup>(Align::start, std::initializer_list<context::Image>{
     //                                                                       context::Image::cards,
     //                                                                       context::Image::video,
