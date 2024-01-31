@@ -61,7 +61,6 @@ struct WidgetInit
 {
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
-    std::string name;
     std::shared_ptr<layout::Rect> rect;
     layout::Orientation orientation;
     layout::Align horizontalAlign;
@@ -116,7 +115,7 @@ public:
     [[nodiscard]] auto VerticalAlign() const -> layout::Align;
     void setVerticalAlign(layout::Align);
     [[nodiscard]] auto getWidgetSize() const -> const WidgetSize&;
-    [[nodiscard]] virtual auto getWidgetSize(const layout::Rect&) -> WidgetSize;
+    [[nodiscard]] virtual auto getWidgetSizeFromRect(const layout::Rect&) -> WidgetSize;
     [[nodiscard]] auto getWidgetMinSize() const -> const WidgetSize&;
     void resetWidgetSize();
     void setName(const std::string& name);
@@ -151,7 +150,7 @@ private:
     auto makeWidgetInit() -> WidgetInit;
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
-    std::string name;
+    mutable std::string name;
     std::shared_ptr<layout::Rect> rectPtr;
     layout::Orientation passiveOrientation;
     layout::Align horizontalAlign;

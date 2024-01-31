@@ -29,6 +29,7 @@ DisplayCard::DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
 void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
 {
     auto box = layer->add<widget::Box>(Align::start);
+    box->setName("DisplayCard_box");
     auto& window = *box->add<widget::Window>(Align::start, ExpandType::width_expand, ExpandType::height_fixed, "card_text");
     auto cardBox = window.add<widget::Box>(Align::start);
     cardBox->setFlipChildrensOrientation(false);
@@ -37,10 +38,10 @@ void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
     spdlog::info("setUp");
 }
 
-void DisplayCard::displayOnWindow(std::shared_ptr<widget::Layer> layer)
+void DisplayCard::displayOnWindow(widget::Layer& layer)
 {
-    layer->start();
-    auto box = layer->next<widget::Box>();
+    layer.start();
+    auto box = layer.next<widget::Box>();
     box.start();
     auto window = box.next<widget::Window>();
     auto droppedWindow = window.dropWindow();

@@ -20,7 +20,6 @@ void Window::setup(ExpandType _expandTypeWidth,
     layer = std::make_shared<widget::Layer>(widget::WidgetInit{
             .theme = getThemePtr(),
             .widgetIdGenerator = getWidgetIdGenerator(),
-            .name = std::move(_name),
             .rect = std::make_shared<layout::Rect>(),
             .orientation = widget::layout::Orientation::horizontal,
             .horizontalAlign = widget::layout::Align::start,
@@ -30,6 +29,7 @@ void Window::setup(ExpandType _expandTypeWidth,
     });
     expandTypeWidth = _expandTypeWidth;
     expandTypeHeight = _expandTypeHeight;
+    setName(_name);
 }
 
 Window::Window(const WidgetInit& init)
@@ -42,7 +42,7 @@ auto Window::arrange(const layout::Rect& rect) -> bool
     return layer->arrange(rect);
 }
 
-auto Window::getWidgetSize(const layout::Rect& rect) -> WidgetSize
+auto Window::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
     imglog::log("win: {}, arrange, x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     auto widgetSize = dynamic_cast<const Widget&>(*layer).getWidgetSize();

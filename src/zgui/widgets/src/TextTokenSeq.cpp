@@ -36,7 +36,6 @@ TextTokenSeq::TextTokenSeq(WidgetInit init)
 
 auto TextTokenSeq::calculateSize() const -> WidgetSize
 {
-    auto size = lines->getExpandedSize();
     // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
     // return lines->getWidgetSize();
     auto widgetSize = lines->getWidgetSize();

@@ -9,6 +9,7 @@
 
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
+
 namespace widget {
 void Layer::setup()
 {
@@ -24,7 +25,7 @@ auto Layer::arrange(const layout::Rect& rect) -> bool
     auto borderedRect = getBorderedRect(rect);
     for (const auto& widget : widgets) {
         auto widgetRect = Rect{};
-        auto widgetSize = widget->getWidgetSize(borderedRect);
+        auto widgetSize = widget->getWidgetSizeFromRect(borderedRect);
         widgetRect.x = posNewWidget(widget->HorizontalAlign(), widgetSize.width, widgetRect.width);
         widgetRect.y = posNewWidget(widget->VerticalAlign(), widgetSize.height, widgetRect.height);
         widgetRect.width = widgetSize.width;
@@ -35,11 +36,13 @@ auto Layer::arrange(const layout::Rect& rect) -> bool
     return needArrange;
 }
 
-auto Layer::getWidgetSize(const layout::Rect& rect) -> WidgetSize
+auto Layer::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
+    winlog("mainLayer", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     auto widgetSize = WidgetSize{};
     for (const auto& widget : widgets) {
-        auto ws = widget->getWidgetSize(rect);
+        auto ws = widget->getWidgetSizeFromRect(rect);
+        winlog("mainLayer", "ml, {}: w: {}, h: {}", widget->getName(), ws.width, ws.height);
         widgetSize.width = std::max(ws.width, widgetSize.width);
         widgetSize.height = std::max(ws.height, widgetSize.height);
     }

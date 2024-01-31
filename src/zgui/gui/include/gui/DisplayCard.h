@@ -21,7 +21,7 @@ public:
     DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                 std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
     void setUp(std::shared_ptr<widget::Layer> layer);
-    void displayOnWindow(std::shared_ptr<widget::Layer> layer);
+    void displayOnWindow(widget::Layer& layer);
 
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;

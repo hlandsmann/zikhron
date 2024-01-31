@@ -11,7 +11,6 @@ namespace widget {
 Widget::Widget(WidgetInit init)
     : theme{std::move(init.theme)}
     , widgetIdGenerator{std::move(init.widgetIdGenerator)}
-    , name{std::move(init.name)}
     , rectPtr{std::move(init.rect)}
     , passiveOrientation{init.orientation}
     , horizontalAlign{init.horizontalAlign}
@@ -93,7 +92,7 @@ auto Widget::getWidgetSize() const -> const WidgetSize&
     return optWidgetSize.emplace(calculateSize());
 }
 
-auto Widget::getWidgetSize(const layout::Rect& /* rect */) -> WidgetSize
+auto Widget::getWidgetSizeFromRect(const layout::Rect& /* rect */) -> WidgetSize
 {
     // return min size - if not overridden
     return getWidgetMinSize();
@@ -123,6 +122,9 @@ void Widget::setName(const std::string& _name)
 
 auto Widget::getName() const -> const std::string&
 {
+    if (name.empty()) {
+        name = "widget_" + std::to_string(widgetId);
+    }
     return name;
 }
 

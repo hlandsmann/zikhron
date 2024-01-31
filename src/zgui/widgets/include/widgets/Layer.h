@@ -20,7 +20,7 @@ public:
     Layer(const WidgetInit& init);
 
     [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
-    [[nodiscard]] auto getWidgetSize(const layout::Rect& rect) -> WidgetSize override;
+    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
     void setAlignNewWidgetsVertical(Align newWidgetsVertical);
 
     template<class WidgetType>
