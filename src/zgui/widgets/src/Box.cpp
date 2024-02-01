@@ -27,6 +27,7 @@ Box::Box(const WidgetInit& init)
 
 auto Box::arrange(const layout::Rect& rect) -> bool
 {
+    winlog("DisplayCard_box", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     setRect(rect);
     if (widgets.empty()) {
         return false;
@@ -36,11 +37,6 @@ auto Box::arrange(const layout::Rect& rect) -> bool
         return arrange(Measure::horizontal, rect);
     }
     return arrange(Measure::vertical, rect);
-}
-
-auto Box::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
-{
-    return {};
 }
 
 void Box::setOrientationHorizontal()

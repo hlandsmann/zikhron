@@ -24,11 +24,12 @@ void Window::setup(ExpandType _expandTypeWidth,
             .orientation = widget::layout::Orientation::horizontal,
             .horizontalAlign = widget::layout::Align::start,
             .verticalAlign = widget::layout::Align::start,
+            .expandTypeWidth = _expandTypeWidth,
+            .expandTypeHeight = _expandTypeHeight,
             .parent = std::weak_ptr<widget::Widget>{}
 
     });
-    expandTypeWidth = _expandTypeWidth;
-    expandTypeHeight = _expandTypeHeight;
+    setExpandType(_expandTypeWidth, _expandTypeHeight);
     setName(_name);
 }
 
@@ -40,19 +41,6 @@ auto Window::arrange(const layout::Rect& rect) -> bool
 {
     setRect(rect);
     return layer->arrange(rect);
-}
-
-auto Window::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
-{
-    imglog::log("win: {}, arrange, x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
-    auto widgetSize = dynamic_cast<const Widget&>(*layer).getWidgetSize();
-    if (expandTypeWidth == ExpandType::expand) {
-        widgetSize.width = rect.width;
-    }
-    if (expandTypeHeight == ExpandType::expand) {
-        widgetSize.height = rect.height;
-    }
-    return widgetSize;
 }
 
 auto Window::calculateSize() const -> WidgetSize

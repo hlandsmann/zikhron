@@ -22,7 +22,6 @@ public:
     Box(const WidgetInit& init);
 
     [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;
-    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
     void setOrientationHorizontal();
     void setOrientationVertical();
     void setFlipChildrensOrientation(bool flip);

@@ -3,6 +3,7 @@
 #include <detail/Widget.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -15,6 +16,8 @@ Widget::Widget(WidgetInit init)
     , passiveOrientation{init.orientation}
     , horizontalAlign{init.horizontalAlign}
     , verticalAlign{init.verticalAlign}
+    , expandTypeWidth{init.expandTypeWidth}
+    , expandTypeHeight{init.expandTypeHeight}
     , parent{std::move(init.parent)}
     , widgetId{widgetIdGenerator->getNextId()}
 {
@@ -92,10 +95,16 @@ auto Widget::getWidgetSize() const -> const WidgetSize&
     return optWidgetSize.emplace(calculateSize());
 }
 
-auto Widget::getWidgetSizeFromRect(const layout::Rect& /* rect */) -> WidgetSize
+auto Widget::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
-    // return min size - if not overridden
-    return getWidgetMinSize();
+    auto widgetSize = getWidgetMinSize();
+    if (expandTypeWidth == ExpandType::expand) {
+        widgetSize.width = std::max(widgetSize.width, rect.width);
+    }
+    if (expandTypeHeight == ExpandType::expand) {
+        widgetSize.height = std::max(widgetSize.width, rect.height);
+    }
+    return widgetSize;
 }
 
 auto Widget::getWidgetMinSize() const -> const WidgetSize&
@@ -153,6 +162,12 @@ void Widget::setRect(const layout::Rect& rect)
     *rectPtr = rect;
 }
 
+void Widget::setExpandType(layout::ExpandType width, layout::ExpandType height)
+{
+    expandTypeWidth = width;
+    expandTypeHeight = height;
+}
+
 // auto Widget::getRectPtr() const -> std::shared_ptr<layout::Rect>
 // {
 //     return rectPtr;
@@ -165,8 +180,11 @@ auto Widget::makeWidgetInit() -> WidgetInit
                        .rect = rectPtr,
                        .orientation = passiveOrientation,
                        .horizontalAlign = horizontalAlign,
+                       .expandTypeWidth = ExpandType::width_fixed,
+                       .expandTypeHeight = ExpandType::height_fixed,
                        .parent = shared_from_this()};
+
     return init;
-}
+} // namespace widget
 
 } // namespace widget

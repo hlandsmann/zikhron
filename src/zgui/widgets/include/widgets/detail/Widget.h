@@ -65,11 +65,14 @@ struct WidgetInit
     layout::Orientation orientation;
     layout::Align horizontalAlign;
     layout::Align verticalAlign;
+    layout::ExpandType expandTypeWidth{layout::ExpandType::width_fixed};
+    layout::ExpandType expandTypeHeight{layout::ExpandType::height_fixed};
     std::weak_ptr<Widget> parent;
 };
 
 class Widget : public std::enable_shared_from_this<Widget>
 {
+  using ExpandType = layout::ExpandType;
 public:
     Widget(WidgetInit init);
     virtual ~Widget() = default;
@@ -137,6 +140,7 @@ public:
             spdlog::info(fmt, std::forward<Args>(args)...);
         }
     }
+    void setExpandType(layout::ExpandType width, layout::ExpandType height);
 
 protected:
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
@@ -155,12 +159,15 @@ private:
     layout::Orientation passiveOrientation;
     layout::Align horizontalAlign;
     layout::Align verticalAlign;
+    ExpandType expandTypeWidth{ExpandType::width_fixed};
+    ExpandType expandTypeHeight{ExpandType::height_fixed};
     std::weak_ptr<Widget> parent;
     mutable std::optional<WidgetSize> optWidgetSize;
     mutable std::optional<WidgetSize> optWidgetMinSize;
     bool arrangeNecessary{true};
     int widgetId;
 };
+
 
 } // namespace widget
 

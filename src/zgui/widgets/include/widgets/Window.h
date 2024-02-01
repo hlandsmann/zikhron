@@ -32,7 +32,6 @@ public:
     auto operator=(Window&&) -> Window& = default;
 
     auto arrange(const layout::Rect& rect) -> bool override;
-    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
 
     template<class WidgetType, class... Args>
     auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
