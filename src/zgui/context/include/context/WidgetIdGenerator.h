@@ -1,22 +1,24 @@
 #pragma once
 #include "Drop.h"
 
-
 namespace context {
+
+enum WidgetId : unsigned;
+
 class WidgetIdGenerator
 {
 public:
     WidgetIdGenerator() = default;
-    auto getNextId() -> int;
+    auto getNextId() -> WidgetId;
 
 private:
-    int id = 0;
+    WidgetId id{};
 };
 
 class WidgetIdDrop : public Drop<WidgetIdDrop>
 {
 public:
-    WidgetIdDrop(int widgetId);
+    WidgetIdDrop(WidgetId widgetId);
 
 private:
     friend class Drop<WidgetIdDrop>;

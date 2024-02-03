@@ -1,3 +1,4 @@
+#include <Box.h>
 #include <TextToken.h>
 #include <TextTokenSeq.h>
 #include <annotation/Token.h>
@@ -13,20 +14,19 @@
 #include <utility>
 
 namespace ranges = std::ranges;
+
 namespace widget {
 void TextTokenSeq::setup(Paragraph _paragraph)
 {
     paragraph = std::move(_paragraph);
 
-    lines = create<Box>();
+    lines = create<Box>(Orientation::vertical);
     lines->setPadding(0);
     lines->setBorder(border);
-    lines->setOrientationVertical();
 
-    scratchBox = createOrphan<Box>();
+    scratchBox = createOrphan<Box>(Orientation::vertical);
     scratchBox->setPadding(0);
     scratchBox->setBorder(border);
-    scratchBox->setOrientationVertical();
 }
 
 TextTokenSeq::TextTokenSeq(WidgetInit init)
@@ -93,14 +93,14 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
     imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     spdlog::info("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     lines->clear();
-    auto line = lines->add<Box>(Align::start);
+    auto line = lines->add<Box>(Align::start, Orientation::horizontal);
     for (const auto& token : paragraph) {
         // auto textToken = line->add<TextToken>(Align::start, token);
         // textToken->setFontType(context::FontType::chineseBig);
         addTextToken(*line, token);
         if (lines->getWidgetSize().width > rect.width) {
             line->pop();
-            line = lines->add<Box>(Align::start);
+            line = lines->add<Box>(Align::start, Orientation::horizontal);
             addTextToken(*line, token);
         }
         // spdlog::info("{}", token.getValue());

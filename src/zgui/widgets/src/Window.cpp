@@ -7,7 +7,6 @@
 #include <detail/Widget.h>
 #include <imgui.h>
 
-#include <cstddef>
 #include <memory>
 #include <string>
 #include <utility>
@@ -21,7 +20,7 @@ void Window::setup(ExpandType _expandTypeWidth,
             .theme = getThemePtr(),
             .widgetIdGenerator = getWidgetIdGenerator(),
             .rect = std::make_shared<layout::Rect>(),
-            .orientation = widget::layout::Orientation::horizontal,
+            // .orientation = widget::layout::Orientation::horizontal,
             .horizontalAlign = widget::layout::Align::start,
             .verticalAlign = widget::layout::Align::start,
             .expandTypeWidth = _expandTypeWidth,

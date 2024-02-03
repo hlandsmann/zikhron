@@ -3,7 +3,6 @@
 #include <functional>
 #include <iterator>
 #include <map>
-#include <memory>
 #include <optional>
 #include <span>
 #include <stdexcept>
@@ -68,12 +67,12 @@ public:
     index_map() = default;
     [[nodiscard]] auto vspan() -> std::span<T>;
     [[nodiscard]] auto vspan() const -> std::span<const T>;
-    [[nodiscard]] auto begin() -> std::vector<T>::iterator;              // iterator;
-    [[nodiscard]] auto end() -> std::vector<T>::iterator;                // iterator;
-    [[nodiscard]] auto begin() const -> std::vector<T>::const_iterator;  // const_iterator;
-    [[nodiscard]] auto end() const -> std::vector<T>::const_iterator;    // const_iterator;
-    [[nodiscard]] auto cbegin() const -> std::vector<T>::const_iterator; // const_iterator;
-    [[nodiscard]] auto cend() const -> std::vector<T>::const_iterator;   // const_iterator;
+    [[nodiscard]] auto begin() -> std::vector<T>::iterator;
+    [[nodiscard]] auto end() -> std::vector<T>::iterator;
+    [[nodiscard]] auto begin() const -> std::vector<T>::const_iterator;
+    [[nodiscard]] auto end() const -> std::vector<T>::const_iterator;
+    [[nodiscard]] auto cbegin() const -> std::vector<T>::const_iterator;
+    [[nodiscard]] auto cend() const -> std::vector<T>::const_iterator;
 
     [[nodiscard]] auto size() const -> std::size_t;
     [[nodiscard]] auto empty() const -> bool;

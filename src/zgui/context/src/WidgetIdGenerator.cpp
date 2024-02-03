@@ -2,12 +2,12 @@
 #include <imgui.h>
 
 namespace context {
-auto WidgetIdGenerator::getNextId() -> int
+auto WidgetIdGenerator::getNextId() -> WidgetId
 {
-    return id++;
+    return WidgetId{id + 1};
 }
 
-WidgetIdDrop::WidgetIdDrop(int widgetId)
+WidgetIdDrop::WidgetIdDrop(WidgetId widgetId)
 {
     ImGui::PushID(widgetId);
     incPopCount();

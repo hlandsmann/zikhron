@@ -14,8 +14,8 @@ namespace widget {
 class ToggleButtonGroup : public Widget
 {
 public:
-    void setup(std::initializer_list<context::Image> images);
-    void setup(std::initializer_list<std::string> labels);
+    void setup(Orientation orientation, std::initializer_list<context::Image> images);
+    void setup(Orientation orientation, std::initializer_list<std::string> labels);
     ToggleButtonGroup(WidgetInit init);
 
     ~ToggleButtonGroup() override = default;

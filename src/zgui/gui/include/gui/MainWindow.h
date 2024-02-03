@@ -20,7 +20,7 @@ public:
 
     void arrange(const widget::layout::Rect& rect);
     void doImGui();
-    void setUp();
+    void setup();
 
 private:
     std::shared_ptr<context::Theme> theme;

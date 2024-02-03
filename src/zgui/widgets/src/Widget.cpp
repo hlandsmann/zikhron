@@ -13,7 +13,6 @@ Widget::Widget(WidgetInit init)
     : theme{std::move(init.theme)}
     , widgetIdGenerator{std::move(init.widgetIdGenerator)}
     , rectPtr{std::move(init.rect)}
-    , passiveOrientation{init.orientation}
     , horizontalAlign{init.horizontalAlign}
     , verticalAlign{init.verticalAlign}
     , expandTypeWidth{init.expandTypeWidth}
@@ -50,7 +49,7 @@ auto Widget::getTheme() const -> const context::Theme&
     return *theme;
 }
 
-auto Widget::getWidgetId() const -> int
+auto Widget::getWidgetId() const -> WidgetId
 {
     return widgetId;
 }
@@ -58,11 +57,6 @@ auto Widget::getWidgetId() const -> int
 auto Widget::dropWidgetId() const -> context::WidgetIdDrop
 {
     return {widgetId};
-}
-
-auto Widget::PassiveOrientation() const -> layout::Orientation
-{
-    return passiveOrientation;
 }
 
 auto Widget::HorizontalAlign() const -> layout::Align
@@ -168,18 +162,13 @@ void Widget::setExpandType(layout::ExpandType width, layout::ExpandType height)
     expandTypeHeight = height;
 }
 
-// auto Widget::getRectPtr() const -> std::shared_ptr<layout::Rect>
-// {
-//     return rectPtr;
-// }
-
 auto Widget::makeWidgetInit() -> WidgetInit
 {
     WidgetInit init = {.theme = theme,
                        .widgetIdGenerator = widgetIdGenerator,
                        .rect = rectPtr,
-                       .orientation = passiveOrientation,
                        .horizontalAlign = horizontalAlign,
+                       .verticalAlign = verticalAlign,
                        .expandTypeWidth = ExpandType::width_fixed,
                        .expandTypeHeight = ExpandType::height_fixed,
                        .parent = shared_from_this()};

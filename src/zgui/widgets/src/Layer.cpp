@@ -4,7 +4,6 @@
 #include <detail/Widget.h>
 
 #include <algorithm>
-#include <ranges>
 #include <utility>
 
 namespace ranges = std::ranges;
@@ -70,11 +69,6 @@ auto Layer::calculateMinSize() const -> WidgetSize
     };
 }
 
-auto Layer::getChildOrientation() const -> Orientation
-{
-    return PassiveOrientation();
-}
-
 auto Layer::newWidgetAlign(Align align, Measure measure) const -> Align
 {
     switch (measure) {
@@ -99,67 +93,4 @@ auto Layer::posNewWidget(Align align, float widgetSize, float rectSize) -> float
     std::unreachable();
 }
 
-// auto Layer::sizeNewWidget(const Widget& widget, const Rect& borderedRect, Measure measure) -> float
-// {
-//     const auto& widgetSize = widget.getWidgetSize();
-//     switch (measure) {
-//     case Measure::horizontal:
-//         switch (widgetSize.widthType) {
-//         case ExpandType::expand:
-//             return widgetSize.width;
-//         case ExpandType::fixed:
-//             return borderedRect.width;
-//         }
-//         break;
-//
-//     case Measure::vertical:
-//         switch (widgetSize.heightType) {
-//         case ExpandType::expand:
-//             return widgetSize.height;
-//         case ExpandType::fixed:
-//             return borderedRect.height;
-//         }
-//         break;
-//     }
-//     std::unreachable();
-// }
-//
-// auto Layer::posNewWidget(const Widget& widget, const Rect& borderedRect, Measure measure) -> float
-// {
-//     const auto& widgetSize = widget.getWidgetSize();
-//     switch (measure) {
-//     case Measure::horizontal:
-//         switch (widgetSize.widthType) {
-//         case ExpandType::expand:
-//             return borderedRect.x;
-//         case ExpandType::fixed:
-//             switch (widget.HorizontalAlign()) {
-//             case Align::start:
-//                 return borderedRect.x;
-//             case Align::center:
-//                 return borderedRect.x + (borderedRect.width - widgetSize.width) / 2;
-//             case Align::end:
-//                 return borderedRect.x + (borderedRect.width - widgetSize.width);
-//             }
-//         }
-//         break;
-//
-//     case Measure::vertical:
-//         switch (widgetSize.heightType) {
-//         case ExpandType::expand:
-//             return borderedRect.y;
-//         case ExpandType::fixed:
-//             switch (widget.HorizontalAlign()) {
-//             case Align::start:
-//                 return borderedRect.y;
-//             case Align::center:
-//                 return borderedRect.y + (borderedRect.height - widgetSize.height) / 2;
-//             case Align::end:
-//                 return borderedRect.y + (borderedRect.height - widgetSize.height);
-//             }
-//         }
-//         break;
-//     }
-//     std::unreachable();
-// }
 } // namespace widget

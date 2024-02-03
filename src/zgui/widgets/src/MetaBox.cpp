@@ -33,6 +33,8 @@ void MetaBox<BoxImpl>::pop()
 {
     auto* self = static_cast<BoxImpl*>(this);
     self->rects.pop_back();
+    auto _widgetId = self->widgets.back()->getWidgetId();
+    id_widgets.erase(_widgetId);
     self->widgets.pop_back();
     resetWidgetSize();
 }
@@ -44,6 +46,7 @@ void MetaBox<BoxImpl>::clear()
     setArrangeIsNecessary();
     self->rects.clear();
     self->widgets.clear();
+    id_widgets.clear();
     resetWidgetSize();
 }
 

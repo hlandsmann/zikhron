@@ -25,11 +25,6 @@ struct Rect
     float height{};
 };
 
-enum class Orientation {
-    horizontal,
-    vertical
-};
-
 enum class Align {
     start,
     center,
@@ -62,7 +57,6 @@ struct WidgetInit
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     std::shared_ptr<layout::Rect> rect;
-    layout::Orientation orientation;
     layout::Align horizontalAlign;
     layout::Align verticalAlign;
     layout::ExpandType expandTypeWidth{layout::ExpandType::width_fixed};
@@ -72,8 +66,10 @@ struct WidgetInit
 
 class Widget : public std::enable_shared_from_this<Widget>
 {
-  using ExpandType = layout::ExpandType;
+    using ExpandType = layout::ExpandType;
+
 public:
+    using WidgetId = context::WidgetId;
     Widget(WidgetInit init);
     virtual ~Widget() = default;
     Widget(const Widget&) = default;
@@ -110,9 +106,8 @@ public:
     [[nodiscard]] auto arrangeIsNecessary() -> bool;
     void setArrangeIsNecessary();
     [[nodiscard]] auto getTheme() const -> const context::Theme&;
-    [[nodiscard]] auto getWidgetId() const -> int;
+    [[nodiscard]] auto getWidgetId() const -> WidgetId;
     [[nodiscard]] auto dropWidgetId() const -> context::WidgetIdDrop;
-    [[nodiscard]] auto PassiveOrientation() const -> layout::Orientation;
     [[nodiscard]] auto HorizontalAlign() const -> layout::Align;
     void setHorizontalAlign(layout::Align);
     [[nodiscard]] auto VerticalAlign() const -> layout::Align;
@@ -140,6 +135,7 @@ public:
             spdlog::info(fmt, std::forward<Args>(args)...);
         }
     }
+
     void setExpandType(layout::ExpandType width, layout::ExpandType height);
 
 protected:
@@ -156,7 +152,6 @@ private:
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     mutable std::string name;
     std::shared_ptr<layout::Rect> rectPtr;
-    layout::Orientation passiveOrientation;
     layout::Align horizontalAlign;
     layout::Align verticalAlign;
     ExpandType expandTypeWidth{ExpandType::width_fixed};
@@ -165,9 +160,8 @@ private:
     mutable std::optional<WidgetSize> optWidgetSize;
     mutable std::optional<WidgetSize> optWidgetMinSize;
     bool arrangeNecessary{true};
-    int widgetId;
+    WidgetId widgetId;
 };
-
 
 } // namespace widget
 
@@ -203,18 +197,3 @@ struct fmt::formatter<widget::layout::ExpandType>
     }
 };
 
-template<>
-struct fmt::formatter<widget::layout::Orientation>
-{
-    template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template<typename FormatContext>
-    auto format(widget::layout::Orientation orientation, FormatContext& ctx)
-    {
-        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(orientation));
-    }
-};

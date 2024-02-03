@@ -31,7 +31,7 @@ GlWindow::GlWindow(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExec
     , videoPlayer{std::make_shared<MpvWrapper>()}
 {
     videoPlayer->initGL();
-    mainWindow.setUp();
+    mainWindow.setup();
     // videoPlayer->openFile("/home/harmen/Videos/chinesisch/Cute Programmer E01 1080p WEB-DL AAC H.264-Luvmichelle.mkv");
     // videoPlayer->play();
 }

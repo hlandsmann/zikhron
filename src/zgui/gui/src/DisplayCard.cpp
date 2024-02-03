@@ -28,24 +28,29 @@ DisplayCard::DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
 
 void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
 {
-    auto box = layer->add<widget::Box>(Align::start);
+    auto box = layer->add<widget::Box>(Align::start, widget::Orientation::vertical);
+    boxId = box->getWidgetId();
+
     box->setName("DisplayCard_box");
     box->setExpandType(ExpandType::width_expand, ExpandType::height_fixed);
-    auto& window = *box->add<widget::Window>(Align::start, ExpandType::width_expand, ExpandType::height_fixed, "card_text");
-    auto cardBox = window.add<widget::Box>(Align::start);
-    cardBox->setFlipChildrensOrientation(false);
-    cardBox->setFlipChildrensOrientation(false);
+    auto& cardWindow = *box->add<widget::Window>(Align::start, ExpandType::width_expand, ExpandType::height_fixed, "card_text");
+    auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    // cardBox->setFlipChildrensOrientation(false);
     signalCardBox->set(cardBox);
+
+    auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
+    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    ctrlBox.add<widget::Button>(Align::center, "hello");
+
     spdlog::info("setUp");
 }
 
-void DisplayCard::displayOnWindow(widget::Layer& layer)
+void DisplayCard::displayOnLayer(widget::Layer& layer)
 {
-    layer.start();
-    auto box = layer.next<widget::Box>();
+    auto box = layer.getWidget<widget::Box>(boxId);
     box.start();
-    auto window = box.next<widget::Window>();
-    auto droppedWindow = window.dropWindow();
+    doCardWindow(box.next<widget::Window>());
+    doCtrlWindow(box.next<widget::Window>());
 
     // auto& box = window.getBox();
     // // auto size = box.getExpandedSize();
@@ -65,7 +70,6 @@ void DisplayCard::displayOnWindow(widget::Layer& layer)
 
 auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
-    using Align = widget::layout::Align;
     auto& cardBox = *co_await *signalCardBox;
 
     while (true) {
@@ -86,4 +90,14 @@ auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalk
     }
 
     co_return;
+}
+
+void DisplayCard::doCardWindow(widget::Window& cardWindow)
+{
+    auto droppedWindow = cardWindow.dropWindow();
+}
+
+void DisplayCard::doCtrlWindow(widget::Window& ctrlWindow)
+{
+    auto droppedWindow = ctrlWindow.dropWindow();
 }

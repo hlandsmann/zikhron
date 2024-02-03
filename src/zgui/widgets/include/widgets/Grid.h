@@ -1,5 +1,5 @@
 #pragma once
-#include "detail/MetaBox.h"
+#include "detail/MetaBox.h" // IWYU pragma: export core.h
 #include "detail/Widget.h"
 
 #include <cstddef>
@@ -12,7 +12,6 @@ class Grid : public MetaBox<Grid>
 {
     friend class MetaBox<Grid>;
     using Align = layout::Align;
-    using Orientation = layout::Orientation;
     using ExpandType = layout::ExpandType;
 
 public:

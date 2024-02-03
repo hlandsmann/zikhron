@@ -1,5 +1,5 @@
 #pragma once
-#include "detail/MetaBox.h"
+#include "detail/MetaBox.h" // IWYU pragma: export core.h
 #include "detail/Widget.h"
 
 #include <context/Theme.h>
@@ -14,17 +14,13 @@ class Box : public MetaBox<Box>
 {
     friend class MetaBox<Box>;
     using Align = layout::Align;
-    using Orientation = layout::Orientation;
     using ExpandType = layout::ExpandType;
 
 public:
-    void setup(){};
+    void setup(Orientation orientation);
     Box(const WidgetInit& init);
 
     [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;
-    void setOrientationHorizontal();
-    void setOrientationVertical();
-    void setFlipChildrensOrientation(bool flip);
     void setOrthogonalAlign(Align align);
 
 private:
@@ -67,7 +63,7 @@ private:
     std::vector<std::shared_ptr<layout::Rect>> rects;
 
     /* Box internal Members */
-    layout::Orientation orientation;
+    Orientation orientation{};
     layout::ExpandType expandWidth{ExpandType::width_expand};
     layout::ExpandType expandHeight{ExpandType::height_expand};
     layout::Align orthogonalAlign{Align::start};

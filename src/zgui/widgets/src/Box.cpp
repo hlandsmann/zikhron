@@ -20,9 +20,13 @@ namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 
 namespace widget {
+void Box::setup(Orientation _orientation)
+{
+    orientation = _orientation;
+}
+
 Box::Box(const WidgetInit& init)
     : MetaBox<Box>{init}
-    , orientation{init.orientation}
 {}
 
 auto Box::arrange(const layout::Rect& rect) -> bool
@@ -33,25 +37,10 @@ auto Box::arrange(const layout::Rect& rect) -> bool
         return false;
     }
     // imglog::log("box_arrange, x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
-    if (orientation == layout::Orientation::horizontal) {
+    if (orientation == Orientation::horizontal) {
         return arrange(Measure::horizontal, rect);
     }
     return arrange(Measure::vertical, rect);
-}
-
-void Box::setOrientationHorizontal()
-{
-    orientation = layout::Orientation::horizontal;
-}
-
-void Box::setOrientationVertical()
-{
-    orientation = layout::Orientation::vertical;
-}
-
-void Box::setFlipChildrensOrientation(bool flip)
-{
-    flipChildrensOrientation = flip;
 }
 
 void Box::setOrthogonalAlign(Align align)
@@ -62,7 +51,6 @@ void Box::setOrthogonalAlign(Align align)
 auto Box::calculateSize(SizeType sizeType) const -> WidgetSize
 {
     WidgetSize result{};
-    using layout::Orientation;
     switch (orientation) {
     case Orientation::horizontal:
         result = {
@@ -92,20 +80,10 @@ auto Box::calculateMinSize() const -> WidgetSize
     return calculateSize(SizeType::min);
 }
 
-auto Box::getChildOrientation() const -> Orientation
-{
-    if (!flipChildrensOrientation) {
-        return PassiveOrientation();
-    }
-    return PassiveOrientation() == layout::Orientation::vertical
-                   ? Orientation::horizontal
-                   : Orientation::vertical;
-}
-
 auto Box::newWidgetAlign(Align align, Measure measure) const -> Align
 {
-    if ((PassiveOrientation() == Orientation::horizontal && measure == Measure::horizontal)
-        || (PassiveOrientation() == Orientation::vertical && measure == Measure::vertical)) {
+    if ((orientation == Orientation::horizontal && measure == Measure::horizontal)
+        || (orientation == Orientation::vertical && measure == Measure::vertical)) {
         return align;
     }
     return orthogonalAlign;

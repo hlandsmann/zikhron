@@ -1,3 +1,4 @@
+#include <Box.h>
 #include <Button.h>
 #include <ImageButton.h>
 #include <ToggleButtonGroup.h>
@@ -13,18 +14,18 @@
 #include <variant>
 
 namespace widget {
-void ToggleButtonGroup::setup(std::initializer_list<context::Image> images)
+void ToggleButtonGroup::setup(Orientation _orientation, std::initializer_list<context::Image> images)
 {
-    box = create<Box>();
+    box = create<Box>(_orientation);
     box->setPadding(0.F);
     for (const auto& image : images) {
         box->add<ImageButton>(layout::Align::start, image);
     }
 }
 
-void ToggleButtonGroup::setup(std::initializer_list<std::string> labels)
+void ToggleButtonGroup::setup(Orientation _orientation, std::initializer_list<std::string> labels)
 {
-    box = create<Box>();
+    box = create<Box>(_orientation);
     box->setPadding(0.F);
     for (const auto& label : labels) {
         box->add<Button>(layout::Align::start, label);
