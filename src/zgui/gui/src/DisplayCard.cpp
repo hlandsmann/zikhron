@@ -33,8 +33,8 @@ void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
     boxId = box->getWidgetId();
 
     box->setName("DisplayCard_box");
-    box->setExpandType(width_expand, height_expand);
-    auto& cardWindow = *box->add<widget::Window>(Align::start, ExpandType::width_expand, ExpandType::height_fixed, "card_text");
+    // box->setExpandType(width_expand, height_expand);
+    auto& cardWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
     // cardBox->setFlipChildrensOrientation(false);
     signalCardBox->set(cardBox);
@@ -83,8 +83,6 @@ auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalk
         // for (const auto& token : tokenText.getParagraph()) {
         //     spdlog::info("{}", token.getValue());
         // }
-        // cardBox->clear();
-        // cardBox->add<widget::TextTokenSeq>(Align::start, tokenText.getParagraph());
 
         // signalVocIdEase
         auto& signalVoIdEase = *signalVocIdEase;
@@ -97,14 +95,18 @@ auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalk
 void DisplayCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
+    auto& cardBox = cardWindow.next<widget::Box>();
+    cardBox.start();
+    if (!cardBox.isLast()) {
+        cardBox.next<widget::TextTokenSeq>().draw();
+    }
 }
 
 void DisplayCard::doCtrlWindow(widget::Window& ctrlWindow)
 {
     auto droppedWindow = ctrlWindow.dropWindow();
     ctrlWindow.start();
-    auto & box = ctrlWindow.next<widget::Box>();
+    auto& box = ctrlWindow.next<widget::Box>();
     box.start();
     box.next<widget::Button>().clicked();
-
 }

@@ -21,6 +21,7 @@ public:
     TextTokenSeq(WidgetInit init);
 
     auto arrange(const layout::Rect& /* rect */) -> bool override;
+    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect&) -> WidgetSize override;
     void draw();
 
 protected:
@@ -31,6 +32,7 @@ private:
     auto linesFit() const -> bool;
     static void addTextToken(Box& box, const annotation::Token& token);
 
+    layout::Rect lastRect;
     std::shared_ptr<Box> lines;
     std::shared_ptr<Box> scratchBox;
     Paragraph paragraph;

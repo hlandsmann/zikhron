@@ -109,7 +109,9 @@ protected:
     };
     static auto getWidgetAlign(const Widget& widget, Measure measure) -> Align;
     static void setWidgetAlign(Widget& widget, Measure measure, Align align);
-    static auto widgetSizeProjection(const WidgetSize& widgetSize, Measure measure) -> float;
+    static auto widgetSizeProjection(Measure measure, const WidgetSize& widgetSize) -> float;
+    static auto rectPositionProjection(Measure measure, const layout::Rect& rect) -> float;
+    static auto rectSizeProjection(Measure measure, const layout::Rect& rect) -> float;
     static auto max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                                    std::vector<std::shared_ptr<Widget>>::const_iterator last,
                                    Measure measure, SizeType) -> float;

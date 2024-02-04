@@ -4,7 +4,8 @@
 namespace context {
 auto WidgetIdGenerator::getNextId() -> WidgetId
 {
-    return WidgetId{id + 1};
+    id = WidgetId{id + 1};
+    return id;
 }
 
 WidgetIdDrop::WidgetIdDrop(WidgetId widgetId)

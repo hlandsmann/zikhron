@@ -91,7 +91,7 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
     // auto width = lines->getWidgetSize().width;
     // spdlog::critical("x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
     imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
-    spdlog::info("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    // spdlog::info("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     lines->clear();
     auto line = lines->add<Box>(Align::start, Orientation::horizontal);
     for (const auto& token : paragraph) {
@@ -109,6 +109,11 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
     // resetWidgetSize();
     return lines->arrange(rect);
     // return true;
+}
+
+auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
+{
+  return {};
 }
 
 void TextTokenSeq::draw()

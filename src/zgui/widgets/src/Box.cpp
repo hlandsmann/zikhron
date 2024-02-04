@@ -33,15 +33,16 @@ auto Box::arrange(const layout::Rect& rect) -> bool
 {
     // winlog("DisplayCard_box", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     // winlog("ctrlBox", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
-    setRect(rect);
+    // setRect(rect);
+    auto borderedRect = getBorderedRect(rect);
     if (widgets.empty()) {
         return false;
     }
     // imglog::log("box_arrange, x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
     if (orientation == Orientation::horizontal) {
-        return arrange(Measure::horizontal, rect);
+        return arrange(Measure::horizontal, borderedRect);
     }
-    return arrange(Measure::vertical, rect);
+    return arrange(Measure::vertical, borderedRect);
 }
 
 void Box::setOrthogonalAlign(Align align)
@@ -90,17 +91,6 @@ auto Box::newWidgetAlign(Align align, Measure measure) const -> Align
     return orthogonalAlign;
 }
 
-auto Box::rectSizeProjection(Measure measure, const layout::Rect& rect) -> float
-{
-    switch (measure) {
-    case Measure::horizontal:
-        return rect.width;
-    case Measure::vertical:
-        return rect.height;
-    }
-    std::unreachable();
-}
-
 auto Box::accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                             std::vector<std::shared_ptr<Widget>>::const_iterator last,
                             Measure measure, SizeType sizeType) const -> float
@@ -110,7 +100,7 @@ auto Box::accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator
                                auto widgetSize = (sizeType == SizeType::min)
                                                          ? widget->getWidgetMinSize()
                                                          : widget->getWidgetSize();
-                               return val + widgetSizeProjection(widgetSize, measure) + ((val == 0.F) ? 0.F : getPadding());
+                               return val + widgetSizeProjection(measure, widgetSize) + ((val == 0.F) ? 0.F : getPadding());
                            });
 }
 
@@ -232,7 +222,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
     auto cursors = std::vector<float>{};
     cursors.reserve(widgets.size());
 
-    float cursor = 0;
+    float cursor = rectPositionProjection(measure, rect);
     Align align = Align::start;
     for (const auto& widget : widgets) {
         auto nextAlign = getNextAlign(align, getWidgetAlign(measure, widget));
@@ -255,7 +245,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
     // }
     // imglog::log("centerSize: {}, endSize: {}", centerSize, endSize);
 
-    cursor = 0;
+    cursor = rectPositionProjection(measure, rect);
     cursors.clear();
     float additionalSize = 0;
 
@@ -280,7 +270,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
     adjacentDiff.erase(adjacentDiff.begin());
 
     cursors.clear();
-    cursor = 0;
+    cursor = rectPositionProjection(measure, rect);
     align = Align::start;
     const auto centerSizeFinalIt = std::next(sizes.begin(), std::distance(widgets.begin(), centerIt));
     const auto endSizeFinalIt = std::next(sizes.begin(), std::distance(widgets.begin(), endIt));

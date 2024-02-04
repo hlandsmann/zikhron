@@ -55,8 +55,9 @@ auto Window::calculateMinSize() const -> WidgetSize
 
 auto Window::dropWindow() -> WindowDrop
 {
+    start();
     layout::Rect rect = getRect();
-    imglog::log("dropwin: {}, arrange, x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
+    // imglog::log("dropwin: {}, arrange, x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     return {getName(), rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Window)};
 }
 

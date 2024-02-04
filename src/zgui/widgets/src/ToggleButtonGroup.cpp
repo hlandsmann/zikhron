@@ -44,6 +44,7 @@ auto ToggleButtonGroup::calculateSize() const -> WidgetSize
 
 auto ToggleButtonGroup::getActive() -> std::size_t
 {
+
     box->start();
     for (std::size_t index = 0; index < box->numberOfWidgets(); index++) {
         auto& widget = box->next<Widget>();

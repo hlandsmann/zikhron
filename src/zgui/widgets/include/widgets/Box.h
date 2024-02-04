@@ -33,7 +33,6 @@ private:
     auto newWidgetAlign(Align align, Measure measure) const -> Align;
 
     /* Box internal functions */
-    static auto rectSizeProjection(Measure measure, const layout::Rect& rect) -> float;
     auto accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                            std::vector<std::shared_ptr<Widget>>::const_iterator last,
                            Measure measure, SizeType sizeType) const -> float;
