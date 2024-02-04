@@ -28,18 +28,20 @@ DisplayCard::DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
 
 void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
 {
+    using namespace widget::layout;
     auto box = layer->add<widget::Box>(Align::start, widget::Orientation::vertical);
     boxId = box->getWidgetId();
 
     box->setName("DisplayCard_box");
-    box->setExpandType(ExpandType::width_expand, ExpandType::height_fixed);
+    box->setExpandType(width_expand, height_expand);
     auto& cardWindow = *box->add<widget::Window>(Align::start, ExpandType::width_expand, ExpandType::height_fixed, "card_text");
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
     // cardBox->setFlipChildrensOrientation(false);
     signalCardBox->set(cardBox);
 
     auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
-    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    ctrlBox.setName("ctrlBox");
     ctrlBox.add<widget::Button>(Align::center, "hello");
 
     spdlog::info("setUp");
@@ -100,4 +102,9 @@ void DisplayCard::doCardWindow(widget::Window& cardWindow)
 void DisplayCard::doCtrlWindow(widget::Window& ctrlWindow)
 {
     auto droppedWindow = ctrlWindow.dropWindow();
+    ctrlWindow.start();
+    auto & box = ctrlWindow.next<widget::Box>();
+    box.start();
+    box.next<widget::Button>().clicked();
+
 }

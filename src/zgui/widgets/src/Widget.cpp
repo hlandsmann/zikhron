@@ -96,7 +96,7 @@ auto Widget::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
         widgetSize.width = std::max(widgetSize.width, rect.width);
     }
     if (expandTypeHeight == ExpandType::expand) {
-        widgetSize.height = std::max(widgetSize.width, rect.height);
+        widgetSize.height = std::max(widgetSize.height, rect.height);
     }
     return widgetSize;
 }
@@ -160,6 +160,16 @@ void Widget::setExpandType(layout::ExpandType width, layout::ExpandType height)
 {
     expandTypeWidth = width;
     expandTypeHeight = height;
+}
+
+auto Widget::getExpandTypeWidth() const -> ExpandType
+{
+    return expandTypeWidth;
+}
+
+auto Widget::getExpandTypeHeight() const -> ExpandType
+{
+    return expandTypeHeight;
 }
 
 auto Widget::makeWidgetInit() -> WidgetInit

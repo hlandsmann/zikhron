@@ -9,6 +9,7 @@
 #include <magic_enum.hpp>
 #include <memory>
 #include <stdexcept>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -18,6 +19,9 @@ enum class Orientation {
     horizontal,
     vertical
 };
+class Layer;
+class Grid;
+class Box;
 
 template<class BoxImpl>
 class MetaBox : public Widget
@@ -39,10 +43,14 @@ public:
         WidgetInit init = {.theme = getThemePtr(),
                            .widgetIdGenerator = getWidgetIdGenerator(),
                            .rect = widgetRect,
-                           // .orientation = self->getChildOrientation(),
                            .horizontalAlign = self->newWidgetAlign(widgetAlign, Measure::horizontal),
                            .verticalAlign = self->newWidgetAlign(widgetAlign, Measure::vertical),
                            .parent = shared_from_this()};
+        if constexpr (std::is_same_v<BoxImpl, Layer>
+                      && (std::is_same_v<WidgetType, Box> || std::is_same_v<WidgetType, Grid>)) {
+            init.expandTypeWidth = getExpandTypeWidth();
+            init.expandTypeHeight = getExpandTypeHeight();
+        }
         auto widget = std::make_shared<WidgetType>(std::move(init));
         auto newWidgetId = widget->getWidgetId();
         widget->setup(std::forward<Args>(args)...);

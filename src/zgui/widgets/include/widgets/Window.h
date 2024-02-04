@@ -1,5 +1,6 @@
 #pragma once
 #include "Box.h"
+#include "Grid.h"
 #include "Layer.h"
 #include "detail/Widget.h"
 
@@ -9,6 +10,7 @@
 
 #include <memory>
 #include <string>
+#include <type_traits>
 
 namespace widget {
 

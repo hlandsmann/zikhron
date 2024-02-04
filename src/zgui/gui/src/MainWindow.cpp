@@ -90,6 +90,7 @@ void MainWindow::setup()
 
     box->setPadding(0.F);
     auto mainLayer = box->add<widget::Layer>(Align::start);
+    mainLayer->setExpandType(width_expand, height_expand);
     mainLayer->setName("mainLayer");
 
     // auto& displayWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");

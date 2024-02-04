@@ -35,6 +35,4 @@ private:
     std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;
     std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
     context::WidgetId boxId{};
-
-    // BoxPtr box;
 };

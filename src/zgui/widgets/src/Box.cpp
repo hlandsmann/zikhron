@@ -31,7 +31,8 @@ Box::Box(const WidgetInit& init)
 
 auto Box::arrange(const layout::Rect& rect) -> bool
 {
-    winlog("DisplayCard_box", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
+    // winlog("DisplayCard_box", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
+    // winlog("ctrlBox", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     setRect(rect);
     if (widgets.empty()) {
         return false;

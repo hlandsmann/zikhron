@@ -119,6 +119,10 @@ public:
     void setName(const std::string& name);
     [[nodiscard]] auto getName() const -> const std::string&;
 
+    void setExpandType(layout::ExpandType width, layout::ExpandType height);
+    auto getExpandTypeWidth() const -> ExpandType;
+    auto getExpandTypeHeight() const -> ExpandType;
+
     // debug functions
     template<class... Args>
     void winlog(const std::string& _name, std::format_string<Args...> fmt, Args&&... args)
@@ -135,8 +139,6 @@ public:
             spdlog::info(fmt, std::forward<Args>(args)...);
         }
     }
-
-    void setExpandType(layout::ExpandType width, layout::ExpandType height);
 
 protected:
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
@@ -196,4 +198,3 @@ struct fmt::formatter<widget::layout::ExpandType>
         return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(expandType));
     }
 };
-
