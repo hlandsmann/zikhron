@@ -73,8 +73,6 @@ void MainWindow::doImGui()
         auto& tabBox = tabWindow.next<widget::Box>();
         tabBox.start();
         tabBox.next<widget::ToggleButtonGroup>().getActive();
-        // tabBox.next<widget::ToggleButtonGroup>().getActive();
-        // tabBox.next<widget::ToggleButtonGroup>().getActive();
     }
 
     // bool show_demo_window = true;
@@ -109,10 +107,4 @@ void MainWindow::setup()
                                                   context::Image::video,
                                                   context::Image::audio,
                                                   context::Image::configure});
-    // tmbBox.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::vertical,
-    //                                       std::initializer_list<context::Image>{
-    //                                               context::Image::cards,
-    //                                               context::Image::video,
-    //                                               context::Image::audio,
-    //                                               context::Image::configure});
 }

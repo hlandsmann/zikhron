@@ -36,6 +36,7 @@ void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
     // box->setExpandType(width_expand, height_expand);
     auto& cardWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    cardBox->setName("cardBox");
     // cardBox->setFlipChildrensOrientation(false);
     signalCardBox->set(cardBox);
 

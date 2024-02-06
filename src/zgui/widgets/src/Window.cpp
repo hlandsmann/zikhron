@@ -43,7 +43,7 @@ auto Window::arrange(const layout::Rect& rect) -> bool
 
 auto Window::calculateSize() const -> WidgetSize
 {
-    auto widgetSize = dynamic_cast<const Widget&>(*layer).getWidgetSize();
+    auto widgetSize = layer->getWidgetSize();
     return widgetSize;
 }
 

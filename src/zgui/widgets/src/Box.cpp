@@ -143,10 +143,10 @@ auto Box::rectWithAdaptedSize(Measure measure, const layout::Rect& rect, float s
     return {.x = 0,
             .y = 0,
             .width = measure == Measure::horizontal
-                             ? size
+                             ? std::min(rect.width, size)
                              : rect.width,
             .height = measure == Measure::vertical
-                              ? size
+                              ? std::min(rect.height, size)
                               : rect.height};
 }
 
@@ -187,29 +187,38 @@ auto Box::getWidgetCursor(Measure measure,
                           float oldCursor)
         -> float
 {
+    float minCursor = rectPositionProjection(measure, rect);
+    oldCursor = std::max(minCursor, oldCursor);
     if (nextAlign == oldAlign) {
         return oldCursor;
     }
+
+    // normalize
+    oldCursor -= minCursor;
+    float newCursor{};
 
     auto size = rectSizeProjection(measure, rect);
     switch (nextAlign) {
     case Align::start: // unreachable
     case Align::center: {
-        float newCursor = (size - centerSize) / 2.F;
+        newCursor = (size - centerSize) / 2.F;
         newCursor = std::min(size - endSize - centerSize, newCursor);
         newCursor = std::max(oldCursor, newCursor);
-        return newCursor;
+        break;
     }
     case Align::end: {
-        float newCursor = (size - endSize);
-        return newCursor;
+        newCursor = (size - endSize);
+        break;
     }
     }
-    std::unreachable();
+    // un-normalize
+    newCursor += minCursor;
+    return newCursor;
 }
 
 auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
 {
+    imglog::log("{}:, x: {}, y: {}", getName(), rect.x, rect.y);
     const auto centerIt = ranges::find_if(widgets, [measure](const auto& widgetPtr) {
         return getWidgetAlign(measure, widgetPtr) == Align::center
                || getWidgetAlign(measure, widgetPtr) == Align::end;
@@ -229,6 +238,8 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         cursor = getWidgetCursor(measure, align, nextAlign, centerSize, endSize, rect, cursor);
         cursors.push_back(cursor);
         cursor += getSizeOfWidgetSize(measure, widget->getWidgetMinSize());
+        winlog("linebox", "{}, {}", getName(), cursor);
+        winlog("cardBox", "{}, {}", getName(), cursor);
         align = nextAlign;
     }
     cursors.push_back(rectSizeProjection(measure, rect));
@@ -257,6 +268,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         auto widgetSize = widget->getWidgetSizeFromRect(rectWithAdaptedSize(measure, rect, size + additionalSize));
         auto neededSize = getSizeOfWidgetSize(measure, widgetSize);
         auto orthogonalSize = getSizeOfWidgetSize(oppositeMeasure(measure), widgetSize);
+        winlog("cardBox", "{}, o:{}, w: {}", getName(), orthogonalSize, rect.width);
         orthogonalSizes.push_back(orthogonalSize);
         additionalSize += size - neededSize;
         cursors.push_back(cursor);

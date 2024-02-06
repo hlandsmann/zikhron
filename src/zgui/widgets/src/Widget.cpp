@@ -93,10 +93,10 @@ auto Widget::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
     auto widgetSize = getWidgetMinSize();
     if (expandTypeWidth == ExpandType::expand) {
-        widgetSize.width = std::max(widgetSize.width, rect.width);
+        widgetSize.width = rect.width;
     }
     if (expandTypeHeight == ExpandType::expand) {
-        widgetSize.height = std::max(widgetSize.height, rect.height);
+        widgetSize.height = rect.height;
     }
     return widgetSize;
 }

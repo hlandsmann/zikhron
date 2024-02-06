@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+
 namespace widget {
 class TextTokenSeq : public Widget
 {
@@ -26,14 +27,16 @@ public:
 
 protected:
     auto calculateSize() const -> WidgetSize override;
+    auto calculateMinSize() const -> WidgetSize override;
 
 private:
     constexpr static float border = 16;
-    auto linesFit() const -> bool;
+    auto arrangeLines(Box& lines, const layout::Rect& rect) -> bool;
+    auto linesFit(const layout::Rect& rect) const -> bool;
     static void addTextToken(Box& box, const annotation::Token& token);
 
     layout::Rect lastRect;
-    std::shared_ptr<Box> lines;
+    std::shared_ptr<Box> lineBox;
     std::shared_ptr<Box> scratchBox;
     Paragraph paragraph;
 };

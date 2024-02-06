@@ -125,7 +125,7 @@ public:
 
     // debug functions
     template<class... Args>
-    void winlog(const std::string& _name, std::format_string<Args...> fmt, Args&&... args)
+    void winlog(const std::string& _name, std::format_string<Args...> fmt, Args&&... args) const
     {
         if (_name.empty() || _name == name) {
             imglog::log(fmt, std::forward<Args>(args)...);
@@ -133,7 +133,7 @@ public:
     }
 
     template<class... Args>
-    void consoleLog(const std::string& _name, std::format_string<Args...> fmt, Args&&... args)
+    void consoleLog(const std::string& _name, fmt::format_string<Args...> fmt, Args&&... args) const
     {
         if (_name.empty() || _name == name) {
             spdlog::info(fmt, std::forward<Args>(args)...);
