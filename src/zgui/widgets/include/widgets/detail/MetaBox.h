@@ -58,7 +58,6 @@ public:
             widget->setPadding(padding);
         }
         self->widgets.push_back(static_cast<std::shared_ptr<Widget>>(widget));
-        self->rects.push_back(std::move(widgetRect));
         id_widgets[newWidgetId] = widget;
 
         resetWidgetSize();

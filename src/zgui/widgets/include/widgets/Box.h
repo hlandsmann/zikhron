@@ -59,7 +59,6 @@ private:
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;
-    std::vector<std::shared_ptr<layout::Rect>> rects;
 
     /* Box internal Members */
     Orientation orientation{};

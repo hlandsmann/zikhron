@@ -21,15 +21,15 @@ public:
     void setup(Paragraph paragraph);
     TextTokenSeq(WidgetInit init);
 
-    auto arrange(const layout::Rect& /* rect */) -> bool override;
-    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect&) -> WidgetSize override;
     void draw();
 
-protected:
+private:
     auto calculateSize() const -> WidgetSize override;
     auto calculateMinSize() const -> WidgetSize override;
 
-private:
+    auto arrange(const layout::Rect& /* rect */) -> bool override;
+    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
+
     constexpr static float border = 16;
     auto arrangeLines(Box& lines, const layout::Rect& rect) -> bool;
     auto linesFit(const layout::Rect& rect) const -> bool;

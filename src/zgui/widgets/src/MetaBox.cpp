@@ -32,7 +32,6 @@ template<class BoxImpl>
 void MetaBox<BoxImpl>::pop()
 {
     auto* self = static_cast<BoxImpl*>(this);
-    self->rects.pop_back();
     auto _widgetId = self->widgets.back()->getWidgetId();
     id_widgets.erase(_widgetId);
     self->widgets.pop_back();
@@ -44,7 +43,6 @@ void MetaBox<BoxImpl>::clear()
 {
     auto* self = static_cast<BoxImpl*>(this);
     setArrangeIsNecessary();
-    self->rects.clear();
     self->widgets.clear();
     id_widgets.clear();
     resetWidgetSize();
