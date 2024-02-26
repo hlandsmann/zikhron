@@ -67,8 +67,8 @@ private:
     std::size_t columns{};
     std::vector<std::size_t> mergedCells;
     std::vector<float> priorities;
-    float width{};
-    float height{};
+    float gridWidth{};
+    float gridHeight{};
 };
 
 } // namespace widget

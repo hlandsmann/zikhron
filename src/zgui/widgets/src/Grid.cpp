@@ -85,8 +85,8 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
                         needArrange |= widget->arrange({.x = cursorX, .y = cursorY, .width = width, .height = rect.height});
                         return widget->getWidgetSize();
                     });
-    width = cursorsX.back() - cursorsX.front();
-    height = cursorsY.back() - cursorsY.front();
+    gridWidth = cursorsX.back() - cursorsX.front();
+    gridHeight = cursorsY.back() - cursorsY.front();
 
     return needArrange;
 }
@@ -189,8 +189,8 @@ auto Grid::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 
 auto Grid::calculateSize() const -> WidgetSize
 {
-    return {.width = width,
-            .height = height};
+    return {.width = gridWidth,
+            .height = gridHeight};
 }
 
 auto Grid::calculateMinSize() const -> WidgetSize

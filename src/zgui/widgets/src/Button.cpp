@@ -6,6 +6,7 @@
 
 #include <string>
 #include <utility>
+
 namespace widget {
 void Button::setup(std::string _label)
 {
@@ -30,6 +31,7 @@ auto Button::clicked() const -> bool
     auto styleColorDrop = getTheme().dropImGuiStyleColors(ColorTheme::ButtonDefault);
     const auto& btnRect = getRect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
+    imglog::log("Button: x: {}, y: {}, w: {}, h: {}", btnRect.x, btnRect.x, btnRect.width, btnRect.height);
 
     return ImGui::Button(label.c_str(), {btnRect.width, btnRect.height});
 }
