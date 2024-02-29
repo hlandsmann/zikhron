@@ -3,4 +3,4 @@
 	url = git@github.com:ocornut/imgui.git
 [submodule "third_party/cppjieba"]
 	path = third_party/cppjieba
-	url = https://github.com/hlandsmann/cppjieba.git
+	url = git@github.com:hlandsmann/cppjieba.git
