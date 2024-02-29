@@ -37,3 +37,5 @@ target_include_directories(stb_image
     PRIVATE
         stb/include/stb
 )
+
+add_subdirectory(cppjieba)
