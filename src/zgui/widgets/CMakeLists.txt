@@ -8,6 +8,7 @@ target_sources(zgui_widgets
         include/widgets/Grid.h
         include/widgets/ImageButton.h
         include/widgets/Layer.h
+        include/widgets/MediaSlider.h
         include/widgets/TextToken.h
         include/widgets/TextTokenSeq.h
         include/widgets/ToggleButtonGroup.h
@@ -19,6 +20,7 @@ target_sources(zgui_widgets
         src/Grid.cpp
         src/ImageButton.cpp
         src/Layer.cpp
+        src/MediaSlider.cpp
         src/MetaBox.cpp
         src/TextToken.cpp
         src/TextTokenSeq.cpp
