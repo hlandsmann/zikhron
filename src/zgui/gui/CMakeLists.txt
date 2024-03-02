@@ -4,16 +4,16 @@ add_library(zgui::gui ALIAS zgui_gui)
 
 target_sources(zgui_gui
     PRIVATE
-        include/gui/DisplayCard.h
-        include/gui/DisplayVideo.h
         include/gui/GlWindow.h
         include/gui/MainWindow.h
         include/gui/SideBar.h
-        src/DisplayCard.cpp
-        src/DisplayVideo.cpp
+        include/gui/TabCard.h
+        include/gui/TabVideo.h
         src/GlWindow.cpp
         src/MainWindow.cpp
         src/SideBar.cpp
+        src/TabCard.cpp
+        src/TabVideo.cpp
 )
 
 target_include_directories(zgui_gui

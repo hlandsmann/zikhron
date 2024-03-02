@@ -1,4 +1,4 @@
-#include <DisplayVideo.h>
+#include <TabVideo.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <context/imglog.h>
@@ -14,7 +14,7 @@
 #include <memory>
 #include <utility>
 
-DisplayVideo::DisplayVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
+TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                          std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
     : executor{std::move(_synchronousExecutor)}
 // , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
@@ -25,7 +25,7 @@ DisplayVideo::DisplayVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchro
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-void DisplayVideo::setUp(widget::Window& window)
+void TabVideo::setUp(widget::Window& window)
 {
     // using Align = widget::layout::Align;
     // auto& box = window.getBox();
@@ -35,7 +35,7 @@ void DisplayVideo::setUp(widget::Window& window)
     // spdlog::info("setUp");
 }
 
-void DisplayVideo::displayOnWindow(widget::Window& window)
+void TabVideo::displayOnWindow(widget::Window& window)
 {
     // auto droppedWindow = window.dropWindow();
     //
@@ -55,7 +55,7 @@ void DisplayVideo::displayOnWindow(widget::Window& window)
     // }
 }
 
-auto DisplayVideo::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
+auto TabVideo::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     using Align = widget::layout::Align;
 

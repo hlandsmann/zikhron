@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 
-#include <DisplayCard.h>
-#include <DisplayVideo.h>
+#include <TabCard.h>
+#include <TabVideo.h>
 #include <context/Fonts.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
@@ -22,8 +22,8 @@
 
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
-                       std::unique_ptr<DisplayCard> _displayCard,
-                       std::unique_ptr<DisplayVideo> _displayVideo)
+                       std::unique_ptr<TabCard> _TabCard,
+                       std::unique_ptr<TabVideo> _tabVideo)
     : theme{std::move(_theme)}
     , boxRect{std::make_shared<widget::layout::Rect>()}
     , box{std::make_shared<widget::Box>(widget::WidgetInit{
@@ -35,8 +35,8 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
               .parent = std::weak_ptr<widget::Widget>{}
 
       })}
-    , displayCard{std::move(_displayCard)}
-    , displayVideo{std::move(_displayVideo)}
+    , tabCard{std::move(_TabCard)}
+    , tabVideo{std::move(_tabVideo)}
 {
 }
 
@@ -57,7 +57,7 @@ void MainWindow::doImGui()
     box->start();
     {
         auto layer = box->next<widget::Layer>();
-        displayCard->displayOnLayer(layer);
+        tabCard->displayOnLayer(layer);
         // auto& displayWindow = box->next<widget::Window>();
         // displayCard->displayOnWindow(displayWindow);
         // auto drop = displayWindow.dropWindow();
@@ -93,7 +93,7 @@ void MainWindow::setup()
     mainLayer->setName("mainLayer");
 
     // auto& displayWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
-    displayCard->setUp(mainLayer);
+    tabCard->setUp(mainLayer);
 
     auto& toggleButtonMenu = *box->add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
     auto& tmbBox = *toggleButtonMenu.add<widget::Box>(Align::start, widget::Orientation::vertical);

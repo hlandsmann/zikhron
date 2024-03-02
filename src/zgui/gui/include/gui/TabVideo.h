@@ -11,10 +11,10 @@
 #include <map>
 #include <memory>
 
-class DisplayVideo
+class TabVideo
 {
 public:
-    DisplayVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
+    TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                  std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
     void setUp(widget::Window& window);
     void displayOnWindow(widget::Window& window);

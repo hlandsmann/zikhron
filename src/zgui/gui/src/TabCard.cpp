@@ -1,4 +1,4 @@
-#include <DisplayCard.h>
+#include <TabCard.h>
 #include <context/imglog.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
@@ -13,7 +13,7 @@
 #include <memory>
 #include <utility>
 
-DisplayCard::DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
+TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                          std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
     : executor{std::move(_synchronousExecutor)}
     , signalVocIdEase{executor->makeVolatileSignal<VocableId_Ease>()}
@@ -26,7 +26,7 @@ DisplayCard::DisplayCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchrono
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
+void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
 {
     using namespace widget::layout;
     auto box = layer->add<widget::Box>(Align::start, widget::Orientation::vertical);
@@ -51,7 +51,7 @@ void DisplayCard::setUp(std::shared_ptr<widget::Layer> layer)
     spdlog::info("setUp");
 }
 
-void DisplayCard::displayOnLayer(widget::Layer& layer)
+void TabCard::displayOnLayer(widget::Layer& layer)
 {
     auto box = layer.getWidget<widget::Box>(boxId);
     box.start();
@@ -75,7 +75,7 @@ void DisplayCard::displayOnLayer(widget::Layer& layer)
     // // }
 }
 
-auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
+auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     auto& cardBox = *co_await *signalCardBox;
 
@@ -97,14 +97,14 @@ auto DisplayCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalk
     co_return;
 }
 
-void DisplayCard::doTestWindow(widget::Window& cardWindow)
+void TabCard::doTestWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
     // auto& cardBox = cardWindow.next<widget::Box>();
     // cardBox.start();
 }
 
-void DisplayCard::doCardWindow(widget::Window& cardWindow)
+void TabCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
     auto& cardBox = cardWindow.next<widget::Box>();
@@ -114,7 +114,7 @@ void DisplayCard::doCardWindow(widget::Window& cardWindow)
     }
 }
 
-void DisplayCard::doCtrlWindow(widget::Window& ctrlWindow)
+void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
 {
     auto droppedWindow = ctrlWindow.dropWindow();
     ctrlWindow.start();
