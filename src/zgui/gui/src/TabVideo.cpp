@@ -1,11 +1,11 @@
 #include <TabVideo.h>
-#include <widgets/Grid.h>
-#include <widgets/Layer.h>
 #include <context/imglog.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
+#include <widgets/Grid.h>
+#include <widgets/Layer.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
@@ -14,8 +14,10 @@
 #include <memory>
 #include <utility>
 
+namespace gui {
+
 TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-                         std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
+                   std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
     : executor{std::move(_synchronousExecutor)}
 // , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
 
@@ -61,3 +63,5 @@ auto TabVideo::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker)
 
     co_return;
 }
+
+} // namespace gui

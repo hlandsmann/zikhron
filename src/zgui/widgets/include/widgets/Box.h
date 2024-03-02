@@ -1,6 +1,6 @@
 #pragma once
-#include "detail/MetaBox.h" // IWYU pragma: export core.h
-#include "detail/Widget.h"
+#include "detail/MetaBox.h" // IWYU pragma: export detail/MetaBox.h
+#include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
 
 #include <context/Theme.h>
 #include <imgui.h>

@@ -1,4 +1,5 @@
 #pragma once
+#include "DisplayText.h"
 #include <annotation/Ease.h>
 #include <context/WidgetIdGenerator.h>
 #include <misc/Identifier.h>
@@ -12,6 +13,8 @@
 #include <map>
 #include <memory>
 
+namespace gui {
+
 class TabCard
 {
     using Align = widget::layout::Align;
@@ -19,7 +22,7 @@ class TabCard
 
 public:
     TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-                std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
+            std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
     void setUp(std::shared_ptr<widget::Layer> layer);
     void displayOnLayer(widget::Layer& layer);
 
@@ -32,8 +35,11 @@ private:
 
     std::shared_ptr<kocoro::SynchronousExecutor> executor;
 
-    using BoxPtr = std::shared_ptr<widget::Box>;
+    std::shared_ptr<DisplayText> displayText;
+
+    using LayerPtr = std::shared_ptr<widget::Layer>;
     std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;
-    std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
+    std::shared_ptr<kocoro::PersistentSignal<LayerPtr>> signalCardLayer;
     context::WidgetId boxId{};
 };
+} // namespace gui

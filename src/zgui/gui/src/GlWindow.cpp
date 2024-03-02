@@ -3,7 +3,6 @@
 #include <GLFW/glfw3.h>
 #include <GlWindow.h>
 #include <MainWindow.h>
-#include <SideBar.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
 #include <context/Fonts.h>
@@ -21,6 +20,8 @@
 #include <kocoro/kocoro.hpp>
 #include <memory>
 #include <utility>
+
+namespace gui {
 
 GlWindow::GlWindow(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                    std::shared_ptr<context::GlfwImguiContext> _glfwImguiContext,
@@ -101,3 +102,5 @@ void GlWindow::render()
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     glfwSwapBuffers(glfwImguiContext->getGLFWwindow());
 }
+
+} // namespace gui

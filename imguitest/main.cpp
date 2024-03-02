@@ -4,13 +4,12 @@
 
 #include <boost/di.hpp>
 #include <kocoro/kocoro.hpp>
-#include <memory>
 
 namespace di = boost::di;
 
 auto main() -> int
 {
     auto injector = di::make_injector();
-    auto glWindow = injector.create<GlWindow>();
+    auto glWindow = injector.create<gui::GlWindow>();
     glWindow.run();
 }

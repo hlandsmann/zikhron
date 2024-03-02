@@ -2,7 +2,7 @@
 #include "Box.h"
 #include "Grid.h"
 #include "Layer.h"
-#include "detail/Widget.h"
+#include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
 
 #include <context/Drop.h>
 #include <context/Theme.h>

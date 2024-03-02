@@ -10,10 +10,12 @@
 #include <cstddef>
 #include <memory>
 #include <span>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace ranges = std::ranges;
+
 namespace annotation {
 
 TokenText::TokenText(std::shared_ptr<Card> _card, std::vector<VocableId> _vocableIds)
@@ -37,7 +39,18 @@ auto TokenText::getType() const -> TextType
 
 auto TokenText::getParagraph() const -> const Paragraph&
 {
+    if (textType != TextType::subtitle && textType != TextType::text) {
+        throw std::runtime_error("TokenText is neither of type subtitle nor text");
+    }
     return paragraphSeq.front();
+}
+
+auto TokenText::getDialogue() const -> const std::vector<Paragraph>&
+{
+    if (textType != TextType::dialogue) {
+        throw std::runtime_error("TokenText is not of type dialogue");
+    }
+    return paragraphSeq;
 }
 
 void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)

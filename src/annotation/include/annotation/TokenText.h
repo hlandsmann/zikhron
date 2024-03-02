@@ -6,9 +6,8 @@
 #include <misc/Identifier.h>
 
 #include <cstddef>
-#include <ranges>
 #include <memory>
-#include <span>
+#include <ranges>
 #include <vector>
 
 namespace annotation {
@@ -17,6 +16,7 @@ enum class TextType {
     subtitle,
     text,
 };
+
 class TokenText
 {
 public:
@@ -24,6 +24,7 @@ public:
     TokenText(std::shared_ptr<Card> card, std::vector<VocableId> vocableIds);
     [[nodiscard]] auto getType() const -> TextType;
     [[nodiscard]] auto getParagraph() const -> const Paragraph&;
+    [[nodiscard]] auto getDialogue() const -> const std::vector<Paragraph>&;
 
 private:
     using tokenSubrange = std::ranges::subrange<std::vector<ZH_Tokenizer::Token>::const_iterator>;

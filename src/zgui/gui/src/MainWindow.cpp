@@ -20,6 +20,8 @@
 #include <memory>
 #include <utility>
 
+namespace gui {
+
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
                        std::unique_ptr<TabCard> _TabCard,
@@ -108,3 +110,4 @@ void MainWindow::setup()
                                                   context::Image::audio,
                                                   context::Image::configure});
 }
+} // namespace gui

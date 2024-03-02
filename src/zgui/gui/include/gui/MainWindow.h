@@ -10,6 +10,8 @@
 
 #include <memory>
 
+namespace gui {
+
 class MainWindow
 {
 public:
@@ -30,3 +32,4 @@ private:
     std::unique_ptr<TabVideo> tabVideo;
     bool needArrange = false;
 };
+} // namespace gui

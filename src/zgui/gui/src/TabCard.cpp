@@ -1,3 +1,4 @@
+#include <DisplayText.h>
 #include <TabCard.h>
 #include <context/imglog.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
@@ -13,11 +14,13 @@
 #include <memory>
 #include <utility>
 
+namespace gui {
+
 TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-                         std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
+                 std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
     : executor{std::move(_synchronousExecutor)}
     , signalVocIdEase{executor->makeVolatileSignal<VocableId_Ease>()}
-    , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
+    , signalCardLayer{executor->makePersistentSignal<LayerPtr>()}
 // , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
 
 {
@@ -35,10 +38,10 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
     box->setName("DisplayCard_box");
     // box->setExpandType(width_expand, height_expand);
     auto& cardWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
-    auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
-    cardBox->setName("cardBox");
+    auto cardLayer = cardWindow.add<widget::Layer>(Align::start);
+    cardLayer->setName("cardLayer");
     // cardBox->setFlipChildrensOrientation(false);
-    signalCardBox->set(cardBox);
+    signalCardLayer->set(cardLayer);
 
     auto& testWindow = *box->add<widget::Window>(Align::center, ExpandType::width_expand, ExpandType::height_expand, "test_window");
     auto& testBox = *testWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
@@ -77,13 +80,14 @@ void TabCard::displayOnLayer(widget::Layer& layer)
 
 auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
-    auto& cardBox = *co_await *signalCardBox;
+    auto cardLayer = co_await *signalCardLayer;
 
     while (true) {
+        cardLayer->clear();
         auto cardMeta = co_await asyncTreeWalker->getNextCardChoice();
         auto tokenText = cardMeta.getStudyTokenText();
-        cardBox.clear();
-        cardBox.add<widget::TextTokenSeq>(Align::start, tokenText.getParagraph());
+        displayText = std::make_unique<DisplayText>(cardLayer, std::move(tokenText));
+        // cardLayer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph());
 
         // for (const auto& token : tokenText.getParagraph()) {
         //     spdlog::info("{}", token.getValue());
@@ -92,6 +96,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         // signalVocIdEase
         auto& signalVoIdEase = *signalVocIdEase;
         const auto& vocIdEase = co_await signalVoIdEase;
+        displayText.reset();
     }
 
     co_return;
@@ -107,11 +112,14 @@ void TabCard::doTestWindow(widget::Window& cardWindow)
 void TabCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
-    auto& cardBox = cardWindow.next<widget::Box>();
-    cardBox.start();
-    if (!cardBox.isLast()) {
-        cardBox.next<widget::TextTokenSeq>().draw();
+    if (displayText) {
+        displayText->draw();
     }
+    // auto& cardLayer = cardWindow.next<widget::Layer>();
+    // cardLayer.start();
+    // if (!cardLayer.isLast()) {
+    //     cardLayer.next<widget::TextTokenSeq>().draw();
+    // }
 }
 
 void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
@@ -121,5 +129,6 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
     auto& box = ctrlWindow.next<widget::Box>();
     box.start();
     box.next<widget::Button>().clicked();
-
 }
+
+} // namespace gui

@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "detail/Widget.h"
+#include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
 
 namespace widget {
 

@@ -9,14 +9,14 @@
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <widgets/Box.h>
-#include <widgets/detail/Widget.h>
 #include <widgets/Window.h>
+#include <widgets/detail/Widget.h>
 
 #include <kocoro/kocoro.hpp>
 #include <memory>
 #include <utility>
 
-class FrameDrop;
+namespace gui {
 
 class GlWindow
 {
@@ -43,3 +43,5 @@ private:
     int displayWidth{};
     int displayHeight{};
 };
+
+} // namespace gui

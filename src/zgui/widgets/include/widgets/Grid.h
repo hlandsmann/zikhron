@@ -1,6 +1,6 @@
 #pragma once
-#include "detail/MetaBox.h" // IWYU pragma: export core.h
-#include "detail/Widget.h"
+#include "detail/MetaBox.h" // IWYU pragma: export detail/MetaBox.h
+#include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
 
 #include <cstddef>
 #include <functional>
@@ -18,6 +18,7 @@ class Grid : public MetaBox<Grid>
     using ExpandType = layout::ExpandType;
 
 public:
+    using Priorities = std::initializer_list<float>;
     void setup(std::size_t columns, std::initializer_list<float> priorities);
     Grid(const WidgetInit& init);
 

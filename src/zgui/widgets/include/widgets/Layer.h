@@ -1,6 +1,6 @@
 #pragma once
-#include "detail/MetaBox.h"
-#include "detail/Widget.h"
+#include "detail/MetaBox.h" // IWYU pragma: export detail/MetaBox.h
+#include "detail/Widget.h"  // IWYU pragma: export detail/Widget.h
 
 #include <folly/sorted_vector_types.h>
 

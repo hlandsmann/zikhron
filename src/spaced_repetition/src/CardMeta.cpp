@@ -31,6 +31,7 @@
 
 namespace ranges = std::ranges;
 namespace views = std::views;
+
 namespace sr {
 
 CardMeta::CardMeta(std::shared_ptr<Card> _card,
@@ -109,12 +110,11 @@ auto CardMeta::getStudyMarkup() -> std::unique_ptr<markup::Paragraph>
     return studyMarkup;
 }
 
-auto CardMeta::getStudyTokenText() -> annotation::TokenText
+auto CardMeta::getStudyTokenText() -> std::unique_ptr<annotation::TokenText>
 {
     std::vector<VocableId> vocableIds = generateVocableIDs();
     mapVocableChoices(vocableIds);
-    auto studyTokenText = annotation::TokenText{card, std::move(vocableIds)};
-    return studyTokenText;
+    return std::make_unique<annotation::TokenText>(card, std::move(vocableIds));
 }
 
 auto CardMeta::getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>
