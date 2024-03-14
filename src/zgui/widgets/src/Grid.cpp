@@ -1,6 +1,10 @@
 #include <Grid.h>
+#include <context/imglog.h>
 #include <detail/MetaBox.h>
 #include <detail/Widget.h>
+#include <fmt/format.h>
+#include <spdlog/fmt/bundled/core.h>
+#include <spdlog/fmt/bundled/format.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -12,6 +16,7 @@
 #include <ranges>
 #include <span>
 #include <stdexcept>
+#include <string>
 #include <vector>
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
@@ -56,35 +61,51 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
     auto cursorsY = std::vector<float>(1, rect.y);
     // auto sizes = std::vector<float>{};
 
+    // imglog::log("{}:, x: {}, y: {}, w: {}, h: {} --------------------------", getName(), rect.x, rect.y, rect.width, rect.height);
     traverseWidgets(cursorsX, cursorsY,
                     rect,
                     ExpandType::width_fixed,
                     [](const std::shared_ptr<Widget>& widget, float /* cursorX */, float /* cursorY */, float /* width */)
                             -> WidgetSize {
-                        return widget->getWidgetMinSize();
+                        auto minSize = widget->getWidgetMinSize();
+                        // imglog::log("{}:,  w: {}, h: {}", widget->getName(), minSize.width, minSize.height);
+                        return minSize;
                     });
+    // std::string logstr = fmt::format("{}", fmt::join(cursorsX, ", "));
+    // imglog::log("cursors: {} --------------------------", logstr);
     traverseWidgets(cursorsX, cursorsY,
                     rect,
                     ExpandType::width_fixed,
                     [&rect](const std::shared_ptr<Widget>& widget, float /* cursorX */, float /* cursorY */, float width)
                             -> WidgetSize {
-                        return widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = width, .height = rect.height});
+                        auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = width, .height = rect.height});
+                        // imglog::log("in:,  w: {}, h: {}", width, rect.height);
+                        // imglog::log("{}:,  w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height);
+                        return widgetS;
                     });
+    // logstr = fmt::format("{}", fmt::join(cursorsX, ", "));
+    // imglog::log("cursors: {} --------------------------", logstr);
     traverseWidgets(cursorsX, cursorsY,
                     rect,
                     ExpandType::width_expand,
                     [&rect](const std::shared_ptr<Widget>& widget, float /* cursorX */, float /* cursorY */, float width)
                             -> WidgetSize {
+                        // imglog::log("in2:,  w: {}, h: {}", width, rect.height);
                         return widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = width, .height = rect.height});
                     });
+    // logstr = fmt::format("{}", fmt::join(cursorsX, ", "));
+    // imglog::log("cursors: {} --------------------------", logstr);
     traverseWidgets(cursorsX, cursorsY,
                     rect,
                     ExpandType::width_fixed,
                     [&rect, &needArrange](const std::shared_ptr<Widget>& widget, float cursorX, float cursorY, float width)
                             -> WidgetSize {
+                        // imglog::log("arrange_grid cx: {}, cy: {}, w: {}, h: {}", cursorX, cursorY, width, rect.height);
                         needArrange |= widget->arrange({.x = cursorX, .y = cursorY, .width = width, .height = rect.height});
                         return widget->getWidgetSize();
                     });
+    // logstr = fmt::format("{}", fmt::join(cursorsX, ", "));
+    // imglog::log("cursors: {}", logstr);
     gridWidth = cursorsX.back() - cursorsX.front();
     gridHeight = cursorsY.back() - cursorsY.front();
 
@@ -101,20 +122,20 @@ void Grid::traverseWidgets(std::vector<float>& cursorsX,
                                                     float width)>
                                    fun) const
 {
-    std::size_t column = 0;
     std::size_t cellCounter = 0;
     auto itMergedCells = mergedCells.cbegin();
     std::size_t cursorIndexStart = 0;
     std::size_t cursorIndexEnd = 0;
     for (const auto& widget : widgets) {
-        column = nextColumn(itMergedCells, cellCounter);
+        cursorIndexEnd = nextCursorIndexEnd(itMergedCells, cellCounter);
         std::size_t row = (cellCounter - 1) / columns;
-        cursorIndexEnd = (column == 0) ? columns : column + 1;
         float cursorX = cursorsX[cursorIndexStart];
         float& cursorY = getVectorIndexElement(cursorsY, row);
 
         float availableWidth = getAvailableWidth(cursorIndexStart, cursorIndexEnd, cursorsX, rect.width, expandPriority);
         auto widgetSize = fun(widget, cursorX, cursorY, availableWidth);
+        // imglog::log("start: {}, end: {}, cellcounter: {}, widgetWidth: {}",
+                    // cursorIndexStart, cursorIndexEnd, cellCounter, widgetSize.width);
         setCursor(cursorsX, cursorIndexEnd, cursorX + widgetSize.width);
         setCursor(cursorsY, row + 1, cursorY + widgetSize.height);
 
@@ -122,17 +143,16 @@ void Grid::traverseWidgets(std::vector<float>& cursorsX,
     }
 }
 
-auto Grid::nextColumn(std::vector<std::size_t>::const_iterator& itMergedCell, std::size_t& cellCounter) const -> std::size_t
+auto Grid::nextCursorIndexEnd(std::vector<std::size_t>::const_iterator& itMergedCell, std::size_t& cellCounter) const -> std::size_t
 {
-    std::size_t column = cellCounter % columns;
-    while (itMergedCell != mergedCells.end() && column == *itMergedCell) {
+    while (itMergedCell != mergedCells.end() && cellCounter == *itMergedCell) {
         cellCounter++;
         itMergedCell++;
     }
+    std::size_t cursorIndexEnd = (cellCounter % columns) + 1;
     cellCounter++;
 
-    column = cellCounter % columns;
-    return column;
+    return cursorIndexEnd;
 }
 
 auto Grid::getAvailableWidth(std::size_t indexStart,
@@ -142,8 +162,12 @@ auto Grid::getAvailableWidth(std::size_t indexStart,
                              ExpandType expandType) const -> float
 {
     auto accumulate = [](auto range) { float sum=0.F; for(auto val:range){ sum+=val;} return sum; };
-    auto cellCursors = std::span(cursors.begin() + static_cast<int>(indexStart), cursors.begin() + static_cast<int>(indexEnd));
-    auto cellPriorities = std::span(priorities.begin() + static_cast<int>(indexStart), priorities.begin() + static_cast<int>(indexEnd));
+
+    // a cell can encompass multiple cursors (it can span over multiple columns)
+    auto cellCursors = std::span(cursors.begin() + static_cast<int>(indexStart),
+                                 cursors.begin() + static_cast<int>(indexEnd + 1));
+    auto cellPriorities = std::span(priorities.begin() + static_cast<int>(indexStart),
+                                    priorities.begin() + static_cast<int>(indexEnd));
 
     auto adj_diff = [](float a, float b) { return b - a; };
     auto columnWidths = cursors | views::adjacent_transform<2>(adj_diff);
@@ -152,10 +176,18 @@ auto Grid::getAvailableWidth(std::size_t indexStart,
 
     float usedCellWidth = accumulate(cellWidths);
     float usedGridWidth = accumulate(columnWidths);
-    float residueWidth = fullWidth - usedGridWidth - usedCellWidth;
+    float residueWidth = fullWidth - (usedGridWidth - usedCellWidth);
+    // imglog::log("is: {}, ie: {}", indexStart, indexEnd);
+    // imglog::log("fw: {}, ugw: {},  ucw: {}, rw: {}, cpfw: {}, cp: {}", fullWidth, usedGridWidth, usedCellWidth, residueWidth, cellPriority * fullWidth, cellPriority);
+    // std::string cursorsStr = fmt::format("{}", fmt::join(cursors, ", "));
+    // std::string cellWidthsStr = fmt::format("{}", fmt::join(cellWidths, ", "));
+    // std::string columnWidthsStr = fmt::format("{}", fmt::join(columnWidths, ", "));
+    // std::string cellPrioritiesStr = fmt::format("{}", fmt::join(cellPriorities, ", "));
+    // imglog::log("cursors: {} ++ cellWidths: {} ++ columnWidths: {} ++ cellPriorities: {}, cellPriority: {}, residue: {}",
+    //             cursorsStr, cellWidthsStr, columnWidthsStr, cellPrioritiesStr, cellPriority, residueWidth);
     return expandType == ExpandType::width_expand
                    ? residueWidth
-                   : std::min(residueWidth, cellPriority * fullWidth);
+                   : std::max(usedCellWidth, std::min(residueWidth, cellPriority * fullWidth));
 }
 
 void Grid::setCursor(std::vector<float>& cursors, std::size_t index, float value)
@@ -184,7 +216,7 @@ auto Grid::getVectorIndexElement(std::vector<T>& vector, std::size_t index) -> T
 
 auto Grid::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
-    return {};
+    return {.width = rect.width, .height = rect.height};
 }
 
 auto Grid::calculateSize() const -> WidgetSize
@@ -210,4 +242,8 @@ auto Grid::calculateMinSize() const -> WidgetSize
             .height = cursorsY.back()};
 }
 
+auto Grid::newWidgetAlign(Align align, Measure /* measure */) -> Align
+{
+    return align;
+}
 } // namespace widget

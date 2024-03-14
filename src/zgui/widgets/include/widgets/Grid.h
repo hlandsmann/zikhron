@@ -38,7 +38,7 @@ private:
                                  float cursorY,
                                  float width)>
                                  fun) const;
-    [[nodiscard]] auto nextColumn(std::vector<std::size_t>::const_iterator& itMergedCell, std::size_t& cellCounter) const -> std::size_t;
+    [[nodiscard]] auto nextCursorIndexEnd(std::vector<std::size_t>::const_iterator& itMergedCell, std::size_t& cellCounter) const -> std::size_t;
     [[nodiscard]] auto getAvailableWidth(std::size_t indexStart,
                                          std::size_t indexEnd,
                                          const std::vector<float>& cursors,
@@ -54,8 +54,7 @@ private:
     [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
 
     /* shared functions via MetaBox */
-    [[nodiscard]] auto getChildOrientation() const -> Orientation;
-    auto newWidgetAlign(Align align, Measure measure) const -> Align;
+    static auto newWidgetAlign(Align align, Measure measure) -> Align;
 
     /* Grid internal functions */
     auto getRowHeight(std::size_t row) const -> float;

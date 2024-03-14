@@ -43,8 +43,8 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
     // cardBox->setFlipChildrensOrientation(false);
     signalCardLayer->set(cardLayer);
 
-    auto& testWindow = *box->add<widget::Window>(Align::center, ExpandType::width_expand, ExpandType::height_expand, "test_window");
-    auto& testBox = *testWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    // auto& testWindow = *box->add<widget::Window>(Align::center, ExpandType::width_expand, ExpandType::height_expand, "test_window");
+    // auto& testBox = *testWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
 
     auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
     auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
@@ -59,7 +59,7 @@ void TabCard::displayOnLayer(widget::Layer& layer)
     auto box = layer.getWidget<widget::Box>(boxId);
     box.start();
     doCardWindow(box.next<widget::Window>());
-    doTestWindow(box.next<widget::Window>());
+    // doTestWindow(box.next<widget::Window>());
     doCtrlWindow(box.next<widget::Window>());
 
     // auto& box = window.getBox();

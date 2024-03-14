@@ -218,7 +218,7 @@ auto Box::getWidgetCursor(Measure measure,
 
 auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
 {
-    imglog::log("{}:, x: {}, y: {}", getName(), rect.x, rect.y);
+    // imglog::log("{}:, x: {}, y: {}", getName(), rect.x, rect.y);
     const auto centerIt = ranges::find_if(widgets, [measure](const auto& widgetPtr) {
         return getWidgetAlign(measure, widgetPtr) == Align::center
                || getWidgetAlign(measure, widgetPtr) == Align::end;
@@ -238,8 +238,8 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         cursor = getWidgetCursor(measure, align, nextAlign, centerSize, endSize, rect, cursor);
         cursors.push_back(cursor);
         cursor += getSizeOfWidgetSize(measure, widget->getWidgetMinSize());
-        winlog("linebox", "{}, {}", getName(), cursor);
-        winlog("cardBox", "{}, {}", getName(), cursor);
+        // winlog("linebox", "{}, {}", getName(), cursor);
+        // winlog("cardBox", "{}, {}", getName(), cursor);
         align = nextAlign;
     }
     cursors.push_back(rectSizeProjection(measure, rect));

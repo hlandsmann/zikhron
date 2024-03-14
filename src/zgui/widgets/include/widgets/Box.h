@@ -29,7 +29,6 @@ private:
     [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
 
     /* shared functions via MetaBox */
-    [[nodiscard]] auto getChildOrientation() const -> Orientation;
     auto newWidgetAlign(Align align, Measure measure) const -> Align;
 
     /* Box internal functions */
