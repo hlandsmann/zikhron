@@ -1,6 +1,7 @@
+#include "TokenText.h"
+
 #include <Card.h>
 #include <Token.h>
-#include <TokenText.h>
 #include <ZH_Tokenizer.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -30,6 +31,14 @@ TokenText::TokenText(std::shared_ptr<Card> _card, std::vector<VocableId> _vocabl
         textType = TextType::text;
         setupTextCard(*textCard);
     }
+}
+
+void TokenText::setupActiveVocables(const std::vector<VocableId>& activeVocableIds)
+{
+}
+
+auto TokenText::activeVocableIdsInOrder(const std::vector<VocableId>& activeVocableIds) -> std::vector<VocableId>
+{
 }
 
 auto TokenText::getType() const -> TextType

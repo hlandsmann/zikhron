@@ -61,8 +61,8 @@ void DisplayText::drawText()
 void DisplayText::setupDialogue()
 {
     auto grid = layer->add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.3F, 0.7F});
-    for (const auto& d : tokenText->getDialogue()) {
-        grid->add<widget::TextTokenSeq>(Align::start, d);
+    for (const auto& dialogue : tokenText->getDialogue()) {
+        grid->add<widget::TextTokenSeq>(Align::start, dialogue);
     }
 }
 

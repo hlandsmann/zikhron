@@ -140,6 +140,8 @@ public:
         }
     }
 
+    void cutWidgetIdGen();
+
 protected:
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
     [[nodiscard]] virtual auto calculateMinSize() const -> WidgetSize;

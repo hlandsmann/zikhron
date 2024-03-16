@@ -23,14 +23,15 @@ void TextTokenSeq::setup(Paragraph _paragraph)
 
     lineBox = create<Box>(Orientation::vertical);
     lineBox->setName("linebox");
-    lineBox->setExpandType(width_expand, height_fixed);
+    lineBox->setExpandType(width_fixed, height_fixed);
     lineBox->setPadding(0);
     lineBox->setBorder(border);
 
     scratchBox = createOrphan<Box>(Orientation::vertical);
-    scratchBox->setExpandType(width_expand, height_fixed);
+    scratchBox->setExpandType(width_fixed, height_fixed);
     scratchBox->setPadding(0);
     scratchBox->setBorder(border);
+    scratchBox->cutWidgetIdGen();
 }
 
 TextTokenSeq::TextTokenSeq(WidgetInit init)
@@ -96,6 +97,7 @@ auto TextTokenSeq::arrangeLines(Box& lines, const layout::Rect& rect) -> bool
 auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
 {
     if (lineBox->getWidgetSize().width > rect.width) {
+        imglog::log("{}: 1, false", getName());
         return false;
     }
     lineBox->start();
@@ -107,16 +109,20 @@ auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
             line.next<TextToken>();
             tokenIt++;
         }
-        if (tokenIt >= paragraph.end()) {
+        if (tokenIt == paragraph.end()) {
+            // imglog::log("{}: 2, true, rectWidth: {}", getName(), rect.width);
             return true;
         }
         scratchBox->clear();
         addTextToken(*scratchBox, *tokenIt);
+        // imglog::log("{}:  combWidth: {}", getName(), scratchBox->getWidgetSize().width + line.getWidgetSize().width);
         if (scratchBox->getWidgetSize().width + line.getWidgetSize().width <= rect.width) {
+            // imglog::log("{}: 3, false", getName());
             return false;
         }
     }
 
+    // imglog::log("{}: 4, true", getName());
     return true;
 }
 
@@ -133,9 +139,9 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
     if (paragraph.empty()) {
         return lineBox->arrange(rect);
     }
-    // if (!lineBox->isLast() && linesFit(rect)) {
-    //     return lineBox->arrange(rect);
-    // }
+    if (!lineBox->isLast() && linesFit(rect)) {
+        return lineBox->arrange(rect);
+    }
     return arrangeLines(*lineBox, rect);
 }
 
@@ -145,9 +151,9 @@ auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
     if (paragraph.empty()) {
         return {};
     }
-    // if (!lineBox->isLast() && linesFit(rect)) {
-    //     return lineBox->getWidgetSizeFromRect(rect);
-    // }
+    if (!lineBox->isLast() && linesFit(rect)) {
+        return lineBox->getWidgetSizeFromRect(rect);
+    }
     arrangeLines(*scratchBox, rect);
     return scratchBox->getWidgetSize();
 }

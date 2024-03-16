@@ -1,10 +1,10 @@
+// #include <spdlog/fmt/bundled/core.h>
+// #include <spdlog/fmt/bundled/format.h>
 #include <Grid.h>
 #include <context/imglog.h>
 #include <detail/MetaBox.h>
 #include <detail/Widget.h>
 #include <fmt/format.h>
-#include <spdlog/fmt/bundled/core.h>
-#include <spdlog/fmt/bundled/format.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -16,7 +16,6 @@
 #include <ranges>
 #include <span>
 #include <stdexcept>
-#include <string>
 #include <vector>
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
@@ -135,7 +134,7 @@ void Grid::traverseWidgets(std::vector<float>& cursorsX,
         float availableWidth = getAvailableWidth(cursorIndexStart, cursorIndexEnd, cursorsX, rect.width, expandPriority);
         auto widgetSize = fun(widget, cursorX, cursorY, availableWidth);
         // imglog::log("start: {}, end: {}, cellcounter: {}, widgetWidth: {}",
-                    // cursorIndexStart, cursorIndexEnd, cellCounter, widgetSize.width);
+        // cursorIndexStart, cursorIndexEnd, cellCounter, widgetSize.width);
         setCursor(cursorsX, cursorIndexEnd, cursorX + widgetSize.width);
         setCursor(cursorsY, row + 1, cursorY + widgetSize.height);
 

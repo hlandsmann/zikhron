@@ -22,6 +22,8 @@ class TokenText
 public:
     using Paragraph = std::vector<Token>;
     TokenText(std::shared_ptr<Card> card, std::vector<VocableId> vocableIds);
+    void setupActiveVocables(const std::vector<VocableId>& activeVocableIds);
+    [[nodiscard]] auto activeVocableIdsInOrder(const std::vector<VocableId>& activeVocableIds) -> std::vector<VocableId>;
     [[nodiscard]] auto getType() const -> TextType;
     [[nodiscard]] auto getParagraph() const -> const Paragraph&;
     [[nodiscard]] auto getDialogue() const -> const std::vector<Paragraph>&;

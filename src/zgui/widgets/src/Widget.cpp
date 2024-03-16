@@ -172,6 +172,12 @@ auto Widget::getExpandTypeHeight() const -> ExpandType
     return expandTypeHeight;
 }
 
+void Widget::cutWidgetIdGen()
+{
+    widgetIdGenerator = std::make_shared<context::WidgetIdGenerator>();
+    widgetId = widgetIdGenerator->getNextId();
+}
+
 auto Widget::makeWidgetInit() -> WidgetInit
 {
     WidgetInit init = {.theme = theme,
