@@ -2,6 +2,7 @@
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -21,17 +22,29 @@ auto Token::getNoBreak() const -> NoBreak
     return noBreak;
 }
 
-auto Token::getColorId(ColorId maxId) const -> ColorId
+auto Token::getColorId() const -> ColorId
 {
-    if (colorId == 0) {
-        return colorId;
-    }
-    return static_cast<ColorId>((colorId - 1) % maxId + 1);
+    return colorId;
 }
 
-void Token::setColorId(unsigned _colorId)
+void Token::setColorId(ColorId _colorId)
 {
-    colorId = static_cast<ColorId>(_colorId);
+    colorId = _colorId;
+}
+
+auto Token::getVocableId() const -> std::optional<VocableId>
+{
+    return vocableId;
+}
+
+void Token::setVocableId(VocableId _vocableId)
+{
+    vocableId.emplace(_vocableId);
+}
+
+auto Token::getDictionaryEntries() const -> const ZH_dicItemVec&
+{
+    return dictionaryEntries;
 }
 
 auto Token::string() const -> std::string

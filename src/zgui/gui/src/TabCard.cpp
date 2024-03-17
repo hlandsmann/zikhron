@@ -12,7 +12,11 @@
 
 #include <kocoro/kocoro.hpp>
 #include <memory>
+#include <ranges>
 #include <utility>
+
+namespace ranges = std::ranges;
+namespace views = std::views;
 
 namespace gui {
 
@@ -85,8 +89,12 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     while (true) {
         cardLayer->clear();
         auto cardMeta = co_await asyncTreeWalker->getNextCardChoice();
+        auto vocId_ease = cardMeta.getRelevantEase();
         auto tokenText = cardMeta.getStudyTokenText();
+
+        auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
         displayText = std::make_unique<DisplayText>(cardLayer, std::move(tokenText));
+
         // cardLayer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph());
 
         // for (const auto& token : tokenText.getParagraph()) {

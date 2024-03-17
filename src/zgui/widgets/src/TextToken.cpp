@@ -32,7 +32,7 @@ void TextToken::renderShadow()
 void TextToken::clicked()
 {
     auto fontDrop = getTheme().getFont().dropFont(fontType);
-    auto colorDrop = getTheme().getFont().dropDefaultFontColor();
+    auto colorDrop = getTheme().getFont().dropFontColor(token.getColorId(), maxColorId);
     const auto& btnRect = getRect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
     ImGui::Text("%s", token.string().data());

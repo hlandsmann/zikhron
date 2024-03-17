@@ -3,6 +3,8 @@
 
 #include <annotation/Token.h>
 #include <context/Fonts.h>
+#include <misc/Identifier.h>
+
 namespace widget {
 
 class TextToken : public Widget
@@ -24,6 +26,7 @@ private:
     annotation::Token token;
 
     context::FontType fontType{FontType::Gui};
+    static constexpr ColorId maxColorId{};
 };
 
 } // namespace widget

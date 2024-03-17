@@ -1,11 +1,14 @@
 #pragma once
+#include <utility>
 #include "Card.h"
 #include "Token.h"
 #include "ZH_Tokenizer.h"
 
+#include <annotation/Ease.h>
 #include <misc/Identifier.h>
 
 #include <cstddef>
+#include <map>
 #include <memory>
 #include <ranges>
 #include <vector>
@@ -22,8 +25,7 @@ class TokenText
 public:
     using Paragraph = std::vector<Token>;
     TokenText(std::shared_ptr<Card> card, std::vector<VocableId> vocableIds);
-    void setupActiveVocables(const std::vector<VocableId>& activeVocableIds);
-    [[nodiscard]] auto activeVocableIdsInOrder(const std::vector<VocableId>& activeVocableIds) -> std::vector<VocableId>;
+    [[nodiscard]] auto setupActiveVocableIds(const std::map<VocableId, Ease>&) -> std::vector<std::pair<VocableId, Ease>>;
     [[nodiscard]] auto getType() const -> TextType;
     [[nodiscard]] auto getParagraph() const -> const Paragraph&;
     [[nodiscard]] auto getDialogue() const -> const std::vector<Paragraph>&;
@@ -35,6 +37,7 @@ private:
     [[nodiscard]] static auto tokenVector(tokenSubrange tokens) -> std::vector<Token>;
     [[nodiscard]] static auto findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
             -> std::vector<ZH_Tokenizer::Token>::const_iterator;
+    void setVocableIdsForTokens();
 
     TextType textType{TextType::dialogue};
     std::vector<Paragraph> paragraphSeq;
