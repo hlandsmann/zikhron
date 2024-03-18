@@ -31,7 +31,7 @@ private:
     auto newWidgetAlign(Align align, Measure measure) const -> Align;
 
     /* Layer internal functions */
-    [[nodiscard]] static auto posNewWidget(Align align, float widgetSize, float rectSize) -> float;
+    [[nodiscard]] static auto posNewWidget(Align align, float pos, float widgetSize, float rectSize) -> float;
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;

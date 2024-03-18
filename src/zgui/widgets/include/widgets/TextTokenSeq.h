@@ -5,6 +5,7 @@
 
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
+#include <context/Fonts.h>
 #include <imgui.h>
 
 #include <memory>
@@ -18,7 +19,8 @@ class TextTokenSeq : public Widget
     using Align = widget::layout::Align;
 
 public:
-    void setup(Paragraph paragraph);
+    void setup(const Paragraph& paragraph);
+    void setup(const Paragraph& paragraph, context::FontType fontType);
     TextTokenSeq(WidgetInit init);
 
     void draw();
@@ -33,8 +35,8 @@ private:
     constexpr static float border = 16;
     auto arrangeLines(Box& lines, const layout::Rect& rect) -> bool;
     auto linesFit(const layout::Rect& rect) const -> bool;
-    static void addTextToken(Box& box, const annotation::Token& token);
-
+    void addTextToken(Box& box, const annotation::Token& token) const;
+    context::FontType fontType = context::FontType::Gui;
     layout::Rect lastRect;
     std::shared_ptr<Box> lineBox;
     std::shared_ptr<Box> scratchBox;

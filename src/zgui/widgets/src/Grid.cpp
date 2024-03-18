@@ -107,6 +107,8 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
     // imglog::log("cursors: {}", logstr);
     gridWidth = cursorsX.back() - cursorsX.front();
     gridHeight = cursorsY.back() - cursorsY.front();
+    // std::string logstr = fmt::format("{}", fmt::join(cursorsY, ", "));
+    // imglog::log("cursors: {} --------------------------", logstr);
 
     return needArrange;
 }

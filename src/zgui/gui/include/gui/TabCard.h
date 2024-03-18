@@ -1,5 +1,7 @@
 #pragma once
 #include "DisplayText.h"
+#include "DisplayVocables.h"
+
 #include <annotation/Ease.h>
 #include <context/WidgetIdGenerator.h>
 #include <misc/Identifier.h>
@@ -35,11 +37,12 @@ private:
 
     std::shared_ptr<kocoro::SynchronousExecutor> executor;
 
-    std::shared_ptr<DisplayText> displayText;
+    std::unique_ptr<DisplayText> displayText;
+    std::unique_ptr<DisplayVocables> displayVocables;
 
-    using LayerPtr = std::shared_ptr<widget::Layer>;
+    using BoxPtr = std::shared_ptr<widget::Box>;
     std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;
-    std::shared_ptr<kocoro::PersistentSignal<LayerPtr>> signalCardLayer;
+    std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
     context::WidgetId boxId{};
 };
 } // namespace gui

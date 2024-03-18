@@ -38,7 +38,10 @@ Window::Window(const WidgetInit& init)
 auto Window::arrange(const layout::Rect& rect) -> bool
 {
     setRect(rect);
-    return layer->arrange(rect);
+    auto layerRect = rect;
+    layerRect.x = 0;
+    layerRect.y = 0;
+    return layer->arrange(layerRect);
 }
 
 auto Window::calculateSize() const -> WidgetSize

@@ -8,6 +8,7 @@
 #include <annotation/Markup.h>
 #include <annotation/TokenText.h>
 #include <annotation/ZH_Tokenizer.h>
+#include <dictionary/ZH_Dictionary.h>
 #include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -19,6 +20,7 @@
 #include <vector>
 
 #include <sys/types.h>
+
 namespace sr {
 
 struct CardMeta
@@ -41,6 +43,7 @@ struct CardMeta
 
     [[nodiscard]] auto getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>;
     [[nodiscard]] auto getRelevantEase() const -> std::map<VocableId, Ease>;
+    [[nodiscard]] auto getDictionary() const -> std::shared_ptr<const ZH_Dictionary>;
 
 private:
     [[nodiscard]] auto generateTimingAndVocables(bool pull) const -> TimingAndVocables;

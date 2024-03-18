@@ -84,6 +84,9 @@ void Widget::setVerticalAlign(layout::Align align)
 auto Widget::getWidgetSize() const -> const WidgetSize&
 {
     if (optWidgetSize.has_value()) {
+        auto x = *optWidgetSize;
+        winlog("vocableLayer", "vocableLayer getWidgetSize w: {}, h: {}", x.width, x.height);
+        winlog("cardLayer", "cardLayer getWidgetSize w: {}, h: {}", x.width, x.height);
         return *optWidgetSize;
     }
     return optWidgetSize.emplace(calculateSize());
@@ -98,11 +101,15 @@ auto Widget::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
     if (expandTypeHeight == ExpandType::expand) {
         widgetSize.height = rect.height;
     }
+    winlog("vocableLayer", "vocableLayer getWidgetSizeFromRect");
+    winlog("cardLayer", "cardLayer getWidgetSizeFromRect");
     return widgetSize;
 }
 
 auto Widget::getWidgetMinSize() const -> const WidgetSize&
 {
+    winlog("vocableLayer", "vocableLayer getWidgetMinSize");
+    winlog("cardLayer", "cardLayer getWidgetMinSize");
     if (optWidgetMinSize.has_value()) {
         return *optWidgetMinSize;
     }

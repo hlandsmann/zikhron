@@ -7,6 +7,7 @@
 #include <detail/Widget.h>
 #include <utils/variant_cast.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <initializer_list>
 #include <memory>
@@ -42,9 +43,14 @@ auto ToggleButtonGroup::calculateSize() const -> WidgetSize
     return box->getWidgetSize();
 }
 
+auto ToggleButtonGroup::Active(std::size_t _active) -> std::size_t
+{
+    active = std::min(box->numberOfWidgets() - 1, _active);
+    return getActive();
+}
+
 auto ToggleButtonGroup::getActive() -> std::size_t
 {
-
     box->start();
     for (std::size_t index = 0; index < box->numberOfWidgets(); index++) {
         auto& widget = box->next<Widget>();

@@ -181,6 +181,11 @@ StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
         PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorButtonHovered());
         PushStyleColor(ImGuiCol_ButtonActive, theme.ColorButtonActive());
         break;
+    case ColorTheme::ButtonChecked:
+        PushStyleColor(ImGuiCol_Button, theme.ColorToggleButtonChecked());
+        PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorToggleButtonCheckedHovered());
+        PushStyleColor(ImGuiCol_ButtonActive, theme.ColorButtonActive());
+        break;
     case ColorTheme::Window:
         PushStyleColor(ImGuiCol_WindowBg, theme.ColorWindowBackground());
         break;

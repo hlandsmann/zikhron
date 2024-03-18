@@ -14,6 +14,7 @@ class StyleColorsDrop;
 
 enum class ColorTheme {
     ButtonDefault,
+    ButtonChecked,
     Window,
 };
 

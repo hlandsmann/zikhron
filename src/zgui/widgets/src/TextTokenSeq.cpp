@@ -11,15 +11,14 @@
 #include <algorithm>
 #include <memory>
 #include <string>
-#include <utility>
 
 namespace ranges = std::ranges;
 
 namespace widget {
-void TextTokenSeq::setup(Paragraph _paragraph)
+void TextTokenSeq::setup(const Paragraph& _paragraph)
 {
     using namespace widget::layout;
-    paragraph = std::move(_paragraph);
+    paragraph = _paragraph;
 
     lineBox = create<Box>(Orientation::vertical);
     lineBox->setName("linebox");
@@ -32,6 +31,12 @@ void TextTokenSeq::setup(Paragraph _paragraph)
     scratchBox->setPadding(0);
     scratchBox->setBorder(border);
     scratchBox->cutWidgetIdGen();
+}
+
+void TextTokenSeq::setup(const Paragraph& _paragraph, context::FontType _fontType)
+{
+    fontType = _fontType;
+    setup(_paragraph);
 }
 
 TextTokenSeq::TextTokenSeq(WidgetInit init)
@@ -126,15 +131,16 @@ auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
     return true;
 }
 
-void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token)
+void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token) const
 {
     auto textToken = box.add<TextToken>(Align::start, token);
-    textToken->setFontType(context::FontType::chineseBig);
+    textToken->setFontType(fontType);
 }
 
 auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 {
     // imglog::log("ttq,arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    // spdlog::critical("ttq,arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     lineBox->start();
     if (paragraph.empty()) {
         return lineBox->arrange(rect);
@@ -147,6 +153,7 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 
 auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
+    //     imglog::log("gwsfr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     lineBox->start();
     if (paragraph.empty()) {
         return {};

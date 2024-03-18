@@ -24,6 +24,7 @@ public:
     auto operator=(const ToggleButtonGroup&) -> ToggleButtonGroup& = default;
     auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = default;
 
+    auto Active(std::size_t active) -> std::size_t;
     auto getActive() -> std::size_t;
     auto arrange(const layout::Rect& /* rect */) -> bool override;
 

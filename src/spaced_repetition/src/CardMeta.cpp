@@ -138,6 +138,11 @@ auto CardMeta::getRelevantEase() const -> std::map<VocableId, Ease>
     return relevantEases;
 }
 
+auto CardMeta::getDictionary() const -> std::shared_ptr<const ZH_Dictionary>
+{
+    return card->getTokenizer().Dictionary();
+}
+
 auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
 {
     auto vocable_progress = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].Progress(); };

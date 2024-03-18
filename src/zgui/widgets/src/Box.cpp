@@ -31,6 +31,7 @@ Box::Box(const WidgetInit& init)
 
 auto Box::arrange(const layout::Rect& rect) -> bool
 {
+    // imglog::log("box, {}: x: {}, y: {}, w: {}, h: {}, widgetsSize(): {}", getName(), rect.x, rect.y, rect.width, rect.height, widgets.size());
     // winlog("DisplayCard_box", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     // winlog("ctrlBox", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     // setRect(rect);
@@ -268,7 +269,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         auto widgetSize = widget->getWidgetSizeFromRect(rectWithAdaptedSize(measure, rect, size + additionalSize));
         auto neededSize = getSizeOfWidgetSize(measure, widgetSize);
         auto orthogonalSize = getSizeOfWidgetSize(oppositeMeasure(measure), widgetSize);
-        winlog("cardBox", "{}, o:{}, w: {}", getName(), orthogonalSize, rect.width);
+        // winlog("cardBox", "{}, o:{}, w: {}, cursor: {}", getName(), orthogonalSize, rect.width, cursor);
         orthogonalSizes.push_back(orthogonalSize);
         additionalSize += size - neededSize;
         cursors.push_back(cursor);
@@ -295,6 +296,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         cursor = getWidgetCursor(measure, align, nextAlign, centerSizeFinal, endSizeFinal, rect, cursor);
         // imglog::log("size: {}, cursor: {}, align: {}", size, cursor, static_cast<int>(nextAlign));
         auto widgetRect = widgetNewRect(measure, rect, cursor, size, orthogonalSize, widget);
+        // winlog("cardBox", "{}, cursor: {}, wr_x: {}, wr_y: {}", getName(), cursor, widgetRect.x, widgetRect.y);
         needsArrange |= widget->arrange(widgetRect);
         cursor += getSizeOfWidgetSize(measure, widget->getWidgetSize());
         align = nextAlign;

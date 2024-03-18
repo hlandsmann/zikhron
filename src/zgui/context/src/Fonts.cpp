@@ -8,6 +8,24 @@
 #include <utility>
 
 namespace context {
+auto ChineseFull() -> const ImWchar*
+{
+    // clang-format off
+    static const ImWchar ranges[] = 
+    {
+        0x0020, 0x00FF, // Basic Latin + Latin Supplement
+        0x0100, 0x01DC, // PINYIN
+        0x2000, 0x206F, // General Punctuation
+        0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
+        0x31F0, 0x31FF, // Katakana Phonetic Extensions
+        0xFF00, 0xFFEF, // Half-width characters
+        0xFFFD, 0xFFFD, // Invalid
+        0x4e00, 0x9FAF, // CJK Ideograms
+        0,
+    }; // clang-format on
+    return &ranges[0];
+}
+
 Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
 {
     ImGuiIO& io = ImGui::GetIO();
@@ -17,7 +35,7 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
     chineseBig = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 50, nullptr,
                                               io.Fonts->GetGlyphRangesChineseFull());
     chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
-                                                io.Fonts->GetGlyphRangesChineseFull());
+                                                ChineseFull());
 }
 
 auto Fonts::dropFont(FontType fontType) const -> FontDrop

@@ -2,9 +2,15 @@
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 
+#include <algorithm>
+#include <iterator>
 #include <optional>
+#include <sstream>
 #include <string>
 #include <utility>
+#include <vector>
+
+namespace ranges = std::ranges;
 
 namespace annotation {
 Token::Token(utl::StringU8 _value, ZH_dicItemVec _dictionaryEntries)
@@ -55,6 +61,23 @@ auto Token::string() const -> std::string
 Token::operator std::string() const
 {
     return value;
+}
+
+auto tokenVectorFromString(const std::string& str, ColorId colorId) -> std::vector<Token>
+{
+    std::vector<Token> result;
+
+    auto ss = std::stringstream{str};
+    std::istream_iterator<std::string> first(ss);
+    std::vector<std::string> vstrings(first, std::istream_iterator<std::string>{});
+    ranges::transform(vstrings, std::back_inserter(result),
+                      [colorId](const std::string& tokenStr) -> Token {
+                          auto token = Token{tokenStr, {}};
+
+                          token.setColorId(colorId);
+                          return token;
+                      });
+    return result;
 }
 
 } // namespace annotation

@@ -1,5 +1,4 @@
 #pragma once
-#include <utility>
 #include "Card.h"
 #include "Token.h"
 #include "ZH_Tokenizer.h"
@@ -11,6 +10,7 @@
 #include <map>
 #include <memory>
 #include <ranges>
+#include <utility>
 #include <vector>
 
 namespace annotation {
@@ -20,12 +20,19 @@ enum class TextType {
     text,
 };
 
+struct ActiveVocable
+{
+    VocableId vocableId;
+    Ease ease;
+    ColorId colorId;
+};
+
 class TokenText
 {
 public:
     using Paragraph = std::vector<Token>;
     TokenText(std::shared_ptr<Card> card, std::vector<VocableId> vocableIds);
-    [[nodiscard]] auto setupActiveVocableIds(const std::map<VocableId, Ease>&) -> std::vector<std::pair<VocableId, Ease>>;
+    [[nodiscard]] auto setupActiveVocableIds(const std::map<VocableId, Ease>&) -> std::vector<ActiveVocable>;
     [[nodiscard]] auto getType() const -> TextType;
     [[nodiscard]] auto getParagraph() const -> const Paragraph&;
     [[nodiscard]] auto getDialogue() const -> const std::vector<Paragraph>&;

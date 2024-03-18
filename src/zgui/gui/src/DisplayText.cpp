@@ -1,6 +1,7 @@
 #include "DisplayText.h"
 
 #include <annotation/TokenText.h>
+#include <context/Fonts.h>
 #include <widgets/Layer.h>
 #include <widgets/TextTokenSeq.h>
 
@@ -62,13 +63,13 @@ void DisplayText::setupDialogue()
 {
     auto grid = layer->add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.3F, 0.7F});
     for (const auto& dialogue : tokenText->getDialogue()) {
-        grid->add<widget::TextTokenSeq>(Align::start, dialogue);
+        grid->add<widget::TextTokenSeq>(Align::start, dialogue, fontType);
     }
 }
 
 void DisplayText::setupText()
 {
-    layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph());
+    layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), fontType);
 }
 
 } // namespace gui

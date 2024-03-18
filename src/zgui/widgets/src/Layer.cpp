@@ -25,8 +25,8 @@ auto Layer::arrange(const layout::Rect& rect) -> bool
     for (const auto& widget : widgets) {
         auto widgetRect = Rect{};
         auto widgetSize = widget->getWidgetSizeFromRect(borderedRect);
-        widgetRect.x = posNewWidget(widget->HorizontalAlign(), widgetSize.width, widgetRect.width);
-        widgetRect.y = posNewWidget(widget->VerticalAlign(), widgetSize.height, widgetRect.height);
+        widgetRect.x = posNewWidget(widget->HorizontalAlign(), borderedRect.x, widgetSize.width, borderedRect.width);
+        widgetRect.y = posNewWidget(widget->VerticalAlign(), borderedRect.y, widgetSize.height, borderedRect.height);
         widgetRect.width = widgetSize.width;
         widgetRect.height = widgetSize.height;
 
@@ -80,17 +80,20 @@ auto Layer::newWidgetAlign(Align align, Measure measure) const -> Align
     std::unreachable();
 }
 
-auto Layer::posNewWidget(Align align, float widgetSize, float rectSize) -> float
+auto Layer::posNewWidget(Align align, float pos, float widgetSize, float rectSize) -> float
 {
-    switch (align) {
-    case Align::start:
-        return 0;
-    case Align::center:
-        return (rectSize - widgetSize) / 2.F;
-    case Align::end:
-        return (rectSize - widgetSize);
-    }
-    std::unreachable();
+    auto relativePos = [=]() -> float {
+        switch (align) {
+        case Align::start:
+            return 0;
+        case Align::center:
+            return (rectSize - widgetSize) / 2.F;
+        case Align::end:
+            return (rectSize - widgetSize);
+        }
+        std::unreachable();
+    }();
+    return relativePos + pos;
 }
 
 } // namespace widget

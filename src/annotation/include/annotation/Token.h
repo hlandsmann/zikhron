@@ -9,6 +9,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace annotation {
 enum class NoBreak {
@@ -45,4 +46,5 @@ private:
     std::optional<VocableId> vocableId;
 };
 
+auto tokenVectorFromString(const std::string& str, ColorId colorId) -> std::vector<Token>;
 } // namespace annotation

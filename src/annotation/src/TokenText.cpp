@@ -18,6 +18,7 @@
 #include <ranges>
 #include <span>
 #include <stdexcept>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -41,27 +42,38 @@ TokenText::TokenText(std::shared_ptr<Card> _card, std::vector<VocableId> _vocabl
     setVocableIdsForTokens();
 }
 
-auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_ease) -> std::vector<std::pair<VocableId, Ease>>
+auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_ease) -> std::vector<ActiveVocable>
 {
-    std::vector<std::pair<VocableId, Ease>> orderedVocId_ease{};
+    std::vector<ActiveVocable> activeVocables{};
     auto tokens = views::join(paragraphSeq);
-    ranges::copy(vocId_ease, std::back_inserter(orderedVocId_ease));
-    ranges::sort(orderedVocId_ease, std::less{}, [&](const auto& pairVocId_ease) {
-        const auto& [vocId, _] = pairVocId_ease;
-        auto it = ranges::find_if(tokens, [vocId](const auto& token) -> bool {
-            return token.getVocableId() == vocId;
+    ranges::transform(vocId_ease, std::back_inserter(activeVocables), [](const auto& pairVocId_ease) -> ActiveVocable {
+        return {.vocableId = pairVocId_ease.first, .ease = pairVocId_ease.second, .colorId = {}};
+    });
+    ranges::sort(activeVocables, std::less{}, [&](const auto& activeVocable) {
+        auto it = ranges::find_if(tokens, [&](const auto& token) -> bool {
+            return token.getVocableId() == activeVocable.vocableId;
         });
         return ranges::distance(tokens.begin(), it);
     });
+
+    std::size_t colorId = 0;
+    for (auto& activeVocable : activeVocables) {
+        colorId++;
+        activeVocable.colorId = static_cast<ColorId>(colorId);
+    }
+    std::size_t lastColorId = 0;
+
     for (auto& token : tokens) {
-        auto it = ranges::find(orderedVocId_ease, token.getVocableId(), &decltype(orderedVocId_ease)::value_type::first);
-        if (it != orderedVocId_ease.end()) {
-            auto colorId = std::distance(orderedVocId_ease.begin(), it) + 1;
-            token.setColorId(static_cast<ColorId>(colorId));
+        auto it = ranges::find(activeVocables, token.getVocableId(), &ActiveVocable::vocableId);
+        if (it != activeVocables.end()) {
+            if (it->colorId > lastColorId) {
+                token.setColorId(it->colorId);
+                lastColorId = it->colorId;
+            }
         }
     }
 
-    return orderedVocId_ease;
+    return activeVocables;
 }
 
 auto TokenText::getType() const -> TextType
