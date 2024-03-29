@@ -239,6 +239,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         cursor = getWidgetCursor(measure, align, nextAlign, centerSize, endSize, rect, cursor);
         cursors.push_back(cursor);
         cursor += getSizeOfWidgetSize(measure, widget->getWidgetMinSize());
+        cursor += getPadding();
         // winlog("linebox", "{}, {}", getName(), cursor);
         // winlog("cardBox", "{}, {}", getName(), cursor);
         align = nextAlign;
@@ -274,6 +275,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         additionalSize += size - neededSize;
         cursors.push_back(cursor);
         cursor += neededSize;
+        cursor += getPadding();
         sizes.push_back(neededSize);
         // imglog::log("cursor: {}, size: {}, ns: {}, os: {}, #: {}", cursor, size, neededSize, orthogonalSize, widgets.size());
     }
@@ -299,6 +301,7 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         // winlog("cardBox", "{}, cursor: {}, wr_x: {}, wr_y: {}", getName(), cursor, widgetRect.x, widgetRect.y);
         needsArrange |= widget->arrange(widgetRect);
         cursor += getSizeOfWidgetSize(measure, widget->getWidgetSize());
+        cursor += getPadding();
         align = nextAlign;
     }
     return needsArrange;

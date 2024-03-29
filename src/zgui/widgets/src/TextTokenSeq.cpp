@@ -23,19 +23,19 @@ void TextTokenSeq::setup(const Paragraph& _paragraph)
     lineBox = create<Box>(Orientation::vertical);
     lineBox->setName("linebox");
     lineBox->setExpandType(width_fixed, height_fixed);
-    lineBox->setPadding(0);
+    lineBox->setPadding(config.padding);
     lineBox->setBorder(border);
 
     scratchBox = createOrphan<Box>(Orientation::vertical);
     scratchBox->setExpandType(width_fixed, height_fixed);
-    scratchBox->setPadding(0);
+    scratchBox->setPadding(config.padding);
     scratchBox->setBorder(border);
     scratchBox->cutWidgetIdGen();
 }
 
-void TextTokenSeq::setup(const Paragraph& _paragraph, context::FontType _fontType)
+void TextTokenSeq::setup(const Paragraph& _paragraph, const Config& _config)
 {
-    fontType = _fontType;
+    config = _config;
     setup(_paragraph);
 }
 
@@ -134,7 +134,7 @@ auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
 void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token) const
 {
     auto textToken = box.add<TextToken>(Align::start, token);
-    textToken->setFontType(fontType);
+    textToken->setFontType(config.fontType);
 }
 
 auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool

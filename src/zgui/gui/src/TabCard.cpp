@@ -8,6 +8,7 @@
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/Layer.h>
+#include <widgets/MediaSlider.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
@@ -55,6 +56,7 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
     auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
     auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
     ctrlBox.setName("ctrlBox");
+    ctrlBox.add<widget::MediaSlider>(Align::start);
     ctrlBox.add<widget::Button>(Align::center, "hello");
 
     spdlog::info("setUp");
@@ -152,6 +154,15 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
     ctrlWindow.start();
     auto& box = ctrlWindow.next<widget::Box>();
     box.start();
+    static float x = 0;
+    x += 0.002F;
+    if (x >= 1.0F) {
+        x = 0;
+    }
+    auto optx = box.next<widget::MediaSlider>().slide(x);
+    if (optx.has_value()) {
+        x = *optx;
+    }
     box.next<widget::Button>().clicked();
 }
 

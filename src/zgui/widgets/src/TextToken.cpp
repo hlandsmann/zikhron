@@ -4,9 +4,11 @@
 #include <detail/Widget.h>
 #include <imgui.h>
 // #include <imgui_internal.h>
+#include <misc/Identifier.h>
 
 #include <string>
 #include <utility>
+
 namespace widget {
 
 void TextToken::setup(annotation::Token _token)
@@ -33,9 +35,12 @@ void TextToken::clicked()
 {
     auto fontDrop = getTheme().getFont().dropFont(fontType);
     auto colorDrop = getTheme().getFont().dropFontColor(token.getColorId(), maxColorId);
-    const auto& btnRect = getRect();
-    ImGui::SetCursorPos({btnRect.x, btnRect.y});
+    const auto& rect = getRect();
+    ImGui::SetCursorPos({rect.x, rect.y});
     ImGui::Text("%s", token.string().data());
+    if (ImGui::IsItemHovered()) {
+        token.setColorId(static_cast<ColorId>(5));
+    }
 }
 
 auto TextToken::calculateSize() const -> WidgetSize

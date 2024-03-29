@@ -1,8 +1,9 @@
 #pragma once
-#include <context/Fonts.h>
 #include <annotation/TokenText.h>
+#include <context/Fonts.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
+#include <widgets/TextTokenSeq.h>
 #include <widgets/detail/Widget.h>
 
 #include <memory>
@@ -24,7 +25,7 @@ private:
     void setupDialogue();
     void setupText();
 
-    context::FontType fontType = context::FontType::chineseBig;
+    widget::TextTokenSeq::Config ttqConfig;
 
     std::shared_ptr<widget::Layer> layer;
     std::unique_ptr<annotation::TokenText> tokenText;

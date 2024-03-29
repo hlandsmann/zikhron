@@ -77,11 +77,11 @@ void MainWindow::doImGui()
         tabBox.next<widget::ToggleButtonGroup>().getActive();
     }
 
-    // bool show_demo_window = true;
-    // if (show_demo_window) {
-    //     // ImGui::SetNextWindowFocus();
-    //     ImGui::ShowDemoWindow(&show_demo_window);
-    // }
+    bool show_demo_window = true;
+    if (show_demo_window) {
+        // ImGui::SetNextWindowFocus();
+        ImGui::ShowDemoWindow(&show_demo_window);
+    }
 }
 
 void MainWindow::setup()

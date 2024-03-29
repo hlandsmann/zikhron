@@ -15,6 +15,7 @@ DisplayText::DisplayText(std::shared_ptr<widget::Layer> _layer, std::unique_ptr<
     : layer{std::move(_layer)}
     , tokenText{std::move(_tokenText)}
 {
+    ttqConfig.fontType = context::FontType::chineseBig;
     using annotation::TextType;
     switch (tokenText->getType()) {
     case TextType::dialogue:
@@ -63,13 +64,13 @@ void DisplayText::setupDialogue()
 {
     auto grid = layer->add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.3F, 0.7F});
     for (const auto& dialogue : tokenText->getDialogue()) {
-        grid->add<widget::TextTokenSeq>(Align::start, dialogue, fontType);
+        grid->add<widget::TextTokenSeq>(Align::start, dialogue, ttqConfig);
     }
 }
 
 void DisplayText::setupText()
 {
-    layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), fontType);
+    layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), ttqConfig);
 }
 
 } // namespace gui

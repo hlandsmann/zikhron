@@ -59,9 +59,12 @@ void DisplayVocables::setup()
 
 void DisplayVocables::addVocable(widget::Grid& grid, const ZH_Dictionary::Entry& entry, ColorId colorId)
 {
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.key, colorId), fontType);
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.pronounciation, colorId), fontType);
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.meanings.at(0), colorId), fontType);
+    widget::TextTokenSeq::Config ttqConfig;
+    ttqConfig.fontType = fontType;
+    ttqConfig.padding = 15.F;
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.key, colorId), ttqConfig);
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.pronounciation, colorId), ttqConfig);
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.meanings.at(0), colorId), ttqConfig);
 }
 
 void DisplayVocables::addEaseButtonGroup(widget::Grid& grid)
