@@ -14,16 +14,36 @@ enum class Image {
     audio,
     configure,
     video,
+    document_open,
+    document_save,
+    media_playback_pause,
+    media_playback_start,
+    media_playback_stop,
+    media_seek_backward,
+    media_seek_forward,
+    media_skip_backward,
+    media_skip_forward,
+    new_audio_alarm,
 };
 
 struct TextureData;
 
 class Texture
 {
-    static constexpr auto audio_tex = "/home/harmen/src/zikhron/resources/icons/audio_48px.png";
-    static constexpr auto cards_tex = "/home/harmen/src/zikhron/resources/icons/cards_48px.png";
-    static constexpr auto configure_tex = "/home/harmen/src/zikhron/resources/icons/configure_48px.png";
-    static constexpr auto video_tex = "/home/harmen/src/zikhron/resources/icons/video_48px.png";
+    static constexpr auto audio_tex = "/home/harmen/src/zikhron/build/resources/icons/audio_48px.png";
+    static constexpr auto cards_tex = "/home/harmen/src/zikhron/build/resources/icons/cards_48px.png";
+    static constexpr auto configure_tex = "/home/harmen/src/zikhron/build/resources/icons/configure_48px.png";
+    static constexpr auto video_tex = "/home/harmen/src/zikhron/build/resources/icons/video_48px.png";
+    static constexpr auto document_open_tex = "/home/harmen/src/zikhron/build/resources/icons/document-open_32px.png";
+    static constexpr auto document_save_tex = "/home/harmen/src/zikhron/build/resources/icons/document-save_32px.png";
+    static constexpr auto media_playback_pause_tex = "/home/harmen/src/zikhron/build/resources/icons/media-playback-pause_32px.png";
+    static constexpr auto media_playback_start_tex = "/home/harmen/src/zikhron/build/resources/icons/media-playback-start_32px.png";
+    static constexpr auto media_playback_stop_tex = "/home/harmen/src/zikhron/build/resources/icons/media-playback-stop_32px.png";
+    static constexpr auto media_seek_backward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-seek-backward_32px.png";
+    static constexpr auto media_seek_forward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-seek-forward_32px.png";
+    static constexpr auto media_skip_backward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-skip-backward_32px.png";
+    static constexpr auto media_skip_forward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-skip-forward_32px.png";
+    static constexpr auto new_audio_alarm_tex = "/home/harmen/src/zikhron/build/resources/icons/new-audio-alarm_32px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

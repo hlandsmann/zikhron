@@ -1,9 +1,9 @@
-#include <stb/stb_image.h>
 #include "GlfwImguiContext.h"
 
 #include <GL/gl.h>
 #include <Texture.h>
 #include <spdlog/spdlog.h>
+#include <stb/stb_image.h>
 
 #include <filesystem>
 #include <map>
@@ -57,6 +57,16 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::cards] = loadTextureFromFile(cards_tex);
     textureMap[Image::configure] = loadTextureFromFile(configure_tex);
     textureMap[Image::video] = loadTextureFromFile(video_tex);
+    textureMap[Image::document_open] = loadTextureFromFile(document_open_tex);
+    textureMap[Image::document_save] = loadTextureFromFile(document_save_tex);
+    textureMap[Image::media_playback_pause] = loadTextureFromFile(media_playback_pause_tex);
+    textureMap[Image::media_playback_start] = loadTextureFromFile(media_playback_start_tex);
+    textureMap[Image::media_playback_stop] = loadTextureFromFile(media_playback_stop_tex);
+    textureMap[Image::media_seek_backward] = loadTextureFromFile(media_seek_backward_tex);
+    textureMap[Image::media_seek_forward] = loadTextureFromFile(media_seek_forward_tex);
+    textureMap[Image::media_skip_backward] = loadTextureFromFile(media_skip_backward_tex);
+    textureMap[Image::media_skip_forward] = loadTextureFromFile(media_skip_forward_tex);
+    textureMap[Image::new_audio_alarm] = loadTextureFromFile(new_audio_alarm_tex);
     return textureMap;
 }
 } // namespace context
