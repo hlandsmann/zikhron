@@ -1,3 +1,7 @@
+// top include begin
+#include <glad/glad.h>
+// top include end
+
 #include <GLFW/glfw3.h>
 #include <GlfwImguiContext.h>
 #include <backends/imgui_impl_glfw.h>
@@ -44,7 +48,8 @@ void GlfwImguiContext::initOpenglContext()
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // Create window with graphics context
     glfwWindow = glfwCreateWindow(1980, 1200, "zikhron", nullptr, nullptr);
@@ -53,6 +58,10 @@ void GlfwImguiContext::initOpenglContext()
     }
     glfwMakeContextCurrent(glfwWindow);
     glfwSwapInterval(1); // Enable vsync
+
+    if (0 == gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
+        throw std::runtime_error("Failed to initialize GLAD");
+    }
 }
 
 void GlfwImguiContext::initImGui()

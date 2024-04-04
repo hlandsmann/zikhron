@@ -20,7 +20,7 @@ auto MediaSlider::slide(float _value) -> std::optional<float>
     const auto& rect = getRect();
     ImGui::SetCursorPos({rect.x, rect.y});
     ImGui::SetNextItemWidth(rect.width);
-    std::string timeStamp = std::format("h: {}", value);
+    std::string timeStamp = std::format("h: {:.2f}", value);
     ImGui::SliderFloat("##", &value, 0.F, 1.F, timeStamp.c_str());
     if (value != _value) {
         return {value};
@@ -54,7 +54,7 @@ auto MediaSlider::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
     auto size = ImGui::GetItemRectSize();
 
     return {.width = size.x,
-            .height = rect.height};
+            .height = size.y};
 }
 
 } // namespace widget

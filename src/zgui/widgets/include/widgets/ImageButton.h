@@ -1,7 +1,7 @@
 #pragma once
 #include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
 
-#include <context/Texture.h>
+#include <context/Texture.h> // IWYU pragma: export
 #include <context/Theme.h>
 #include <imgui.h>
 

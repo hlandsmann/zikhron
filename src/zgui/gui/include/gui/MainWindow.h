@@ -8,6 +8,7 @@
 #include <widgets/Box.h>
 #include <widgets/detail/Widget.h>
 
+#include <cstddef>
 #include <memory>
 
 namespace gui {
@@ -31,5 +32,7 @@ private:
     std::unique_ptr<TabCard> tabCard;
     std::unique_ptr<TabVideo> tabVideo;
     bool needArrange = false;
+
+    std::size_t activeTab{1};
 };
 } // namespace gui

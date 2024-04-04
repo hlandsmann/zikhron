@@ -5,8 +5,11 @@
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/Grid.h>
+#include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
+#include <widgets/MediaSlider.h>
 #include <widgets/TextTokenSeq.h>
+#include <widgets/Video.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
@@ -17,8 +20,11 @@
 namespace gui {
 
 TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-                   std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
+                   std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker,
+                   std::unique_ptr<multimedia::MpvWrapper> _mpv)
     : executor{std::move(_synchronousExecutor)}
+    , mpv{std::move(_mpv)}
+    , signalShouldRender{executor->makeVolatileSignal<bool>()}
 // , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
 
 {
@@ -27,41 +33,56 @@ TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExec
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-void TabVideo::setUp(widget::Window& window)
+void TabVideo::setUp(std::shared_ptr<widget::Layer> layer)
 {
-    // using Align = widget::layout::Align;
-    // auto& box = window.getBox();
-    // box.setFlipChildrensOrientation(false);
-    // auto grid = box.add<widget::Grid>(Align::start, 3);
-    // auto layer = box.add<widget::Layer>(Align::start);
-    // spdlog::info("setUp");
+    using namespace widget::layout;
+    auto box = layer->add<widget::Box>(Align::start, widget::Orientation::vertical);
+    boxId = box->getWidgetId();
+    box->setName("Video_box");
+    auto& videoWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "video_tex");
+    video = videoWindow.add<widget::Video>(Align::start, mpv);
+
+    auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
+    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    ctrlBox.setName("ctrlBox");
+    ctrlBox.setPadding(0.F);
+    ctrlBox.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
+    ctrlBox.add<widget::MediaSlider>(Align::start);
+    ctrlBox.add<widget::Button>(Align::center, "world");
 }
 
-void TabVideo::displayOnWindow(widget::Window& window)
+void TabVideo::displayOnLayer(widget::Layer& layer)
 {
-    // auto droppedWindow = window.dropWindow();
-    //
-    // auto& box = window.getBox();
-    // // auto size = box.getExpandedSize();
-    // // auto size = box.getWidgetSize();
-    // // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
-    // box.start();
-    // auto& grid = box.next<widget::Box>();
-    // grid.start();
-    // if (!grid.isLast()) {
-    //     grid.next<widget::Button>().clicked();
-    // }
-    // imglog::log("width: {}, height: {}", window.getWidgetSize().width, window.getWidgetSize().height);
-    // while (!cardBox.isLast()) {
-    // cardBox.next<widget::Button>().clicked();
-    // }
+    auto box = layer.getWidget<widget::Box>(boxId);
+    box.start();
+    doVideoWindow(box.next<widget::Window>());
+    doCtrlWindow(box.next<widget::Window>());
 }
 
 auto TabVideo::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     using Align = widget::layout::Align;
-
+    while (true) {
+        const auto shouldRender = co_await mpv->SignalShouldRender();
+        if (shouldRender) {
+            video->render();
+        }
+    }
     co_return;
+}
+
+void TabVideo::doVideoWindow(widget::Window& videoWindow)
+{
+    auto droppedWindow = videoWindow.dropWindow();
+    videoWindow.start();
+
+    auto& video = videoWindow.next<widget::Video>();
+    video.displayTexture();
+}
+
+void TabVideo::doCtrlWindow(widget::Window& ctrlWindow)
+{
+    auto droppedWindow = ctrlWindow.dropWindow();
 }
 
 } // namespace gui

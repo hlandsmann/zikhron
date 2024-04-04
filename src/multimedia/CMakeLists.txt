@@ -39,6 +39,7 @@ target_link_libraries(zikhron_multimedia
         fmt::fmt
         glfw
         spdlog::spdlog
+        zikhron::kocoro
         zikhron::miscellaneous
         zikhron::utils
         zikhron::warnings

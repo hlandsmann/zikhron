@@ -30,6 +30,7 @@ target_include_directories(zgui_context
 target_link_libraries(zgui_context
     PRIVATE
         ${OPENGL_LIBRARIES}
+        glad::glad
         glfw
         imgui::imgui
         spdlog::spdlog

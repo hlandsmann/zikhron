@@ -23,6 +23,7 @@ target_link_libraries(imgui
     PUBLIC
         glfw
 )
+target_compile_definitions(imgui PUBLIC IMGUI_DEFINE_MATH_OPERATORS)
 
 add_library(stb_image)
 add_library(stb::image ALIAS stb_image)
@@ -39,3 +40,4 @@ target_include_directories(stb_image
 )
 
 add_subdirectory(cppjieba)
+add_subdirectory(glad)

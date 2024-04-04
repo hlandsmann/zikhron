@@ -1,36 +1,51 @@
 #pragma once
+#include <GL/gl.h>
 #include <mpv/client.h>
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
 
+#include <cstdint>
 #include <filesystem>
 #include <functional>
+#include <kocoro/kocoro.hpp>
 #include <memory>
 #include <string>
 
+namespace multimedia {
 class MpvWrapper
 {
 public:
-    MpvWrapper();
+    MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor);
+    virtual ~MpvWrapper() = default;
 
-    // auto property_duration() const -> const utl::Property<double>& { return duration; }
-    // auto property_paused() const -> const utl::Property<bool>& { return paused; }
-    // auto property_timePos() const -> const utl::Property<double>& { return timePos; }
+    MpvWrapper(const MpvWrapper&) = delete;
+    MpvWrapper(MpvWrapper&&) = delete;
+    auto operator=(const MpvWrapper&) -> MpvWrapper& = delete;
+    auto operator=(MpvWrapper&&) -> MpvWrapper& = delete;
 
     void openFile(const std::filesystem::path& mediaFile);
     void play(double until = 0.0);
     void play_fragment(double start, double end);
     void pause();
     void seek(double pos);
+
     [[nodiscard]] auto is_paused() const -> bool { return paused; }
-    void initGL(/* const std::shared_ptr<Gtk::GLArea>& glArea */);
-    auto render(int width, int height) -> bool;
+
+    void initGL();
+    auto render(GLuint fbo, int width, int height) -> int64_t;
+    [[nodiscard]] auto getTime() const -> int64_t;
+
+    // Signals:
+    [[nodiscard]] auto SignalShouldRender() const -> kocoro::VolatileSignal<bool>&;
 
 private:
     void observe_duration(std::function<void(double)> observer);
     void observe_timePos(std::function<void(double)> observer);
     void handle_mpv_event(mpv_event* event);
     void on_mpv_events();
+    [[nodiscard]] auto getNextFrameTargetTime() const -> int64_t;
+
+    static void onMpvUpdate(void* mpv);
 
     void closeFile();
     void enable_stop_timer();
@@ -38,10 +53,6 @@ private:
     auto timer_stop(int timer_id) -> bool;
     int timer_id = 0;
     bool timer_running = false;
-    // sigc::connection timer_connection;
-    //
-    // Glib::Dispatcher dispatch_mpvEvent;
-    // Glib::Dispatcher dispatch_render;
 
     std::function<void(mpv_handle*)> mpv_deleter = [](mpv_handle* mpvHandle) {
         mpv_terminate_destroy(mpvHandle);
@@ -51,19 +62,17 @@ private:
     std::function<void(mpv_render_context*)> renderCtx_deleter = [](mpv_render_context* render_ctx) {
         mpv_render_context_free(render_ctx);
     };
-    std::unique_ptr<mpv_render_context, decltype(renderCtx_deleter)> mpv_gl;
-    // std::shared_ptr<Gtk::GLArea> glArea;
+    std::unique_ptr<mpv_render_context, decltype(renderCtx_deleter)> renderCtx;
     std::string mediaFile;
 
-    // utl::ObserverCollection observers;
-    // utl::Property<double> duration;
-    // utl::Property<double> timePos;
     int mpv_flag_paused = 1;
-    // utl::Property<bool> paused = true;
     bool paused{false};
     double stopAtPosition = 0;
     double volume{100.F};
     double duration{};
     double timePos{};
-    // GLuint tex{};
+
+    // Signals:
+    std::shared_ptr<kocoro::VolatileSignal<bool>> signalShouldRender;
 };
+} // namespace multimedia

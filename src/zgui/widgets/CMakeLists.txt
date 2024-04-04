@@ -12,6 +12,7 @@ target_sources(zgui_widgets
         include/widgets/TextToken.h
         include/widgets/TextTokenSeq.h
         include/widgets/ToggleButtonGroup.h
+        include/widgets/Video.h
         include/widgets/Window.h
         include/widgets/detail/MetaBox.h
         include/widgets/detail/Widget.h
@@ -25,6 +26,7 @@ target_sources(zgui_widgets
         src/TextToken.cpp
         src/TextTokenSeq.cpp
         src/ToggleButtonGroup.cpp
+        src/Video.cpp
         src/Widget.cpp
         src/Window.cpp
 )
@@ -44,9 +46,14 @@ target_link_libraries(zgui_widgets
         zgui::context
         zikhron::annotation
     PRIVATE
-        zikhron::warnings
-        zikhron::utils
+        ${OPENGL_LIBRARIES}
+        glad::glad
+        glfw
         spdlog::spdlog
+        zikhron::kocoro
+        zikhron::multimedia
+        zikhron::utils
+        zikhron::warnings
 )
 
 set_property(TARGET zgui_widgets PROPERTY CXX_STANDARD 23)

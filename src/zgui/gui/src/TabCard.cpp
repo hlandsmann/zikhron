@@ -7,6 +7,7 @@
 #include <spdlog/spdlog.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
+#include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
 #include <widgets/MediaSlider.h>
 #include <widgets/TextTokenSeq.h>
@@ -56,6 +57,8 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
     auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
     auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
     ctrlBox.setName("ctrlBox");
+    ctrlBox.setPadding(0.F);
+    ctrlBox.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
     ctrlBox.add<widget::MediaSlider>(Align::start);
     ctrlBox.add<widget::Button>(Align::center, "hello");
 
@@ -67,7 +70,6 @@ void TabCard::displayOnLayer(widget::Layer& layer)
     auto box = layer.getWidget<widget::Box>(boxId);
     box.start();
     doCardWindow(box.next<widget::Window>());
-    // doTestWindow(box.next<widget::Window>());
     doCtrlWindow(box.next<widget::Window>());
 
     // auto& box = window.getBox();
@@ -154,6 +156,7 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
     ctrlWindow.start();
     auto& box = ctrlWindow.next<widget::Box>();
     box.start();
+    box.next<widget::ImageButton>().clicked();
     static float x = 0;
     x += 0.002F;
     if (x >= 1.0F) {

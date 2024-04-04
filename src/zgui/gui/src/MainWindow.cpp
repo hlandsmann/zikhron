@@ -16,6 +16,7 @@
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
+#include <cstddef>
 #include <initializer_list>
 #include <memory>
 #include <utility>
@@ -57,13 +58,11 @@ void MainWindow::arrange(const widget::layout::Rect& rect)
 void MainWindow::doImGui()
 {
     box->start();
-    {
-        auto layer = box->next<widget::Layer>();
-        tabCard->displayOnLayer(layer);
-        // auto& displayWindow = box->next<widget::Window>();
-        // displayCard->displayOnWindow(displayWindow);
-        // auto drop = displayWindow.dropWindow();
-    }
+
+    // auto& displayWindow = box->next<widget::Window>();
+    // displayCard->displayOnWindow(displayWindow);
+    // auto drop = displayWindow.dropWindow();
+
     {
         auto& tabWindow = box->next<widget::Window>();
         auto droppedWindow = tabWindow.dropWindow();
@@ -74,40 +73,56 @@ void MainWindow::doImGui()
         tabWindow.start();
         auto& tabBox = tabWindow.next<widget::Box>();
         tabBox.start();
-        tabBox.next<widget::ToggleButtonGroup>().getActive();
+        activeTab = tabBox.next<widget::ToggleButtonGroup>().Active(activeTab);
+    }
+    auto layer = box->next<widget::Layer>();
+    switch (activeTab) {
+    case 0:
+        tabCard->displayOnLayer(layer);
+        break;
+    case 1:
+        tabVideo->displayOnLayer(layer);
+        break;
+    case 2:
+    case 3:
+    default:
+        break;
     }
 
-    bool show_demo_window = true;
-    if (show_demo_window) {
-        // ImGui::SetNextWindowFocus();
-        ImGui::ShowDemoWindow(&show_demo_window);
-    }
+    // bool show_demo_window = true;
+    // if (show_demo_window) {
+    //     // ImGui::SetNextWindowFocus();
+    //     ImGui::ShowDemoWindow(&show_demo_window);
+    // }
 }
 
 void MainWindow::setup()
 {
     using Align = widget::layout::Align;
     using namespace widget::layout;
-
     box->setPadding(0.F);
-    auto mainLayer = box->add<widget::Layer>(Align::start);
-    mainLayer->setExpandType(width_expand, height_expand);
-    mainLayer->setName("mainLayer");
+    {
+        auto& toggleButtonMenu = *box->add<widget::Window>(Align::start, width_fixed, height_expand, "toggleButtonMenu");
+        auto& tmbBox = *toggleButtonMenu.add<widget::Box>(Align::end, widget::Orientation::vertical);
 
-    // auto& displayWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "cardDisplay");
-    tabCard->setUp(mainLayer);
+        // tmbBox->setFlipChildrensOrientation(false);
+        tmbBox.setPadding(0);
 
-    auto& toggleButtonMenu = *box->add<widget::Window>(Align::end, width_fixed, height_expand, "toggleButtonMenu");
-    auto& tmbBox = *toggleButtonMenu.add<widget::Box>(Align::start, widget::Orientation::vertical);
+        tmbBox.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::vertical,
+                                              std::initializer_list<context::Image>{
+                                                      context::Image::cards,
+                                                      context::Image::video,
+                                                      context::Image::audio,
+                                                      context::Image::configure});
+        
+    }
+    {
+        auto mainLayer = box->add<widget::Layer>(Align::start);
+        mainLayer->setExpandType(width_expand, height_expand);
+        mainLayer->setName("mainLayer");
 
-    // tmbBox->setFlipChildrensOrientation(false);
-    tmbBox.setPadding(0);
-
-    tmbBox.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::vertical,
-                                          std::initializer_list<context::Image>{
-                                                  context::Image::cards,
-                                                  context::Image::video,
-                                                  context::Image::audio,
-                                                  context::Image::configure});
+        tabCard->setUp(mainLayer);
+        tabVideo->setUp(mainLayer);
+    }
 }
 } // namespace gui

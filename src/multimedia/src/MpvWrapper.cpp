@@ -1,4 +1,5 @@
 // clang-format off
+
 #include <epoxy/glx.h>
 #include <epoxy/egl.h>
 #include <epoxy/gl_generated.h>
@@ -12,9 +13,9 @@
 #include <mpv/render_gl.h>
 #include <spdlog/spdlog.h>
 
-#include <bit>
+#include <cstdint>
 #include <filesystem>
-#include <functional>
+#include <kocoro/kocoro.hpp>
 #include <stdexcept>
 #include <string>
 
@@ -38,14 +39,10 @@ auto get_proc_address(void* fn_ctx, const char* name) -> void*
 }
 } // namespace
 
-MpvWrapper::MpvWrapper()
+namespace multimedia {
+MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
+    : signalShouldRender{executor->makeVolatileSignal<bool>()}
 {
-    // dispatch_render.connect([this]() {
-    //     if (glArea)
-    //         glArea->queue_render();
-    // });
-    // dispatch_mpvEvent.connect([this]() { on_mpv_events(); });
-
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
     mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
@@ -130,35 +127,53 @@ void MpvWrapper::initGL(/* const std::shared_ptr<Gtk::GLArea>& glArea_in */)
 {
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr};
     static std::string renderType = MPV_RENDER_API_TYPE_OPENGL;
+    int adv = 1;
+    int block = 0;
     mpv_render_param params[]{
             {MPV_RENDER_PARAM_API_TYPE, renderType.data()},
             {MPV_RENDER_PARAM_OPENGL_INIT_PARAMS, &gl_init_params},
+            {MPV_RENDER_PARAM_ADVANCED_CONTROL, &adv},
+            {MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME, &block},
             {MPV_RENDER_PARAM_INVALID, nullptr}};
 
     mpv_render_context* mpv_gl_temp{};
     if (mpv_render_context_create(&mpv_gl_temp, mpv.get(), static_cast<mpv_render_param*>(params)) < 0) {
         throw std::runtime_error("failed to initialize mpv GL context");
     }
-    mpv_gl = decltype(mpv_gl)(mpv_gl_temp, renderCtx_deleter);
+    renderCtx = decltype(renderCtx)(mpv_gl_temp, renderCtx_deleter);
+    mpv_render_context_set_update_callback(
+            renderCtx.get(),
+            &onMpvUpdate,
+            this);
 }
 
-auto MpvWrapper::render(int width, int height) -> bool
+auto MpvWrapper::render(GLuint fbo, int width, int height) -> int64_t
 {
-    if (mpv_gl == nullptr /* || glArea == nullptr */) {
-        return false;
-    }
+    auto nextFrameTargetTime = getNextFrameTargetTime();
 
-    int fbo = -1;
-    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbo);
+    int flip_y{0};
+    mpv_opengl_fbo mpfbo{static_cast<int>(fbo), width, height, 0};
+    int adv = 1;
+    int block = 0;
+    mpv_render_param params[]{
+            {MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo},
+            {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
+            {MPV_RENDER_PARAM_ADVANCED_CONTROL, &adv},
+            {MPV_RENDER_PARAM_BLOCK_FOR_TARGET_TIME, &block},
+            {MPV_RENDER_PARAM_INVALID, nullptr},
+    };
+    mpv_render_context_render(renderCtx.get(), static_cast<mpv_render_param*>(params));
+    return nextFrameTargetTime;
+}
 
-    mpv_opengl_fbo mpfbo{0, width, height, 0};
-    int flip_y{1};
+auto MpvWrapper::getTime() const -> int64_t
+{
+    return mpv_get_time_ns(mpv.get());
+}
 
-    mpv_render_param params[] = {{MPV_RENDER_PARAM_OPENGL_FBO, &mpfbo},
-                                 {MPV_RENDER_PARAM_FLIP_Y, &flip_y},
-                                 {MPV_RENDER_PARAM_INVALID, nullptr}};
-    mpv_render_context_render(mpv_gl.get(), static_cast<mpv_render_param*>(params));
-    return true;
+auto MpvWrapper::SignalShouldRender() const -> kocoro::VolatileSignal<bool>&
+{
+    return *signalShouldRender;
 }
 
 void MpvWrapper::on_mpv_events()
@@ -170,6 +185,28 @@ void MpvWrapper::on_mpv_events()
             break;
         }
         handle_mpv_event(event);
+    }
+}
+
+auto MpvWrapper::getNextFrameTargetTime() const -> int64_t
+{
+    mpv_render_frame_info frameInfo;
+    mpv_render_param param{
+            MPV_RENDER_PARAM_NEXT_FRAME_INFO,
+            &frameInfo,
+    };
+    mpv_render_context_get_info(renderCtx.get(), param);
+    return frameInfo.target_time;
+}
+
+void MpvWrapper::onMpvUpdate(void* _mpv)
+{
+    MpvWrapper* mpv = static_cast<MpvWrapper*>(_mpv);
+    if (!mpv->renderCtx) {
+        return;
+    }
+    if (mpv_render_context_update(mpv->renderCtx.get()) & MPV_RENDER_UPDATE_FRAME) {
+        mpv->signalShouldRender->set(true);
     }
 }
 
@@ -243,3 +280,4 @@ auto MpvWrapper::timer_stop(int /*timer_id*/) -> bool
     openFile(mediaFile);
     return true;
 }
+} // namespace multimedia

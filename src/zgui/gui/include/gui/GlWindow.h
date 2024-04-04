@@ -39,7 +39,6 @@ private:
     MainWindow mainWindow;
 
     std::shared_ptr<kocoro::SynchronousExecutor> executor;
-    std::shared_ptr<MpvWrapper> videoPlayer;
     int displayWidth{};
     int displayHeight{};
 };
