@@ -15,8 +15,12 @@ class Layer : public MetaBox<Layer>
     using ExpandType = layout::ExpandType;
     using Rect = layout::Rect;
 
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup();
+
+public:
     Layer(const WidgetInit& init);
 
     [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;

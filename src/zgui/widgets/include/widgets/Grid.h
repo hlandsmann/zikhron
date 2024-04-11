@@ -1,6 +1,6 @@
 #pragma once
 #include "detail/MetaBox.h" // IWYU pragma: export detail/MetaBox.h
-#include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
+#include "detail/Widget.h"  // IWYU pragma: export detail/Widget.h
 
 #include <cstddef>
 #include <functional>
@@ -13,13 +13,20 @@
 namespace widget {
 class Grid : public MetaBox<Grid>
 {
+public:
+    using Priorities = std::initializer_list<float>;
+
+private:
     friend class MetaBox<Grid>;
     using Align = layout::Align;
     using ExpandType = layout::ExpandType;
 
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
+    void setup(std::size_t columns, Priorities priorities);
+
 public:
-    using Priorities = std::initializer_list<float>;
-    void setup(std::size_t columns, std::initializer_list<float> priorities);
     Grid(const WidgetInit& init);
 
     // Merges current active cell with next one. Throws if current active cell is last in row.

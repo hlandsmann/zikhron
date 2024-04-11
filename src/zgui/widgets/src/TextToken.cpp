@@ -14,6 +14,7 @@ namespace widget {
 void TextToken::setup(annotation::Token _token)
 {
     token = std::move(_token);
+    shadowId = getWidgetIdGenerator()->getNextId();
 }
 
 TextToken::TextToken(WidgetInit _init)
@@ -28,19 +29,67 @@ void TextToken::setFontType(context::FontType _fontType)
 
 void TextToken::renderShadow()
 {
-    auto fontDrop = getTheme().getFont().dropFont(fontType);
+    constexpr int thickness = 2;
+    const auto& rect = getRect();
+    auto idDrop = dropWidgetId(shadowId);
+    for (int xshift = 0; xshift <= thickness * 2; xshift++) {
+        for (int yshift = 0; yshift <= thickness * 2; yshift++) {
+            int xs = xshift - (thickness);
+            int ys = yshift - (thickness);
+            renderText(rect.x + static_cast<float>(xs),
+                       rect.y + static_cast<float>(ys));
+        }
+    }
 }
 
-void TextToken::clicked()
+void TextToken::renderText(float x, float y) const
 {
-    auto fontDrop = getTheme().getFont().dropFont(fontType);
-    auto colorDrop = getTheme().getFont().dropFontColor(token.getColorId(), maxColorId);
-    const auto& rect = getRect();
-    ImGui::SetCursorPos({rect.x, rect.y});
+    ImGui::SetCursorPos({x, y});
     ImGui::Text("%s", token.string().data());
-    if (ImGui::IsItemHovered()) {
-        token.setColorId(static_cast<ColorId>(5));
+}
+
+auto TextToken::testHovered() const -> bool
+{
+    const auto& rect = getRect();
+    if (token.getDictionaryEntries().empty()) {
+        return false;
     }
+    renderText(rect.x, rect.y);
+    return ImGui::IsItemHovered();
+}
+
+auto TextToken::clicked() -> bool
+{
+    const auto& rect = getRect();
+    const auto& fontTheme = getTheme().getFont();
+    auto fontDrop = fontTheme.dropFont(fontType);
+
+    bool isHovered = testHovered();
+    {
+        auto colorDrop = isHovered ? fontTheme.dropFontColor(token.getColorId(), maxColorId)
+                                   : fontTheme.dropShadowFontColor();
+        renderShadow();
+    }
+    {
+        auto idDrop = dropWidgetId();
+        auto colorDrop = isHovered ? fontTheme.dropShadowFontColor()
+                                   : fontTheme.dropFontColor(token.getColorId(), maxColorId);
+        renderText(rect.x, rect.y);
+        if (token.getDictionaryEntries().empty()) {
+            return false;
+        }
+        return ImGui::IsItemClicked();
+    }
+}
+
+auto TextToken::getPositionRect() const -> layout::Rect
+{
+    return getRect();
+}
+
+auto TextToken::getToken() const -> const annotation::Token&
+{
+    return token;
 }
 
 auto TextToken::calculateSize() const -> WidgetSize

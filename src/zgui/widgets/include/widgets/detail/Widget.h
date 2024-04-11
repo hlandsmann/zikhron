@@ -143,6 +143,7 @@ public:
     void cutWidgetIdGen();
 
 protected:
+    [[nodiscard]] static auto dropWidgetId(WidgetId) -> context::WidgetIdDrop;
     [[nodiscard]] virtual auto calculateSize() const -> WidgetSize = 0;
     [[nodiscard]] virtual auto calculateMinSize() const -> WidgetSize;
     [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;

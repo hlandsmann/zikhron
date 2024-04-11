@@ -138,7 +138,11 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
     if (displayText) {
-        displayText->draw();
+        auto textToken = displayText->draw();
+        if (textToken.has_value()) {
+            const auto& annotationToken = textToken.value()->getToken();
+            spdlog::info("Clicked token: {}", annotationToken.getValue());
+        }
     }
     if (displayVocables) {
         displayVocables->draw();

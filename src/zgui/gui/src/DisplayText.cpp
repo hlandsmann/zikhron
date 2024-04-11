@@ -3,9 +3,11 @@
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
 #include <widgets/Layer.h>
+#include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
 
 #include <memory>
+#include <optional>
 #include <stdexcept>
 #include <utility>
 
@@ -28,7 +30,7 @@ DisplayText::DisplayText(std::shared_ptr<widget::Layer> _layer, std::unique_ptr<
     }
 }
 
-void DisplayText::draw()
+auto DisplayText::draw() -> std::optional<std::shared_ptr<widget::TextToken>>
 {
     layer->start();
     if (layer->isLast()) {
@@ -37,27 +39,33 @@ void DisplayText::draw()
     using annotation::TextType;
     switch (tokenText->getType()) {
     case TextType::dialogue:
-        drawDialogue();
+        return drawDialogue();
         break;
     case TextType::subtitle:
     case TextType::text:
-        drawText();
+        return drawText();
         break;
     }
+    return std::nullopt;
 }
 
-void DisplayText::drawDialogue()
+auto DisplayText::drawDialogue() -> std::optional<std::shared_ptr<widget::TextToken>>
 {
+    std::optional<std::shared_ptr<widget::TextToken>> result;
     auto& grid = layer->next<widget::Grid>();
     grid.start();
     while (!grid.isLast()) {
-        grid.next<widget::TextTokenSeq>().draw();
+        auto optResult = grid.next<widget::TextTokenSeq>().draw();
+        if (optResult.has_value()) {
+            result = std::move(optResult);
+        }
     }
+    return result;
 }
 
-void DisplayText::drawText()
+auto DisplayText::drawText() -> std::optional<std::shared_ptr<widget::TextToken>>
 {
-    layer->next<widget::TextTokenSeq>().draw();
+    return layer->next<widget::TextTokenSeq>().draw();
 }
 
 void DisplayText::setupDialogue()

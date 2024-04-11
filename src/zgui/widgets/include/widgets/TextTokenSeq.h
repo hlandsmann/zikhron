@@ -9,15 +9,13 @@
 #include <imgui.h>
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 namespace widget {
 class TextTokenSeq : public Widget
 {
-    using Paragraph = annotation::TokenText::Paragraph;
-    using Align = widget::layout::Align;
-
 public:
     struct Config
     {
@@ -25,11 +23,20 @@ public:
         float padding = 0.F;
     };
 
+private:
+    using Paragraph = annotation::TokenText::Paragraph;
+    using Align = widget::layout::Align;
+
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(const Paragraph& paragraph);
     void setup(const Paragraph& paragraph, const Config& config);
+
+public:
     TextTokenSeq(WidgetInit init);
 
-    void draw();
+    auto draw() -> std::optional<std::shared_ptr<TextToken>>;
 
 private:
     auto calculateSize() const -> WidgetSize override;

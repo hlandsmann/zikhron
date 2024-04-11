@@ -33,6 +33,6 @@ private:
     std::unique_ptr<TabVideo> tabVideo;
     bool needArrange = false;
 
-    std::size_t activeTab{1};
+    std::size_t activeTab{0};
 };
 } // namespace gui

@@ -11,8 +11,12 @@ namespace widget {
 
 class ImageButton : public Widget
 {
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(context::Image image);
+
+public:
     ImageButton(WidgetInit init);
     ~ImageButton() override = default;
 

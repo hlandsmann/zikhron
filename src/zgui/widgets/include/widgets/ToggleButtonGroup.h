@@ -13,9 +13,13 @@
 namespace widget {
 class ToggleButtonGroup : public Widget
 {
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(Orientation orientation, std::initializer_list<context::Image> images);
     void setup(Orientation orientation, std::initializer_list<std::string> labels);
+
+public:
     ToggleButtonGroup(WidgetInit init);
 
     ~ToggleButtonGroup() override = default;

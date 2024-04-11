@@ -59,6 +59,11 @@ auto Widget::dropWidgetId() const -> context::WidgetIdDrop
     return {widgetId};
 }
 
+auto Widget::dropWidgetId(WidgetId _widgetId) -> context::WidgetIdDrop
+{
+    return {_widgetId};
+}
+
 auto Widget::HorizontalAlign() const -> layout::Align
 {
     return horizontalAlign;

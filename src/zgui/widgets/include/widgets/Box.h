@@ -1,6 +1,6 @@
 #pragma once
 #include "detail/MetaBox.h" // IWYU pragma: export detail/MetaBox.h
-#include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
+#include "detail/Widget.h"  // IWYU pragma: export detail/Widget.h
 
 #include <context/Theme.h>
 #include <imgui.h>
@@ -16,8 +16,12 @@ class Box : public MetaBox<Box>
     using Align = layout::Align;
     using ExpandType = layout::ExpandType;
 
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(Orientation orientation);
+
+public:
     Box(const WidgetInit& init);
 
     [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;

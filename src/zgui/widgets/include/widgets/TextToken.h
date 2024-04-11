@@ -9,13 +9,18 @@ namespace widget {
 
 class TextToken : public Widget
 {
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(annotation::Token token);
+
+public:
     TextToken(WidgetInit init);
 
     void setFontType(context::FontType fontType);
-    void renderShadow();
-    void clicked();
+    auto clicked() -> bool;
+    auto getPositionRect() const -> layout::Rect;
+    auto getToken() const -> const annotation::Token&;
 
 protected:
     auto calculateSize() const -> WidgetSize override;
@@ -23,8 +28,13 @@ protected:
 private:
     using FontType = context::FontType;
 
+    void renderShadow();
+    void renderText(float x, float y) const;
+    auto testHovered() const -> bool;
+
     annotation::Token token;
 
+    WidgetId shadowId{};
     context::FontType fontType{FontType::Gui};
     static constexpr ColorId maxColorId{};
 };

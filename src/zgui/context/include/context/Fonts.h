@@ -37,7 +37,7 @@ class Fonts
                                          bToColor(0xbf, 0xef, 0x45),
                                          bToColor(0x46, 0x99, 0x90)};
     ImVec4 defaultFontColor = {1.F, 1.F, 1.F, 1.F};
-    ImVec4 shadowFontColor = {0.1F, 0.1F, 0.1F, 0.1F};
+    ImVec4 shadowFontColor = {0.1F, 0.1F, 0.1F, 1.0F};
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

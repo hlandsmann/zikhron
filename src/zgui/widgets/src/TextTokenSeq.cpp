@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace ranges = std::ranges;
@@ -165,17 +166,21 @@ auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
     return scratchBox->getWidgetSize();
 }
 
-void TextTokenSeq::draw()
+auto TextTokenSeq::draw() -> std::optional<std::shared_ptr<TextToken>>
 {
+    std::optional<std::shared_ptr<TextToken>> result;
     lineBox->start();
     while (!lineBox->isLast()) {
         auto& line = lineBox->next<Box>();
         line.start();
         while (!line.isLast()) {
             auto& textToken = line.next<TextToken>();
-            textToken.clicked();
+            if (textToken.clicked()) {
+                result.emplace(std::dynamic_pointer_cast<TextToken>(textToken.shared_from_this()));
+            }
         }
     }
+    return result;
 }
 
 } // namespace widget

@@ -10,8 +10,12 @@ namespace widget {
 
 class Button : public Widget
 {
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(std::string label);
+
+public:
     Button(WidgetInit init);
     ~Button() override = default;
 

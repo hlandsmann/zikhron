@@ -36,7 +36,7 @@ class Theme
     static constexpr ImVec4 s_colorImageInsensitive         = {0.6F, 0.6F, 0.6F, 1.0F};
     static constexpr ImVec4 s_colorImageInsensitiveHovered  = {0.6F, 0.6F, 0.6F, 1.0F};
 
-    static constexpr ImVec4 s_colorWindowBackground = {0.15F, 0.15F, 0.15F, 1.0F};
+    static constexpr ImVec4 s_colorWindowBackground = {0.18F, 0.18F, 0.18F, 1.0F};
     // clang-format on
 
 public:

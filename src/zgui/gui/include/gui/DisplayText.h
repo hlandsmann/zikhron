@@ -3,10 +3,12 @@
 #include <context/Fonts.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
+#include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/detail/Widget.h>
 
 #include <memory>
+#include <optional>
 
 namespace gui {
 
@@ -17,11 +19,11 @@ class DisplayText
 public:
     DisplayText(std::shared_ptr<widget::Layer> layer, std::unique_ptr<annotation::TokenText> tokenText);
 
-    void draw();
+    auto draw() -> std::optional<std::shared_ptr<widget::TextToken>>;
 
 private:
-    void drawDialogue();
-    void drawText();
+    auto drawDialogue() -> std::optional<std::shared_ptr<widget::TextToken>>;
+    auto drawText() -> std::optional<std::shared_ptr<widget::TextToken>>;
     void setupDialogue();
     void setupText();
 

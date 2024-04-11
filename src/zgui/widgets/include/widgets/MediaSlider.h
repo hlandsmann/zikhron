@@ -9,8 +9,12 @@ class MediaSlider : public Widget
 {
     using Align = layout::Align;
     using ExpandType = layout::ExpandType;
-public:
+
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup();
+public:
     MediaSlider(const WidgetInit& init);
 
     auto slide(float value) -> std::optional<float>;

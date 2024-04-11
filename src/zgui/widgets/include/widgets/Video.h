@@ -13,8 +13,12 @@
 namespace widget {
 class Video : public Widget
 {
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(std::shared_ptr<multimedia::MpvWrapper> mpv);
+
+public:
     Video(const WidgetInit& init);
     ~Video() override = default;
 

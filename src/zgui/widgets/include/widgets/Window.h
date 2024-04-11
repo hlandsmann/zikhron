@@ -21,10 +21,14 @@ class Window : public Widget
     using Align = layout::Align;
     using ExpandType = layout::ExpandType;
 
-public:
+    template<class T>
+    friend class MetaBox;
+    friend class Widget;
     void setup(ExpandType expandTypeWidth,
                ExpandType expandTypeHeight,
                std::string name);
+
+public:
     Window(const WidgetInit& init);
     ~Window() override = default;
 
@@ -35,6 +39,9 @@ public:
 
     auto arrange(const layout::Rect& rect) -> bool override;
 
+    [[nodiscard]] auto dropWindow() -> WindowDrop;
+
+    // export Layer functions >>>>>>>>>>>
     template<class WidgetType, class... Args>
     auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
     {
@@ -50,8 +57,6 @@ public:
     }
 
     void start() { layer->start(); }
-
-    [[nodiscard]] auto dropWindow() -> WindowDrop;
 
 protected:
     auto calculateSize() const -> WidgetSize override;
