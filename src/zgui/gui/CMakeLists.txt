@@ -10,12 +10,14 @@ target_sources(zgui_gui
         include/gui/MainWindow.h
         include/gui/TabCard.h
         include/gui/TabVideo.h
+        include/gui/VocableOverlay.h
         src/DisplayText.cpp
         src/DisplayVocables.cpp
         src/GlWindow.cpp
         src/MainWindow.cpp
         src/TabCard.cpp
         src/TabVideo.cpp
+        src/VocableOverlay.cpp
 )
 
 target_include_directories(zgui_gui
