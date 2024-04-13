@@ -1,7 +1,7 @@
-#include <CardDB.h>
-#include <Ease.h>
+#include <annotation/CardDB.h>
+#include <annotation/Ease.h>
 #include <Word.h>
-#include <ZH_Tokenizer.h>
+#include <annotation/ZH_Tokenizer.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>

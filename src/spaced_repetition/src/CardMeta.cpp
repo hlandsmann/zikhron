@@ -4,7 +4,7 @@
 #include <annotation/Card.h>
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
-#include <annotation/Markup.h>
+#include <markup/Markup.h>
 #include <annotation/TokenText.h>
 #include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>

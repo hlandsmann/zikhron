@@ -1,10 +1,10 @@
 #include "Markup.h"
-#include <Card.h>
+#include <annotation/Card.h>
 
-#include <CardDB.h>
-#include <Ease.h>
+#include <annotation/CardDB.h>
+#include <annotation/Ease.h>
 #include <Word.h>
-#include <ZH_Tokenizer.h>
+#include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>

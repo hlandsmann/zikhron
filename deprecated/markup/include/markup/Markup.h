@@ -1,7 +1,7 @@
 #pragma once
-#include "Card.h"
+#include "annotation/Card.h"
 #include "annotation/Ease.h"
-#include "annotation/Word.h"
+#include "Word.h"
 #include "annotation/ZH_Tokenizer.h"
 
 #include <dictionary/ZH_Dictionary.h>

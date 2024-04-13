@@ -39,6 +39,7 @@ target_link_libraries(zikhron_spaced_repetition
         zikhron::annotation
         zikhron::dictionary
         zikhron::kocoro
+        zikhron::markup
         zikhron::miscellaneous
         zikhron::utils
     PRIVATE

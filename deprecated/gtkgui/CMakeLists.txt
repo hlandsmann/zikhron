@@ -59,6 +59,7 @@ target_link_libraries(zikhron_gtkgui
         spdlog::spdlog
         zikhron::annotation
         zikhron::dictionary
+        zikhron::markup
         zikhron::multimedia
         zikhron::spaced_repetition
         zikhron::warnings
