@@ -20,7 +20,7 @@ include(FindPkgConfig)
 
 include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
 gen_cfg_json()
-add_subdirectory(gtkgui)
+add_subdirectory(deprecated)
 add_subdirectory(resources)
 add_subdirectory(src)
 add_subdirectory(third_party)

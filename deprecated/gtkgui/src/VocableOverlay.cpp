@@ -1,13 +1,25 @@
+#include <TextDraw.h>
 #include <VocableOverlay.h>
+#include <dictionary/ZH_Dictionary.h>
+#include <gtkmm/enums.h>
+#include <gtkmm/gestureclick.h>
 #include <spdlog/spdlog.h>
+
 #include <algorithm>
 #include <boost/range/combine.hpp>
+#include <iterator>
+#include <memory>
 #include <ranges>
+#include <span>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace ranges = std::ranges;
 
 VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
-    : entries(std::move(init.entries)), choice_entry(init.choice_entry) {
+    : entries(std::move(init.entries)), choice_entry(init.choice_entry)
+{
     box.get_style_context()->add_class("overlay");
     box.set_orientation(Gtk::Orientation::VERTICAL);
     box.set_vexpand();
@@ -23,27 +35,28 @@ VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
         auto width = box.get_size(Gtk::Orientation::HORIZONTAL);
         auto height = box.get_size(Gtk::Orientation::VERTICAL);
 
-        if (x < x_pos || x > x_pos + width || y < y_pos || y > y_pos + height)
+        if (x < x_pos || x > x_pos + width || y < y_pos || y > y_pos + height) {
             if (func_vocableChoice) {
                 func_vocableChoice({});
             }
+        }
     });
     add_controller(clickController);
 
     if (entries.size() > 1) {
         expandEntriesBtn.set_label(">");
         expandEntriesBtn.signal_clicked().connect(
-            [this, x = init.x, y = init.y, x_max = init.x_max, y_max = init.y_max]() {
-                if (expandEntriesBtn.property_active()) {
-                    expandEntriesBtn.set_label("v");
-                    entryChoiceGrid.set_visible(true);
-                    show(x, y, x_max, y_max);
-                } else {
-                    expandEntriesBtn.set_label(">");
-                    entryChoiceGrid.set_visible(false);
-                    show(x, y, x_max, y_max);
-                }
-            });
+                [this, x = init.x, y = init.y, x_max = init.x_max, y_max = init.y_max]() {
+                    if (expandEntriesBtn.property_active()) {
+                        expandEntriesBtn.set_label("v");
+                        entryChoiceGrid.set_visible(true);
+                        show(x, y, x_max, y_max);
+                    } else {
+                        expandEntriesBtn.set_label(">");
+                        entryChoiceGrid.set_visible(false);
+                        show(x, y, x_max, y_max);
+                    }
+                });
         expandEntriesBtn.set_valign(Gtk::Align::END);
         expandEntriesBtn.set_halign(Gtk::Align::START);
         currentGrid.attach(expandEntriesBtn, 0, 1);
@@ -52,15 +65,15 @@ VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
     if (entries[choice_entry].meanings.size() > 1) {
         expandMeaningsBtn.set_label("...");
         expandMeaningsBtn.signal_clicked().connect(
-            [this, x = init.x, y = init.y, x_max = init.x_max, y_max = init.y_max]() {
-                if (expandMeaningsBtn.property_active()) {
-                    meaningChoiceBox.set_visible(true);
-                    show(x, y, x_max, y_max);
-                } else {
-                    meaningChoiceBox.set_visible(false);
-                    show(x, y, x_max, y_max);
-                }
-            });
+                [this, x = init.x, y = init.y, x_max = init.x_max, y_max = init.y_max]() {
+                    if (expandMeaningsBtn.property_active()) {
+                        meaningChoiceBox.set_visible(true);
+                        show(x, y, x_max, y_max);
+                    } else {
+                        meaningChoiceBox.set_visible(false);
+                        show(x, y, x_max, y_max);
+                    }
+                });
         expandMeaningsBtn.set_valign(Gtk::Align::END);
         expandMeaningsBtn.set_halign(Gtk::Align::START);
         currentGrid.attach(expandMeaningsBtn, 3, 1);
@@ -83,7 +96,8 @@ VocableOverlay::VocableOverlay(const VocableOverlayInit& init)
     show(init.x, init.y, init.x_max, init.y_max);
 }
 
-void VocableOverlay::setupTextDraw() {
+void VocableOverlay::setupTextDraw()
+{
     std::vector<std::string> meaning_multipleEntries;
     std::vector<std::string> pronounciations_vertical;
     ranges::transform(entries,
@@ -101,14 +115,13 @@ void VocableOverlay::setupTextDraw() {
     textDrawContainer.clear();
     ranges::transform(list | std::views::join,
                       std::back_inserter(textDrawContainer),
-                      [this, index = 0](const std::string& str) mutable {
+                      [](const std::string& str) mutable {
                           auto textDraw = std::make_unique<TextDraw>();
                           textDraw->setSpacing(fontSpacing);
                           textDraw->setFontSize(fontSize);
                           textDraw->setText(str);
                           textDraw->set_hexpand();
                           textDraw->set_hard_size_request();
-                          index++;
                           return textDraw;
                       });
     auto textDrawIt = textDrawContainer.begin();
@@ -140,7 +153,8 @@ void VocableOverlay::setupTextDraw() {
     box.append(meaningChoiceBox);
 }
 
-void VocableOverlay::show(int x, int y, int x_max, int y_max) {
+void VocableOverlay::show(int x, int y, int x_max, int y_max)
+{
     if (box.is_ancestor(*this)) {
         remove(box);
     }
@@ -148,7 +162,10 @@ void VocableOverlay::show(int x, int y, int x_max, int y_max) {
     if (textDrawContainer.empty())
         return;
 
-    int minWidth, naturalWidth, minBaseline, naturalBaseline;
+    int minWidth{};
+    int naturalWidth{};
+    int minBaseline{};
+    int naturalBaseline{};
     box.measure(Gtk::Orientation::HORIZONTAL, -1, minWidth, naturalWidth, minBaseline, naturalBaseline);
 
     if (naturalWidth > maxWidth) {
@@ -158,7 +175,8 @@ void VocableOverlay::show(int x, int y, int x_max, int y_max) {
         box.set_size_request(naturalWidth, -1);
     x = std::max(0, std::min(x, x_max - naturalWidth));
 
-    int minHeight, naturalHeight;
+    int minHeight{};
+    int naturalHeight{};
     box.measure(Gtk::Orientation::VERTICAL, -1, minHeight, naturalHeight, minBaseline, naturalBaseline);
 
     y = std::max(0, std::min(y, y_max - naturalHeight));
@@ -168,7 +186,8 @@ void VocableOverlay::show(int x, int y, int x_max, int y_max) {
     y_pos = y;
 }
 
-void VocableOverlay::setupTextdrawCallbacks() {
+void VocableOverlay::setupTextdrawCallbacks()
+{
     int index = 0;
     for (const auto& [textDrawMeaning, textDrawPronounciation] :
          boost::combine(textDrawPronounciations, textDrawMeaning_multipleEntries)) {
@@ -185,22 +204,25 @@ void VocableOverlay::setupTextdrawCallbacks() {
     }
 }
 
-void VocableOverlay::callback_click(int textDrawIndex) {
+void VocableOverlay::callback_click(int textDrawIndex)
+{
     if (func_vocableChoice) {
         func_vocableChoice(textDrawIndex);
     }
 }
 
-void VocableOverlay::callback_motion(int textDrawIndex) {
+void VocableOverlay::callback_motion(int textDrawIndex)
+{
     std::apply(
-        [this, textDrawIndex](auto... color) {
-            textDrawPronounciations[textDrawIndex]->setFontColor(color...);
-            textDrawMeaning_multipleEntries[textDrawIndex]->setFontColor(color...);
-        },
-        markedColorRGB);
+            [this, textDrawIndex](auto... color) {
+                textDrawPronounciations[textDrawIndex]->setFontColor(color...);
+                textDrawMeaning_multipleEntries[textDrawIndex]->setFontColor(color...);
+            },
+            markedColorRGB);
 }
 
-void VocableOverlay::callback_leave(int textDrawIndex) {
+void VocableOverlay::callback_leave(int textDrawIndex)
+{
     textDrawPronounciations[textDrawIndex]->setFontColorDefault();
     textDrawMeaning_multipleEntries[textDrawIndex]->setFontColorDefault();
 }
