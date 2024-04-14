@@ -1,5 +1,6 @@
 #include <Card.h>
 #include <CardDB.h>
+#include <JieBa.h>
 #include <ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
@@ -24,12 +25,14 @@
 #include <vector>
 
 #include <sys/types.h>
+
 namespace {
 auto cardFromJsonFile(
         const std::string& filename,
         CardId cardId,
         const std::shared_ptr<const ZH_Dictionary>& dictionary,
-        const std::shared_ptr<const Card::AnnotationChoiceMap>& annotationChoices
+        const std::shared_ptr<const Card::AnnotationChoiceMap>& annotationChoices,
+        const std::shared_ptr<annotation::JieBa>& jieba
 
         ) -> std::unique_ptr<Card>
 {
@@ -47,7 +50,7 @@ auto cardFromJsonFile(
         if (not dlg.is_array()) {
             throw std::runtime_error("Expected an array");
         }
-        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, dictionary, annotationChoices);
+        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, dictionary, annotationChoices, jieba);
         for (const auto& speakerTextPair : dlg) {
             if (speakerTextPair.empty()) {
                 continue;
@@ -61,7 +64,7 @@ auto cardFromJsonFile(
     }
     if (jsonCard["type"] == "text") {
         const auto& text = jsonCard["content"];
-        auto textCard = std::make_unique<TextCard>(filename, cardId, dictionary, annotationChoices);
+        auto textCard = std::make_unique<TextCard>(filename, cardId, dictionary, annotationChoices, jieba);
         textCard->text = icu::UnicodeString::fromUTF8(std::string(text));
 
         return textCard;
@@ -70,17 +73,19 @@ auto cardFromJsonFile(
 }
 } // namespace
 
-
 CardDB::CardDB(const std::filesystem::path& directoryPath,
                std::shared_ptr<const ZH_Dictionary> _dictionary,
                std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
     : dictionary{std::move(_dictionary)}
     , annotationChoices{std::move(_annotationChoices)}
-    , cards{loadFromDirectory(directoryPath, dictionary, annotationChoices)} {}
+    , jieba{std::make_shared<annotation::JieBa>()}
+    , cards{loadFromDirectory(directoryPath, dictionary, annotationChoices, jieba)}
+{}
 
 auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
                                const std::shared_ptr<const ZH_Dictionary>& dictionary,
-                               const std::shared_ptr<const AnnotationChoiceMap>& annotationChoices)
+                               const std::shared_ptr<const AnnotationChoiceMap>& annotationChoices,
+                               const std::shared_ptr<annotation::JieBa>& jieba)
         -> std::map<CardId, CardPtr>
 {
     std::map<CardId, CardPtr> cards;
@@ -101,7 +106,7 @@ auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
                              cardId);
                 continue;
             }
-            cards[cardId] = cardFromJsonFile(entry, cardId, dictionary, annotationChoices);
+            cards[cardId] = cardFromJsonFile(entry, cardId, dictionary, annotationChoices, jieba);
         } catch (std::exception& e) {
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }

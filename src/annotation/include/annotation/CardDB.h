@@ -1,5 +1,7 @@
 #pragma once
 #include "Card.h"
+#include "JieBa.h"
+
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <unicode/unistr.h>
@@ -29,7 +31,8 @@ public:
            std::shared_ptr<const AnnotationChoiceMap> annotationChoices);
     static auto loadFromDirectory(const std::filesystem::path& directoryPath,
                                   const std::shared_ptr<const ZH_Dictionary>& dictionary,
-                                  const std::shared_ptr<const AnnotationChoiceMap>& annotationChoices)
+                                  const std::shared_ptr<const AnnotationChoiceMap>& annotationChoices,
+                                  const std::shared_ptr<annotation::JieBa>& jieba)
             -> std::map<CardId, CardPtr>;
 
     [[nodiscard]] auto get() const -> const std::map<CardId, CardPtr>&;
@@ -39,5 +42,6 @@ public:
 private:
     std::shared_ptr<const ZH_Dictionary> dictionary;
     std::shared_ptr<const AnnotationChoiceMap> annotationChoices;
+    std::shared_ptr<annotation::JieBa> jieba;
     std::map<CardId, CardPtr> cards;
 };

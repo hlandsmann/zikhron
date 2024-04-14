@@ -12,12 +12,14 @@ target_sources(zikhron_annotation
         include/annotation/Card.h
         include/annotation/CardDB.h
         include/annotation/Ease.h
+        include/annotation/JieBa.h
         include/annotation/Token.h
         include/annotation/TokenText.h
         include/annotation/ZH_Tokenizer.h
         src/Card.cpp
         src/CardDB.cpp
         src/Ease.cpp
+        src/JieBa.cpp
         src/Token.cpp
         src/TokenText.cpp
         src/ZH_Tokenizer.cpp
@@ -29,6 +31,7 @@ target_link_libraries(zikhron_annotation
     PRIVATE
         Microsoft.GSL::GSL
         ctre::ctre
+        cppjieba::cppjieba
         nlohmann_json::nlohmann_json
         spdlog::spdlog
         zikhron::utils

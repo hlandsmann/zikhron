@@ -1,5 +1,5 @@
 #pragma once
-
+#include <annotation/JieBa.h>
 #include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
@@ -24,7 +24,8 @@ public:
     Card(std::string filename,
          CardId id,
          std::shared_ptr<const ZH_Dictionary> dictionary,
-         std::shared_ptr<const AnnotationChoiceMap> annotationChoices);
+         std::shared_ptr<const AnnotationChoiceMap> annotationChoices,
+         std::shared_ptr<annotation::JieBa> jieba);
     Card(const Card&) = default;
     Card(Card&&) = default;
     virtual ~Card() = default;
@@ -44,6 +45,7 @@ private:
     mutable std::optional<ZH_Tokenizer> tokenizer;
     std::shared_ptr<const ZH_Dictionary> dictionary;
     std::shared_ptr<const AnnotationChoiceMap> annotationChoices;
+    std::shared_ptr<annotation::JieBa> jieba;
 };
 
 class DialogueCard : public Card
@@ -52,7 +54,8 @@ public:
     DialogueCard(const std::string& filename,
                  CardId id,
                  std::shared_ptr<const ZH_Dictionary> dictionary,
-                 std::shared_ptr<const AnnotationChoiceMap> annotationChoices);
+                 std::shared_ptr<const AnnotationChoiceMap> annotationChoices,
+                 std::shared_ptr<annotation::JieBa> jieba);
     DialogueCard(const DialogueCard&) = default;
     DialogueCard(DialogueCard&&) = default;
     ~DialogueCard() override = default;
@@ -64,6 +67,7 @@ public:
         icu::UnicodeString speaker;
         icu::UnicodeString text;
     };
+
     std::vector<DialogueItem> dialogue;
 
     [[nodiscard]] auto getTextVector() const -> std::vector<icu::UnicodeString> override;
@@ -76,7 +80,8 @@ public:
     TextCard(const std::string& filename,
              CardId id,
              std::shared_ptr<const ZH_Dictionary> dictionary,
-             std::shared_ptr<const AnnotationChoiceMap> annotationChoices);
+             std::shared_ptr<const AnnotationChoiceMap> annotationChoices,
+             std::shared_ptr<annotation::JieBa> jieba);
     TextCard(const TextCard&) = default;
     TextCard(TextCard&&) = default;
     ~TextCard() override = default;

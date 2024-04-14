@@ -1,4 +1,5 @@
 #include <Card.h>
+#include <JieBa.h>
 #include <ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
@@ -21,11 +22,13 @@
 Card::Card(std::string _filename,
            CardId _id,
            std::shared_ptr<const ZH_Dictionary> _dictionary,
-           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
+           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices,
+           std::shared_ptr<annotation::JieBa> _jieba)
     : filename{std::move(_filename)}
     , id{_id}
     , dictionary{std::move(_dictionary)}
-    , annotationChoices{std::move(_annotationChoices)} {};
+    , annotationChoices{std::move(_annotationChoices)}
+    , jieba{std::move(_jieba)} {};
 
 auto Card::getTokenizer() const -> ZH_Tokenizer&
 {
@@ -48,8 +51,9 @@ auto Card::Id() const -> CardId
 DialogueCard::DialogueCard(const std::string& _filename,
                            CardId _id,
                            std::shared_ptr<const ZH_Dictionary> _dictionary,
-                           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
-    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices)){};
+                           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices,
+                           std::shared_ptr<annotation::JieBa> _jieba)
+    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices), std::move(_jieba)){};
 
 auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString>
 {
@@ -77,8 +81,9 @@ auto DialogueCard::getText() const -> utl::StringU8
 TextCard::TextCard(const std::string& _filename,
                    CardId _id,
                    std::shared_ptr<const ZH_Dictionary> _dictionary,
-                   std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
-    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices)){};
+                   std::shared_ptr<const AnnotationChoiceMap> _annotationChoices,
+                   std::shared_ptr<annotation::JieBa> _jieba)
+    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices), std::move(_jieba)){};
 
 auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>
 {

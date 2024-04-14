@@ -1,3 +1,4 @@
+#include <annotation/JieBa.h>
 #include <misc/Config.h>
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
@@ -19,6 +20,7 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 
 auto main() -> int
 {
+    auto jieba = std::make_shared<annotation::JieBa>();
     auto zikhron_cfg = get_zikhron_cfg();
     auto db = std::make_unique<sr::DataBase>(zikhron_cfg);
     auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
