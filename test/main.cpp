@@ -1,4 +1,5 @@
 #include <annotation/JieBa.h>
+#include <annotation/WordDB.h>
 #include <misc/Config.h>
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
@@ -22,15 +23,16 @@ auto main() -> int
 {
     auto jieba = std::make_shared<annotation::JieBa>();
     auto zikhron_cfg = get_zikhron_cfg();
-    auto db = std::make_unique<sr::DataBase>(zikhron_cfg);
-    auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
-    auto& cardMeta = treeWalker->getNextCardChoice();
-    if (cardMeta.Id() == 0) {
-        spdlog::info("No card found!");
-        return 0;
-    }
-    auto cardId = cardMeta.Id();
-    spdlog::info("show cardId: {}, size: {}", cardId, cardMeta.getRelevantEase().size());
+    auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
+    // auto db = std::make_unique<sr::DataBase>(zikhron_cfg);
+    // auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
+    // auto& cardMeta = treeWalker->getNextCardChoice();
+    // if (cardMeta.Id() == 0) {
+    //     spdlog::info("No card found!");
+    //     return 0;
+    // }
+    // auto cardId = cardMeta.Id();
+    // spdlog::info("show cardId: {}, size: {}", cardId, cardMeta.getRelevantEase().size());
 
     return 0;
 }

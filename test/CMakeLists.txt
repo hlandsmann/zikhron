@@ -24,6 +24,7 @@ target_sources(kocoro_signal
 target_link_libraries(kocoro_signal
     PRIVATE
         zikhron::kocoro
+        zikhron::warnings
         spdlog::spdlog
 )
 set_property(TARGET kocoro_signal PROPERTY CXX_STANDARD 23)

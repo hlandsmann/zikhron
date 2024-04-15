@@ -257,6 +257,18 @@ auto ZH_Dictionary::CharacterSetTypeFromKeySpan(const std::span<const Key>& keys
     throw std::invalid_argument("Invalid choice other than traditional / simplified!");
 }
 
+auto ZH_Dictionary::KeySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>
+{
+    switch (characterSet) {
+    case CharacterSetType::Simplified:
+        return Simplified();
+    case CharacterSetType::Traditional:
+        return Traditional();
+    default:
+        std::unreachable();
+    }
+}
+
 auto ZH_Dictionary::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry
 {
     const auto characterSet = CharacterSetTypeFromKeySpan(keys);
@@ -279,6 +291,26 @@ auto ZH_Dictionary::EntryFromPosition(size_t pos, CharacterSetType characterSet)
     default:
         std::unreachable();
     }
+}
+
+auto ZH_Dictionary::EntryVectorFromKey(const std::string& key) const -> std::vector<Entry>
+{
+    std::vector<Entry> entries;
+    // ToDo: it should be possible to support both, simplified and traditional at the same time.
+    //   no need to only extract the entryVector from simplified/traditional only. No it supports simplified only
+    const auto span_lower = ZH_Dictionary::Lower_bound(key, Simplified());
+    const auto span_now = ZH_Dictionary::Upper_bound(key, span_lower);
+    for (const auto& k : span_now) {
+        if (key != k.key) {
+            continue;
+        }
+        entries.push_back({.key = key,
+                           .pronounciation = pronounciation.at(k.pos),
+                           .meanings = meanings.at(k.pos),
+                           .id = static_cast<VocableId>(k.pos)});
+    }
+
+    return entries;
 }
 
 auto ZH_Dictionary::Entry::operator<=>(const Entry& other) const -> std::weak_ordering

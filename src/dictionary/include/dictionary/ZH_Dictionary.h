@@ -22,6 +22,7 @@ public:
         std::string key;
         unsigned pos;
     };
+
     ZH_Dictionary(const std::filesystem::path&);
     static auto Lower_bound(const std::string& key, const std::span<const Key>& characterSet)
             -> std::span<const Key>;
@@ -33,6 +34,7 @@ public:
             -> std::span<const Key>;
 
     [[nodiscard]] auto Simplified() const -> std::span<const Key> { return simplified; }
+
     [[nodiscard]] auto Traditional() const -> std::span<const Key> { return traditional; }
 
     struct Entry
@@ -44,8 +46,11 @@ public:
         auto operator<=>(const Entry&) const -> std::weak_ordering;
         auto operator==(const Entry&) const -> bool = default;
     };
+
     [[nodiscard]] auto CharacterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType;
-    [[nodiscard]] auto EntryFromPosition(size_t pos, CharacterSetType characterSet) const -> Entry;
+    [[nodiscard]] auto KeySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>;
+    [[nodiscard]] auto EntryFromPosition(size_t pos, CharacterSetType characterSet=CharacterSetType::Simplified) const -> Entry;
+    [[nodiscard]] auto EntryVectorFromKey(const std::string& key) const -> std::vector<Entry>;
 
 private:
     [[nodiscard]] auto EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry;

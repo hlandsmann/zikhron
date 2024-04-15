@@ -15,6 +15,8 @@ target_sources(zikhron_annotation
         include/annotation/JieBa.h
         include/annotation/Token.h
         include/annotation/TokenText.h
+        include/annotation/Word.h
+        include/annotation/WordDB.h
         include/annotation/ZH_Tokenizer.h
         src/Card.cpp
         src/CardDB.cpp
@@ -22,6 +24,8 @@ target_sources(zikhron_annotation
         src/JieBa.cpp
         src/Token.cpp
         src/TokenText.cpp
+        src/Word.cpp
+        src/WordDB.cpp
         src/ZH_Tokenizer.cpp
 )
 target_link_libraries(zikhron_annotation
@@ -34,6 +38,7 @@ target_link_libraries(zikhron_annotation
         cppjieba::cppjieba
         nlohmann_json::nlohmann_json
         spdlog::spdlog
+        zikhron::spaced_repetition
         zikhron::utils
         zikhron::warnings
 )
