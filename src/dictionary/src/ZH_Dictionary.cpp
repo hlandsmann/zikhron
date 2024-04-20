@@ -1,5 +1,6 @@
 #include <ZH_Dictionary.h>
 #include <misc/Identifier.h>
+#include <utils/string_split.h>
 
 #include <algorithm>
 #include <array>
@@ -8,7 +9,6 @@
 #include <fstream>
 #include <functional>
 #include <iterator>
-#include <ranges>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -20,26 +20,6 @@
 namespace ranges = std::ranges;
 
 namespace {
-auto splitOnce(const std::string_view& str, const char delim)
-        -> std::pair<std::string_view, std::string_view>
-{
-    std::size_t found = str.find(delim);
-    if (found == std::string_view::npos) {
-        return {str, std::string_view()};
-    }
-    return {str.substr(0, found), str.substr(found + 1)};
-}
-
-auto extractSubstr(const std::string_view& str, const char delimBegin, const char delimEnd)
-        -> std::pair<std::string_view, std::string_view>
-{
-    std::size_t foundBegin = str.find(delimBegin);
-    std::size_t foundEnd = str.find(delimEnd);
-    if (foundBegin == std::string_view::npos || foundEnd == std::string_view::npos || foundBegin > foundEnd) {
-        return {std::string_view(), std::string_view()};
-    }
-    return {str.substr(foundBegin + 1, foundEnd - 1 - foundBegin), str.substr(foundEnd + 1)};
-}
 
 auto transformPronounciation(const std::string_view& pronounciation) -> std::string
 {
@@ -72,7 +52,7 @@ auto transformPronounciation(const std::string_view& pronounciation) -> std::str
     finalResult.reserve(pronounciation.size());
     size_t startIndex = 0;
 
-    auto [syllable, rest] = splitOnce(pronounciation, ' ');
+    auto [syllable, rest] = utl::splitOnce(pronounciation, ' ');
     while (not syllable.empty()) {
         finalResult += syllable.substr(0, syllable.length() - 1);
 
@@ -94,7 +74,7 @@ auto transformPronounciation(const std::string_view& pronounciation) -> std::str
             finalResult.push_back(syllable.back());
         }
 
-        std::tie(syllable, rest) = splitOnce(rest, ' ');
+        std::tie(syllable, rest) = utl::splitOnce(rest, ' ');
         if (not syllable.empty()) {
             finalResult.push_back(' ');
         }
@@ -120,7 +100,7 @@ auto transformMeaning(const std::string_view& meaning_raw) -> std::string
         std::string_view intermediate = rest.substr(0, delimPos);
         finalResult += intermediate;
 
-        std::tie(pron_raw, rest) = extractSubstr(rest, '[', ']');
+        std::tie(pron_raw, rest) = utl::extractSubstr(rest, '[', ']');
         if (pron_raw.empty()) {
             break;
         }
@@ -148,24 +128,24 @@ auto parseLine(const std::string_view& line) -> DictionaryItem_raw
     std::string_view pron_raw;
     std::string_view rest;
 
-    std::tie(traditional, rest) = splitOnce(line, ' ');
-    std::tie(simplified, rest) = splitOnce(rest, ' ');
-    std::tie(pron_raw, rest) = extractSubstr(rest, '[', ']');
+    std::tie(traditional, rest) = utl::splitOnce(line, ' ');
+    std::tie(simplified, rest) = utl::splitOnce(rest, ' ');
+    std::tie(pron_raw, rest) = utl::extractSubstr(rest, '[', ']');
 
     DictionaryItem_raw dicItem = {.traditional = traditional,
                                   .simplified = simplified,
                                   .pronounciation = transformPronounciation(pron_raw)};
 
-    std::tie(std::ignore, rest) = splitOnce(rest, '/');
+    std::tie(std::ignore, rest) = utl::splitOnce(rest, '/');
     std::string_view meaning;
 
-    std::tie(meaning, rest) = splitOnce(rest, '/');
+    std::tie(meaning, rest) = utl::splitOnce(rest, '/');
     while (not meaning.empty()) {
         const auto transformed = transformMeaning(meaning);
         if (transformed.size() > 1) {
             dicItem.meanings.push_back(transformed);
         }
-        std::tie(meaning, rest) = splitOnce(rest, '/');
+        std::tie(meaning, rest) = utl::splitOnce(rest, '/');
     }
 
     return dicItem;

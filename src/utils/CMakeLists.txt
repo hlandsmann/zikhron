@@ -9,14 +9,17 @@ target_include_directories(zikhron_utils
 target_sources(zikhron_utils
     PRIVATE
         include/utils/Memoizer.h
+        include/utils/spdlog.h
         include/utils/Property.h
         include/utils/StringU8.h
         include/utils/counting_iterator.h
         include/utils/index_map.h
         include/utils/min_element_val.h
+        include/utils/string_split.h
         include/utils/variant_cast.h
         src/Property.cpp
         src/StringU8.cpp
+        src/string_split.cpp
 )
 pkg_search_module(ICU_UC REQUIRED icu-uc)
 pkg_search_module(ICU_IO REQUIRED icu-io)

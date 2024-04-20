@@ -1,4 +1,5 @@
 #pragma once
+#include <string_view>
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
 
@@ -20,20 +21,25 @@ public:
         std::vector<CardId> triggeredBy;
         std::time_t lastSeen{std::time(nullptr)};
     };
+
     static constexpr Init new_vocable = {
             .easeFactor = 0.F,
             .intervalDay = 0.F,
             .triggeredBy = {},
-            .lastSeen = {}
-    };
+            .lastSeen = {}};
+
     VocableProgress(Init init)
         : easeFactor{init.easeFactor}
         , intervalDay{init.intervalDay}
         , triggerCards{std::move(init.triggeredBy)}
         , lastSeen{init.lastSeen}
     {}
+
     VocableProgress()
         : VocableProgress(Init{}) {}
+
+    VocableProgress(std::string_view sv);
+    [[nodiscard]] auto serialize() const -> std::string;
 
     struct RepeatRange
     {
@@ -43,6 +49,7 @@ public:
         [[nodiscard]] auto implies(const RepeatRange&) const -> bool;
         auto operator<=>(const RepeatRange&) const -> std::weak_ordering;
     };
+
     static constexpr int pause_time_minutes = 5;
     using pair_t = std::pair<VocableId, VocableProgress>;
     static constexpr std::string s_id = "id";
@@ -59,8 +66,11 @@ public:
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
     [[nodiscard]] auto isAgainVocable() const -> bool;
     [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
+
     [[nodiscard]] auto IntervalDay() const -> float { return intervalDay; }
+
     [[nodiscard]] auto EaseFactor() const -> float { return easeFactor; }
+
     [[nodiscard]] auto dueDays() const -> int;
 
     static auto toJson(const pair_t&) -> nlohmann::json;

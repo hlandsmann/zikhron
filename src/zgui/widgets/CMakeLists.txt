@@ -42,7 +42,6 @@ target_include_directories(zgui_widgets
 
 target_link_libraries(zgui_widgets
     PUBLIC
-        fmt::fmt
         imgui::imgui
         magic_enum::magic_enum
         zgui::context

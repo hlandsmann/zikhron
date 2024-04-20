@@ -1,6 +1,5 @@
 #pragma once
 #include <fmt/format.h> // IWYU pragma: export core.h
-#include <fmt/core.h>
 
 #include <compare>
 #include <cstddef>
@@ -9,6 +8,7 @@
 #include <string>
 #include <utility>
 #include <vector>
+
 namespace icu {
 class UnicodeString;
 }
@@ -33,11 +33,17 @@ public:
     ~CharU8() = default;
     auto operator=(const CharU8& other) -> CharU8& = default;
     auto operator=(CharU8&& other) noexcept -> CharU8& = default;
+
     operator std::string() const { return str; }
+
     [[nodiscard]] auto string() const -> std::string { return str; }
+
     [[nodiscard]] auto vLength() const -> size_t { return virtualLength; }
+
     [[nodiscard]] auto isMarkup() const -> bool { return markup; }
+
     auto operator<=>(const CharU8& other) const -> std::weak_ordering { return str <=> other.str; };
+
     auto operator==(const CharU8& other) const -> bool = default;
 
 private:
@@ -71,8 +77,11 @@ public:
     [[nodiscard]] auto substr(long pos, long n) const -> std::string;
     [[nodiscard]] auto back() const -> CharU8;
     [[nodiscard]] auto front() const -> CharU8;
+
     [[nodiscard]] auto cbegin() const { return chars.cbegin(); }
+
     [[nodiscard]] auto cend() const { return chars.cend(); }
+
     void push_back(const CharU8&);
     void append(const std::string&);
     void append(const icu::UnicodeString&);
@@ -91,6 +100,7 @@ struct fmt::formatter<utl::CharU8>
     {
         return ctx.begin();
     }
+
     template<typename FormatContext>
     auto format(const utl::CharU8& charU8, FormatContext& ctx)
     {
@@ -106,6 +116,7 @@ struct fmt::formatter<utl::StringU8>
     {
         return ctx.begin();
     }
+
     template<typename FormatContext>
     auto format(const utl::StringU8& stringU8, FormatContext& ctx)
     {

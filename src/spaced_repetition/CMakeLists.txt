@@ -43,7 +43,6 @@ target_link_libraries(zikhron_spaced_repetition
         zikhron::miscellaneous
         zikhron::utils
     PRIVATE
-        fmt::fmt
         spdlog::spdlog
         zikhron::warnings
 )

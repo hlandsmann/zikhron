@@ -6,7 +6,7 @@
 #include <NotebookPage.h>
 #include <SupplyAudio.h>
 #include <VideoSpace.h>
-#include <spdlog/spdlog.h>
+#include <utils/spdlog.h>
 
 #include <clocale>
 #include <memory>

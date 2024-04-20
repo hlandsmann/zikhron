@@ -11,7 +11,7 @@
 #include <spaced_repetition/CardMeta.h>
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
-#include <spdlog/spdlog.h>
+#include <utils/spdlog.h>
 #include <utils/Property.h>
 
 #include <algorithm>

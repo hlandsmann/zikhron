@@ -21,8 +21,9 @@ target_include_directories(zikhron_kocoro
 
 target_link_libraries(zikhron_kocoro
     PRIVATE
-        zikhron::warnings
         spdlog::spdlog
+        zikhron::utils
+        zikhron::warnings
 )
 
 set_property(TARGET zikhron_kocoro PROPERTY CXX_STANDARD 23)

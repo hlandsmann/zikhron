@@ -1,7 +1,6 @@
 #pragma once
 #include "Widget.h"
 
-#include <fmt/core.h>
 #include <fmt/format.h> // IWYU pragma: export core.h
 #include <folly/sorted_vector_types.h>
 

@@ -15,5 +15,6 @@ set_property(TARGET zikhron_dictionary PROPERTY CXX_STANDARD 23)
 target_link_libraries(zikhron_dictionary
     PRIVATE
         zikhron::miscellaneous
+        zikhron::utils
         zikhron::warnings
 )

@@ -3,6 +3,7 @@
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
+#include <utils/string_split.h>
 
 #include <algorithm>
 #include <cmath>
@@ -12,11 +13,13 @@
 #include <nlohmann/json.hpp>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "Time.h"
 using namespace spaced_repetition;
 namespace ranges = std::ranges;
+
 namespace {
 
 template<class T>
@@ -36,6 +39,20 @@ auto deserialize_vector(nlohmann::json json) -> std::vector<T>
 }
 
 } // namespace
+
+VocableProgress::VocableProgress(std::string_view sv)
+{
+    spdlog::info("{}", sv);
+}
+
+auto VocableProgress::serialize() const -> std::string
+{
+    return fmt::format("{},{:.2F},{:.1F},{}",
+                       serialize_time_t(lastSeen),
+                       easeFactor,
+                       intervalDay,
+                       fmt::join(triggerCards, ","));
+}
 
 auto VocableProgress::RepeatRange::implies(const RepeatRange& other) const -> bool
 {
@@ -156,7 +173,7 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
     float maxFactor = easeFactor * Ease::changeFactorHard;
     float daysMinAtleast = (intervalDay >= 1.F) ? 1.F : 0.F;
     return {.daysMin = daysFromToday(lastSeen,
-                                   std::max(daysMinAtleast, intervalDay * minFactor)),
+                                     std::max(daysMinAtleast, intervalDay * minFactor)),
             .daysNormal = dueDays(),
             .daysMax = daysFromToday(lastSeen, intervalDay * maxFactor)};
 }

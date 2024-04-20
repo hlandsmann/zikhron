@@ -36,7 +36,6 @@ target_link_libraries(zikhron_multimedia
         Microsoft.GSL::GSL
         ctre::ctre
         epoxy
-        fmt::fmt
         glfw
         spdlog::spdlog
         zikhron::kocoro

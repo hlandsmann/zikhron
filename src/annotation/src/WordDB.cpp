@@ -1,28 +1,48 @@
 #include "WordDB.h"
 
+
+#include "Word.h"
+
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/VocableProgress.h>
 #include <spdlog/spdlog.h>
+#include <utils/string_split.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <fstream>
+#include <ios>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <type_traits>
 #include <utility>
+#include <vector>
 namespace ranges = std::ranges;
 namespace views = std::views;
+namespace fs = std::filesystem;
 
 namespace {
+auto load_string_file(const fs::path& filename) -> std::string
+{
+    std::string result;
+    std::ifstream file;
+    file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    file.open(filename, std::ios_base::binary);
+    auto sz = static_cast<std::size_t>(file_size(filename));
+    result.resize(sz, '\0');
+    file.read(result.data(), static_cast<std::streamsize>(sz));
+    return result;
+}
 
 // @deprecated
 template<class key_type, class mapped_value>
@@ -66,7 +86,7 @@ auto loadVocableChoices(const std::filesystem::path& vocableChoicesPath) -> vocI
 }
 
 // @deprecated
-auto loadProgressVocables(
+auto loadProgressVocablesJson(
         const std::filesystem::path& progressVocablePath) -> std::map<VocableId, VocableProgress>
 {
     static constexpr std::string_view s_fn_metaVocableSR = "metaVocableSR.json";
@@ -86,28 +106,55 @@ namespace annotation {
 
 WordDB::WordDB(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
-    , dictionary{std::make_shared<ZH_Dictionary>(config->Dictionary())}
+    // , dictionary{std::make_shared<ZH_Dictionary>(config->Dictionary())}
 
 {
-    depcrLoadFromJson();
+    // depcrLoadFromJson();
+    load();
+}
+
+void WordDB::load()
+{
+    auto fileContent = load_string_file(config->DatabaseDirectory() / s_fn_progressVocableDB);
+    auto numberOfVocables = ranges::count(fileContent, '\n');
+    words.reserve(static_cast<size_t>(numberOfVocables));
+    parse(fileContent);
+    spdlog::info("numberOfVocables: {}", numberOfVocables);
+}
+
+void WordDB::parse(const std::string& str)
+{
+    auto iss = std::istringstream{str};
+    for (std::string line; std::getline(iss, line);) {
+        words.push_back(std::make_shared<Word>(line, dictionary));
+    }
 }
 
 void WordDB::depcrLoadFromJson()
 {
-    auto pv = loadProgressVocables(config->DatabaseDirectory() / s_fn_metaVocableSR);
+    auto pv = loadProgressVocablesJson(config->DatabaseDirectory() / s_fn_metaVocableSR);
     auto vocableChoices = loadVocableChoices(config->DatabaseDirectory() / s_fn_vocableChoices);
+    std::vector<Word> words;
+    words.reserve(pv.size());
+
     for (auto& [initial_vocId, vocableProgress] : pv) {
         auto vocId = vocableChoices.contains(initial_vocId)
                              ? vocableChoices.at(initial_vocId)
                              : initial_vocId;
 
-        auto entry = dictionary->EntryFromPosition(vocId);
-        if (vocableChoices.contains(vocId)) {
-            auto mappedEntry = dictionary->EntryFromPosition(vocableChoices.at(vocId));
-            spdlog::info("{}, p: {} - {}, m: {} - {}", entry.key, entry.pronounciation, mappedEntry.pronounciation,
-                         entry.meanings.front(), mappedEntry.meanings.front());
-        }
+        words.emplace_back(std::make_shared<VocableProgress>(std::move(vocableProgress)), vocId, dictionary);
+
+        // if (vocableChoices.contains(vocId)) {
+        //     auto mappedEntry = dictionary->EntryFromPosition(vocableChoices.at(vocId));
+        //     spdlog::info("{}, p: {} - {}, m: {} - {}", entry.key, entry.pronounciation, mappedEntry.pronounciation,
+        //                  entry.meanings.front(), mappedEntry.meanings.front());
+        // }
     }
+    // auto out = std::ofstream{config->DatabaseDirectory() / s_fn_progressVocableDB};
+    // for (const auto& word : words) {
+    //     // fmt::print("{}", word.serialize());
+    //     out << word.serialize();
+    // }
 
     spdlog::info("progressVocable size: {}", pv.size());
     spdlog::info("vocableChoices size: {}", vocableChoices.size());

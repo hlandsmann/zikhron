@@ -2,10 +2,8 @@
 #include <context/Theme.h>
 #include <context/WidgetIdGenerator.h>
 #include <context/imglog.h>
-#include <fmt/core.h>
-#include <fmt/format.h> // IWYU pragma: export core.h
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/spdlog.h>
 
 #include <format>
 #include <magic_enum.hpp>
