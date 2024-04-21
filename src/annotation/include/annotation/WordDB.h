@@ -23,6 +23,7 @@ public:
 
 private:
     void load();
+    void save();
     void parse(const std::string& str);
     void depcrLoadFromJson();
     std::shared_ptr<zikhron::Config> config;

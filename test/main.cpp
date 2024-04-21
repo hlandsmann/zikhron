@@ -19,11 +19,13 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
 }
 
+
 auto main() -> int
 {
-    auto jieba = std::make_shared<annotation::JieBa>();
+    // auto jieba = std::make_shared<annotation::JieBa>();
     auto zikhron_cfg = get_zikhron_cfg();
     auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
+
     // auto db = std::make_unique<sr::DataBase>(zikhron_cfg);
     // auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
     // auto& cardMeta = treeWalker->getNextCardChoice();

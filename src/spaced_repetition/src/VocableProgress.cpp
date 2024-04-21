@@ -2,7 +2,7 @@
 #include <annotation/Ease.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
-#include <spdlog/spdlog.h>
+#include <utils/spdlog.h>
 #include <utils/string_split.h>
 
 #include <algorithm>
@@ -42,12 +42,21 @@ auto deserialize_vector(nlohmann::json json) -> std::vector<T>
 
 VocableProgress::VocableProgress(std::string_view sv)
 {
-    spdlog::info("{}", sv);
+    lastSeen = deserialize_time_t(std::string{utl::split_front(sv, ',')});
+    easeFactor = std::stof(std::string{utl::split_front(sv, ',')});
+    intervalDay = std::stof(std::string{utl::split_front(sv, ',')});
+    while (true) {
+        auto cardId = std::string{utl::split_front(sv, ',')};
+        if (cardId.empty()) {
+            break;
+        }
+        triggerCards.push_back(static_cast<CardId>(std::stoul(cardId)));
+    }
 }
 
 auto VocableProgress::serialize() const -> std::string
 {
-    return fmt::format("{},{:.2F},{:.1F},{}",
+    return fmt::format("{},{:.2F},{:.1F},{},",
                        serialize_time_t(lastSeen),
                        easeFactor,
                        intervalDay,

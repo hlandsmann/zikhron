@@ -33,13 +33,21 @@ Word::Word(const std::string& description, const std::shared_ptr<ZH_Dictionary>&
     key = utl::split_front(rest, ';');
     dictionaryPos = std::stoul(std::string{utl::split_front(rest, ';')});
     vocableProgress = std::make_shared<VocableProgress>(utl::split_front(rest, ';'));
+    pronounciation = utl::split_front(rest, ';');
+    while (true) {
+        auto meaning = std::string{utl::split_front(rest, '/')};
+        if (meaning.empty()) {
+            break;
+        }
+        meanings.push_back(meaning);
+    }
 
-    spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
+    // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
 
 auto Word::serialize() const -> std::string
 {
-    return fmt::format("{};{};{};{};{}\n", key,
+    return fmt::format("{};{};{};{};{}/\n", key,
                        dictionaryPos,
                        vocableProgress->serialize(),
                        pronounciation,

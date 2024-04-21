@@ -28,9 +28,9 @@ target_link_libraries(zikhron_utils
     PUBLIC
         ${ICU_UC_LIBRARIES}
         ${ICU_IO_LIBRARIES}
+        spdlog::spdlog
     PRIVATE
         zikhron::warnings
-        spdlog::spdlog
 )
 
 set_property(TARGET zikhron_utils PROPERTY CXX_STANDARD 23)

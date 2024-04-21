@@ -3,7 +3,6 @@ target_compile_options(zikhron-warnings
     INTERFACE
         -Werror=non-virtual-dtor
         -Werror=return-type
-
         -Wall
         -Wextra
         -Wconversion

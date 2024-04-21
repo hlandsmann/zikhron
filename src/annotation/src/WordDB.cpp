@@ -1,6 +1,5 @@
 #include "WordDB.h"
 
-
 #include "Word.h"
 
 #include <dictionary/ZH_Dictionary.h>
@@ -106,11 +105,12 @@ namespace annotation {
 
 WordDB::WordDB(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
-    // , dictionary{std::make_shared<ZH_Dictionary>(config->Dictionary())}
+, dictionary{std::make_shared<ZH_Dictionary>(config->Dictionary())}
 
 {
-    // depcrLoadFromJson();
-    load();
+    depcrLoadFromJson();
+    // load();
+    save();
 }
 
 void WordDB::load()
@@ -120,6 +120,14 @@ void WordDB::load()
     words.reserve(static_cast<size_t>(numberOfVocables));
     parse(fileContent);
     spdlog::info("numberOfVocables: {}", numberOfVocables);
+}
+
+void WordDB::save()
+{
+    auto out = std::ofstream{config->DatabaseDirectory() / s_fn_progressVocableDB};
+    for (const auto& word : words) {
+        out << word->serialize();
+    }
 }
 
 void WordDB::parse(const std::string& str)
@@ -134,7 +142,6 @@ void WordDB::depcrLoadFromJson()
 {
     auto pv = loadProgressVocablesJson(config->DatabaseDirectory() / s_fn_metaVocableSR);
     auto vocableChoices = loadVocableChoices(config->DatabaseDirectory() / s_fn_vocableChoices);
-    std::vector<Word> words;
     words.reserve(pv.size());
 
     for (auto& [initial_vocId, vocableProgress] : pv) {
@@ -142,7 +149,7 @@ void WordDB::depcrLoadFromJson()
                              ? vocableChoices.at(initial_vocId)
                              : initial_vocId;
 
-        words.emplace_back(std::make_shared<VocableProgress>(std::move(vocableProgress)), vocId, dictionary);
+        words.push_back(std::make_shared<Word>(std::make_shared<VocableProgress>(std::move(vocableProgress)), vocId, dictionary));
 
         // if (vocableChoices.contains(vocId)) {
         //     auto mappedEntry = dictionary->EntryFromPosition(vocableChoices.at(vocId));
@@ -150,11 +157,6 @@ void WordDB::depcrLoadFromJson()
         //                  entry.meanings.front(), mappedEntry.meanings.front());
         // }
     }
-    // auto out = std::ofstream{config->DatabaseDirectory() / s_fn_progressVocableDB};
-    // for (const auto& word : words) {
-    //     // fmt::print("{}", word.serialize());
-    //     out << word.serialize();
-    // }
 
     spdlog::info("progressVocable size: {}", pv.size());
     spdlog::info("vocableChoices size: {}", vocableChoices.size());
