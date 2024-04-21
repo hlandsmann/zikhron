@@ -1,14 +1,12 @@
 #include <CardMeta.h>
-#include <CardProgress.h>
 #include <VocableProgress.h>
 #include <annotation/Card.h>
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
-#include <markup/Markup.h>
+#include <annotation/Token.h>
 #include <annotation/TokenText.h>
 #include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
-#include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -35,11 +33,9 @@ namespace views = std::views;
 namespace sr {
 
 CardMeta::CardMeta(std::shared_ptr<Card> _card,
-                   std::shared_ptr<utl::index_map<VocableId, VocableMeta>> _vocables,
-                   vocId_vocId_map _vocableChoices)
+                   std::shared_ptr<utl::index_map<VocableId, VocableMeta>> _vocables)
     : card{std::move(_card)}
     , vocables{std::move(_vocables)}
-    , vocableChoices{std::move(_vocableChoices)}
 {}
 
 auto CardMeta::Id() const -> CardId
@@ -55,7 +51,7 @@ auto CardMeta::VocableIndices() const -> const index_set&
     return optVocableIndices.emplace(generateVocableIndexes());
 }
 
-auto CardMeta::VocableIds() const -> const folly::sorted_vector_set<VocableId>&
+auto CardMeta::VocableIds() const -> const vocId_set&
 {
     if (optVocableIds.has_value()) {
         return *optVocableIds;
@@ -89,38 +85,10 @@ void CardMeta::resetTimingAndVocables()
     timingAndVocables.reset();
 }
 
-void CardMeta::resetAnnotation()
-{
-    card->resetTokenizer();
-    optVocableIds.reset();
-    optVocableIndices.reset();
-    resetTimingAndVocables();
-}
-
-void CardMeta::addVocableChoice(VocableId oldVocId, VocableId newVocId)
-{
-    vocableChoices[oldVocId] = newVocId;
-}
-
-auto CardMeta::getStudyMarkup() -> std::unique_ptr<markup::Paragraph>
-{
-    std::vector<VocableId> vocableIds = generateVocableIDs();
-    mapVocableChoices(vocableIds);
-    auto studyMarkup = std::make_unique<markup::Paragraph>(card, std::move(vocableIds));
-    return studyMarkup;
-}
-
 auto CardMeta::getStudyTokenText() -> std::unique_ptr<annotation::TokenText>
 {
     std::vector<VocableId> vocableIds = generateVocableIDs();
-    mapVocableChoices(vocableIds);
     return std::make_unique<annotation::TokenText>(card, std::move(vocableIds));
-}
-
-auto CardMeta::getAnnotationMarkup() -> std::unique_ptr<markup::Paragraph>
-{
-    auto annotationMarkup = std::make_unique<markup::Paragraph>(card);
-    return annotationMarkup;
 }
 
 auto CardMeta::getRelevantEase() const -> std::map<VocableId, Ease>
@@ -129,18 +97,12 @@ auto CardMeta::getRelevantEase() const -> std::map<VocableId, Ease>
     std::vector<Ease> eases = easesFromVocableIds(vocableIds);
     std::map<VocableId, Ease> relevantEases;
 
-    mapVocableChoices(vocableIds);
     ranges::transform(vocableIds, eases,
                       std::inserter(relevantEases, relevantEases.begin()),
                       [](VocableId vocId, Ease ease) -> std::pair<VocableId, Ease> {
                           return {vocId, ease};
                       });
     return relevantEases;
-}
-
-auto CardMeta::getDictionary() const -> std::shared_ptr<const ZH_Dictionary>
-{
-    return card->getTokenizer().Dictionary();
 }
 
 auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
@@ -157,7 +119,7 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
         auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
         threshHoldProgress = *minIt;
     }
-    folly::sorted_vector_set<std::size_t> nextActiveVocables;
+    index_set nextActiveVocables;
     ranges::copy_if(vocableIndices,
                     std::inserter(nextActiveVocables, nextActiveVocables.begin()),
                     [&](const auto& vocableIndex) {
@@ -186,15 +148,14 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
 
 auto CardMeta::generateVocableIDs() const -> std::vector<VocableId>
 {
-    const ZH_Tokenizer& tokenizer = card->getTokenizer();
+    const auto& tokens = card->getTokens();
     auto vocableIds = std::vector<VocableId>{};
-    ranges::transform(tokenizer.Tokens() | std::views::filter([](const ZH_Tokenizer::Token& item) {
-                          return not item.dicItemVec.empty();
+    ranges::transform(tokens | std::views::filter([](const annotation::Token& token) {
+                          return token.getWord() != nullptr;
                       }),
                       std::inserter(vocableIds, vocableIds.begin()),
-                      [](const ZH_Tokenizer::Token& item) -> VocableId {
-                          // TODO remove static_cast
-                          auto vocId = static_cast<VocableId>(item.dicItemVec.front().id);
+                      [](const annotation::Token& token) -> VocableId {
+                          auto vocId = token.getWord()->getId();
                           return vocId;
                       });
     return vocableIds;
@@ -217,16 +178,6 @@ auto CardMeta::generateVocableIndexes() const -> index_set
     return result;
 }
 
-void CardMeta::mapVocableChoices(std::vector<VocableId>& vocableIds) const
-{
-    ranges::transform(vocableIds, vocableIds.begin(), [this](VocableId id) {
-        if (vocableChoices.contains(id)) {
-            return vocableChoices.at(id);
-        }
-        return id;
-    });
-}
-
 auto CardMeta::getActiveVocableIds() const -> std::vector<VocableId>
 {
     const auto& activeVocableIndices = getTimingAndVocables(true).vocables;
@@ -242,14 +193,14 @@ auto CardMeta::getActiveVocableIds() const -> std::vector<VocableId>
 auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>
 {
     std::vector<Ease> eases;
-    const auto& dictionary = *card->getTokenizer().Dictionary();
+    // const auto& dictionary = *card->getTokenizer().Dictionary();
     ranges::transform(
             vocableIds,
             std::back_inserter(eases),
             [&, this](VocableId vocId) -> Ease {
                 const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
-                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
-                              dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified).key,
+                spdlog::debug("Easefactor of xwordx is {:.2f}, invervalDay {:.2f} - id: {}",
+                              // dictionary.EntryFromPosition(vocId, CharacterSetType::Simplified).key,
                               vocSR.EaseFactor(),
                               vocSR.IntervalDay(),
                               vocId);

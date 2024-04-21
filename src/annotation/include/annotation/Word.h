@@ -16,8 +16,10 @@ public:
     Word(std::shared_ptr<VocableProgress> vocableProgress, VocableId vocId, const std::shared_ptr<ZH_Dictionary>& dictionary);
     Word(const std::string& description, const std::shared_ptr<ZH_Dictionary>& dictionary);
     [[nodiscard]] auto serialize() const -> std::string;
+    [[nodiscard]] auto getId() const -> VocableId;
 
 private:
+    VocableId vocableId{};
     std::shared_ptr<VocableProgress> vocableProgress;
 
     std::string key;

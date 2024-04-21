@@ -1,9 +1,11 @@
 #include <Token.h>
+#include <Word.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 
 #include <algorithm>
 #include <iterator>
+#include <memory>
 #include <optional>
 #include <sstream>
 #include <string>
@@ -17,6 +19,11 @@ Token::Token(utl::StringU8 _value, ZH_dicItemVec _dictionaryEntries)
     : value{std::move(_value)}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {}
+
+auto Token::getWord() const -> std::shared_ptr<Word>
+{
+    return word;
+}
 
 auto Token::getValue() const -> utl::StringU8
 {

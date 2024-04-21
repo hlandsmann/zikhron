@@ -181,8 +181,7 @@ auto TreeWalker::getLastCard() -> CardMeta&
 void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 {
     CardId currentCardId = db->Cards().id_from_index(currentCardIndex);
-    for (auto [tmpVocId, ease] : id_ease) {
-        auto vocId = db->unmapVocableChoice(tmpVocId);
+    for (auto [vocId, ease] : id_ease) {
         // spdlog::warn("begin id: {}", vocId);
         db->setEaseVocable(vocId, ease);
         db->triggerVocable(vocId, currentCardId);

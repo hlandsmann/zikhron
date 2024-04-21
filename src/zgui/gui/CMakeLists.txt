@@ -31,7 +31,6 @@ target_link_libraries(zgui_gui
     PRIVATE
         ${OPENGL_LIBRARIES}
         # epoxy
-        folly
         glfw
         imgui::imgui
         spdlog::spdlog

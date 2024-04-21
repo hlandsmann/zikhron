@@ -1,9 +1,16 @@
-#include <gtkgui/Application.h>
+#include <gui/GlWindow.h>
+#include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
-// gtk leaks like crazy - nothing we can do about - so leak detection is basically useless
-extern "C" const char* __asan_default_options() { return "detect_leaks=0"; }
 
-int main(int argc, char* argv[]) {
+#include <boost/di.hpp>
+#include <kocoro/kocoro.hpp>
+
+namespace di = boost::di;
+
+auto main() -> int
+{
     spdlog::set_level(spdlog::level::debug);
-    return Application::run(argc, argv);
+    auto injector = di::make_injector();
+    auto glWindow = injector.create<gui::GlWindow>();
+    glWindow.run();
 }

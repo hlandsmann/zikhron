@@ -99,12 +99,12 @@ auto TokenText::getDialogue() const -> const std::vector<Paragraph>&
 
 void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)
 {
-    const ZH_Tokenizer& zh_tokenizer = dialogueCard.getTokenizer();
-    auto fragmentBegin = zh_tokenizer.Tokens().begin();
-    auto fragmentEnd = zh_tokenizer.Tokens().begin();
+    const auto& tokens = dialogueCard.getTokens();
+    auto fragmentBegin = tokens.begin();
+    auto fragmentEnd = tokens.begin();
     auto textToParagraph = [&](const utl::StringU8& text) -> std::vector<Token> {
         auto threshold = utl::StringU8(text).length();
-        fragmentEnd = findItAtThreshold({fragmentBegin, zh_tokenizer.Tokens().end()}, threshold);
+        fragmentEnd = findItAtThreshold({fragmentBegin, tokens.end()}, threshold);
         auto paragraph = tokenVector({fragmentBegin, fragmentEnd});
         fragmentBegin = fragmentEnd + 1; // +1 a '~'-character is generated at the end of each subtext (speaker, dialogue)
         return paragraph;
@@ -117,26 +117,22 @@ void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)
 
 void TokenText::setupTextCard(const TextCard& textCard)
 {
-    const ZH_Tokenizer& zh_tokenizer = textCard.getTokenizer();
-    paragraphSeq.push_back(tokenVector({zh_tokenizer.Tokens()}));
+    paragraphSeq.push_back(textCard.getTokens());
 }
 
 auto TokenText::tokenVector(tokenSubrange tokens) -> std::vector<Token>
 {
     auto tokensOut = std::vector<Token>(tokens.size());
-    ranges::transform(tokens, tokensOut.begin(),
-                      [](const ZH_Tokenizer::Token& token) -> Token {
-                          return {token.text, token.dicItemVec};
-                      });
+    ranges::copy(tokens, tokensOut.begin());
     return tokensOut;
 }
 
 auto TokenText::findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
-        -> std::vector<ZH_Tokenizer::Token>::const_iterator
+        -> std::vector<annotation::Token>::const_iterator
 {
     std::size_t size{};
     for (auto it = tokens.begin(); it != tokens.end(); it++) {
-        size += it->text.length();
+        size += it->getValue().length();
         if (size == threshold) {
             return it + 1;
         }

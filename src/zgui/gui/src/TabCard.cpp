@@ -29,11 +29,7 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
     : executor{std::move(_synchronousExecutor)}
     , signalVocIdEase{executor->makeVolatileSignal<VocableId_Ease>()}
     , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
-// , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
-
 {
-    // feedingTask(std::move(_asyncTreeWalker)).semi().via(synchronousExecutor.get());
-    // signalVocIdEase->set(3);
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
@@ -105,13 +101,13 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         vocableLayer->clear();
 
         auto cardMeta = co_await asyncTreeWalker->getNextCardChoice();
-        const auto& zh_dictionary = cardMeta.getDictionary();
+        // const auto& zh_dictionary = cardMeta.getDictionary();
         auto vocId_ease = cardMeta.getRelevantEase();
         auto tokenText = cardMeta.getStudyTokenText();
 
         auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
         displayText = std::make_unique<DisplayText>(cardLayer, std::move(tokenText));
-        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, zh_dictionary, std::move(orderedVocId_ease));
+        // displayVocables = std::make_unique<DisplayVocables>(vocableLayer, zh_dictionary, std::move(orderedVocId_ease));
 
         // cardLayer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph());
 

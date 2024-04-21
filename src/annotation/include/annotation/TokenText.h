@@ -38,12 +38,12 @@ public:
     [[nodiscard]] auto getDialogue() const -> const std::vector<Paragraph>&;
 
 private:
-    using tokenSubrange = std::ranges::subrange<std::vector<ZH_Tokenizer::Token>::const_iterator>;
+    using tokenSubrange = std::ranges::subrange<std::vector<annotation::Token>::const_iterator>;
     void setupDialogueCard(const DialogueCard&);
     void setupTextCard(const TextCard&);
     [[nodiscard]] static auto tokenVector(tokenSubrange tokens) -> std::vector<Token>;
     [[nodiscard]] static auto findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
-            -> std::vector<ZH_Tokenizer::Token>::const_iterator;
+            -> std::vector<annotation::Token>::const_iterator;
     void setVocableIdsForTokens();
 
     TextType textType{TextType::dialogue};

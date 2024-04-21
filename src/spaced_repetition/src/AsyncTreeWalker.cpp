@@ -2,10 +2,6 @@
 #include <CardMeta.h>
 #include <DataBase.h>
 #include <ITreeWalker.h>
-#include <folly/executors/CPUThreadPoolExecutor.h>
-#include <folly/executors/ManualExecutor.h>
-#include <folly/experimental/coro/Task.h>
-#include <folly/futures/Future.h>
 #include <misc/Config.h>
 #include <spdlog/spdlog.h>
 

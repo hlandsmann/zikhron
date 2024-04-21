@@ -10,7 +10,6 @@ target_sources(zikhron_spaced_repetition
     PRIVATE
         include/spaced_repetition/AsyncTreeWalker.h
         include/spaced_repetition/CardMeta.h
-        include/spaced_repetition/CardProgress.h
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/ITreeWalker.h
         include/spaced_repetition/VocableMeta.h
@@ -18,7 +17,6 @@ target_sources(zikhron_spaced_repetition
         include/spaced_repetition/srtypes.h
         src/AsyncTreeWalker.cpp
         src/CardMeta.cpp
-        src/CardProgress.cpp
         src/DataBase.cpp
         src/Node.cpp
         src/Node.h
@@ -34,12 +32,11 @@ target_sources(zikhron_spaced_repetition
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC
-        folly
+        # folly
         nlohmann_json::nlohmann_json
         zikhron::annotation
         zikhron::dictionary
         zikhron::kocoro
-        zikhron::markup
         zikhron::miscellaneous
         zikhron::utils
     PRIVATE

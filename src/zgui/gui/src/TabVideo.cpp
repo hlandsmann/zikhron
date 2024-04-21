@@ -1,5 +1,6 @@
 #include <TabVideo.h>
 #include <context/imglog.h>
+#include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
 #include <widgets/Box.h>
@@ -25,11 +26,8 @@ TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExec
     : executor{std::move(_synchronousExecutor)}
     , mpv{std::move(_mpv)}
     , signalShouldRender{executor->makeVolatileSignal<bool>()}
-// , cardBoxContract{folly::makePromiseContract<std::shared_ptr<widget::Box>>()}
 
 {
-    // feedingTask(std::move(_asyncTreeWalker)).semi().via(synchronousExecutor.get());
-    // signalVocIdEase->set(3);
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 

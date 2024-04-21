@@ -4,6 +4,7 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
+#include "Word.h"
 
 #include <cstddef>
 #include <memory>
@@ -26,6 +27,7 @@ public:
 
     Token() = default;
     Token(utl::StringU8 value, ZH_dicItemVec dictionaryEntries);
+    [[nodiscard]] auto getWord() const -> std::shared_ptr<Word>;
     [[nodiscard]] auto getValue() const -> utl::StringU8;
     [[nodiscard]] auto getNoBreak() const -> NoBreak;
     [[nodiscard]] auto getColorId() const -> ColorId;
@@ -38,6 +40,7 @@ public:
     operator std::string() const;
 
 private:
+    std::shared_ptr<Word> word;
     utl::StringU8 value;
     ColorId colorId{0};
     NoBreak noBreak{NoBreak::none};

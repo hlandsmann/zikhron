@@ -1,9 +1,12 @@
+#include "CardDB.h"
+
 #include <Card.h>
-#include <CardDB.h>
 #include <JieBa.h>
+#include <WordDB.h>
 #include <ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
+#include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
@@ -26,12 +29,11 @@
 
 #include <sys/types.h>
 
-namespace {
+namespace annotation {
 auto cardFromJsonFile(
         const std::string& filename,
         CardId cardId,
-        const std::shared_ptr<const ZH_Dictionary>& dictionary,
-        const std::shared_ptr<const Card::AnnotationChoiceMap>& annotationChoices,
+        const std::shared_ptr<WordDB> & wordDB,
         const std::shared_ptr<annotation::JieBa>& jieba
 
         ) -> std::unique_ptr<Card>
@@ -50,7 +52,7 @@ auto cardFromJsonFile(
         if (not dlg.is_array()) {
             throw std::runtime_error("Expected an array");
         }
-        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, dictionary, annotationChoices, jieba);
+        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, wordDB, jieba);
         for (const auto& speakerTextPair : dlg) {
             if (speakerTextPair.empty()) {
                 continue;
@@ -64,28 +66,25 @@ auto cardFromJsonFile(
     }
     if (jsonCard["type"] == "text") {
         const auto& text = jsonCard["content"];
-        auto textCard = std::make_unique<TextCard>(filename, cardId, dictionary, annotationChoices, jieba);
+        auto textCard = std::make_unique<TextCard>(filename, cardId, wordDB, jieba);
         textCard->text = icu::UnicodeString::fromUTF8(std::string(text));
 
         return textCard;
     }
     throw std::runtime_error("Invalid file format for card json-file");
 }
-} // namespace
 
-CardDB::CardDB(const std::filesystem::path& directoryPath,
-               std::shared_ptr<const ZH_Dictionary> _dictionary,
-               std::shared_ptr<const AnnotationChoiceMap> _annotationChoices)
-    : dictionary{std::move(_dictionary)}
-    , annotationChoices{std::move(_annotationChoices)}
+CardDB::CardDB(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<WordDB> _wordDB)
+    : config{std::move(_config)}
+    , wordDB{std::move(_wordDB)}
+
     , jieba{std::make_shared<annotation::JieBa>()}
-    , cards{loadFromDirectory(directoryPath, dictionary, annotationChoices, jieba)}
+    , cards{loadFromDirectory(config->DatabaseDirectory() / s_cardSubdirectory, wordDB, jieba)}
 {}
 
 auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
-                               const std::shared_ptr<const ZH_Dictionary>& dictionary,
-                               const std::shared_ptr<const AnnotationChoiceMap>& annotationChoices,
-                               const std::shared_ptr<annotation::JieBa>& jieba)
+                                  const std::shared_ptr<WordDB>& wordDB,
+                                  const std::shared_ptr<annotation::JieBa>& jieba)
         -> std::map<CardId, CardPtr>
 {
     std::map<CardId, CardPtr> cards;
@@ -106,7 +105,7 @@ auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
                              cardId);
                 continue;
             }
-            cards[cardId] = cardFromJsonFile(entry, cardId, dictionary, annotationChoices, jieba);
+            cards[cardId] = cardFromJsonFile(entry, cardId, wordDB, jieba);
         } catch (std::exception& e) {
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
@@ -128,3 +127,4 @@ auto CardDB::atId(CardId cardId) const -> CardPtrConst
 {
     return {cards.at(cardId)};
 }
+} // namespace annotation

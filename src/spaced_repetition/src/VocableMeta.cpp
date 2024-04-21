@@ -1,4 +1,3 @@
-#include <CardProgress.h>
 #include <DataBase.h>
 #include <VocableMeta.h>
 #include <VocableProgress.h>
@@ -6,10 +5,10 @@
 #include <annotation/Ease.h>
 #include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
-#include <folly/sorted_vector_types.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
+#include <srtypes.h>
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
 
@@ -23,22 +22,20 @@
 #include <sys/types.h>
 
 namespace ranges = std::ranges;
+
 // namespace views = std::views;
 
 namespace sr {
-VocableMeta::VocableMeta(VocableProgress _progress//,
-        //                 folly::sorted_vector_set<std::size_t> _cardIndices/* ,
-/*                         ZH_Tokenizer::ZH_dicItemVec _dicItemVec */)
+VocableMeta::VocableMeta(VocableProgress _progress)
     : progress{std::move(_progress)}
-    // , cardIndices{std::move(_cardIndices)}
-    /*, dicItemVec{std::move(_dicItemVec)}*/ {}
+{}
 
 auto VocableMeta::Progress() const -> const VocableProgress&
 {
     return progress;
 }
 
-auto VocableMeta::CardIndices() const -> const folly::sorted_vector_set<std::size_t>&
+auto VocableMeta::CardIndices() const -> const index_set&
 {
     return cardIndices;
 }

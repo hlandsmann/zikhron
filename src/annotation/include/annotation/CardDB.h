@@ -1,8 +1,10 @@
 #pragma once
 #include "Card.h"
 #include "JieBa.h"
+#include "WordDB.h"
 
 #include <dictionary/ZH_Dictionary.h>
+#include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
@@ -14,6 +16,8 @@
 
 #include <sys/types.h>
 
+namespace annotation {
+
 class CardDB
 {
 public:
@@ -22,16 +26,11 @@ public:
     using CardPtr = std::shared_ptr<Card>;
     using CardPtrConst = std::shared_ptr<const Card>;
     using CharacterSequence = Card::CharacterSequence;
-    using Combination = Card::Combination;
-    using AnnotationChoiceMap = Card::AnnotationChoiceMap;
 
     CardDB() = default;
-    CardDB(const std::filesystem::path& directoryPath,
-           std::shared_ptr<const ZH_Dictionary> dictionary,
-           std::shared_ptr<const AnnotationChoiceMap> annotationChoices);
+    CardDB(std::shared_ptr<zikhron::Config> config, std::shared_ptr<WordDB> wordDB);
     static auto loadFromDirectory(const std::filesystem::path& directoryPath,
-                                  const std::shared_ptr<const ZH_Dictionary>& dictionary,
-                                  const std::shared_ptr<const AnnotationChoiceMap>& annotationChoices,
+                                  const std::shared_ptr<WordDB>& wordDB,
                                   const std::shared_ptr<annotation::JieBa>& jieba)
             -> std::map<CardId, CardPtr>;
 
@@ -40,8 +39,10 @@ public:
     [[nodiscard]] auto atId(CardId) const -> CardPtrConst;
 
 private:
-    std::shared_ptr<const ZH_Dictionary> dictionary;
-    std::shared_ptr<const AnnotationChoiceMap> annotationChoices;
+    std::shared_ptr<zikhron::Config> config;
+    std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<annotation::JieBa> jieba;
     std::map<CardId, CardPtr> cards;
 };
+
+} // namespace annotation

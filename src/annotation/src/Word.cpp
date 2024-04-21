@@ -54,4 +54,9 @@ auto Word::serialize() const -> std::string
                        fmt::join(meanings, "/"));
 }
 
+auto Word::getId() const -> VocableId
+{
+    return vocableId;
+}
+
 } // namespace annotation

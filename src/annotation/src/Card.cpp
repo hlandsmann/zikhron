@@ -1,5 +1,8 @@
-#include <Card.h>
+#include "Card.h"
+#include <Token.h>
+
 #include <JieBa.h>
+#include <WordDB.h>
 #include <ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
@@ -19,41 +22,33 @@
 #include <vector>
 
 #include <sys/types.h>
+
+namespace annotation {
+
 Card::Card(std::string _filename,
            CardId _id,
-           std::shared_ptr<const ZH_Dictionary> _dictionary,
-           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices,
+           std::shared_ptr<WordDB> _wordDB,
            std::shared_ptr<annotation::JieBa> _jieba)
     : filename{std::move(_filename)}
     , id{_id}
-    , dictionary{std::move(_dictionary)}
-    , annotationChoices{std::move(_annotationChoices)}
+    , wordDB{std::move(_wordDB)}
     , jieba{std::move(_jieba)} {};
-
-auto Card::getTokenizer() const -> ZH_Tokenizer&
-{
-    if (not tokenizer.has_value()) {
-        tokenizer.emplace(getText(), dictionary, annotationChoices);
-    }
-    return tokenizer.value();
-}
-
-void Card::resetTokenizer()
-{
-    tokenizer.reset();
-}
 
 auto Card::Id() const -> CardId
 {
     return id;
 }
 
-DialogueCard::DialogueCard(const std::string& _filename,
+auto Card::getTokens() const -> const std::vector<Token>&
+{
+    return tokens;
+}
+
+DialogueCard::DialogueCard(std::string _filename,
                            CardId _id,
-                           std::shared_ptr<const ZH_Dictionary> _dictionary,
-                           std::shared_ptr<const AnnotationChoiceMap> _annotationChoices,
+                           std::shared_ptr<WordDB> _wordDB,
                            std::shared_ptr<annotation::JieBa> _jieba)
-    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices), std::move(_jieba)){};
+    : Card(_filename, _id, std::move(_wordDB), std::move(_jieba)) {};
 
 auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString>
 {
@@ -78,12 +73,11 @@ auto DialogueCard::getText() const -> utl::StringU8
     return result;
 }
 
-TextCard::TextCard(const std::string& _filename,
+TextCard::TextCard(std::string _filename,
                    CardId _id,
-                   std::shared_ptr<const ZH_Dictionary> _dictionary,
-                   std::shared_ptr<const AnnotationChoiceMap> _annotationChoices,
+                   std::shared_ptr<WordDB> _wordDB,
                    std::shared_ptr<annotation::JieBa> _jieba)
-    : Card(_filename, _id, std::move(_dictionary), std::move(_annotationChoices), std::move(_jieba)){};
+    : Card(_filename, _id, std::move(_wordDB), std::move(_jieba)) {};
 
 auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>
 {
@@ -94,3 +88,5 @@ auto TextCard::getText() const -> utl::StringU8
 {
     return {text};
 }
+
+} // namespace annotation

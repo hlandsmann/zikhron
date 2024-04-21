@@ -36,13 +36,22 @@ target_sources(zikhron
 )
 target_link_libraries(zikhron
     PRIVATE
-        # asan
+        ${OPENGL_LIBRARIES}
+        Boost.DI
+        epoxy
+        glfw
+        imgui::imgui
+        mpv
         spdlog::spdlog
-        zikhron::gtkgui
-)
-target_link_options(zikhron
-    PRIVATE
-        -static-libasan
+        zgui::gui
+        zgui::widgets
+        zikhron::annotation
+        zikhron::dictionary
+        zikhron::kocoro
+        zikhron::miscellaneous
+        zikhron::multimedia
+        zikhron::spaced_repetition
+        zikhron::warnings
 )
 
 set_property(TARGET zikhron PROPERTY CXX_STANDARD 23)

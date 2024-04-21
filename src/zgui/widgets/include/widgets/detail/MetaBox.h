@@ -2,10 +2,10 @@
 #include "Widget.h"
 
 #include <fmt/format.h> // IWYU pragma: export core.h
-#include <folly/sorted_vector_types.h>
 
 #include <cstddef>
 #include <magic_enum.hpp>
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <type_traits>
@@ -118,7 +118,7 @@ private:
     float padding{s_padding};
     float border{};
     std::vector<std::shared_ptr<Widget>>::iterator currentWidgetIt;
-    folly::sorted_vector_map<WidgetId, std::shared_ptr<Widget>> id_widgets;
+    std::map<WidgetId, std::shared_ptr<Widget>> id_widgets;
 };
 
 } // namespace widget
