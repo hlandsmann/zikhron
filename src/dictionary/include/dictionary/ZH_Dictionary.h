@@ -47,10 +47,12 @@ public:
         auto operator==(const Entry&) const -> bool = default;
     };
 
-    [[nodiscard]] auto CharacterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType;
-    [[nodiscard]] auto KeySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>;
-    [[nodiscard]] auto EntryFromPosition(size_t pos, CharacterSetType characterSet=CharacterSetType::Simplified) const -> Entry;
-    [[nodiscard]] auto EntryVectorFromKey(const std::string& key) const -> std::vector<Entry>;
+    [[nodiscard]] auto characterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType;
+    [[nodiscard]] auto keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>;
+    [[nodiscard]] auto entryFromPosition(size_t pos, CharacterSetType characterSet=CharacterSetType::Simplified) const -> Entry;
+    [[nodiscard]] auto entryVectorFromKey(const std::string& key) const -> std::vector<Entry>;
+    [[nodiscard]] auto posFromKey(const std::string& key) const -> unsigned;
+    [[nodiscard]] auto size() const -> unsigned;
 
 private:
     [[nodiscard]] auto EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry;

@@ -1,4 +1,8 @@
 #pragma once
+#include <set>
+#include "Token.h"
+#include "WordDB.h"
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -18,12 +22,15 @@ class JieBa
     static constexpr auto stop_word_path = "/home/harmen/src/zikhron/third_party/cppjieba/dict/stop_words.utf8";
 
 public:
-    JieBa();
+    JieBa(std::shared_ptr<WordDB> wordDB);
 
-    [[nodiscard]] auto split(const std::string& str) const -> std::vector<std::string>;
+    [[nodiscard]] auto split(const std::string& str) const -> std::vector<Token>;
 
 private:
+    std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<cppjieba::Jieba> jieba;
+    std::set<std::string> rules;
+    std::set<std::string> no_rule;
 };
 
 }; // namespace annotation

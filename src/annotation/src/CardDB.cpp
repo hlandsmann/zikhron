@@ -33,7 +33,7 @@ namespace annotation {
 auto cardFromJsonFile(
         const std::string& filename,
         CardId cardId,
-        const std::shared_ptr<WordDB> & wordDB,
+        const std::shared_ptr<WordDB>& wordDB,
         const std::shared_ptr<annotation::JieBa>& jieba
 
         ) -> std::unique_ptr<Card>
@@ -52,23 +52,22 @@ auto cardFromJsonFile(
         if (not dlg.is_array()) {
             throw std::runtime_error("Expected an array");
         }
-        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, wordDB, jieba);
+        auto dialogue = std::vector<DialogueCard::DialogueItem>{};
         for (const auto& speakerTextPair : dlg) {
             if (speakerTextPair.empty()) {
                 continue;
             }
             const auto& item = *speakerTextPair.items().begin();
-            dialogueCard->dialogue.emplace_back(icu::UnicodeString::fromUTF8(std::string(item.key())),
-                                                icu::UnicodeString::fromUTF8(std::string(item.value())));
+            dialogue.emplace_back(icu::UnicodeString::fromUTF8(std::string(item.key())),
+                                  icu::UnicodeString::fromUTF8(std::string(item.value())));
         }
-        dialogueCard->dialogue.shrink_to_fit();
+        dialogue.shrink_to_fit();
+        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, wordDB, jieba, std::move(dialogue));
         return dialogueCard;
     }
     if (jsonCard["type"] == "text") {
-        const auto& text = jsonCard["content"];
-        auto textCard = std::make_unique<TextCard>(filename, cardId, wordDB, jieba);
-        textCard->text = icu::UnicodeString::fromUTF8(std::string(text));
-
+        auto text = icu::UnicodeString::fromUTF8(std::string(jsonCard["content"]));
+        auto textCard = std::make_unique<TextCard>(filename, cardId, wordDB, jieba, std::move(text));
         return textCard;
     }
     throw std::runtime_error("Invalid file format for card json-file");
@@ -78,13 +77,13 @@ CardDB::CardDB(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<WordDB>
     : config{std::move(_config)}
     , wordDB{std::move(_wordDB)}
 
-    , jieba{std::make_shared<annotation::JieBa>()}
+    , jieba{std::make_shared<annotation::JieBa>(wordDB)}
     , cards{loadFromDirectory(config->DatabaseDirectory() / s_cardSubdirectory, wordDB, jieba)}
 {}
 
 auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
-                                  const std::shared_ptr<WordDB>& wordDB,
-                                  const std::shared_ptr<annotation::JieBa>& jieba)
+                               const std::shared_ptr<WordDB>& wordDB,
+                               const std::shared_ptr<annotation::JieBa>& jieba)
         -> std::map<CardId, CardPtr>
 {
     std::map<CardId, CardPtr> cards;

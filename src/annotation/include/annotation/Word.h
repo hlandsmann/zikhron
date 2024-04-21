@@ -13,10 +13,11 @@ namespace annotation {
 class Word
 {
 public:
-    Word(std::shared_ptr<VocableProgress> vocableProgress, VocableId vocId, const std::shared_ptr<ZH_Dictionary>& dictionary);
     Word(const std::string& description, const std::shared_ptr<ZH_Dictionary>& dictionary);
+    Word(std::vector<ZH_Dictionary::Entry>&& dictionaryEntries);
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] auto getId() const -> VocableId;
+    [[nodiscard]] auto Key() const -> std::string;
 
 private:
     VocableId vocableId{};

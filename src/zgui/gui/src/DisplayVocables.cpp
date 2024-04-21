@@ -51,7 +51,7 @@ void DisplayVocables::setup()
 {
     auto grid = layer->add<widget::Grid>(Align::start, 4, widget::Grid::Priorities{0.1F, 0.2F, 0.4F, 0.3F});
     for (auto& [vocId, ease, colorId] : activeVocables) {
-        const auto& entry = dictionary->EntryFromPosition(vocId, CharacterSetType::Simplified);
+        const auto& entry = dictionary->entryFromPosition(vocId, CharacterSetType::Simplified);
         addVocable(*grid, entry, colorId);
         addEaseButtonGroup(*grid);
     }

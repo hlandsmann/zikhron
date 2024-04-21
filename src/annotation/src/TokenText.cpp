@@ -109,7 +109,7 @@ void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)
         fragmentBegin = fragmentEnd + 1; // +1 a '~'-character is generated at the end of each subtext (speaker, dialogue)
         return paragraph;
     };
-    for (const auto& dialogue : dialogueCard.dialogue) {
+    for (const auto& dialogue : dialogueCard.getDialogue()) {
         paragraphSeq.push_back(textToParagraph(dialogue.speaker));
         paragraphSeq.push_back(textToParagraph(dialogue.text));
     }

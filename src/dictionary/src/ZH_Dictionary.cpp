@@ -223,7 +223,7 @@ auto ZH_Dictionary::Upper_bound(const std::string_view& key, const std::span<con
             })};
 }
 
-auto ZH_Dictionary::CharacterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType
+auto ZH_Dictionary::characterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType
 {
     auto sameSpan = [](const std::span<const Key>& a, const std::span<const Key>& b) -> bool {
         return (a.begin() == b.begin()) && (a.end() == b.end());
@@ -237,7 +237,7 @@ auto ZH_Dictionary::CharacterSetTypeFromKeySpan(const std::span<const Key>& keys
     throw std::invalid_argument("Invalid choice other than traditional / simplified!");
 }
 
-auto ZH_Dictionary::KeySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>
+auto ZH_Dictionary::keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>
 {
     switch (characterSet) {
     case CharacterSetType::Simplified:
@@ -251,7 +251,7 @@ auto ZH_Dictionary::KeySpanFromCharacterSetType(CharacterSetType characterSet) c
 
 auto ZH_Dictionary::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry
 {
-    const auto characterSet = CharacterSetTypeFromKeySpan(keys);
+    const auto characterSet = characterSetTypeFromKeySpan(keys);
     const auto& pos_to_characterSet = (characterSet == CharacterSetType::Simplified)
                                               ? position_to_simplified
                                               : position_to_traditional;
@@ -261,7 +261,7 @@ auto ZH_Dictionary::EntryFromPosition(size_t pos, const std::span<const Key>& ke
             .id = static_cast<VocableId>(pos)};
 }
 
-auto ZH_Dictionary::EntryFromPosition(size_t pos, CharacterSetType characterSet) const -> Entry
+auto ZH_Dictionary::entryFromPosition(size_t pos, CharacterSetType characterSet) const -> Entry
 {
     switch (characterSet) {
     case CharacterSetType::Simplified:
@@ -273,7 +273,7 @@ auto ZH_Dictionary::EntryFromPosition(size_t pos, CharacterSetType characterSet)
     }
 }
 
-auto ZH_Dictionary::EntryVectorFromKey(const std::string& key) const -> std::vector<Entry>
+auto ZH_Dictionary::entryVectorFromKey(const std::string& key) const -> std::vector<Entry>
 {
     std::vector<Entry> entries;
     // ToDo: it should be possible to support both, simplified and traditional at the same time.
@@ -291,6 +291,23 @@ auto ZH_Dictionary::EntryVectorFromKey(const std::string& key) const -> std::vec
     }
 
     return entries;
+}
+
+auto ZH_Dictionary::posFromKey(const std::string& key) const -> unsigned
+{
+    const auto span_lower = ZH_Dictionary::Lower_bound(key, Simplified());
+    const auto span_now = ZH_Dictionary::Upper_bound(key, span_lower);
+    for (const auto& k : span_now) {
+        if (key == k.key) {
+            return k.pos;
+        }
+    }
+    return size();
+}
+
+auto ZH_Dictionary::size() const -> unsigned
+{
+    return static_cast<unsigned>(simplified.size());
 }
 
 auto ZH_Dictionary::Entry::operator<=>(const Entry& other) const -> std::weak_ordering

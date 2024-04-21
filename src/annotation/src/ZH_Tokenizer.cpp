@@ -46,7 +46,7 @@ auto GetCandidates(const utl::StringU8& text,
             ZH_Tokenizer::ZH_dicItemVec dicEntries;
             for (ZH_Dictionary::Key dictionaryKey : found) {
                 if (dictionaryKey.key == key) {
-                    dicEntries.push_back(dict.EntryFromPosition(dictionaryKey.pos, characterSet));
+                    dicEntries.push_back(dict.entryFromPosition(dictionaryKey.pos, characterSet));
                 } else {
                     break;
                 }

@@ -60,6 +60,24 @@ WordDB::WordDB(std::shared_ptr<zikhron::Config> _config)
 WordDB::~WordDB()
 {
     // save();
+    spdlog::info("Unknown: {}", fmt::join(unknown, ", "));
+    spdlog::info("Known: {}", fmt::join(known, ", "));
+    spdlog::info("unknown: {}, known: {}", unknown.size(), known.size());
+}
+
+auto WordDB::lookup(const std::string& key) -> std::shared_ptr<Word>
+{
+    if (key_word.contains(key)) {
+        return key_word.at(key);
+    }
+    auto entryVectorFromKey = dictionary->entryVectorFromKey(key);
+    if (entryVectorFromKey.empty()) {
+        return nullptr;
+    }
+    auto word = std::make_shared<Word>(std::move(entryVectorFromKey));
+    words.push_back(word);
+    key_word.insert({key, word});
+    return word;
 }
 
 void WordDB::load()
@@ -69,6 +87,10 @@ void WordDB::load()
     words.reserve(static_cast<size_t>(numberOfVocables));
     parse(fileContent);
     spdlog::info("numberOfVocables: {}", numberOfVocables);
+    ranges::transform(words, std::inserter(key_word, key_word.begin()),
+                      [](const std::shared_ptr<Word>& word) -> std::pair<std::string, std::shared_ptr<Word>> {
+                          return {word->Key(), word};
+                      });
 }
 
 void WordDB::save()
