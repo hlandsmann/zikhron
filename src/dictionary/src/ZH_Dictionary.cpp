@@ -293,6 +293,17 @@ auto ZH_Dictionary::entryVectorFromKey(const std::string& key) const -> std::vec
     return entries;
 }
 
+auto ZH_Dictionary::contains(const std::string& key) const -> bool
+{
+    const auto span_lower = ZH_Dictionary::Lower_bound(key, Simplified());
+    const auto span_now = ZH_Dictionary::Upper_bound(key, span_lower);
+    if (span_now.empty()) {
+        return false;
+    }
+
+    return ranges::any_of(span_now, [&](const auto& k) { return k.key == key; });
+}
+
 auto ZH_Dictionary::posFromKey(const std::string& key) const -> unsigned
 {
     const auto span_lower = ZH_Dictionary::Lower_bound(key, Simplified());

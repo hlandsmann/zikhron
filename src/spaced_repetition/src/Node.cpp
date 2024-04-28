@@ -45,7 +45,7 @@ void Node::tighten()
     }
 }
 
-void Node::traverseAndTighten(Path& path)
+void Node::traverseAndTighten(Path& /* path */)
 {
 }
 

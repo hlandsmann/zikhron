@@ -36,7 +36,7 @@ public:
 
     operator std::string() const { return str; }
 
-    [[nodiscard]] auto string() const -> std::string { return str; }
+    [[nodiscard]] auto string() const -> const std::string& { return str; }
 
     [[nodiscard]] auto vLength() const -> size_t { return virtualLength; }
 
@@ -67,6 +67,7 @@ public:
     auto operator=(const StringU8& other) -> StringU8& = default;
     auto operator=(StringU8&& other) noexcept -> StringU8& = default;
     auto operator<=>(const StringU8&) const -> std::weak_ordering;
+    auto operator==(const StringU8&) const -> bool;
     operator std::string() const;
     [[nodiscard]] auto string() const -> std::string;
 
@@ -75,8 +76,8 @@ public:
     [[nodiscard]] auto empty() const -> bool;
     [[nodiscard]] auto at(size_t pos) const -> StringU8;
     [[nodiscard]] auto substr(long pos, long n) const -> std::string;
-    [[nodiscard]] auto back() const -> CharU8;
-    [[nodiscard]] auto front() const -> CharU8;
+    [[nodiscard]] auto back() const -> const CharU8&;
+    [[nodiscard]] auto front() const -> const CharU8&;
 
     [[nodiscard]] auto cbegin() const { return chars.cbegin(); }
 

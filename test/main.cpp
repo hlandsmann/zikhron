@@ -1,3 +1,4 @@
+#include <annotation/AdaptJiebaDict.h>
 #include <annotation/CardDB.h>
 #include <annotation/JieBa.h>
 #include <annotation/WordDB.h>
@@ -20,12 +21,30 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
 }
 
+void adaptJiebaDictionaries(const std::shared_ptr<annotation::WordDB>& wordDB)
+{
+    auto adaptDictionary = annotation::AdaptJiebaDict{wordDB->getDictionary()};
+    adaptDictionary.load(annotation::AdaptJiebaDict::dict_in_path);
+    adaptDictionary.merge();
+    adaptDictionary.save(annotation::AdaptJiebaDict::dict_out_path);
+    adaptDictionary.saveUserDict();
+    auto adaptIdf = annotation::AdaptJiebaDict{wordDB->getDictionary()};
+    adaptIdf.load(annotation::AdaptJiebaDict::idf_in_path);
+    adaptIdf.merge();
+    adaptIdf.save(annotation::AdaptJiebaDict::idf_out_path);
+}
+
 auto main() -> int
 {
-    // auto jieba = std::make_shared<annotation::JieBa>();
     auto zikhron_cfg = get_zikhron_cfg();
     auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
+    adaptJiebaDictionaries(wordDB);
     auto cardDB = std::make_shared<annotation::CardDB>(zikhron_cfg, wordDB);
+    auto jieba = cardDB->getJieba();
+    jieba->debug();
+
+    // auto jieba = std::make_shared<annotation::JieBa>();
+    // auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
 
     // auto zikhron_cfg = get_zikhron_cfg();
     // auto db = std::make_unique<sr::DataBase>(zikhron_cfg);

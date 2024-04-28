@@ -23,6 +23,7 @@
 #include <vector>
 
 namespace ranges = std::ranges;
+
 namespace {
 
 auto GetCandidates(const utl::StringU8& text,
@@ -172,6 +173,9 @@ ZH_Tokenizer::ZH_Tokenizer(utl::StringU8 _text,
     , dictionary{std::move(_dictionary)}
     , choices{std::move(_choices)}
 {
+    if (!choices) {
+        choices = std::make_shared<const AnnotationChoiceMap>();
+    }
     annotate();
 }
 

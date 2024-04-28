@@ -6,15 +6,13 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/VocableProgress.h>
-#include <spdlog/spdlog.h>
+#include <utils/spdlog.h>
 #include <utils/string_split.h>
 
 #include <algorithm>
 #include <cstddef>
-#include <exception>
 #include <filesystem>
 #include <fstream>
-#include <ios>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -22,8 +20,6 @@
 #include <nlohmann/json_fwd.hpp>
 #include <sstream>
 #include <string>
-#include <string_view>
-#include <type_traits>
 #include <utility>
 #include <vector>
 namespace ranges = std::ranges;
@@ -31,17 +27,6 @@ namespace views = std::views;
 namespace fs = std::filesystem;
 
 namespace {
-auto load_string_file(const fs::path& filename) -> std::string
-{
-    std::string result;
-    std::ifstream file;
-    file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
-    file.open(filename, std::ios_base::binary);
-    auto sz = static_cast<std::size_t>(file_size(filename));
-    result.resize(sz, '\0');
-    file.read(result.data(), static_cast<std::streamsize>(sz));
-    return result;
-}
 
 using vocId_vocId_map = std::map<VocableId, VocableId>;
 
@@ -60,9 +45,6 @@ WordDB::WordDB(std::shared_ptr<zikhron::Config> _config)
 WordDB::~WordDB()
 {
     // save();
-    spdlog::info("Unknown: {}", fmt::join(unknown, ", "));
-    spdlog::info("Known: {}", fmt::join(known, ", "));
-    spdlog::info("unknown: {}, known: {}", unknown.size(), known.size());
 }
 
 auto WordDB::lookup(const std::string& key) -> std::shared_ptr<Word>
@@ -80,9 +62,19 @@ auto WordDB::lookup(const std::string& key) -> std::shared_ptr<Word>
     return word;
 }
 
+auto WordDB::wordIsKnown(const std::string& key) const -> bool
+{
+    return key_word.contains(key);
+}
+
+auto WordDB::getDictionary() const -> std::shared_ptr<const ZH_Dictionary>
+{
+    return dictionary;
+}
+
 void WordDB::load()
 {
-    auto fileContent = load_string_file(config->DatabaseDirectory() / s_fn_progressVocableDB);
+    auto fileContent = utl::load_string_file(config->DatabaseDirectory() / s_fn_progressVocableDB);
     auto numberOfVocables = ranges::count(fileContent, '\n');
     words.reserve(static_cast<size_t>(numberOfVocables));
     parse(fileContent);

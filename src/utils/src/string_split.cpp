@@ -1,10 +1,26 @@
 #include <string_split.h>
 
 #include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <ios>
+#include <string>
 #include <string_view>
 #include <utility>
 
 namespace utl {
+auto load_string_file(const std::filesystem::path& filename) -> std::string
+{
+    std::string result;
+    std::ifstream file;
+    file.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+    file.open(filename, std::ios_base::binary);
+    auto sz = static_cast<std::size_t>(file_size(filename));
+    result.resize(sz, '\0');
+    file.read(result.data(), static_cast<std::streamsize>(sz));
+    return result;
+}
+
 auto splitOnce(std::string_view str, char delim)
         -> std::pair<std::string_view, std::string_view>
 {

@@ -51,6 +51,7 @@ public:
     [[nodiscard]] auto keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>;
     [[nodiscard]] auto entryFromPosition(size_t pos, CharacterSetType characterSet=CharacterSetType::Simplified) const -> Entry;
     [[nodiscard]] auto entryVectorFromKey(const std::string& key) const -> std::vector<Entry>;
+    [[nodiscard]] auto contains(const std::string& key) const -> bool;
     [[nodiscard]] auto posFromKey(const std::string& key) const -> unsigned;
     [[nodiscard]] auto size() const -> unsigned;
 

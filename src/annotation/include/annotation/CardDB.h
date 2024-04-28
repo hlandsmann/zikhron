@@ -38,6 +38,8 @@ public:
     [[nodiscard]] auto atId(CardId) -> CardPtr&;
     [[nodiscard]] auto atId(CardId) const -> CardPtrConst;
 
+    [[nodiscard]] auto getJieba() const -> std::shared_ptr<annotation::JieBa> { return jieba; }
+
 private:
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<WordDB> wordDB;

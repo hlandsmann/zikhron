@@ -9,19 +9,25 @@ PUBLIC
 )
 target_sources(zikhron_annotation
     PRIVATE
+        include/annotation/AdaptJiebaDict.h
         include/annotation/Card.h
         include/annotation/CardDB.h
         include/annotation/Ease.h
+        include/annotation/FreqDictionary.h
         include/annotation/JieBa.h
+        include/annotation/Rules.h
         include/annotation/Token.h
         include/annotation/TokenText.h
         include/annotation/Word.h
         include/annotation/WordDB.h
         include/annotation/ZH_Tokenizer.h
+        src/AdaptJiebaDict.cpp
         src/Card.cpp
         src/CardDB.cpp
         src/Ease.cpp
+        src/FreqDictionary.cpp
         src/JieBa.cpp
+        src/Rules.cpp
         src/Token.cpp
         src/TokenText.cpp
         src/Word.cpp

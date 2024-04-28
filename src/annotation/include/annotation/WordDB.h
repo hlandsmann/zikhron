@@ -29,6 +29,8 @@ public:
     auto operator=(const WordDB&) -> WordDB& = delete;
     auto operator=(WordDB&&) -> WordDB& = delete;
     auto lookup(const std::string& key) -> std::shared_ptr<Word>;
+    [[nodiscard]] auto wordIsKnown(const std::string& key) const -> bool;
+    [[nodiscard]] auto getDictionary() const -> std::shared_ptr<const ZH_Dictionary>;
 
 private:
     void load();
@@ -39,8 +41,6 @@ private:
     std::shared_ptr<ZH_Dictionary> dictionary;
     std::vector<std::shared_ptr<Word>> words;
     std::map<std::string, std::shared_ptr<Word>> key_word;
-    std::set<std::string> unknown;
-    std::set<std::string> known;
 };
 
 } // namespace annotation

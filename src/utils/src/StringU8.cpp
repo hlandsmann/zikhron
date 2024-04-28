@@ -13,6 +13,7 @@
 #include <string>
 
 namespace ranges = std::ranges;
+
 namespace utl {
 
 StringU8::StringU8(const icu::UnicodeString& _str)
@@ -41,6 +42,11 @@ auto StringU8::string() const -> std::string
 auto StringU8::operator<=>(const StringU8& other) const -> std::weak_ordering
 {
     return chars <=> other.chars;
+}
+
+auto StringU8::operator==(const StringU8& other) const -> bool
+{
+    return chars == other.chars;
 }
 
 auto StringU8::length() const -> size_t
@@ -75,12 +81,12 @@ auto StringU8::substr(long pos, long n) const -> std::string
     return std::accumulate(first, last, std::string{}, stringPlusT<CharU8>);
 }
 
-auto StringU8::back() const -> CharU8
+auto StringU8::back() const -> const CharU8&
 {
     return chars.back();
 }
 
-auto StringU8::front() const -> CharU8
+auto StringU8::front() const -> const CharU8&
 {
     return chars.front();
 }
