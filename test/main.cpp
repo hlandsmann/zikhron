@@ -1,5 +1,6 @@
 #include <annotation/AdaptJiebaDict.h>
 #include <annotation/CardDB.h>
+#include <annotation/FreqDictionary.h>
 #include <annotation/JieBa.h>
 #include <annotation/WordDB.h>
 #include <misc/Config.h>
@@ -36,9 +37,10 @@ void adaptJiebaDictionaries(const std::shared_ptr<annotation::WordDB>& wordDB)
 
 auto main() -> int
 {
+    auto fd = annotation::FreqDictionary{};
     auto zikhron_cfg = get_zikhron_cfg();
     auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
-    adaptJiebaDictionaries(wordDB);
+    // adaptJiebaDictionaries(wordDB);
     auto cardDB = std::make_shared<annotation::CardDB>(zikhron_cfg, wordDB);
     auto jieba = cardDB->getJieba();
     jieba->debug();

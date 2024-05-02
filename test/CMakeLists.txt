@@ -28,3 +28,17 @@ target_link_libraries(kocoro_signal
         spdlog::spdlog
 )
 set_property(TARGET kocoro_signal PROPERTY CXX_STANDARD 23)
+
+add_executable(scratch)
+target_sources(scratch
+    PRIVATE
+        scratch.cpp
+)
+target_link_libraries(scratch
+    PRIVATE
+        zikhron::warnings
+        zikhron::utils
+        spdlog::spdlog
+)
+set_property(TARGET scratch PROPERTY CXX_STANDARD 23)
+
