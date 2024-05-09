@@ -142,26 +142,26 @@ auto verifyPerm(std::vector<std::size_t>& perm,
     return true;
 }
 
-void printv(const std::vector<std::size_t> vec,
-            const std::span<const std::vector<JToken>>& tokens)
-{
-    fmt::print("printv: ");
-    std::size_t extend = 0;
-    for (const auto& [i, v] : views::enumerate(vec)) {
-        auto index = static_cast<std::size_t>(i);
-        if (extend > 0) {
-            // fmt::print("x");
-            extend--;
-            continue;
-        }
-        if (tokens[index].empty()) {
-            continue;
-        }
-        extend = tokens[index][v].key.length() - 1;
-        fmt::print("{}, ", tokens[index][v].key);
-    }
-    fmt::print("\n");
-}
+// void printv(const std::vector<std::size_t> vec,
+//             const std::span<const std::vector<JToken>>& tokens)
+// {
+//     fmt::print("printv: ");
+//     std::size_t extend = 0;
+//     for (const auto& [i, v] : views::enumerate(vec)) {
+//         auto index = static_cast<std::size_t>(i);
+//         if (extend > 0) {
+//             // fmt::print("x");
+//             extend--;
+//             continue;
+//         }
+//         if (tokens[index].empty()) {
+//             continue;
+//         }
+//         extend = tokens[index][v].key.length() - 1;
+//         fmt::print("{}, ", tokens[index][v].key);
+//     }
+//     fmt::print("\n");
+// }
 
 [[nodiscard]] auto genTokenVector(const std::vector<std::size_t> vec,
                                   const std::span<const std::vector<JToken>>& tokens) -> std::vector<JToken>
@@ -193,7 +193,7 @@ auto calculateTokenVectorValue(const std::vector<JToken> tokenVector,
     std::vector<float> hiValues;
     std::vector<float> loValues;
     float loVal = 0;
-    float hiVal = 0;
+    // float hiVal = 0;
 
     auto hiTokenIt = tokenVector.begin();
     auto loTokenIt = loTokenVec.begin();
@@ -294,30 +294,51 @@ JieBa::JieBa(std::shared_ptr<WordDB> _wordDB)
 {
 }
 
-auto JieBa::split(const std::string& str) -> std::vector<Token>
+auto JieBa::split(const std::string& text) -> std::vector<Token>
 {
     std::vector<Token> result;
     std::vector<std::string> splitVector;
-    jieba->Cut(str, splitVector, true);
+    jieba->Cut(text, splitVector, true);
+
+    for (const auto& str : splitVector) {
+        if (auto word = wordDB->lookup(str)) {
+            result.emplace_back(utl::StringU8{str}, word);
+            continue;
+        }
+        if (const auto& rule = rules.findRule(str); !rule.empty()) {
+            auto word = wordDB->lookup(rule);
+            result.emplace_back(utl::StringU8{str}, word);
+            continue;
+        }
+        if (const auto& tokens = splitFurther(str); !tokens.empty()) {
+            ranges::transform(tokens, std::back_inserter(result),
+                              [this](const JToken& token) -> Token {
+                                  auto word = wordDB->lookup(token.key);
+                                  return {token.key, word};
+                              });
+            continue;
+        }
+        result.emplace_back(utl::StringU8{str});
+    }
 
     ranges::copy(splitVector, std::inserter(allWords, allWords.begin()));
 
     return result;
 }
 
-auto isUnique(const std::vector<std::vector<std::vector<int>>>& chunks) -> bool
-{
-    for (const auto& v1 : chunks) {
-        auto m = v1.front().back();
-        for (const auto& v2 : v1) {
-            if (v2.back() > m) {
-                return false;
-            }
-            m--;
-        }
-    }
-    return true;
-}
+// auto isUnique(const std::vector<std::vector<std::vector<int>>>& chunks) -> bool
+// {
+//     for (const auto& v1 : chunks) {
+//         auto m = v1.front().back();
+//         for (const auto& v2 : v1) {
+//             if (v2.back() > m) {
+//                 return false;
+//             }
+//             m--;
+//         }
+//     }
+//     return true;
+// }
 
 auto JieBa::splitFurther(const std::string& str) -> std::vector<JToken>
 {
@@ -435,6 +456,6 @@ void JieBa::debug()
             spdlog::info("kn: {}", kn);
         }
     }
-    spdlog::info("dic: {}", fmt::join(dicWords, ", "));
+    spdlog::info("dic: {}", fmt::join(unknown, ", "));
 }
 } // namespace annotation

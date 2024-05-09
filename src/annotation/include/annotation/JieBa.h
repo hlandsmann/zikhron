@@ -40,11 +40,11 @@ class JieBa
 public:
     JieBa(std::shared_ptr<WordDB> wordDB);
 
-    [[nodiscard]] auto split(const std::string& str) -> std::vector<Token>;
+    [[nodiscard]] auto split(const std::string& text) -> std::vector<Token>;
     void debug();
 
 private:
-    auto splitFurther(const std::string& str) -> std::vector<JToken>;
+    auto splitFurther(const std::string& text) -> std::vector<JToken>;
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<FreqDictionary> freqDictionary;
     std::shared_ptr<cppjieba::Jieba> jieba;

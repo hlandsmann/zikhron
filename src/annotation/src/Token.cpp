@@ -15,6 +15,15 @@
 namespace ranges = std::ranges;
 
 namespace annotation {
+Token::Token(utl::StringU8 _value)
+    : value{std::move(_value)}
+{}
+
+Token::Token(utl::StringU8 _value, std::shared_ptr<Word> _word)
+    : value{std::move(_value)}
+    , word{std::move(_word)}
+{}
+
 Token::Token(utl::StringU8 _value, ZH_dicItemVec _dictionaryEntries)
     : value{std::move(_value)}
     , dictionaryEntries{std::move(_dictionaryEntries)}
@@ -47,13 +56,12 @@ void Token::setColorId(ColorId _colorId)
 
 auto Token::getVocableId() const -> std::optional<VocableId>
 {
-    return vocableId;
+    if (word) {
+        return word->getId();
+    }
+    return {};
 }
 
-void Token::setVocableId(VocableId _vocableId)
-{
-    vocableId.emplace(_vocableId);
-}
 
 auto Token::getDictionaryEntries() const -> const ZH_dicItemVec&
 {
@@ -79,7 +87,7 @@ auto tokenVectorFromString(const std::string& str, ColorId colorId) -> std::vect
     std::vector<std::string> vstrings(first, std::istream_iterator<std::string>{});
     ranges::transform(vstrings, std::back_inserter(result),
                       [colorId](const std::string& tokenStr) -> Token {
-                          auto token = Token{tokenStr, {}};
+                          auto token = Token{tokenStr};
 
                           token.setColorId(colorId);
                           return token;

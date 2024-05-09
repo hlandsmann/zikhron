@@ -16,7 +16,8 @@
 
 namespace annotation {
 
-Word::Word(const std::string& description, const std::shared_ptr<ZH_Dictionary>& dictionary)
+Word::Word(const std::string& description, VocableId _vocableId, const std::shared_ptr<ZH_Dictionary>& dictionary)
+    : vocableId{_vocableId}
 {
     auto rest = std::string_view{description};
     key = utl::split_front(rest, ';');
@@ -34,14 +35,16 @@ Word::Word(const std::string& description, const std::shared_ptr<ZH_Dictionary>&
     // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
 
-Word::Word(std::vector<ZH_Dictionary::Entry>&& _dictionaryEntries)
-    : vocableProgress{std::make_shared<VocableProgress>()}
+Word::Word(std::vector<ZH_Dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
+    : vocableId{_vocableId}
+    , vocableProgress{std::make_shared<VocableProgress>()}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {
     key = dictionaryEntries.front().key;
     pronounciation = dictionaryEntries.front().pronounciation;
     meanings.push_back(dictionaryEntries.front().meanings.front());
     dictionaryPos = dictionaryEntries.front().id;
+    vocableProgress = std::make_shared<VocableProgress>(VocableProgress::new_vocable);
 }
 
 auto Word::serialize() const -> std::string
@@ -61,6 +64,21 @@ auto Word::getId() const -> VocableId
 auto Word::Key() const -> std::string
 {
     return key;
+}
+
+auto Word::getProgress() const -> std::shared_ptr<VocableProgress>
+{
+    return vocableProgress;
+}
+
+auto Word::getPronounciation() const -> const std::string&
+{
+    return pronounciation;
+}
+
+auto Word::getMeanings() const -> const std::vector<std::string>&
+{
+    return meanings;
 }
 
 } // namespace annotation

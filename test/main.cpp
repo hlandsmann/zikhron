@@ -37,27 +37,27 @@ void adaptJiebaDictionaries(const std::shared_ptr<annotation::WordDB>& wordDB)
 
 auto main() -> int
 {
-    auto fd = annotation::FreqDictionary{};
-    auto zikhron_cfg = get_zikhron_cfg();
-    auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
-    // adaptJiebaDictionaries(wordDB);
-    auto cardDB = std::make_shared<annotation::CardDB>(zikhron_cfg, wordDB);
-    auto jieba = cardDB->getJieba();
-    jieba->debug();
+    // auto fd = annotation::FreqDictionary{};
+    // auto zikhron_cfg = get_zikhron_cfg();
+    // auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
+    // // adaptJiebaDictionaries(wordDB);
+    // auto cardDB = std::make_shared<annotation::CardDB>(zikhron_cfg, wordDB);
+    // // auto jieba = cardDB->getJieba();
+    // // jieba->debug();
 
     // auto jieba = std::make_shared<annotation::JieBa>();
     // auto wordDB = std::make_shared<annotation::WordDB>(zikhron_cfg);
 
-    // auto zikhron_cfg = get_zikhron_cfg();
-    // auto db = std::make_unique<sr::DataBase>(zikhron_cfg);
-    // auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
-    // auto& cardMeta = treeWalker->getNextCardChoice();
-    // if (cardMeta.Id() == 0) {
-    //     spdlog::info("No card found!");
-    //     return 0;
-    // }
-    // auto cardId = cardMeta.Id();
-    // spdlog::info("show cardId: {}, size: {}", cardId, cardMeta.getRelevantEase().size());
+    auto zikhron_cfg = get_zikhron_cfg();
+    auto db = std::make_unique<sr::DataBase>(zikhron_cfg);
+    auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
+    auto& cardMeta = treeWalker->getNextCardChoice();
+    if (cardMeta.Id() == 0) {
+        spdlog::info("No card found!");
+        return 0;
+    }
+    auto cardId = cardMeta.Id();
+    spdlog::info("show cardId: {}, size: {}", cardId, cardMeta.getRelevantEase().size());
 
     return 0;
 }

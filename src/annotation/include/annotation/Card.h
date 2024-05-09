@@ -36,6 +36,7 @@ public:
 
     [[nodiscard]] auto Id() const -> CardId;
     [[nodiscard]] auto getTokens() const -> const std::vector<Token>&;
+    [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
 
 protected:
     void executeJieba();
@@ -45,8 +46,8 @@ private:
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
     std::string filename;
     CardId id;
-    std::shared_ptr<annotation::WordDB> wordDB;
-    std::shared_ptr<annotation::JieBa> jieba;
+    std::shared_ptr<WordDB> wordDB;
+    std::shared_ptr<JieBa> jieba;
 
     std::vector<Token> tokens;
 };
@@ -63,7 +64,7 @@ public:
     DialogueCard(std::string filename,
                  CardId id,
                  std::shared_ptr<WordDB> wordDB,
-                 std::shared_ptr<annotation::JieBa> jieba,
+                 std::shared_ptr<JieBa> jieba,
                  std::vector<DialogueItem>&& dialogue);
     DialogueCard(const DialogueCard&) = default;
     DialogueCard(DialogueCard&&) = default;
@@ -85,7 +86,7 @@ public:
     TextCard(std::string filename,
              CardId id,
              std::shared_ptr<WordDB> wordDB,
-             std::shared_ptr<annotation::JieBa> jieba,
+             std::shared_ptr<JieBa> jieba,
              icu::UnicodeString text);
     TextCard(const TextCard&) = default;
     TextCard(TextCard&&) = default;

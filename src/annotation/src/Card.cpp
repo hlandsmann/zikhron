@@ -34,7 +34,7 @@ Card::Card(std::string _filename,
     , wordDB{std::move(_wordDB)}
     , jieba{std::move(_jieba)} {
 
-      };
+    };
 
 auto Card::Id() const -> CardId
 {
@@ -46,11 +46,16 @@ auto Card::getTokens() const -> const std::vector<Token>&
     return tokens;
 }
 
+auto Card::getWordDB() const -> std::shared_ptr<WordDB>
+{
+    return wordDB;
+}
+
 void Card::executeJieba()
 {
     const auto& cardText = getText();
     // spdlog::info("{}: {}", Id(), cardText);
-    auto tokenVector = jieba->split(cardText);
+    tokens = jieba->split(cardText);
     // for (const auto& token : tokenVector) {
     //     wordDB->lookup(token);
     // }

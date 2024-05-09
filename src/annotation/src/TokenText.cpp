@@ -39,7 +39,6 @@ TokenText::TokenText(std::shared_ptr<Card> _card, std::vector<VocableId> _vocabl
         textType = TextType::text;
         setupTextCard(*textCard);
     }
-    setVocableIdsForTokens();
 }
 
 auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_ease) -> std::vector<ActiveVocable>
@@ -139,20 +138,6 @@ auto TokenText::findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
     }
     spdlog::error("Could not find token iterator at threshold {}", threshold);
     return tokens.end();
-}
-
-void TokenText::setVocableIdsForTokens()
-{
-    auto tokens = views::join(paragraphSeq);
-    for (auto& token : tokens) {
-        const auto& dictionaryEntries = token.getDictionaryEntries();
-        auto itDicEntry = ranges::find_if(dictionaryEntries, [this](const auto& entry) -> bool {
-            return ranges::find(vocableIds, entry.id) != vocableIds.end();
-        });
-        if (itDicEntry != dictionaryEntries.end()) {
-            token.setVocableId(itDicEntry->id);
-        };
-    }
 }
 
 } // namespace annotation

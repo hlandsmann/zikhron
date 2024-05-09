@@ -26,6 +26,8 @@ public:
     using ZH_dicItemVec = ZH_Tokenizer::ZH_dicItemVec;
 
     Token() = default;
+    Token(utl::StringU8 value);
+    Token(utl::StringU8 value, std::shared_ptr<Word> word);
     Token(utl::StringU8 value, ZH_dicItemVec dictionaryEntries);
     [[nodiscard]] auto getWord() const -> std::shared_ptr<Word>;
     [[nodiscard]] auto getValue() const -> utl::StringU8;
@@ -33,20 +35,18 @@ public:
     [[nodiscard]] auto getColorId() const -> ColorId;
     void setColorId(ColorId colorId);
     [[nodiscard]] auto getVocableId() const -> std::optional<VocableId>;
-    void setVocableId(VocableId vocableId);
     [[nodiscard]] auto getDictionaryEntries() const -> const ZH_dicItemVec&;
 
     [[nodiscard]] auto string() const -> std::string;
     operator std::string() const;
 
 private:
-    std::shared_ptr<Word> word;
     utl::StringU8 value;
+    std::shared_ptr<Word> word;
     ColorId colorId{0};
     NoBreak noBreak{NoBreak::none};
     std::size_t dictionaryEntryIndex{0};
     ZH_dicItemVec dictionaryEntries;
-    std::optional<VocableId> vocableId;
 };
 
 auto tokenVectorFromString(const std::string& str, ColorId colorId) -> std::vector<Token>;

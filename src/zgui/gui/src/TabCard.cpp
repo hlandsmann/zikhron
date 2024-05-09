@@ -93,6 +93,8 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     cardLayer->setName("cardLayer");
     vocableLayer->setName("vocableLayer");
     cardLayer->setExpandType(width_expand, height_fixed);
+    auto dataBase = co_await asyncTreeWalker->getDataBase();
+    auto wordDB = dataBase->getWordDB();
 
     while (true) {
         displayText.reset();
@@ -107,7 +109,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 
         auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
         displayText = std::make_unique<DisplayText>(cardLayer, std::move(tokenText));
-        // displayVocables = std::make_unique<DisplayVocables>(vocableLayer, zh_dictionary, std::move(orderedVocId_ease));
+        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease));
 
         // cardLayer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph());
 

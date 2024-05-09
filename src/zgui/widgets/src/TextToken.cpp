@@ -50,7 +50,7 @@ void TextToken::renderText(float x, float y) const
 auto TextToken::testHovered() const -> bool
 {
     const auto& rect = getRect();
-    if (token.getDictionaryEntries().empty()) {
+    if (!token.getWord()) {
         return false;
     }
     renderText(rect.x, rect.y);

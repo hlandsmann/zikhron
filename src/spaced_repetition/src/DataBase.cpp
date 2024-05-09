@@ -49,7 +49,6 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     fillIndexMaps();
 }
 
-
 auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 {
     return *vocables;
@@ -87,10 +86,6 @@ void DataBase::resetCardsContainingVocable(VocableId vocId)
     }
 }
 
-
-
-
-
 auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
 {
     std::map<VocableId, VocableProgress> id_progress;
@@ -115,11 +110,13 @@ void DataBase::fillIndexMaps()
         allVocableIds.insert(vocableIds.begin(), vocableIds.end());
     }
     for (VocableId vocId : allVocableIds) {
-        if (progressVocables.contains(vocId)) {
-            vocables->emplace(vocId, progressVocables.at(vocId));
-        } else {
-            vocables->emplace(vocId, VocableProgress::new_vocable);
-        }
+        const auto& word = wordDB->lookupId(vocId);
+        vocables->emplace(word->getId(), *word->getProgress());
+        // if (progressVocables.contains(vocId)) {
+        //     vocables->emplace(vocId, progressVocables.at(vocId));
+        // } else {
+        //     vocables->emplace(vocId, VocableProgress::new_vocable);
+        // }
     }
     for (const auto& [cardIndex, cardMeta] : views::enumerate(cards->vspan())) {
         for (const auto& vocableIndex : cardMeta.VocableIndices()) {

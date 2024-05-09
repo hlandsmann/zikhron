@@ -44,7 +44,6 @@ private:
     [[nodiscard]] static auto tokenVector(tokenSubrange tokens) -> std::vector<Token>;
     [[nodiscard]] static auto findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
             -> std::vector<annotation::Token>::const_iterator;
-    void setVocableIdsForTokens();
 
     TextType textType{TextType::dialogue};
     std::vector<Paragraph> paragraphSeq;

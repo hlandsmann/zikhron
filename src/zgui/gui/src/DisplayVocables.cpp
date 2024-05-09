@@ -1,4 +1,6 @@
 #include "DisplayVocables.h"
+#include <annotation/Word.h>
+#include <annotation/WordDB.h>
 
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
@@ -19,10 +21,10 @@
 
 namespace gui {
 DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
-                                 std::shared_ptr<const ZH_Dictionary> _dictionary,
+                                 std::shared_ptr<annotation::WordDB> _wordDB,
                                  std::vector<ActiveVocable>&& _orderedVocId_ease)
     : layer{std::move(_layer)}
-    , dictionary{std::move(_dictionary)}
+    , wordDB{std::move(_wordDB)}
     , activeVocables{std::move(_orderedVocId_ease)}
 
 {
@@ -51,20 +53,20 @@ void DisplayVocables::setup()
 {
     auto grid = layer->add<widget::Grid>(Align::start, 4, widget::Grid::Priorities{0.1F, 0.2F, 0.4F, 0.3F});
     for (auto& [vocId, ease, colorId] : activeVocables) {
-        const auto& entry = dictionary->entryFromPosition(vocId, CharacterSetType::Simplified);
-        addVocable(*grid, entry, colorId);
+        const auto& word = wordDB->lookupId(vocId);
+        addVocable(*grid, *word, colorId);
         addEaseButtonGroup(*grid);
     }
 }
 
-void DisplayVocables::addVocable(widget::Grid& grid, const ZH_Dictionary::Entry& entry, ColorId colorId)
+void DisplayVocables::addVocable(widget::Grid& grid, const annotation::Word& word, ColorId colorId)
 {
     widget::TextTokenSeq::Config ttqConfig;
     ttqConfig.fontType = fontType;
     ttqConfig.padding = 15.F;
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.key, colorId), ttqConfig);
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.pronounciation, colorId), ttqConfig);
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(entry.meanings.at(0), colorId), ttqConfig);
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.Key(), colorId), ttqConfig);
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.getPronounciation(), colorId), ttqConfig);
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.getMeanings().at(0), colorId), ttqConfig);
 }
 
 void DisplayVocables::addEaseButtonGroup(widget::Grid& grid)
