@@ -6,6 +6,7 @@
 #include <context/Drop.h>
 #include <context/Theme.h>
 
+#include <functional>
 #include <memory>
 #include <string>
 
@@ -29,9 +30,9 @@ public:
     auto operator=(const Overlay&) -> Overlay& = default;
     auto operator=(Overlay&&) -> Overlay& = default;
 
-    [[nodiscard]] auto dropOverlay() -> OverlayDrop;
-
-    auto arrange(const layout::Rect& rect) -> bool override;
+    [[nodiscard]] auto dropOverlay(float x, float y) -> OverlayDrop;
+    void setFirstDrop();
+    [[nodiscard]] auto shouldClose() const -> bool;
 
     // export Layer functions >>>>>>>>>>>
     template<class WidgetType, class... Args>
@@ -51,8 +52,18 @@ public:
     void start() { layer->start(); }
 
 private:
+    [[nodiscard]] auto calculateSize() const -> WidgetSize override;
+    auto arrange(const layout::Rect& rect) -> bool override;
+    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
+
+    [[nodiscard]] auto getLayerRect(const layout::Rect& rect) const -> layout::Rect;
+    [[nodiscard]] auto getParentWindowRect() const -> layout::Rect;
+
     std::shared_ptr<widget::Layer> layer;
     float maxWidth{};
+
+    bool firstDrop = false;
+    bool closeNext = false;
 };
 
 class OverlayDrop : public context::Drop<OverlayDrop>
@@ -60,7 +71,8 @@ class OverlayDrop : public context::Drop<OverlayDrop>
 public:
     OverlayDrop(const std::string& name,
                 const widget::layout::Rect& rect,
-                context::StyleColorsDrop styleColorsDrop);
+                context::StyleColorsDrop styleColorsDrop,
+                std::function<void()> execAfterWindowOpen);
 
 private:
     friend class Drop<OverlayDrop>;

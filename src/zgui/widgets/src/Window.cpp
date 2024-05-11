@@ -24,8 +24,7 @@ void Window::setup(ExpandType _expandTypeWidth,
             .verticalAlign = widget::layout::Align::start,
             .expandTypeWidth = _expandTypeWidth,
             .expandTypeHeight = _expandTypeHeight,
-            .parent = std::weak_ptr<widget::Widget>{}
-
+            .parent = shared_from_this(),
     });
     setExpandType(_expandTypeWidth, _expandTypeHeight);
     setName(_name);

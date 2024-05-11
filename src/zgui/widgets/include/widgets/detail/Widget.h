@@ -139,6 +139,7 @@ public:
     }
 
     void cutWidgetIdGen();
+    [[nodiscard]] auto getParent() const -> std::shared_ptr<Widget>;
 
 protected:
     [[nodiscard]] static auto dropWidgetId(WidgetId) -> context::WidgetIdDrop;

@@ -2,6 +2,7 @@
 
 #include <DisplayText.h>
 #include <DisplayVocables.h>
+#include <VocableOverlay.h>
 #include <context/imglog.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
@@ -10,6 +11,7 @@
 #include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
 #include <widgets/MediaSlider.h>
+#include <widgets/Overlay.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
@@ -43,6 +45,7 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
     // box->setExpandType(width_expand, height_expand);
     auto& cardWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    overlay = cardWindow.add<widget::Overlay>(Align::start, VocableOverlay::maxWidth);
     cardBox->setName("cardBox");
     // cardBox->setFlipChildrensOrientation(false);
     signalCardBox->set(cardBox);
@@ -138,12 +141,20 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
     if (displayText) {
         auto textToken = displayText->draw();
         if (textToken.has_value()) {
+            vocableOverlay = std::make_unique<VocableOverlay>(overlay, textToken.value());
             const auto& annotationToken = textToken.value()->getToken();
-            spdlog::info("Clicked token: {}", annotationToken.getValue());
+            const auto& rect = textToken.value()->getPositionRect();
+            spdlog::info("Clicked token: {}, x: {}, y: {}, h: {}", annotationToken.getValue(), rect.x, rect.y, rect.height);
         }
     }
     if (displayVocables) {
         displayVocables->draw();
+    }
+    if (vocableOverlay) {
+        vocableOverlay->draw();
+        if (vocableOverlay->shouldClose()) {
+            vocableOverlay = nullptr;
+        }
     }
     // auto& cardLayer = cardWindow.next<widget::Layer>();
     // cardLayer.start();
@@ -160,10 +171,10 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
     box.start();
     box.next<widget::ImageButton>().clicked();
     static float x = 0;
-    x += 0.002F;
-    if (x >= 1.0F) {
-        x = 0;
-    }
+    // x += 0.002F;
+    // if (x >= 1.0F) {
+    //     x = 0;
+    // }
     auto optx = box.next<widget::MediaSlider>().slide(x);
     if (optx.has_value()) {
         x = *optx;

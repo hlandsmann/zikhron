@@ -163,6 +163,11 @@ auto Widget::getRect() const -> const layout::Rect&
     return *rectPtr;
 }
 
+auto Widget::getParent() const -> std::shared_ptr<Widget>
+{
+    return parent.lock();
+}
+
 void Widget::setRect(const layout::Rect& rect)
 {
     *rectPtr = rect;

@@ -39,8 +39,8 @@ public:
     auto draw() -> std::optional<std::shared_ptr<TextToken>>;
 
 private:
-    auto calculateSize() const -> WidgetSize override;
-    auto calculateMinSize() const -> WidgetSize override;
+    [[nodiscard]] auto calculateSize() const -> WidgetSize override;
+    [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
 
     auto arrange(const layout::Rect& rect) -> bool override;
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;

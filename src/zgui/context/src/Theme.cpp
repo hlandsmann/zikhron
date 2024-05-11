@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <utility>
+
 namespace context {
 
 Theme::Theme(Fonts _fonts, Texture _texture)
@@ -140,6 +141,11 @@ auto Theme::ColorWindowBackground() const -> const ImVec4&
     return colorWindowBackground;
 }
 
+auto Theme::ColorOverlayBackground() const -> const ImVec4&
+{
+    return colorOverlayBackground;
+}
+
 auto Theme::getFont() const -> const Fonts&
 {
     return fonts;
@@ -188,6 +194,9 @@ StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
         break;
     case ColorTheme::Window:
         PushStyleColor(ImGuiCol_WindowBg, theme.ColorWindowBackground());
+        break;
+    case ColorTheme::Overlay:
+        PushStyleColor(ImGuiCol_WindowBg, theme.ColorOverlayBackground());
         break;
     }
 }

@@ -16,6 +16,7 @@ enum class ColorTheme {
     ButtonDefault,
     ButtonChecked,
     Window,
+    Overlay,
 };
 
 class Theme
@@ -37,6 +38,7 @@ class Theme
     static constexpr ImVec4 s_colorImageInsensitiveHovered  = {0.6F, 0.6F, 0.6F, 1.0F};
 
     static constexpr ImVec4 s_colorWindowBackground = {0.18F, 0.18F, 0.18F, 1.0F};
+    static constexpr ImVec4 s_colorOverlayBackground = {0.13F, 0.13F, 0.13F, 1.0F};
     // clang-format on
 
 public:
@@ -64,6 +66,7 @@ public:
     [[nodiscard]] auto ColorImageInsensitiveHovered() const -> const ImVec4&;
 
     [[nodiscard]] auto ColorWindowBackground() const -> const ImVec4&;
+    [[nodiscard]] auto ColorOverlayBackground() const -> const ImVec4&;
 
     [[nodiscard]] auto getFont() const -> const Fonts&;
     [[nodiscard]] auto getTexture() const -> const Texture&;
@@ -86,6 +89,7 @@ private:
     ImVec4 colorImageInsensitiveHovered{s_colorImageInsensitiveHovered};
 
     ImVec4 colorWindowBackground{s_colorWindowBackground};
+    ImVec4 colorOverlayBackground{s_colorOverlayBackground};
 
     Fonts fonts;
     Texture texture;

@@ -74,7 +74,7 @@ auto TextToken::clicked() -> bool
         auto colorDrop = isHovered ? fontTheme.dropShadowFontColor()
                                    : fontTheme.dropFontColor(token.getColorId(), maxColorId);
         renderText(rect.x, rect.y);
-        if (token.getDictionaryEntries().empty()) {
+        if (!token.getWord()) {
             return false;
         }
         return ImGui::IsItemClicked();

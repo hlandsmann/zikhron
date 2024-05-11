@@ -18,8 +18,19 @@ public:
 
     static void renderLogMessages(bool render)
     {
-        ImGui::Begin("logwindow", nullptr,
-                     0);
+        static int windowFocusDelay = 0;
+
+        ImGui::Begin("logwindow", nullptr, 0);
+        if (!ImGui::IsWindowFocused()) {
+            if (windowFocusDelay == 0) {
+                windowFocusDelay = 60;
+            } else {
+                windowFocusDelay--;
+            }
+            if (windowFocusDelay == 0) {
+                ImGui::SetWindowFocus();
+            }
+        }
         if (render) {
             for (const auto& logMessage : logMessages) {
                 ImGui::Text("%s", logMessage.c_str());

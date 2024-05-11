@@ -1,6 +1,7 @@
 #pragma once
 #include "DisplayText.h"
 #include "DisplayVocables.h"
+#include "VocableOverlay.h"
 
 #include <annotation/Ease.h>
 #include <context/WidgetIdGenerator.h>
@@ -8,6 +9,7 @@
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <widgets/Box.h>
 #include <widgets/Layer.h>
+#include <widgets/Overlay.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
@@ -39,6 +41,9 @@ private:
 
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayVocables> displayVocables;
+    std::unique_ptr<VocableOverlay> vocableOverlay;
+
+    std::shared_ptr<widget::Overlay> overlay;
 
     using BoxPtr = std::shared_ptr<widget::Box>;
     std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;

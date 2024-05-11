@@ -35,7 +35,7 @@ private:
     annotation::Token token;
 
     WidgetId shadowId{};
-    context::FontType fontType{FontType::Gui};
+    FontType fontType{FontType::Gui};
     static constexpr ColorId maxColorId{};
 };
 
