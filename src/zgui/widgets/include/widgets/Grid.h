@@ -43,7 +43,8 @@ private:
                                  const std::shared_ptr<Widget>& widget,
                                  float cursorX,
                                  float cursorY,
-                                 float width)>
+                                 float width,
+                                 float height)>
                                  fun) const;
     [[nodiscard]] auto nextCursorIndexEnd(std::vector<std::size_t>::const_iterator& itMergedCell, std::size_t& cellCounter) const -> std::size_t;
     [[nodiscard]] auto getAvailableWidth(std::size_t indexStart,
@@ -54,6 +55,7 @@ private:
     static void setCursor(std::vector<float>& cursors, std::size_t index, float value);
     template<class T>
     [[nodiscard]] static auto getVectorIndexElement(std::vector<T>& vector, std::size_t index) -> T&;
+    [[nodiscard]] static auto alignShiftPos(Align align, float pos, float widgetDimension, float availableDimension) -> float;
 
     /* functions overriden from Widget */
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
@@ -63,9 +65,9 @@ private:
     /* shared functions via MetaBox */
     static auto newWidgetAlign(Align align, Measure measure) -> Align;
 
-    /* Grid internal functions */
-    auto getRowHeight(std::size_t row) const -> float;
-    auto getColumnWidth(std::size_t column) const -> float;
+    // /* Grid internal functions */
+    // auto getRowHeight(std::size_t row) const -> float;
+    // auto getColumnWidth(std::size_t column) const -> float;
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;

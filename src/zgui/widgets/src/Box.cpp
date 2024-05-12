@@ -31,6 +31,9 @@ Box::Box(const WidgetInit& init)
 
 auto Box::arrange(const layout::Rect& rect) -> bool
 {
+    // winlog("linebox_ttq_1", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
+    // winlog("linebox_ttq_1", "{}: size: {}", getName(), widgets.size());
+    // imglog::log("{}: size: {}", getName(), widgets.size());
     // imglog::log("box, {}: x: {}, y: {}, w: {}, h: {}, widgetsSize(): {}", getName(), rect.x, rect.y, rect.width, rect.height, widgets.size());
     // winlog("DisplayCard_box", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     // winlog("ctrlBox", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
@@ -217,6 +220,20 @@ auto Box::getWidgetCursor(Measure measure,
     return newCursor;
 }
 
+auto Box::arrangex(Measure measure, const layout::Rect& rect) -> bool
+{
+    auto cursors = std::vector<float>{};
+    cursors.reserve(widgets.size());
+
+    traverseWidgets(rect, measure, cursors, ExpandType::width_fixed,
+                    [](const std::shared_ptr<Widget>& widget, float /* cursor */, float /* dimension */)
+                            -> WidgetSize {
+                        return widget->getWidgetMinSize();
+                    });
+
+    return false;
+}
+
 auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
 {
     // imglog::log("{}:, x: {}, y: {}", getName(), rect.x, rect.y);
@@ -305,6 +322,25 @@ auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
         align = nextAlign;
     }
     return needsArrange;
+}
+
+void Box::traverseWidgets(const layout::Rect& rect,
+                          Measure measure,
+                          std::vector<float>& cursors,
+                          ExpandType expandPriority,
+                          std::function<WidgetSize(
+                                  const std::shared_ptr<Widget>& widget,
+                                  float cursor,
+                                  float dimension)>
+                                  fun) const
+{
+    const auto centerIt = ranges::find_if(widgets, [measure](const auto& widgetPtr) {
+        return getWidgetAlign(measure, widgetPtr) == Align::center;
+    });
+    const auto endIt = ranges::find_if(widgets, [measure](const auto& widgetPtr) {
+        return getWidgetAlign(measure, widgetPtr) == Align::end;
+    });
+    const float centerSize = accumulateMeasure(centerIt, endIt, measure, SizeType::min);
 }
 
 } // namespace widget

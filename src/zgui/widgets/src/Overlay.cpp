@@ -42,6 +42,7 @@ auto Overlay::dropOverlay(float x, float y) -> OverlayDrop
 {
     auto layerSize = layer->getWidgetSize();
     auto rect = getRect();
+    // auto layerSize = layer->getWidgetSizeFromRect(getLayerRect(rect));
     auto parentWindowRect = getParentWindowRect();
     // imglog::log("overlay in drop, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     rect.x = std::min(x + parentWindowRect.x, rect.width - layerSize.width);
@@ -90,7 +91,7 @@ auto Overlay::calculateSize() const -> WidgetSize
 
 auto Overlay::arrange(const layout::Rect& rect) -> bool
 {
-    // imglog::log("overay: w: {}, h: {}", rect.width, rect.height);
+    imglog::log("overlay arrange: w: {}, h: {}", rect.width, rect.height);
     setRect(rect);
 
     auto layerRect = getLayerRect(rect);

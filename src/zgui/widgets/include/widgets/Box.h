@@ -6,6 +6,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -59,6 +60,16 @@ private:
                                               const layout::Rect& rect,
                                               float oldCursor) -> float;
     [[nodiscard]] auto arrange(Measure measure, const layout::Rect& rect) -> bool;
+    [[nodiscard]] auto arrangex(Measure measure, const layout::Rect& rect) -> bool;
+    void traverseWidgets(const layout::Rect& rect,
+                         Measure measure,
+                         std::vector<float>& cursors,
+                         ExpandType expandPriority,
+                         std::function<WidgetSize(
+                                 const std::shared_ptr<Widget>& widget,
+                                 float cursor,
+                                 float dimension)>
+                                 fun) const;
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;

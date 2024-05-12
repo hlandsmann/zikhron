@@ -2,6 +2,7 @@
 
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
+#include <utils/spdlog.h>
 #include <widgets/Layer.h>
 #include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
@@ -70,9 +71,12 @@ auto DisplayText::drawText() -> std::optional<std::shared_ptr<widget::TextToken>
 
 void DisplayText::setupDialogue()
 {
+    int index = 0;
     auto grid = layer->add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.3F, 0.7F});
     for (const auto& dialogue : tokenText->getDialogue()) {
-        grid->add<widget::TextTokenSeq>(Align::start, dialogue, ttqConfig);
+        auto ttq = grid->add<widget::TextTokenSeq>(Align::start, dialogue, ttqConfig);
+        ttq->setName(fmt::format("ttq_{}", index));
+        index++;
     }
 }
 

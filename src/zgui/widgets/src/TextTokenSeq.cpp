@@ -6,7 +6,7 @@
 #include <context/imglog.h>
 #include <detail/Widget.h>
 #include <imgui.h>
-#include <spdlog/spdlog.h>
+#include <utils/spdlog.h>
 
 #include <algorithm>
 #include <memory>
@@ -28,6 +28,7 @@ void TextTokenSeq::setup(const Paragraph& _paragraph)
     lineBox->setBorder(border);
 
     scratchBox = createOrphan<Box>(Orientation::vertical);
+    scratchBox->setName("scratchBox");
     scratchBox->setExpandType(width_fixed, height_fixed);
     scratchBox->setPadding(config.padding);
     scratchBox->setBorder(border);
@@ -81,8 +82,10 @@ auto TextTokenSeq::arrangeLines(Box& lines, const layout::Rect& rect) -> bool
     // spdlog::critical("ttq, x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
     // imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     // spdlog::info("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    int index = 0;
     lines.clear();
     auto line = lines.add<Box>(Align::start, Orientation::horizontal);
+    line->setName(fmt::format("{}_l{}", lines.getName(), index));
     for (const auto& token : paragraph) {
         // auto textToken = line->add<TextToken>(Align::start, token);
         // textToken->setFontType(context::FontType::chineseBig);
@@ -90,6 +93,8 @@ auto TextTokenSeq::arrangeLines(Box& lines, const layout::Rect& rect) -> bool
         if (lines.getWidgetSize().width > rect.width) {
             line->pop();
             line = lines.add<Box>(Align::start, Orientation::horizontal);
+            index++;
+            line->setName(fmt::format("{}_l{}", lines.getName(), index));
             addTextToken(*line, token);
         }
         // spdlog::info("{}", token.getValue());
@@ -103,7 +108,8 @@ auto TextTokenSeq::arrangeLines(Box& lines, const layout::Rect& rect) -> bool
 auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
 {
     if (lineBox->getWidgetSize().width > rect.width) {
-        imglog::log("{}: 1, false", getName());
+        imglog::log("{}: 1, false, widgetWidth: {}, rect.width: {}", getName(), lineBox->getWidgetSize().width, rect.width);
+        // imglog::log("{}: 1, false", getName());
         return false;
     }
     lineBox->start();
@@ -142,6 +148,7 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 {
     // imglog::log("ttq,arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     // spdlog::critical("ttq,arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    lineBox->setName(fmt::format("linebox_{}", getName()));
     lineBox->start();
     if (paragraph.empty()) {
         return lineBox->arrange(rect);
@@ -154,16 +161,24 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 
 auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
-    //     imglog::log("gwsfr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
+    // imglog::log("{} - gwsfr, x {}, y {}, w{}, h{}", getName(), rect.x, rect.y, rect.width, rect.height);
     lineBox->start();
     if (paragraph.empty()) {
         return {};
     }
     if (!lineBox->isLast() && linesFit(rect)) {
-        return lineBox->getWidgetSizeFromRect(rect);
+        auto lbs = lineBox->getWidgetSizeFromRect(rect);
+        if (getName() == "ttq_1") {
+            imglog::log("{}, lbs - w: {}, h: {}", getName(), lbs.width, lbs.height);
+        }
+        return lbs;
     }
     arrangeLines(*scratchBox, rect);
-    return scratchBox->getWidgetSize();
+    auto scratch = scratchBox->getWidgetSize();
+    if (getName() == "ttq_1") {
+        imglog::log("{}, scratch - w: {}, h: {}", getName(), scratch.width, scratch.height);
+    }
+    return scratch;
 }
 
 auto TextTokenSeq::draw() -> std::optional<std::shared_ptr<TextToken>>

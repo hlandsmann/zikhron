@@ -105,6 +105,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         cardLayer->clear();
         vocableLayer->clear();
 
+        // card 601 has problems
+
+
         auto cardMeta = co_await asyncTreeWalker->getNextCardChoice();
         // const auto& zh_dictionary = cardMeta.getDictionary();
         auto vocId_ease = cardMeta.getRelevantEase();

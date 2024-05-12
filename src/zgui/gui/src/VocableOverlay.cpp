@@ -26,6 +26,14 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::s
     ttqConfig.fontType = fontType;
     ttqConfig.padding = 15.F;
     box->add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
+    auto definitionBox = box->add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    definitionBox->setExpandType(width_expand, height_fixed);
+    definitionBox->add<widget::TextTokenSeq>(Align::start,
+                                             annotation::tokenVectorFromString(word->getPronounciation(), {}),
+                                             ttqConfig);
+    definitionBox->add<widget::TextTokenSeq>(Align::start,
+                                             annotation::tokenVectorFromString(word->getMeanings().front(), {}),
+                                             ttqConfig);
 }
 
 void VocableOverlay::draw()
@@ -41,6 +49,12 @@ void VocableOverlay::draw()
     auto& box = overlay->next<widget::Box>();
     box.start();
     box.next<widget::TextTokenSeq>().draw();
+
+    auto& definitionBox = box.next<widget::Box>();
+    definitionBox.start();
+
+    definitionBox.next<widget::TextTokenSeq>().draw();
+    definitionBox.next<widget::TextTokenSeq>().draw();
 }
 
 auto VocableOverlay::shouldClose() const -> bool

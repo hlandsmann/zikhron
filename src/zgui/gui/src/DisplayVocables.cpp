@@ -71,7 +71,8 @@ void DisplayVocables::addVocable(widget::Grid& grid, const annotation::Word& wor
 
 void DisplayVocables::addEaseButtonGroup(widget::Grid& grid)
 {
-    grid.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::horizontal,
-                                        std::initializer_list<std::string>{"Again", "Hard", "Normal", "Easy"});
+    auto tbg = grid.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::horizontal,
+                                      std::initializer_list<std::string>{"Again", "Hard", "Normal", "Easy"});
+    tbg->setVerticalAlign(Align::center);
 }
 } // namespace gui
