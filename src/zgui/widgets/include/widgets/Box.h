@@ -49,7 +49,10 @@ private:
                                             float size,
                                             float orthogonalSize,
                                             const std::shared_ptr<Widget>& widget) -> layout::Rect;
-    [[nodiscard]] static auto rectWithAdaptedSize(Measure measure, const layout::Rect& rect, float size) -> layout::Rect;
+    [[nodiscard]] static auto rectWithAdaptedPosSize(Measure measure,
+                                                     const layout::Rect& rect,
+                                                     float cursor,
+                                                     float size, float orthogonalSize=0.F) -> layout::Rect;
     [[nodiscard]] static auto oppositeMeasure(Measure measure) -> Measure;
     [[nodiscard]] static auto getSizeOfWidgetSize(Measure measure, WidgetSize widgetSize) -> float;
     [[nodiscard]] static auto getWidgetAlign(Measure measure, const std::shared_ptr<Widget>& widget) -> Align;
@@ -60,15 +63,17 @@ private:
                                               const layout::Rect& rect,
                                               float oldCursor) -> float;
     [[nodiscard]] auto arrange(Measure measure, const layout::Rect& rect) -> bool;
-    [[nodiscard]] auto arrangex(Measure measure, const layout::Rect& rect) -> bool;
+    [[nodiscard]] static auto getAvailableSize(float fullSize,
+                                               float startSize, float centerSize, float endSize,
+                                               Align align) -> float;
     void traverseWidgets(const layout::Rect& rect,
                          Measure measure,
-                         std::vector<float>& cursors,
-                         ExpandType expandPriority,
+                         std::vector<float>& sizes,
                          std::function<WidgetSize(
                                  const std::shared_ptr<Widget>& widget,
                                  float cursor,
-                                 float dimension)>
+                                 float size,
+                                 float availableSize)>
                                  fun) const;
 
     /* shared members via MetaBox */

@@ -55,7 +55,7 @@ private:
     static void setCursor(std::vector<float>& cursors, std::size_t index, float value);
     template<class T>
     [[nodiscard]] static auto getVectorIndexElement(std::vector<T>& vector, std::size_t index) -> T&;
-    [[nodiscard]] static auto alignShiftPos(Align align, float pos, float widgetDimension, float availableDimension) -> float;
+    [[nodiscard]] static auto alignShiftPos(Align align, float pos, float size, float availableSize) -> float;
 
     /* functions overriden from Widget */
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;

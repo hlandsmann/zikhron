@@ -91,7 +91,6 @@ auto Overlay::calculateSize() const -> WidgetSize
 
 auto Overlay::arrange(const layout::Rect& rect) -> bool
 {
-    imglog::log("overlay arrange: w: {}, h: {}", rect.width, rect.height);
     setRect(rect);
 
     auto layerRect = getLayerRect(rect);

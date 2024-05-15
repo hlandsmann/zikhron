@@ -244,15 +244,15 @@ auto Grid::getVectorIndexElement(std::vector<T>& vector, std::size_t index) -> T
     return vector[index];
 }
 
-auto Grid::alignShiftPos(Align align, float pos, float widgetDimension, float availableDimension) -> float
+auto Grid::alignShiftPos(Align align, float pos, float size, float availableSize) -> float
 {
     switch (align) {
     case Align::start:
         return pos;
     case Align::center:
-        return pos + ((availableDimension - widgetDimension) / 2.F);
+        return pos + ((availableSize - size) / 2.F);
     case Align::end:
-        return pos + (availableDimension - widgetDimension);
+        return pos + (availableSize - size);
     }
     std::unreachable();
 }

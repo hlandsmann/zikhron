@@ -28,6 +28,7 @@ void ToggleButtonGroup::setup(Orientation _orientation, std::initializer_list<st
 {
     box = create<Box>(_orientation);
     box->setPadding(0.F);
+    box->setName("tbgrp");
     for (const auto& label : labels) {
         box->add<Button>(layout::Align::start, label);
     }

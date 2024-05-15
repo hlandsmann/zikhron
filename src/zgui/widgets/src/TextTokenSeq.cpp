@@ -48,11 +48,7 @@ TextTokenSeq::TextTokenSeq(WidgetInit init)
 
 auto TextTokenSeq::calculateSize() const -> WidgetSize
 {
-    // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
-    // return lines->getWidgetSize();
     auto widgetSize = lineBox->getWidgetSize();
-    // widgetSize.width = 1.F;
-    // widgetSize.height = 1.F;
     return widgetSize;
 }
 
@@ -77,39 +73,22 @@ auto TextTokenSeq::calculateMinSize() const -> WidgetSize
 
 auto TextTokenSeq::arrangeLines(Box& lines, const layout::Rect& rect) -> bool
 {
-    // auto width = lines->getWidgetSize().width;
-    // spdlog::critical("x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
-    // spdlog::critical("ttq, x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
-    // imglog::log("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
-    // spdlog::info("ttq, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
-    int index = 0;
     lines.clear();
     auto line = lines.add<Box>(Align::start, Orientation::horizontal);
-    line->setName(fmt::format("{}_l{}", lines.getName(), index));
     for (const auto& token : paragraph) {
-        // auto textToken = line->add<TextToken>(Align::start, token);
-        // textToken->setFontType(context::FontType::chineseBig);
         addTextToken(*line, token);
         if (lines.getWidgetSize().width > rect.width) {
             line->pop();
             line = lines.add<Box>(Align::start, Orientation::horizontal);
-            index++;
-            line->setName(fmt::format("{}_l{}", lines.getName(), index));
             addTextToken(*line, token);
         }
-        // spdlog::info("{}", token.getValue());
     }
-    // spdlog::warn("width: {}", width);
-    // resetWidgetSize();
     return lines.arrange(rect);
-    // return true;
 }
 
 auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
 {
     if (lineBox->getWidgetSize().width > rect.width) {
-        imglog::log("{}: 1, false, widgetWidth: {}, rect.width: {}", getName(), lineBox->getWidgetSize().width, rect.width);
-        // imglog::log("{}: 1, false", getName());
         return false;
     }
     lineBox->start();
@@ -122,19 +101,15 @@ auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
             tokenIt++;
         }
         if (tokenIt == paragraph.end()) {
-            // imglog::log("{}: 2, true, rectWidth: {}", getName(), rect.width);
             return true;
         }
         scratchBox->clear();
         addTextToken(*scratchBox, *tokenIt);
-        // imglog::log("{}:  combWidth: {}", getName(), scratchBox->getWidgetSize().width + line.getWidgetSize().width);
         if (scratchBox->getWidgetSize().width + line.getWidgetSize().width <= rect.width) {
-            // imglog::log("{}: 3, false", getName());
             return false;
         }
     }
 
-    // imglog::log("{}: 4, true", getName());
     return true;
 }
 
@@ -146,8 +121,6 @@ void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token) const
 
 auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 {
-    // imglog::log("ttq,arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
-    // spdlog::critical("ttq,arr, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
     lineBox->setName(fmt::format("linebox_{}", getName()));
     lineBox->start();
     if (paragraph.empty()) {
@@ -161,23 +134,16 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 
 auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
-    // imglog::log("{} - gwsfr, x {}, y {}, w{}, h{}", getName(), rect.x, rect.y, rect.width, rect.height);
     lineBox->start();
     if (paragraph.empty()) {
         return {};
     }
     if (!lineBox->isLast() && linesFit(rect)) {
         auto lbs = lineBox->getWidgetSizeFromRect(rect);
-        if (getName() == "ttq_1") {
-            imglog::log("{}, lbs - w: {}, h: {}", getName(), lbs.width, lbs.height);
-        }
         return lbs;
     }
     arrangeLines(*scratchBox, rect);
     auto scratch = scratchBox->getWidgetSize();
-    if (getName() == "ttq_1") {
-        imglog::log("{}, scratch - w: {}, h: {}", getName(), scratch.width, scratch.height);
-    }
     return scratch;
 }
 
