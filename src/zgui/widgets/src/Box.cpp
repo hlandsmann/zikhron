@@ -4,7 +4,6 @@
 #include <context/imglog.h>
 #include <detail/MetaBox.h>
 #include <detail/Widget.h>
-#include <spdlog/spdlog.h>
 #include <utils/spdlog.h>
 
 #include <algorithm>
@@ -41,15 +40,13 @@ auto Box::arrange(const layout::Rect& rect) -> bool
     // winlog("DisplayCard_box", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     // winlog("ctrlBox", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     // setRect(rect);
-    auto borderedRect = getBorderedRect(rect);
     if (widgets.empty()) {
         return false;
     }
-    // imglog::log("box_arrange, x: {}, y: {}, w: {}, h: {}", rect.x, rect.y, rect.width, rect.height);
     if (orientation == Orientation::horizontal) {
-        return arrange(Measure::horizontal, borderedRect);
+        return arrange(Measure::horizontal, rect);
     }
-    return arrange(Measure::vertical, borderedRect);
+    return arrange(Measure::vertical, rect);
 }
 
 void Box::setOrthogonalAlign(Align align)
@@ -76,12 +73,17 @@ auto Box::calculateSize(SizeType sizeType) const -> WidgetSize
     }
     result.width += getBorder() * 2;
     result.height += getBorder() * 2;
+
     return result;
 }
 
 auto Box::calculateSize() const -> WidgetSize
 {
-    return calculateSize(SizeType::standard);
+    if (boxWidth == 0 || boxHeight == 0) {
+        return getWidgetMinSize();
+    }
+    return {.width = boxWidth,
+            .height = boxHeight};
 }
 
 auto Box::calculateMinSize() const -> WidgetSize
@@ -237,46 +239,152 @@ auto Box::getWidgetCursor(Measure measure,
 
 auto Box::arrange(Measure measure, const layout::Rect& rect) -> bool
 {
+    const std::string& winName = "ctrlBox";
+    const std::string& parentName = "DisplayCard_box";
+
+    const auto& borderedRect = getBorderedRect(rect);
     auto sizes = std::vector<float>(widgets.size(), 0.F);
     bool needArrange = true;
-    auto sizesFmt = fmt::format("{}", fmt::join(sizes, ", "));
+    // auto sizesFmt = fmt::format("{}", fmt::join(sizes, ", "));
     // imglog::log("cursors: {} --------------------------", logstr);
-
-    traverseWidgets(rect, measure, sizes,
+    // if (getName() == winName) {
+    //     parentlog(parentName, "rect.width: {}, rect.height: {}", rect.width, rect.height);
+    // }
+    traverseWidgets(borderedRect, measure, sizes,
                     [](const std::shared_ptr<Widget>& widget, float /* cursor */, float /* size */, float /* availableSize */)
                             -> WidgetSize {
                         return widget->getWidgetMinSize();
                     });
-    sizesFmt = fmt::format("{}", fmt::join(sizes, ", "));
+    // sizesFmt = fmt::format("{}", fmt::join(sizes, ", "));
     // imglog::log("box: {}, w: {}, h: {}, sizes: {}", getName(), rect.width, rect.height, sizesFmt);
-    winlog("tbgrp", "box: {}, w: {}, h: {}, sizes: {}", getName(), rect.width, rect.height, sizesFmt);
+    // if (getName() == "definitionBox")
+    //     parentlog("definitionBox", "1box: {}, w: {}, h: {}, sizes: {}", getName(), borderedRect.width, borderedRect.height, sizesFmt);
 
     auto orthogonalSizes = std::deque<float>{};
-
-    traverseWidgets(rect, measure, sizes,
+    float maxOrthogonalBoxSize = 0.;
+    int index = 0;
+    traverseWidgets(borderedRect, measure, sizes,
                     [&, this](const std::shared_ptr<Widget>& widget, float cursor, float /* size */, float availableSize)
                             -> WidgetSize {
                         // imglog::log("box1: {}, cursor: {}, size: {}", getName(), cursor, size);
-                        winlog("tbgrp", "box1: {}, cursor: {}, size: {}", getName(), cursor, availableSize);
-                        const auto& widgetRect = rectWithAdaptedPosSize(measure, rect, cursor, availableSize);
+                        const auto& widgetRect = rectWithAdaptedPosSize(measure, borderedRect, cursor, availableSize);
                         const auto& widgetSize = widget->getWidgetSizeFromRect(widgetRect);
                         orthogonalSizes.push_back(widgetSizeProjection(oppositeMeasure(measure), widgetSize));
+                        maxOrthogonalBoxSize = std::max(maxOrthogonalBoxSize,
+                                                        widgetSizeProjection(oppositeMeasure(measure), widgetSize));
+
+                        // if (getName() == winName) {
+                        //     parentlog(parentName, "2box {}: {}, c: {}, avs: {}, os: {}, wrect.width: {}, wrect.height: {}, w: {}, h: {}",
+                        //               index, widget->getName(), cursor, availableSize, orthogonalSizes.back(), widgetRect.width, widgetRect.height, widgetSize.width, widgetSize.height);
+                        // }
+                        index++;
                         return widgetSize;
                     });
-    sizesFmt = fmt::format("{}", fmt::join(sizes, ", "));
-    winlog("tbgrp", "box: {}, sizes: {}", getName(), sizesFmt);
-    traverseWidgets(rect, measure, sizes,
+    // sizesFmt = fmt::format("{}", fmt::join(sizes, ", "));
+    // parentlog("overlayBox", "box_sizes: {}, sizes: {}", getName(), sizesFmt);
+    index = 0;
+
+    float boxSize = 0.;
+    traverseWidgets(borderedRect, measure, sizes,
                     [&](const std::shared_ptr<Widget>& widget, float cursor, float size, float /* availableSize */)
                             -> WidgetSize {
                         float orthogonalSize = orthogonalSizes.front();
                         orthogonalSizes.pop_front();
-                        const auto& widgetRect = rectWithAdaptedPosSize(measure, rect, cursor, size, orthogonalSize);
+                        if (getWidgetExpandType(*widget, oppositeMeasure(measure)) == ExpandType::adapt) {
+                            orthogonalSize = maxOrthogonalBoxSize;
+                        }
+                        const auto& widgetRect = rectWithAdaptedPosSize(measure, borderedRect, cursor, size, orthogonalSize);
                         needArrange = widget->arrange(widgetRect);
                         auto widgetSize = widget->getWidgetSize();
+
+                        maxOrthogonalBoxSize = std::max(maxOrthogonalBoxSize,
+                                                        widgetSizeProjection(oppositeMeasure(measure), widgetSize));
+                        boxSize = cursor + widgetSizeProjection(measure, widgetSize);
+                        // if (getName() == winName) {
+                        //     parentlog(parentName, "3box {}: {}, c: {}, size: {}, os: {}, w: {}, h: {}",
+                        //               index, widget->getName(), cursor, size, orthogonalSizes.back(), widgetSize.width, widgetSize.height);
+                        // }
+
+                        index++;
+                        return widgetSize;
+                    });
+    boxSize -= rectPositionProjection(measure, rect);
+    if (ExpandType::adapt == getExpandType(measure)) {
+        boxSize = std::accumulate(sizes.begin(), sizes.end(), 0.F);
+        // imglog::log("{}, boxSize: {}", getName(), boxSize);
+    }
+    boxSize += getBorder() * 2;
+    maxOrthogonalBoxSize += getBorder() * 2;
+    boxWidth = measure == Measure::horizontal
+                       ? boxSize
+                       : maxOrthogonalBoxSize;
+    boxHeight = measure == Measure::vertical
+                        ? boxSize
+                        : maxOrthogonalBoxSize;
+    boxWidth = std::min(rect.width, boxWidth);
+    boxHeight = std::min(rect.height, boxHeight);
+
+    if (ExpandType::width_expand == getExpandTypeWidth()) {
+        boxWidth = rect.width;
+    }
+    if (ExpandType::height_expand == getExpandTypeHeight()) {
+        boxHeight = rect.height;
+    }
+
+    // if (getName() == winName) {
+    //     parentlog(parentName, "{}: boxWidth: {}, boxHeight: {}", getName(), boxWidth, boxHeight);
+    // }
+    resetWidgetSize();
+    return needArrange;
+}
+
+auto Box::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
+{
+    auto measure = orientation == Orientation::horizontal ? Measure::horizontal : Measure::vertical;
+    const auto& borderedRect = getBorderedRect(rect);
+    auto sizes = std::vector<float>(widgets.size(), 0.F);
+    traverseWidgets(borderedRect, measure, sizes,
+                    [](const std::shared_ptr<Widget>& widget, float /* cursor */, float /* size */, float /* availableSize */)
+                            -> WidgetSize {
+                        return widget->getWidgetMinSize();
+                    });
+
+    float boxSize = 0.;
+    float maxOrthogonalBoxSize = 0.;
+    traverseWidgets(borderedRect, measure, sizes,
+                    [&, this](const std::shared_ptr<Widget>& widget, float cursor, float /* size */, float availableSize)
+                            -> WidgetSize {
+                        // imglog::log("box1: {}, cursor: {}, size: {}", getName(), cursor, size);
+                        const auto& widgetRect = rectWithAdaptedPosSize(measure, borderedRect, cursor, availableSize);
+                        const auto& widgetSize = widget->getWidgetSizeFromRect(widgetRect);
+                        maxOrthogonalBoxSize = std::max(maxOrthogonalBoxSize,
+                                                        widgetSizeProjection(oppositeMeasure(measure), widgetSize));
+
+                        boxSize = cursor + widgetSizeProjection(measure, widgetSize);
                         return widgetSize;
                     });
 
-    return needArrange;
+    if (ExpandType::adapt == getExpandType(measure)) {
+        boxSize = std::accumulate(sizes.begin(), sizes.end(), 0.F);
+    }
+    boxSize += getBorder() * 2;
+    boxSize -= rectPositionProjection(measure, rect);
+    maxOrthogonalBoxSize += getBorder() * 2;
+    boxWidth = measure == Measure::horizontal
+                       ? boxSize
+                       : maxOrthogonalBoxSize;
+    boxHeight = measure == Measure::vertical
+                        ? boxSize
+                        : maxOrthogonalBoxSize;
+    boxWidth = std::min(rect.width, boxWidth);
+    boxHeight = std::min(rect.height, boxHeight);
+    if (ExpandType::width_expand == getExpandTypeWidth()) {
+        boxWidth = rect.width;
+    }
+    if (ExpandType::height_expand == getExpandTypeHeight()) {
+        boxHeight = rect.height;
+    }
+    return {.width = boxWidth, .height = boxHeight};
 }
 
 auto Box::getAvailableSize(float fullSize, float startSize, float centerSize, float endSize, Align align) -> float
@@ -346,6 +454,7 @@ void Box::traverseWidgets(const layout::Rect& rect,
         float availableSize = getAvailableSize(fullSize, startSize, centerSize, endSize, align);
         const auto& widgetSize = fun(widget, cursor, currentSize, availableSize);
         currentSize = widgetSizeProjection(measure, widgetSize);
+        currentSize = std::min(currentSize, availableSize);
         alignedSize += currentSize;
 
         cursor += currentSize + getPadding();

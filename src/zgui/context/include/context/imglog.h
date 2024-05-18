@@ -23,7 +23,7 @@ public:
         ImGui::Begin("logwindow", nullptr, 0);
         if (!ImGui::IsWindowFocused()) {
             if (windowFocusDelay == 0) {
-                windowFocusDelay = 60;
+                windowFocusDelay = 20;
             } else {
                 windowFocusDelay--;
             }

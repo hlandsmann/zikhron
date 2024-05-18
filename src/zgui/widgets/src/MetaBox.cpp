@@ -5,6 +5,7 @@
 #include <Layer.h>
 #include <detail/Widget.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <memory>
 #include <utility>
@@ -116,6 +117,30 @@ void MetaBox<BoxImpl>::setWidgetAlign(Widget& widget, Measure measure, Align ali
 }
 
 template<class BoxImpl>
+auto MetaBox<BoxImpl>::getWidgetExpandType(Widget& widget, Measure measure) -> ExpandType
+{
+    switch (measure) {
+    case Measure::horizontal:
+        return widget.getExpandTypeWidth();
+    case Measure::vertical:
+        return widget.getExpandTypeHeight();
+    }
+    std::unreachable();
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::getExpandType(Measure measure) const -> ExpandType
+{
+    switch (measure) {
+    case Measure::horizontal:
+        return getExpandTypeWidth();
+    case Measure::vertical:
+        return getExpandTypeHeight();
+    }
+    std::unreachable();
+}
+
+template<class BoxImpl>
 auto MetaBox<BoxImpl>::widgetSizeProjection(Measure measure, const WidgetSize& widgetSize) -> float
 {
     switch (measure) {
@@ -160,21 +185,26 @@ auto MetaBox<BoxImpl>::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::
     if (first == last) {
         return 0.0F;
     }
-    return widgetSizeProjection(measure,
-                                (*std::max_element(first, last,
-                                                   [measure, sizeType](const std::shared_ptr<Widget>& widget_a,
-                                                                       const std::shared_ptr<Widget>& widget_b) -> bool {
-                                                       switch (sizeType) {
-                                                       case SizeType::min:
-                                                           return widgetSizeProjection(measure, widget_a->getWidgetMinSize())
-                                                                  < widgetSizeProjection(measure, widget_b->getWidgetMinSize());
-                                                       case SizeType::standard:
-                                                           return widgetSizeProjection(measure, widget_a->getWidgetSize())
-                                                                  < widgetSizeProjection(measure, widget_b->getWidgetSize());
-                                                       }
-                                                       std::unreachable();
-                                                   }))
-                                        ->getWidgetSize());
+    const auto& widget = *std::max_element(first, last,
+                                           [measure, sizeType](const std::shared_ptr<Widget>& widget_a,
+                                                               const std::shared_ptr<Widget>& widget_b) -> bool {
+                                               switch (sizeType) {
+                                               case SizeType::min:
+                                                   return widgetSizeProjection(measure, widget_a->getWidgetMinSize())
+                                                          < widgetSizeProjection(measure, widget_b->getWidgetMinSize());
+                                               case SizeType::standard:
+                                                   return widgetSizeProjection(measure, widget_a->getWidgetSize())
+                                                          < widgetSizeProjection(measure, widget_b->getWidgetSize());
+                                               }
+                                               std::unreachable();
+                                           });
+    switch (sizeType) {
+    case SizeType::min:
+        return widgetSizeProjection(measure, widget->getWidgetMinSize());
+    case SizeType::standard:
+        return widgetSizeProjection(measure, widget->getWidgetSize());
+    }
+    std::unreachable();
 }
 
 template class MetaBox<Box>;

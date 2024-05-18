@@ -113,7 +113,7 @@ void MainWindow::setup()
                                                       context::Image::cards,
                                                       context::Image::video,
                                                       context::Image::audio,
-                                                      context::Image::configure});
+                                                      context::Image::configure_app});
         
     }
     {

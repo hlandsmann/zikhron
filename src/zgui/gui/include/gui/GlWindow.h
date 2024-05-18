@@ -34,7 +34,7 @@ private:
     std::shared_ptr<context::GlfwImguiContext> glfwImguiContext;
 
     bool close{false};
-    constexpr static ImVec4 bgColor = {0.2F, 0.2F, 0.2F, 1.0F};
+    constexpr static ImVec4 bgColor = {0.1F, 0.1F, 0.1F, 1.0F};
 
     MainWindow mainWindow;
 

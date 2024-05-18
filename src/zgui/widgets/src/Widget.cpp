@@ -89,9 +89,6 @@ void Widget::setVerticalAlign(layout::Align align)
 auto Widget::getWidgetSize() const -> const WidgetSize&
 {
     if (optWidgetSize.has_value()) {
-        auto x = *optWidgetSize;
-        winlog("vocableLayer", "vocableLayer getWidgetSize w: {}, h: {}", x.width, x.height);
-        winlog("cardLayer", "cardLayer getWidgetSize w: {}, h: {}", x.width, x.height);
         return *optWidgetSize;
     }
     return optWidgetSize.emplace(calculateSize());
@@ -106,15 +103,11 @@ auto Widget::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
     if (expandTypeHeight == ExpandType::expand) {
         widgetSize.height = rect.height;
     }
-    winlog("vocableLayer", "vocableLayer getWidgetSizeFromRect");
-    winlog("cardLayer", "cardLayer getWidgetSizeFromRect");
     return widgetSize;
 }
 
 auto Widget::getWidgetMinSize() const -> const WidgetSize&
 {
-    winlog("vocableLayer", "vocableLayer getWidgetMinSize");
-    winlog("cardLayer", "cardLayer getWidgetMinSize");
     if (optWidgetMinSize.has_value()) {
         return *optWidgetMinSize;
     }
@@ -166,6 +159,39 @@ auto Widget::getRect() const -> const layout::Rect&
 auto Widget::getParent() const -> std::shared_ptr<Widget>
 {
     return parent.lock();
+}
+
+auto Widget::anyParentHasName(const std::string& _name) const -> bool
+{
+    Widget const* widget = this;
+    while (widget != nullptr) {
+        if (widget->getName() == _name) {
+            return true;
+        }
+        widget = widget->getParent().get();
+    }
+    return false;
+}
+
+auto Widget::anyParentHasId(WidgetId _id) const -> bool
+{
+    Widget const* widget = this;
+    while (widget != nullptr) {
+        if (widget->getWidgetId() == _id) {
+            return true;
+        }
+        widget = widget->getParent().get();
+    }
+    return false;
+}
+
+void Widget::scratchDbg()
+{
+    Widget const* widget = this;
+    while (widget != nullptr) {
+        imglog::log("id is: {}", static_cast<unsigned>(widget->getWidgetId()));
+        widget = widget->getParent().get();
+    }
 }
 
 void Widget::setRect(const layout::Rect& rect)

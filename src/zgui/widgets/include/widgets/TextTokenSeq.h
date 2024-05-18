@@ -21,6 +21,7 @@ public:
     {
         context::FontType fontType = context::FontType::Gui;
         float padding = 0.F;
+        float border = 16;
     };
 
 private:
@@ -45,10 +46,10 @@ private:
     auto arrange(const layout::Rect& rect) -> bool override;
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
 
-    constexpr static float border = 16;
     auto arrangeLines(Box& lines, const layout::Rect& rect) -> bool;
     auto linesFit(const layout::Rect& rect) const -> bool;
     void addTextToken(Box& box, const annotation::Token& token) const;
+    static auto addLine(Box& lines) -> std::shared_ptr<widget::Box>;
     layout::Rect lastRect;
     std::shared_ptr<Box> lineBox;
     std::shared_ptr<Box> scratchBox;

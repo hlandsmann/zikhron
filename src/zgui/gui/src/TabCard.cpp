@@ -56,7 +56,8 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
     auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
     auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
     ctrlBox.setName("ctrlBox");
-    ctrlBox.setPadding(0.F);
+    ctrlBox.setExpandType(width_expand, height_fixed);
+    // ctrlBox.setPadding(0.F);
     ctrlBox.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
     ctrlBox.add<widget::MediaSlider>(Align::start);
     ctrlBox.add<widget::Button>(Align::center, "hello");
@@ -95,7 +96,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     auto vocableLayer = cardBox->add<widget::Layer>(Align::start);
     cardLayer->setName("cardLayer");
     vocableLayer->setName("vocableLayer");
-    cardLayer->setExpandType(width_expand, height_fixed);
+    cardLayer->setExpandType(width_fixed, height_fixed);
     auto dataBase = co_await asyncTreeWalker->getDataBase();
     auto wordDB = dataBase->getWordDB();
 
@@ -106,7 +107,6 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         vocableLayer->clear();
 
         // card 601 has problems
-
 
         auto cardMeta = co_await asyncTreeWalker->getNextCardChoice();
         // const auto& zh_dictionary = cardMeta.getDictionary();

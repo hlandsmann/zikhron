@@ -45,11 +45,6 @@ public:
                            .horizontalAlign = self->newWidgetAlign(widgetAlign, Measure::horizontal),
                            .verticalAlign = self->newWidgetAlign(widgetAlign, Measure::vertical),
                            .parent = shared_from_this()};
-        if constexpr (std::is_same_v<BoxImpl, Layer>
-                      && (std::is_same_v<WidgetType, Box> || std::is_same_v<WidgetType, Grid>)) {
-            init.expandTypeWidth = getExpandTypeWidth();
-            init.expandTypeHeight = getExpandTypeHeight();
-        }
         auto widget = std::make_shared<WidgetType>(std::move(init));
         auto newWidgetId = widget->getWidgetId();
         widget->setup(std::forward<Args>(args)...);
@@ -89,7 +84,7 @@ public:
     void start();
     auto numberOfWidgets() const -> std::size_t;
 
-    constexpr static float s_padding = 16.F;
+    constexpr static float s_padding = 0.F;
 
 protected:
     auto calculateMinSize() const -> WidgetSize override = 0;
@@ -107,6 +102,8 @@ protected:
     };
     static auto getWidgetAlign(const Widget& widget, Measure measure) -> Align;
     static void setWidgetAlign(Widget& widget, Measure measure, Align align);
+    static auto getWidgetExpandType(Widget& widget, Measure measure) -> ExpandType;
+    [[nodiscard]] auto getExpandType(Measure measure) const -> ExpandType;
     static auto widgetSizeProjection(Measure measure, const WidgetSize& widgetSize) -> float;
     static auto rectPositionProjection(Measure measure, const layout::Rect& rect) -> float;
     static auto rectSizeProjection(Measure measure, const layout::Rect& rect) -> float;

@@ -20,6 +20,7 @@ public:
     [[nodiscard]] auto shouldClose() const -> bool;
 
 private:
+    void setupBox();
     using FontType = context::FontType;
     constexpr static FontType fontType{FontType::chineseSmall};
     std::shared_ptr<widget::Overlay> overlay;

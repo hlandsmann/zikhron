@@ -72,7 +72,7 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
                             -> WidgetSize {
                         auto minSize = widget->getWidgetMinSize();
                         // if (widget->getName() == "ttq_1") {
-                        //     imglog::log("in0 {}:,  wsw: {}, wsh: {}", widget->getName(), minSize.width, minSize.height);
+                            // imglog::log("in0 {}:,  wsw: {}, wsh: {}", widget->getName(), minSize.width, minSize.height);
                         // }
                         return minSize;
                     });
@@ -88,7 +88,7 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
                         auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = width, .height = rect.height});
                         // imglog::log("in:,  w: {}, h: {}", width, rect.height);
                         // if (widget->getName() == "ttq_1") {
-                        //     imglog::log("in1 {}:,  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
+                            // imglog::log("in1 {}:,  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
                         // }
                         return widgetS;
                     });
@@ -107,7 +107,7 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
                         auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = width, .height = rect.height});
                         heights.push_back(widgetS.height);
                         // if (widget->getName() == "ttq_1") {
-                        //     imglog::log("in2:, {}:  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
+                            // imglog::log("in2:, {}:  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
                         // }
                         return widgetS;
                     });
@@ -128,7 +128,7 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
                             .height = rect.height});
                         auto widgetS = widget->getWidgetSize();
                         // if (widget->getName() == "ttq_1") {
-                        //     imglog::log("arrange_grid, {}: wsw: {}, wsh: {}, w: {}, h: {}, cx: {}, cy: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height, cursorX, cursorY);
+                            // imglog::log("arrange_grid, {}: wsw: {}, wsh: {}, w: {}, h: {}, cx: {}, cy: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height, cursorX, cursorY);
                         // }
                         return widgetS;
                     });

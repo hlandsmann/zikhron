@@ -1,10 +1,10 @@
 #include "DisplayVocables.h"
-#include <annotation/Word.h>
-#include <annotation/WordDB.h>
 
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
+#include <annotation/Word.h>
+#include <annotation/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <widgets/Grid.h>
@@ -51,7 +51,9 @@ void DisplayVocables::draw()
 
 void DisplayVocables::setup()
 {
+    using namespace widget::layout;
     auto grid = layer->add<widget::Grid>(Align::start, 4, widget::Grid::Priorities{0.1F, 0.2F, 0.4F, 0.3F});
+    grid->setExpandType(width_fixed, height_fixed);
     for (auto& [vocId, ease, colorId] : activeVocables) {
         const auto& word = wordDB->lookupId(vocId);
         addVocable(*grid, *word, colorId);
@@ -72,7 +74,7 @@ void DisplayVocables::addVocable(widget::Grid& grid, const annotation::Word& wor
 void DisplayVocables::addEaseButtonGroup(widget::Grid& grid)
 {
     auto tbg = grid.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::horizontal,
-                                      std::initializer_list<std::string>{"Again", "Hard", "Normal", "Easy"});
+                                                   std::initializer_list<std::string>{"Again", "Hard", "Normal", "Easy"});
     tbg->setVerticalAlign(Align::center);
 }
 } // namespace gui

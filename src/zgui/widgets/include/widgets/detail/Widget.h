@@ -32,12 +32,17 @@ enum class ExpandType {
     fixed,
     width_fixed = fixed,
     height_fixed = fixed,
+    adapt,
+    width_adapt = adapt,
+    height_adapt = adapt,
     expand,
     width_expand = expand,
     height_expand = expand,
 };
 static auto constexpr width_fixed = ExpandType::width_fixed;
 static auto constexpr height_fixed = ExpandType::height_fixed;
+static auto constexpr width_adapt = ExpandType::width_adapt;
+static auto constexpr height_adapt = ExpandType::height_adapt;
 static auto constexpr width_expand = ExpandType::width_expand;
 static auto constexpr height_expand = ExpandType::height_expand;
 } // namespace layout
@@ -131,6 +136,14 @@ public:
     }
 
     template<class... Args>
+    void parentlog(const std::string& _name, std::format_string<Args...> fmt, Args&&... args) const
+    {
+        if (anyParentHasName(_name)) {
+            imglog::log(fmt, std::forward<Args>(args)...);
+        }
+    }
+
+    template<class... Args>
     void consoleLog(const std::string& _name, fmt::format_string<Args...> fmt, Args&&... args) const
     {
         if (_name.empty() || _name == name) {
@@ -140,6 +153,12 @@ public:
 
     void cutWidgetIdGen();
     [[nodiscard]] auto getParent() const -> std::shared_ptr<Widget>;
+
+    [[nodiscard]] auto anyParentHasName(const std::string& name) const -> bool;
+    [[nodiscard]] auto anyParentHasId(WidgetId id) const -> bool;
+
+    [[nodiscard]] auto anyParentHasId(unsigned id) const -> bool { return anyParentHasId(static_cast<WidgetId>(id)); }
+    void scratchDbg();
 
 protected:
     [[nodiscard]] static auto dropWidgetId(WidgetId) -> context::WidgetIdDrop;

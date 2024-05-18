@@ -26,6 +26,7 @@ public:
     Box(const WidgetInit& init);
 
     [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;
+    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
     void setOrthogonalAlign(Align align);
 
 private:
@@ -81,9 +82,10 @@ private:
 
     /* Box internal Members */
     Orientation orientation{};
-    layout::ExpandType expandWidth{ExpandType::width_expand};
-    layout::ExpandType expandHeight{ExpandType::height_expand};
     layout::Align orthogonalAlign{Align::start};
+
+    float boxWidth{};
+    float boxHeight{};
 
     bool flipChildrensOrientation{true};
 };

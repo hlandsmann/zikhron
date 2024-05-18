@@ -20,18 +20,19 @@ void TextTokenSeq::setup(const Paragraph& _paragraph)
 {
     using namespace widget::layout;
     paragraph = _paragraph;
+    setName("ttq");
 
     lineBox = create<Box>(Orientation::vertical);
     lineBox->setName("linebox");
     lineBox->setExpandType(width_fixed, height_fixed);
     lineBox->setPadding(config.padding);
-    lineBox->setBorder(border);
+    lineBox->setBorder(config.border);
 
     scratchBox = createOrphan<Box>(Orientation::vertical);
     scratchBox->setName("scratchBox");
     scratchBox->setExpandType(width_fixed, height_fixed);
     scratchBox->setPadding(config.padding);
-    scratchBox->setBorder(border);
+    scratchBox->setBorder(config.border);
     scratchBox->cutWidgetIdGen();
 }
 
@@ -68,18 +69,34 @@ auto TextTokenSeq::calculateMinSize() const -> WidgetSize
         maxWidth = std::max(maxWidth, minSize.width);
         maxHeight = std::max(maxHeight, minSize.height);
     }
+    // imglog::log("ttq minsize:, {} : {}", maxWidth, maxHeight);
     return {.width = maxWidth, .height = maxHeight};
 }
 
 auto TextTokenSeq::arrangeLines(Box& lines, const layout::Rect& rect) -> bool
 {
     lines.clear();
-    auto line = lines.add<Box>(Align::start, Orientation::horizontal);
+    // std::string testName = "scratchBox";
+    // if (lines.getName() == testName && anyParentHasId(91)) {
+    //     // lines.scratchDbg();
+    //     parentlog("definitionBox", "arrangeLines, {}: x: {}, w: {}, h: {}, minSize: {}", static_cast<int>(getWidgetId()),
+    //               rect.x, rect.width, rect.height, lines.getWidgetMinSize().width);
+    // }
+    auto line = addLine(lines);
     for (const auto& token : paragraph) {
         addTextToken(*line, token);
-        if (lines.getWidgetSize().width > rect.width) {
+        const auto& minSize = lines.getWidgetMinSize();
+        // if (lines.getName() == testName) {
+        //     parentlog("definitionBox", "arrangeLines-minsize, {}: lmw: {}, lw: {}, t: {}", static_cast<int>(getWidgetId()),
+        //               minSize.width, lines.getWidgetSize().width, token.string());
+        // }
+        if (minSize.width > rect.width) {
+            // if (lines.getName() == testName) {
+            //     parentlog("definitionBox", "arrangeLines-minsize-fail, {}: lineswidth: {}, rect.width{}", static_cast<int>(getWidgetId()),
+            //               minSize.width, rect.width);
+            // }
             line->pop();
-            line = lines.add<Box>(Align::start, Orientation::horizontal);
+            line = addLine(lines);
             addTextToken(*line, token);
         }
     }
@@ -88,7 +105,9 @@ auto TextTokenSeq::arrangeLines(Box& lines, const layout::Rect& rect) -> bool
 
 auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
 {
-    if (lineBox->getWidgetSize().width > rect.width) {
+    if (lineBox->getWidgetMinSize().width > rect.width) {
+        // parentlog("definitionBox", "ttq0 false: {}, w{} : rw{}", static_cast<int>(getWidgetId()),
+        //           lineBox->getWidgetMinSize().width, rect.width);
         return false;
     }
     lineBox->start();
@@ -101,11 +120,16 @@ auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
             tokenIt++;
         }
         if (tokenIt == paragraph.end()) {
+            // parentlog("definitionBox", "ttq1 true: {}, w{} : rw{}, h {} : rh {}", static_cast<int>(getWidgetId()),
+            //           lineBox->getWidgetMinSize().width, rect.width,
+            //           lineBox->getWidgetMinSize().height, rect.height);
             return true;
         }
         scratchBox->clear();
         addTextToken(*scratchBox, *tokenIt);
-        if (scratchBox->getWidgetSize().width + line.getWidgetSize().width <= rect.width) {
+        if (scratchBox->getWidgetMinSize().width + line.getWidgetMinSize().width <= rect.width) {
+            // parentlog("definitionBox", "ttq2 false: {}, w{} : rw{}", static_cast<int>(getWidgetId()),
+            //           scratchBox->getWidgetMinSize().width + lineBox->getWidgetMinSize().width, rect.width);
             return false;
         }
     }
@@ -117,6 +141,15 @@ void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token) const
 {
     auto textToken = box.add<TextToken>(Align::start, token);
     textToken->setFontType(config.fontType);
+}
+
+auto TextTokenSeq::addLine(Box& lines) -> std::shared_ptr<widget::Box>
+{
+    using namespace widget::layout;
+
+    auto line = lines.add<Box>(Align::start, Orientation::horizontal);
+    line->setExpandType(width_fixed, height_fixed);
+    return line;
 }
 
 auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
@@ -134,6 +167,7 @@ auto TextTokenSeq::arrange(const layout::Rect& rect) -> bool
 
 auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
+    // imglog::log("ttq, {}: w:{}, h: {}", getName(), rect.width, rect.height);
     lineBox->start();
     if (paragraph.empty()) {
         return {};
@@ -143,7 +177,7 @@ auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
         return lbs;
     }
     arrangeLines(*scratchBox, rect);
-    auto scratch = scratchBox->getWidgetSize();
+    auto scratch = scratchBox->getWidgetMinSize();
     return scratch;
 }
 
