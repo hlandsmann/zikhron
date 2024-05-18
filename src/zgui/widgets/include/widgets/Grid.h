@@ -34,18 +34,37 @@ public:
     void mergeCell();
 
 private:
-    [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
-    void traverseWidgets(std::vector<float>& cursorsX,
-                         std::vector<float>& cursorsY,
-                         const layout::Rect& rect,
+    [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;
+    void traverseWidgets(const layout::Rect& rect,
+                         std::vector<float>& sizesX,
+                         std::vector<float>& sizesY,
+                         std::vector<WidgetSize>& widgetSizes,
                          ExpandType expandPriority,
                          std::function<WidgetSize(
                                  const std::shared_ptr<Widget>& widget,
                                  float cursorX,
-                                 float cursorY,
+                                 float cursor,
+                                 const WidgetSize& widgetSizeY,
                                  float width,
                                  float height)>
                                  fun) const;
+    auto getAvailableWidth(const std::vector<float>& sizesX,
+                           std::size_t column,
+                           float fullWidth,
+                           ExpandType expandType) const -> float;
+
+            [[nodiscard]] auto arrangex(const layout::Rect& rect) -> bool;
+    void traverseWidgetsx(std::vector<float>& cursorsX,
+                          std::vector<float>& cursorsY,
+                          const layout::Rect& rect,
+                          ExpandType expandPriority,
+                          std::function<WidgetSize(
+                                  const std::shared_ptr<Widget>& widget,
+                                  float cursorX,
+                                  float cursorY,
+                                  float width,
+                                  float height)>
+                                  fun) const;
     [[nodiscard]] auto nextCursorIndexEnd(std::vector<std::size_t>::const_iterator& itMergedCell, std::size_t& cellCounter) const -> std::size_t;
     [[nodiscard]] auto getAvailableWidth(std::size_t indexStart,
                                          std::size_t indexEnd,
