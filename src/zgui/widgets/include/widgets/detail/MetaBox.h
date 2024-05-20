@@ -22,6 +22,14 @@ class Layer;
 class Grid;
 class Box;
 
+struct BoxCfg
+{
+    float padding = 0.F;
+    float paddingHorizontal = 0.F;
+    float paddingVertical = 0.F;
+    float border = 0.F;
+};
+
 template<class BoxImpl>
 class MetaBox : public Widget
 {
@@ -35,6 +43,7 @@ public:
     void setHorizontalPadding(float horizontalPadding);
     void setVerticalPadding(float verticalPadding);
     void setBorder(float border);
+    void setCfg(const BoxCfg& boxCfg);
 
     template<class WidgetType, class... Args>
     auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>

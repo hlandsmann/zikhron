@@ -28,6 +28,12 @@ void Box::setup(Orientation _orientation)
     orientation = _orientation;
 }
 
+void Box::setup(const BoxCfg& boxCfg, Orientation _orientation)
+{
+    setCfg(boxCfg);
+    setup(_orientation);
+}
+
 Box::Box(const WidgetInit& init)
     : MetaBox<Box>{init}
 {}

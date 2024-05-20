@@ -37,7 +37,6 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::s
     //                                          annotation::tokenVectorFromString(word->getMeanings().front(), {}),
     //                                          ttqConfig);
     auto box = overlay->add<widget::Box>(Align::start, widget::Orientation::vertical);
-    box->setBorder(16.F);
     box->setName("overlayBox");
     setupBox();
 }
@@ -47,23 +46,23 @@ void VocableOverlay::setupBox()
     using namespace widget::layout;
     overlay->start();
     auto& box = overlay->next<widget::Box>();
+    // box.setBorder(0.F);
+    // box.setPadding(0.F);
     box.clear();
 
-    const auto& headerBox = box.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    const auto& headerBox = box.add<widget::Box>(Align::start, headerBoxCfg, widget::Orientation::horizontal);
     headerBox->setExpandType(width_adapt, height_fixed);
     headerBox->setName("headerBox");
 
-    widget::TextTokenSeq::Config ttqConfig;
-    ttqConfig.fontType = fontType;
-    ttqConfig.wordPadding = 15.F;
-    ttqConfig.border = 0.F;
     headerBox->add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
     headerBox->add<widget::ImageButton>(Align::end, context::Image::configure);
-    auto definitionGrid = box.add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.2F, 0.8F});
+    auto definitionGrid = box.add<widget::Grid>(Align::start, definitionGridCfg, 2, widget::Grid::Priorities{0.2F, 0.8F});
     definitionGrid->setName("definitionGrid");
-    definitionGrid->setPadding(32.F);
-    definitionGrid->setBorder(32.F);
-    definitionGrid->setExpandType(width_fixed, height_fixed);
+    // definitionGrid->setBorder(s_border);
+    // definitionGrid->setHorizontalPadding(s_horizontalPadding);
+    // definitionGrid->setPadding(32.F);
+    // definitionGrid->setBorder(32.F);
+    // definitionGrid->setExpandType(width_fixed, height_fixed);
     definitionGrid->add<widget::TextTokenSeq>(Align::start,
                                               annotation::tokenVectorFromString(word->getPronounciation(), {}),
                                               ttqConfig);

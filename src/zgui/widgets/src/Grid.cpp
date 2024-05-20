@@ -34,6 +34,12 @@ void Grid::setup(std::size_t _columns, std::initializer_list<float> _priorities)
     ranges::transform(priorities, priorities.begin(), [sum](float priority) { return priority / sum; });
 }
 
+void Grid::setup(const BoxCfg& boxCfg, std::size_t _columns, Priorities _priorities)
+{
+    setCfg(boxCfg);
+    setup(_columns, _priorities);
+}
+
 Grid::Grid(const WidgetInit& init)
     : MetaBox<Grid>{init}
 {}

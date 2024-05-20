@@ -21,6 +21,7 @@ class Box : public MetaBox<Box>
     friend class MetaBox;
     friend class Widget;
     void setup(Orientation orientation);
+    void setup(const BoxCfg& boxCfg, Orientation orientation);
 
 public:
     Box(const WidgetInit& init);

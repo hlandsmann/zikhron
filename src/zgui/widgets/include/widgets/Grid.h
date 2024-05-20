@@ -25,6 +25,7 @@ private:
     friend class MetaBox;
     friend class Widget;
     void setup(std::size_t columns, Priorities priorities);
+    void setup(const BoxCfg &boxCfg, std::size_t columns, Priorities priorities);
 
 public:
     Grid(const WidgetInit& init);

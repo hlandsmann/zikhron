@@ -21,8 +21,6 @@ template<class BoxImpl>
 void MetaBox<BoxImpl>::setPadding(float _padding)
 {
     padding = _padding;
-    setHorizontalPadding(padding);
-    setVerticalPadding(padding);
 }
 
 template<class BoxImpl>
@@ -41,6 +39,15 @@ template<class BoxImpl>
 void MetaBox<BoxImpl>::setBorder(float _border)
 {
     border = _border;
+}
+
+template<class BoxImpl>
+void MetaBox<BoxImpl>::setCfg(const BoxCfg& boxCfg)
+{
+    setPadding(boxCfg.padding);
+    setHorizontalPadding(boxCfg.paddingHorizontal);
+    setVerticalPadding(boxCfg.paddingVertical);
+    setBorder(boxCfg.border);
 }
 
 template<class BoxImpl>
