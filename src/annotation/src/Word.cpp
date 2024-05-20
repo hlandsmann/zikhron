@@ -16,21 +16,15 @@
 
 namespace annotation {
 
-Word::Word(const std::string& description, VocableId _vocableId, const std::shared_ptr<ZH_Dictionary>& dictionary)
+Word::Word(std::string_view description, VocableId _vocableId, const std::shared_ptr<ZH_Dictionary>& dictionary)
     : vocableId{_vocableId}
 {
     auto rest = std::string_view{description};
     key = utl::split_front(rest, ';');
-    dictionaryPos = std::stoul(std::string{utl::split_front(rest, ';')});
+    dictionaryEntries = dictionary->entryVectorFromKey(key);
     vocableProgress = std::make_shared<VocableProgress>(utl::split_front(rest, ';'));
-    pronounciation = utl::split_front(rest, ';');
-    while (true) {
-        auto meaning = std::string{utl::split_front(rest, '/')};
-        if (meaning.empty()) {
-            break;
-        }
-        meanings.push_back(meaning);
-    }
+
+    parseOptions(rest);
 
     // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
@@ -43,14 +37,12 @@ Word::Word(std::vector<ZH_Dictionary::Entry>&& _dictionaryEntries, VocableId _vo
     key = dictionaryEntries.front().key;
     pronounciation = dictionaryEntries.front().pronounciation;
     meanings.push_back(dictionaryEntries.front().meanings.front());
-    dictionaryPos = dictionaryEntries.front().id;
     vocableProgress = std::make_shared<VocableProgress>(VocableProgress::new_vocable);
 }
 
 auto Word::serialize() const -> std::string
 {
-    return fmt::format("{};{};{};{};{}/\n", key,
-                       dictionaryPos,
+    return fmt::format("{};{};{};{}/\n", key,
                        vocableProgress->serialize(),
                        pronounciation,
                        fmt::join(meanings, "/"));
@@ -71,14 +63,33 @@ auto Word::getProgress() const -> std::shared_ptr<VocableProgress>
     return vocableProgress;
 }
 
-auto Word::getPronounciation() const -> const std::string&
+auto Word::getOptions() const -> const std::vector<Option>&
 {
-    return pronounciation;
+    return options;
 }
 
-auto Word::getMeanings() const -> const std::vector<std::string>&
+void Word::parseOptions(std::string_view description)
 {
-    return meanings;
+    auto rest = std::string_view{description};
+    while (true) {
+        auto optionSV = utl::split_front(rest, '\\');
+        if (optionSV.empty()) {
+            break;
+        }
+        options.emplace_back(optionSV);
+    }
 }
 
+Option::Option(std::string_view description)
+{
+    auto rest = std::string_view{description};
+    pronounciation = utl::split_front(rest, ';');
+    while (true) {
+        auto meaning = std::string{utl::split_front(rest, '/')};
+        if (meaning.empty()) {
+            break;
+        }
+        meanings.push_back(meaning);
+    }
+}
 } // namespace annotation

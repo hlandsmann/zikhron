@@ -1,4 +1,5 @@
 #include "WordDB.h"
+#include <string_view>
 
 #include "Word.h"
 
@@ -100,10 +101,19 @@ void WordDB::save()
 
 void WordDB::parse(const std::string& str)
 {
-    auto iss = std::istringstream{str};
-    for (std::string line; std::getline(iss, line);) {
+    // auto iss = std::istringstream{str};
+    // for (std::string line; std::getline(iss, line);) {
+    //     auto vocableId = static_cast<VocableId>(words.size());
+    //     words.push_back(std::make_shared<Word>(line, vocableId, dictionary));
+    // }
+    auto rest = std::string_view{str};
+    while (true) {
+        auto wordDescription = utl::split_front(rest, '\n');
+        if (wordDescription.empty()) {
+            break;
+        }
         auto vocableId = static_cast<VocableId>(words.size());
-        words.push_back(std::make_shared<Word>(line, vocableId, dictionary));
+        words.push_back(std::make_shared<Word>(wordDescription, vocableId, dictionary));
     }
 }
 

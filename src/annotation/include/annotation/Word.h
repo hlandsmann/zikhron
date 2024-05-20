@@ -5,33 +5,52 @@
 #include <cstddef>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 class VocableProgress;
 
 namespace annotation {
 
+struct Option;
+
 class Word
 {
 public:
-    Word(const std::string& description, VocableId vocableId,  const std::shared_ptr<ZH_Dictionary>& dictionary);
+    Word(const Word&) = default;
+    Word(Word&&) = default;
+    virtual ~Word() = default;
+    auto operator=(const Word&) -> Word& = default;
+    auto operator=(Word&&) -> Word& = default;
+
+    Word(std::string_view description, VocableId vocableId, const std::shared_ptr<ZH_Dictionary>& dictionary);
     Word(std::vector<ZH_Dictionary::Entry>&& dictionaryEntries, VocableId vocableId);
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] auto getId() const -> VocableId;
     [[nodiscard]] auto Key() const -> std::string;
     [[nodiscard]] auto getProgress() const -> std::shared_ptr<VocableProgress>;
-    [[nodiscard]] auto getPronounciation() const -> const std::string&;
-    [[nodiscard]] auto getMeanings() const -> const std::vector<std::string>&;
+    [[nodiscard]] auto getOptions() const -> const std::vector<Option>&;
 
 private:
+    void parseOptions(std::string_view description);
     VocableId vocableId{};
     std::shared_ptr<VocableProgress> vocableProgress;
 
     std::string key;
+    std::vector<Option> options;
     std::string pronounciation;
     std::vector<std::string> meanings;
-    std::size_t dictionaryPos{};
 
     std::vector<ZH_Dictionary::Entry> dictionaryEntries;
+};
+
+struct Option
+{
+    Option() = default;
+    Option(std::string_view description);
+    [[nodiscard]] auto serialize() const -> std::string;
+
+    std::string pronounciation;
+    std::vector<std::string> meanings;
 };
 
 } // namespace annotation

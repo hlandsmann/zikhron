@@ -70,8 +70,9 @@ void DisplayVocables::addVocable(widget::Grid& grid, const annotation::Word& wor
     ttqConfig.fontType = fontType;
     ttqConfig.wordPadding = 15.F;
     grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.Key(), colorId), ttqConfig);
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.getPronounciation(), colorId), ttqConfig);
-    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.getMeanings().at(0), colorId), ttqConfig);
+    const auto& option = word.getOptions().front();
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(option.pronounciation, colorId), ttqConfig);
+    grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(option.meanings.at(0), colorId), ttqConfig);
 }
 
 void DisplayVocables::addEaseButtonGroup(widget::Grid& grid)

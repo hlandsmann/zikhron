@@ -63,12 +63,14 @@ void VocableOverlay::setupBox()
     // definitionGrid->setPadding(32.F);
     // definitionGrid->setBorder(32.F);
     // definitionGrid->setExpandType(width_fixed, height_fixed);
-    definitionGrid->add<widget::TextTokenSeq>(Align::start,
-                                              annotation::tokenVectorFromString(word->getPronounciation(), {}),
-                                              ttqConfig);
-    definitionGrid->add<widget::TextTokenSeq>(Align::start,
-                                              annotation::tokenVectorFromString(word->getMeanings().front(), {}),
-                                              ttqConfig);
+    for (const auto& option : word->getOptions()) {
+        definitionGrid->add<widget::TextTokenSeq>(Align::start,
+                                                  annotation::tokenVectorFromString(option.pronounciation, {}),
+                                                  ttqConfig);
+        definitionGrid->add<widget::TextTokenSeq>(Align::start,
+                                                  annotation::tokenVectorFromString(option.meanings.front(), {}),
+                                                  ttqConfig);
+    }
 }
 
 void VocableOverlay::draw()
