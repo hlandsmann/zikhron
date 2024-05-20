@@ -10,6 +10,7 @@ target_sources(zgui_widgets
         include/widgets/Layer.h
         include/widgets/MediaSlider.h
         include/widgets/Overlay.h
+        include/widgets/Separator.h
         include/widgets/TextToken.h
         include/widgets/TextTokenSeq.h
         include/widgets/ToggleButtonGroup.h
@@ -25,6 +26,7 @@ target_sources(zgui_widgets
         src/MediaSlider.cpp
         src/MetaBox.cpp
         src/Overlay.cpp
+        src/Separator.cpp
         src/TextToken.cpp
         src/TextTokenSeq.cpp
         src/ToggleButtonGroup.cpp
