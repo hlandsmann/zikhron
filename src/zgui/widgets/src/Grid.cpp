@@ -58,62 +58,7 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
     auto sizesY = std::vector<float>{};
     auto widgetSizes = std::vector<WidgetSize>{widgets.size()};
 
-    traverseWidgets(rect,
-                    sizesX, sizesY, widgetSizes,
-                    ExpandType::width_fixed,
-                    [](const std::shared_ptr<Widget>& widget,
-                       float /* cursorX */, float /* cursorY */,
-                       const WidgetSize& /* widgetSize */,
-                       float /* availableWidth */,
-                       float /* width */, float /* height */)
-                            -> WidgetSize {
-                        auto minSize = widget->getWidgetMinSize();
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("in0 {}:,  wsw: {}, wsh: {}", widget->getName(), minSize.width, minSize.height);
-                        // }
-                        return minSize;
-                    });
-
-    // std::string fmtSizesY;
-    // fmtSizesY = fmt::format("{}", fmt::join(sizesY, ", "));
-    // imglog::log("sizes 1: {}", fmtSizesY);
-    traverseWidgets(rect,
-                    sizesX, sizesY, widgetSizes,
-                    ExpandType::width_fixed,
-                    [&rect](const std::shared_ptr<Widget>& widget,
-                            float /* cursorX */, float /* cursorY */,
-                            const WidgetSize& /* widgetSize */,
-                            float availableWidth,
-                            float /* width */, float /* height */)
-                            -> WidgetSize {
-                        auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = availableWidth, .height = rect.height});
-                        // imglog::log("in:,  w: {}, h: {}", width, rect.height);
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("in1 {}:,  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
-                        // }
-                        return widgetS;
-                    });
-    // fmtSizesY = fmt::format("{}", fmt::join(sizesY, ", "));
-    // imglog::log("sizes 2: {}", fmtSizesY);
-
-    traverseWidgets(rect,
-                    sizesX, sizesY, widgetSizes,
-                    ExpandType::width_expand,
-                    [&rect](const std::shared_ptr<Widget>& widget,
-                            float /* cursorX */, float /* cursorY */,
-                            const WidgetSize& /* widgetSize */,
-                            float availableWidth,
-                            float /* width */, float /* height */)
-                            -> WidgetSize {
-                        auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = availableWidth, .height = rect.height});
-                        // imglog::log("in:,  w: {}, h: {}", width, rect.height);
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("in1 {}:,  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
-                        // }
-                        return widgetS;
-                    });
-    // fmtSizesY = fmt::format("{}", fmt::join(sizesY, ", "));
-    // imglog::log("sizes 3: {}", fmtSizesY);
+    calculateWidgetSizes(rect, sizesX, sizesY, widgetSizes);
 
     traverseWidgets(rect,
                     sizesX, sizesY, widgetSizes,
@@ -129,19 +74,10 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
                                                         .width = width,
                                                         .height = rect.height});
                         auto widgetS = widget->getWidgetSize();
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("arrange_grid, {}: wsw: {}, wsh: {}, w: {}, h: {}, cx: {}, cy: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height, cursorX, cursorY);
-                        // }
                         return widgetS;
                     });
-    // fmtSizesY = fmt::format("{}", fmt::join(sizesY, ", "));
-    // imglog::log("sizes 4: {}", fmtSizesY);
 
     gridWidgetSize = widgetSizeFromSizes(sizesX, sizesY);
-    // imglog::log("gridWidgetSize arrange: gw: {}, gh: {}, w: {}, h: {} --- {}",
-    //             rect.width, rect.height,
-    //             gridWidgetSize.width, gridWidgetSize.height,
-    //             getName());
     return needArrange;
 }
 
@@ -176,7 +112,6 @@ void Grid::traverseWidgets(const layout::Rect& rect,
         widgetSize = fun(widget, cursorX, cursorY, widgetSize, availableWidth, sizeX, sizeY);
         sizeX = std::max(widgetSize.width, sizeX);
         rowMaxSizeY = std::max(widgetSize.height, rowMaxSizeY);
-        // imglog::log("Traverse size h: {}", widgetSize.height);
 
         cursorX += sizeX + getPadding();
         if ((static_cast<std::size_t>(index) + 1) % columns == 0) {
@@ -186,6 +121,50 @@ void Grid::traverseWidgets(const layout::Rect& rect,
             rowMaxSizeY = 0.F;
         }
     }
+}
+
+void Grid::calculateWidgetSizes(const layout::Rect& rect,
+                                std::vector<float>& sizesX,
+                                std::vector<float>& sizesY,
+                                std::vector<WidgetSize>& widgetSizes) const
+{
+    traverseWidgets(rect,
+                    sizesX, sizesY, widgetSizes,
+                    ExpandType::width_fixed,
+                    [](const std::shared_ptr<Widget>& widget,
+                       float /* cursorX */, float /* cursorY */,
+                       const WidgetSize& /* widgetSize */,
+                       float /* availableWidth */,
+                       float /* width */, float /* height */)
+                            -> WidgetSize {
+                        auto minSize = widget->getWidgetMinSize();
+                        return minSize;
+                    });
+    traverseWidgets(rect,
+                    sizesX, sizesY, widgetSizes,
+                    ExpandType::width_fixed,
+                    [&rect](const std::shared_ptr<Widget>& widget,
+                            float /* cursorX */, float /* cursorY */,
+                            const WidgetSize& /* widgetSize */,
+                            float availableWidth,
+                            float /* width */, float /* height */)
+                            -> WidgetSize {
+                        auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = availableWidth, .height = rect.height});
+                        return widgetS;
+                    });
+
+    traverseWidgets(rect,
+                    sizesX, sizesY, widgetSizes,
+                    ExpandType::width_expand,
+                    [&rect](const std::shared_ptr<Widget>& widget,
+                            float /* cursorX */, float /* cursorY */,
+                            const WidgetSize& /* widgetSize */,
+                            float availableWidth,
+                            float /* width */, float /* height */)
+                            -> WidgetSize {
+                        auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = availableWidth, .height = rect.height});
+                        return widgetS;
+                    });
 }
 
 auto Grid::getAvailableWidth(const std::vector<float>& sizesX,
@@ -224,60 +203,8 @@ auto Grid::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
     auto sizesX = std::vector<float>(columns, 0.F);
     auto sizesY = std::vector<float>{};
     auto widgetSizes = std::vector<WidgetSize>{widgets.size()};
-
-    traverseWidgets(rect,
-                    sizesX, sizesY, widgetSizes,
-                    ExpandType::width_fixed,
-                    [](const std::shared_ptr<Widget>& widget,
-                       float /* cursorX */, float /* cursorY */,
-                       const WidgetSize& /* widgetSize */,
-                       float /* availableWidth */,
-                       float /* width */, float /* height */)
-                            -> WidgetSize {
-                        auto minSize = widget->getWidgetMinSize();
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("in0 {}:,  wsw: {}, wsh: {}", widget->getName(), minSize.width, minSize.height);
-                        // }
-                        return minSize;
-                    });
-    traverseWidgets(rect,
-                    sizesX, sizesY, widgetSizes,
-                    ExpandType::width_fixed,
-                    [&rect](const std::shared_ptr<Widget>& widget,
-                            float /* cursorX */, float /* cursorY */,
-                            const WidgetSize& /* widgetSize */,
-                            float availableWidth,
-                            float /* width */, float /* height */)
-                            -> WidgetSize {
-                        auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = availableWidth, .height = rect.height});
-                        // imglog::log("in:,  w: {}, h: {}", width, rect.height);
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("in1 {}:,  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
-                        // }
-                        return widgetS;
-                    });
-
-    traverseWidgets(rect,
-                    sizesX, sizesY, widgetSizes,
-                    ExpandType::width_expand,
-                    [&rect](const std::shared_ptr<Widget>& widget,
-                            float /* cursorX */, float /* cursorY */,
-                            const WidgetSize& /* widgetSize */,
-                            float availableWidth,
-                            float /* width */, float /* height */)
-                            -> WidgetSize {
-                        auto widgetS = widget->getWidgetSizeFromRect({.x = 0, .y = 0, .width = availableWidth, .height = rect.height});
-                        // imglog::log("in:,  w: {}, h: {}", width, rect.height);
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("in1 {}:,  wsw: {}, wsh: {}, w: {}, h: {}", widget->getName(), widgetS.width, widgetS.height, width, rect.height);
-                        // }
-                        return widgetS;
-                    });
+    calculateWidgetSizes(rect, sizesX, sizesY, widgetSizes);
     auto widgetSize = widgetSizeFromSizes(sizesX, sizesY);
-    // imglog::log("gridWidgetSize gwsfr: gw: {}, gh: {}, w: {}, h: {} --- {}",
-    //             rect.width, rect.height,
-    //             widgetSize.width, widgetSize.height,
-    //             getName());
     return widgetSize;
 }
 
@@ -312,9 +239,6 @@ auto Grid::calculateMinSize() const -> WidgetSize
                        float /* width */, float /* height */)
                             -> WidgetSize {
                         auto minSize = widget->getWidgetMinSize();
-                        // if (widget->getName() == "ttq_1") {
-                        // imglog::log("in0 {}:,  wsw: {}, wsh: {}", widget->getName(), minSize.width, minSize.height);
-                        // }
                         return minSize;
                     });
     return widgetSizeFromSizes(sizesX, sizesY);

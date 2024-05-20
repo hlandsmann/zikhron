@@ -49,6 +49,10 @@ private:
                                  float width,
                                  float height)>
                                  fun) const;
+    void calculateWidgetSizes(const layout::Rect& rect,
+                              std::vector<float>& sizesX,
+                              std::vector<float>& sizesY,
+                              std::vector<WidgetSize>& widgetSizes) const;
     auto getAvailableWidth(const std::vector<float>& sizesX,
                            std::size_t column,
                            float fullWidth,
@@ -63,10 +67,6 @@ private:
 
     /* shared functions via MetaBox */
     static auto newWidgetAlign(Align align, Measure measure) -> Align;
-
-    // /* Grid internal functions */
-    // auto getRowHeight(std::size_t row) const -> float;
-    // auto getColumnWidth(std::size_t column) const -> float;
 
     /* shared members via MetaBox */
     std::vector<std::shared_ptr<Widget>> widgets;
