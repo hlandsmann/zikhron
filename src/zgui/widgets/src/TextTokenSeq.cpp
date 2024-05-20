@@ -25,13 +25,13 @@ void TextTokenSeq::setup(const Paragraph& _paragraph)
     lineBox = create<Box>(Orientation::vertical);
     lineBox->setName("linebox");
     lineBox->setExpandType(width_fixed, height_fixed);
-    lineBox->setPadding(config.padding);
+    lineBox->setPadding(config.vpadding);
     lineBox->setBorder(config.border);
 
     scratchBox = createOrphan<Box>(Orientation::vertical);
     scratchBox->setName("scratchBox");
     scratchBox->setExpandType(width_fixed, height_fixed);
-    scratchBox->setPadding(config.padding);
+    scratchBox->setPadding(config.vpadding);
     scratchBox->setBorder(config.border);
     scratchBox->cutWidgetIdGen();
 }
@@ -143,12 +143,13 @@ void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token) const
     textToken->setFontType(config.fontType);
 }
 
-auto TextTokenSeq::addLine(Box& lines) -> std::shared_ptr<widget::Box>
+auto TextTokenSeq::addLine(Box& lines) const -> std::shared_ptr<widget::Box>
 {
     using namespace widget::layout;
 
     auto line = lines.add<Box>(Align::start, Orientation::horizontal);
     line->setExpandType(width_fixed, height_fixed);
+    line->setPadding(config.padding);
     return line;
 }
 
@@ -174,10 +175,12 @@ auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
     }
     if (!lineBox->isLast() && linesFit(rect)) {
         auto lbs = lineBox->getWidgetSizeFromRect(rect);
+        parentlog("overlayBox", " lines: {}", lineBox->numberOfWidgets());
         return lbs;
     }
     arrangeLines(*scratchBox, rect);
     auto scratch = scratchBox->getWidgetMinSize();
+    parentlog("overlayBox", "scratch lines: {}", scratchBox->numberOfWidgets());
     return scratch;
 }
 

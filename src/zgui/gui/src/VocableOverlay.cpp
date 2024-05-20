@@ -61,7 +61,8 @@ void VocableOverlay::setupBox()
     headerBox->add<widget::ImageButton>(Align::end, context::Image::configure);
     auto definitionGrid = box.add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.2F, 0.8F});
     definitionGrid->setName("definitionGrid");
-    // definitionGrid->setPadding(32.F);
+    definitionGrid->setPadding(32.F);
+    definitionGrid->setBorder(32.F);
     definitionGrid->setExpandType(width_fixed, height_fixed);
     definitionGrid->add<widget::TextTokenSeq>(Align::start,
                                               annotation::tokenVectorFromString(word->getPronounciation(), {}),

@@ -44,7 +44,8 @@ private:
                                  const std::shared_ptr<Widget>& widget,
                                  float cursorX,
                                  float cursor,
-                                 const WidgetSize& widgetSizeY,
+                                 const WidgetSize& widgetSize,
+                                 float availableWidth,
                                  float width,
                                  float height)>
                                  fun) const;
@@ -52,28 +53,7 @@ private:
                            std::size_t column,
                            float fullWidth,
                            ExpandType expandType) const -> float;
-
-            [[nodiscard]] auto arrangex(const layout::Rect& rect) -> bool;
-    void traverseWidgetsx(std::vector<float>& cursorsX,
-                          std::vector<float>& cursorsY,
-                          const layout::Rect& rect,
-                          ExpandType expandPriority,
-                          std::function<WidgetSize(
-                                  const std::shared_ptr<Widget>& widget,
-                                  float cursorX,
-                                  float cursorY,
-                                  float width,
-                                  float height)>
-                                  fun) const;
-    [[nodiscard]] auto nextCursorIndexEnd(std::vector<std::size_t>::const_iterator& itMergedCell, std::size_t& cellCounter) const -> std::size_t;
-    [[nodiscard]] auto getAvailableWidth(std::size_t indexStart,
-                                         std::size_t indexEnd,
-                                         const std::vector<float>& cursors,
-                                         float fullWidth,
-                                         ExpandType expandType) const -> float;
-    static void setCursor(std::vector<float>& cursors, std::size_t index, float value);
-    template<class T>
-    [[nodiscard]] static auto getVectorIndexElement(std::vector<T>& vector, std::size_t index) -> T&;
+    auto widgetSizeFromSizes(const std::vector<float>& sizesX, const std::vector<float>& sizesY) const -> WidgetSize;
     [[nodiscard]] static auto alignShiftPos(Align align, float pos, float size, float availableSize) -> float;
 
     /* functions overriden from Widget */
@@ -95,8 +75,7 @@ private:
     std::size_t columns{};
     std::vector<std::size_t> mergedCells;
     std::vector<float> priorities;
-    float gridWidth{};
-    float gridHeight{};
+    WidgetSize gridWidgetSize{};
 };
 
 } // namespace widget

@@ -2,6 +2,7 @@
 #include <context/WidgetIdGenerator.h>
 #include <detail/Widget.h>
 #include <spdlog/spdlog.h>
+#include <utils/spdlog.h>
 
 #include <algorithm>
 #include <memory>
@@ -189,7 +190,7 @@ void Widget::scratchDbg()
 {
     Widget const* widget = this;
     while (widget != nullptr) {
-        imglog::log("id is: {}", static_cast<unsigned>(widget->getWidgetId()));
+        imglog::log("id is: {}, name {}:", static_cast<unsigned>(widget->getWidgetId()), widget->getName());
         widget = widget->getParent().get();
     }
 }

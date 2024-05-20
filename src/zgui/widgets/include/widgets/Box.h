@@ -30,7 +30,6 @@ public:
     void setOrthogonalAlign(Align align);
 
 private:
-    [[nodiscard]] auto calculateSize(SizeType sizeType) const -> WidgetSize;
     [[nodiscard]] auto calculateSize() const -> WidgetSize override;
     [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
 
@@ -41,21 +40,16 @@ private:
     auto accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
                            std::vector<std::shared_ptr<Widget>>::const_iterator last,
                            Measure measure, SizeType sizeType) const -> float;
-    static auto getNextAlign(Align oldAlign, Align nextAlign);
-    void setChildWidgetsInitialRect();
+    auto accumulateMeasure(std::vector<WidgetSize>::const_iterator first,
+                           std::vector<WidgetSize>::const_iterator last,
+                           Measure measure) const -> float;
+    static auto maxElementMeasure(std::vector<WidgetSize>::const_iterator first,
+                                  std::vector<WidgetSize>::const_iterator last,
+                                  Measure measure) -> float;
 
-    [[nodiscard]] static auto widgetNewRect(Measure measure,
-                                            const layout::Rect& rect,
-                                            float pos,
-                                            float size,
-                                            float orthogonalSize,
-                                            const std::shared_ptr<Widget>& widget) -> layout::Rect;
-    [[nodiscard]] static auto rectWithAdaptedPosSize(Measure measure,
-                                                     const layout::Rect& rect,
-                                                     float cursor,
-                                                     float size, float orthogonalSize=0.F) -> layout::Rect;
+    static auto getNextAlign(Align oldAlign, Align nextAlign);
+
     [[nodiscard]] static auto oppositeMeasure(Measure measure) -> Measure;
-    [[nodiscard]] static auto getSizeOfWidgetSize(Measure measure, WidgetSize widgetSize) -> float;
     [[nodiscard]] static auto getWidgetAlign(Measure measure, const std::shared_ptr<Widget>& widget) -> Align;
     [[nodiscard]] static auto getWidgetCursor(Measure measure,
                                               Align oldAlign,
@@ -63,18 +57,21 @@ private:
                                               float centerSize, float endSize,
                                               const layout::Rect& rect,
                                               float oldCursor) -> float;
+    void calculateWidgetSizes(const layout::Rect& rect,
+                              std::vector<WidgetSize>& widgetSizes) const;
     [[nodiscard]] auto arrange(Measure measure, const layout::Rect& rect) -> bool;
     [[nodiscard]] static auto getAvailableSize(float fullSize,
                                                float startSize, float centerSize, float endSize,
                                                Align align) -> float;
+
     void traverseWidgets(const layout::Rect& rect,
-                         Measure measure,
-                         std::vector<float>& sizes,
+                         std::vector<WidgetSize>& widgetSizes,
                          std::function<WidgetSize(
                                  const std::shared_ptr<Widget>& widget,
-                                 float cursor,
-                                 float size,
-                                 float availableSize)>
+                                 float cursorX, float cursorY,
+                                 float width, float height,
+                                 float availableWidth, float availableHeight,
+                                 const WidgetSize& widgetSize)>
                                  fun) const;
 
     /* shared members via MetaBox */
@@ -84,10 +81,7 @@ private:
     Orientation orientation{};
     layout::Align orthogonalAlign{Align::start};
 
-    float boxWidth{};
-    float boxHeight{};
-
-    bool flipChildrensOrientation{true};
+    WidgetSize boxWidgetSize;
 };
 
 } // namespace widget
