@@ -56,16 +56,16 @@ void Layer::setAlignNewWidgetsVertical(Align newWidgetsVertical)
 auto Layer::calculateSize() const -> WidgetSize
 {
     return {
-            .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::standard),
-            .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::standard),
+            .width = maxElementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::standard),
+            .height = maxElementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::standard),
     };
 }
 
 auto Layer::calculateMinSize() const -> WidgetSize
 {
     return {
-            .width = max_elementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::min),
-            .height = max_elementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::min),
+            .width = maxElementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::min),
+            .height = maxElementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::min),
     };
 }
 

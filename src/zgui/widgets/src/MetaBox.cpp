@@ -21,6 +21,20 @@ template<class BoxImpl>
 void MetaBox<BoxImpl>::setPadding(float _padding)
 {
     padding = _padding;
+    setHorizontalPadding(padding);
+    setVerticalPadding(padding);
+}
+
+template<class BoxImpl>
+void MetaBox<BoxImpl>::setHorizontalPadding(float _horizontalPadding)
+{
+    horizontalPadding = _horizontalPadding;
+}
+
+template<class BoxImpl>
+void MetaBox<BoxImpl>::setVerticalPadding(float _verticalPadding)
+{
+    verticalPadding = _verticalPadding;
 }
 
 template<class BoxImpl>
@@ -89,6 +103,18 @@ template<class BoxImpl>
 auto MetaBox<BoxImpl>::getPadding() const -> float
 {
     return padding;
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::getHorizontalPadding() const -> float
+{
+    return horizontalPadding;
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::getVerticalPadding() const -> float
+{
+    return verticalPadding;
 }
 
 template<class BoxImpl>
@@ -177,9 +203,9 @@ auto MetaBox<BoxImpl>::rectSizeProjection(Measure measure, const layout::Rect& r
 }
 
 template<class BoxImpl>
-auto MetaBox<BoxImpl>::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
-                                          std::vector<std::shared_ptr<Widget>>::const_iterator last,
-                                          Measure measure, SizeType sizeType)
+auto MetaBox<BoxImpl>::maxElementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
+                                         std::vector<std::shared_ptr<Widget>>::const_iterator last,
+                                         Measure measure, SizeType sizeType)
         -> float
 {
     if (first == last) {
@@ -205,6 +231,23 @@ auto MetaBox<BoxImpl>::max_elementMeasure(std::vector<std::shared_ptr<Widget>>::
         return widgetSizeProjection(measure, widget->getWidgetSize());
     }
     std::unreachable();
+}
+
+template<class BoxImpl>
+auto MetaBox<BoxImpl>::maxElementMeasure(std::vector<WidgetSize>::const_iterator first,
+                                         std::vector<WidgetSize>::const_iterator last,
+                                         Measure measure) -> float
+{
+    if (first == last) {
+        return 0.0F;
+    }
+    const auto& widgetSize = *std::max_element(first, last,
+                                               [measure](const WidgetSize& widgetSize_A,
+                                                         const WidgetSize& widgetSize_B) -> bool {
+                                                   return widgetSizeProjection(measure, widgetSize_A)
+                                                          < widgetSizeProjection(measure, widgetSize_B);
+                                               });
+    return widgetSizeProjection(measure, widgetSize);
 }
 
 template class MetaBox<Box>;

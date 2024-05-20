@@ -20,9 +20,9 @@ public:
     struct Config
     {
         context::FontType fontType = context::FontType::Gui;
-        float padding = 0.F;
-        float vpadding = 8.F;
-        float border = 16;
+        float wordPadding = 0.F;
+        float linePadding = 0.F;
+        float border = 0.F;
     };
 
 private:
@@ -50,7 +50,7 @@ private:
     auto arrangeLines(Box& lines, const layout::Rect& rect) -> bool;
     auto linesFit(const layout::Rect& rect) const -> bool;
     void addTextToken(Box& box, const annotation::Token& token) const;
-    auto addLine(Box& lines) const -> std::shared_ptr<widget::Box>;
+     auto addLine(Box& lines)const -> std::shared_ptr<widget::Box>;
     layout::Rect lastRect;
     std::shared_ptr<Box> lineBox;
     std::shared_ptr<Box> scratchBox;

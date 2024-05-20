@@ -55,7 +55,7 @@ void VocableOverlay::setupBox()
 
     widget::TextTokenSeq::Config ttqConfig;
     ttqConfig.fontType = fontType;
-    ttqConfig.padding = 15.F;
+    ttqConfig.wordPadding = 15.F;
     ttqConfig.border = 0.F;
     headerBox->add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
     headerBox->add<widget::ImageButton>(Align::end, context::Image::configure);

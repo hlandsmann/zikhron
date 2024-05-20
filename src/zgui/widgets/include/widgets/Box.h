@@ -43,9 +43,6 @@ private:
     auto accumulateMeasure(std::vector<WidgetSize>::const_iterator first,
                            std::vector<WidgetSize>::const_iterator last,
                            Measure measure) const -> float;
-    static auto maxElementMeasure(std::vector<WidgetSize>::const_iterator first,
-                                  std::vector<WidgetSize>::const_iterator last,
-                                  Measure measure) -> float;
 
     static auto getNextAlign(Align oldAlign, Align nextAlign);
 

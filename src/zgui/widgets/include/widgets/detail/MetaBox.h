@@ -32,6 +32,8 @@ public:
     MetaBox(const WidgetInit& init);
 
     void setPadding(float padding);
+    void setHorizontalPadding(float horizontalPadding);
+    void setVerticalPadding(float verticalPadding);
     void setBorder(float border);
 
     template<class WidgetType, class... Args>
@@ -48,9 +50,9 @@ public:
         auto widget = std::make_shared<WidgetType>(std::move(init));
         auto newWidgetId = widget->getWidgetId();
         widget->setup(std::forward<Args>(args)...);
-        if constexpr (std::is_same_v<WidgetType, BoxImpl>) {
-            widget->setPadding(padding);
-        }
+        // if constexpr (std::is_same_v<WidgetType, BoxImpl>) {
+        //     widget->setPadding(padding);
+        // }
         self->widgets.push_back(static_cast<std::shared_ptr<Widget>>(widget));
         id_widgets[newWidgetId] = widget;
 
@@ -90,7 +92,10 @@ protected:
     auto calculateMinSize() const -> WidgetSize override = 0;
     auto getBorderedRect(const layout::Rect& rect) const -> layout::Rect;
     auto getBorder() const -> float;
+
     auto getPadding() const -> float;
+    auto getHorizontalPadding() const -> float;
+    auto getVerticalPadding() const -> float;
 
     enum class SizeType {
         min,
@@ -107,12 +112,17 @@ protected:
     static auto widgetSizeProjection(Measure measure, const WidgetSize& widgetSize) -> float;
     static auto rectPositionProjection(Measure measure, const layout::Rect& rect) -> float;
     static auto rectSizeProjection(Measure measure, const layout::Rect& rect) -> float;
-    static auto max_elementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
-                                   std::vector<std::shared_ptr<Widget>>::const_iterator last,
-                                   Measure measure, SizeType) -> float;
+    static auto maxElementMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator first,
+                                  std::vector<std::shared_ptr<Widget>>::const_iterator last,
+                                  Measure measure, SizeType) -> float;
+    static auto maxElementMeasure(std::vector<WidgetSize>::const_iterator first,
+                                  std::vector<WidgetSize>::const_iterator last,
+                                  Measure measure) -> float;
 
 private:
     float padding{s_padding};
+    float horizontalPadding{s_padding};
+    float verticalPadding{s_padding};
     float border{};
     std::vector<std::shared_ptr<Widget>>::iterator currentWidgetIt;
     std::map<WidgetId, std::shared_ptr<Widget>> id_widgets;

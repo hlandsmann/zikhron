@@ -73,6 +73,9 @@ void DisplayText::setupDialogue()
 {
     int index = 0;
     auto grid = layer->add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.3F, 0.7F});
+    grid->setBorder(16.F);
+    grid->setHorizontalPadding(64.F);
+    grid->setVerticalPadding(24.F);
     for (const auto& dialogue : tokenText->getDialogue()) {
         auto ttq = grid->add<widget::TextTokenSeq>(Align::start, dialogue, ttqConfig);
         ttq->setName(fmt::format("ttq_{}", index));

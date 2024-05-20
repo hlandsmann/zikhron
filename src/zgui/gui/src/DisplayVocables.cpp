@@ -53,6 +53,9 @@ void DisplayVocables::setup()
 {
     using namespace widget::layout;
     auto grid = layer->add<widget::Grid>(Align::start, 4, widget::Grid::Priorities{0.1F, 0.2F, 0.4F, 0.3F});
+    grid->setBorder(16.F);
+    grid->setHorizontalPadding(64.F);
+    grid->setVerticalPadding(16.F);
     grid->setExpandType(width_fixed, height_fixed);
     for (auto& [vocId, ease, colorId] : activeVocables) {
         const auto& word = wordDB->lookupId(vocId);
@@ -65,7 +68,7 @@ void DisplayVocables::addVocable(widget::Grid& grid, const annotation::Word& wor
 {
     widget::TextTokenSeq::Config ttqConfig;
     ttqConfig.fontType = fontType;
-    ttqConfig.padding = 15.F;
+    ttqConfig.wordPadding = 15.F;
     grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.Key(), colorId), ttqConfig);
     grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.getPronounciation(), colorId), ttqConfig);
     grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.getMeanings().at(0), colorId), ttqConfig);

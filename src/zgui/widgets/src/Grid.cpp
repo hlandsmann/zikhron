@@ -113,10 +113,11 @@ void Grid::traverseWidgets(const layout::Rect& rect,
         sizeX = std::max(widgetSize.width, sizeX);
         rowMaxSizeY = std::max(widgetSize.height, rowMaxSizeY);
 
-        cursorX += sizeX + getPadding();
+        cursorX += sizeX + getHorizontalPadding();
         if ((static_cast<std::size_t>(index) + 1) % columns == 0) {
             cursorX = borderedRect.x;
-            cursorY += rowMaxSizeY; //+ getPadding();
+            cursorY += rowMaxSizeY;
+            cursorY += getVerticalPadding();
             sizeY = rowMaxSizeY;
             rowMaxSizeY = 0.F;
         }
@@ -175,7 +176,7 @@ auto Grid::getAvailableWidth(const std::vector<float>& sizesX,
     if (sizesX.empty()) {
         return 0.F;
     }
-    fullWidth -= getPadding() * static_cast<float>(sizesX.size() - 1);
+    fullWidth -= getHorizontalPadding() * static_cast<float>(sizesX.size() - 1);
 
     float usedWidth = std::accumulate(sizesX.begin(), sizesX.end(), 0.F);
     usedWidth -= sizesX.at(column);
@@ -212,9 +213,9 @@ auto Grid::widgetSizeFromSizes(const std::vector<float>& sizesX, const std::vect
 {
     return {
             .width = std::accumulate(sizesX.begin(), sizesX.end(),
-                                     getBorder() * 2 + getPadding() * std::max(0.F, static_cast<float>(sizesX.size() - 1))),
+                                     getBorder() * 2 + getHorizontalPadding() * std::max(0.F, static_cast<float>(sizesX.size() - 1))),
             .height = std::accumulate(sizesY.begin(), sizesY.end(),
-                                      getBorder() * 2 + getPadding() * std::max(0.F, static_cast<float>(sizesY.size() - 1))),
+                                      getBorder() * 2 + getVerticalPadding() * std::max(0.F, static_cast<float>(sizesY.size() - 1))),
     };
 }
 

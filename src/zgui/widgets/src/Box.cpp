@@ -78,6 +78,8 @@ auto Box::arrange(const layout::Rect& rect) -> bool
                         needArrange |= widget->arrange(widgetRect);
                         return widget->getWidgetSize();
                     });
+    lastCursorX -= rect.x;
+    lastCursorY -= rect.y;
     auto measure = orientation == Orientation::horizontal ? Measure::horizontal : Measure::vertical;
     float width = getExpandTypeWidth() == ExpandType::expand ? rect.width
                   : measure == Measure::horizontal           ? lastCursorX + widgetSizes.back().width
@@ -166,22 +168,6 @@ auto Box::accumulateMeasure(std::vector<std::shared_ptr<Widget>>::const_iterator
                                                          : widget->getWidgetSize();
                                return val + widgetSizeProjection(measure, widgetSize) + ((val == 0.F) ? 0.F : getPadding());
                            });
-}
-
-auto Box::maxElementMeasure(std::vector<WidgetSize>::const_iterator first,
-                            std::vector<WidgetSize>::const_iterator last,
-                            Measure measure) -> float
-{
-    if (first == last) {
-        return 0.0F;
-    }
-    const auto& widgetSize = *std::max_element(first, last,
-                                               [measure](const WidgetSize& widgetSize_A,
-                                                         const WidgetSize& widgetSize_B) -> bool {
-                                                   return widgetSizeProjection(measure, widgetSize_A)
-                                                          < widgetSizeProjection(measure, widgetSize_B);
-                                               });
-    return widgetSizeProjection(measure, widgetSize);
 }
 
 auto Box::accumulateMeasure(std::vector<WidgetSize>::const_iterator first,
