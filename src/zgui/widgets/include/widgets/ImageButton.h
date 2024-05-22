@@ -29,14 +29,16 @@ public:
     void setChecked(bool checked);
     void setSensitive(bool sensitive);
 
+    auto isChecked() const ->bool;
+    auto isSensitive() const -> bool;
 protected:
     auto calculateSize() const -> WidgetSize override;
 
 private:
-    ImVec4 backGroundColor{};
-    ImVec4 iconColor{};
-    bool disabled{false};
-    bool enabled{false};
+    ImVec4 backGroundColor;
+    ImVec4 iconColor;
+    bool sensitive{true};
+    bool checked{false};
     std::string label;
     context::Image image{};
 };

@@ -21,9 +21,20 @@ public:
     [[nodiscard]] auto shouldClose() const -> bool;
 
 private:
+    void setupBox();
+    void createHeader(widget::Box& headerBox);
+    void drawHeader(widget::Box& headerBox);
+    void createDefinition(widget::Grid& definitionGrid);
+    void drawDefinition(widget::Grid& definitionGrid);
+    void createOptions(widget::Box& optionBox);
+    void drawOptions(widget::Box& optionBox);
+
+    bool setupPendingDefinition{true};
+    bool setupPendingOptions{true};
+
+
     constexpr static float s_border = 8.F;
     constexpr static float s_horizontalPadding = 32.F;
-    void setupBox();
     using FontType = context::FontType;
     constexpr static FontType fontType{FontType::chineseSmall};
     constexpr static widget::TextTokenSeq::Config ttqConfig = {.fontType = FontType::chineseSmall,

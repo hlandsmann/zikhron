@@ -14,6 +14,8 @@
 #include <utility>
 
 namespace gui {
+using namespace widget::layout;
+
 VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::shared_ptr<widget::TextToken> _token)
     : overlay{std::move(_overlay)}
     , word{_token->getToken().getWord()}
@@ -22,20 +24,7 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::s
     using namespace widget::layout;
     overlay->clear();
     overlay->setFirstDrop();
-    // overlay->setName("vocableOverlay");
 
-    // widget::TextTokenSeq::Config ttqConfig;
-    // ttqConfig.fontType = fontType;
-    // ttqConfig.padding = 15.F;
-    // box->add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
-    // auto definitionBox = box->add<widget::Box>(Align::start, widget::Orientation::horizontal);
-    // definitionBox->setExpandType(width_expand, height_fixed);
-    // definitionBox->add<widget::TextTokenSeq>(Align::start,
-    //                                          annotation::tokenVectorFromString(word->getPronounciation(), {}),
-    //                                          ttqConfig);
-    // definitionBox->add<widget::TextTokenSeq>(Align::start,
-    //                                          annotation::tokenVectorFromString(word->getMeanings().front(), {}),
-    //                                          ttqConfig);
     auto box = overlay->add<widget::Box>(Align::start, widget::Orientation::vertical);
     box->setName("overlayBox");
     setupBox();
@@ -43,34 +32,68 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::s
 
 void VocableOverlay::setupBox()
 {
-    using namespace widget::layout;
     overlay->start();
     auto& box = overlay->next<widget::Box>();
-    // box.setBorder(0.F);
-    // box.setPadding(0.F);
     box.clear();
-
     const auto& headerBox = box.add<widget::Box>(Align::start, headerBoxCfg, widget::Orientation::horizontal);
-    headerBox->setExpandType(width_adapt, height_fixed);
-    headerBox->setName("headerBox");
+    const auto& definitionGrid = box.add<widget::Grid>(Align::start, definitionGridCfg, 2, widget::Grid::Priorities{0.2F, 0.8F});
+    const auto& optionBox = box.add<widget::Box>(Align::start, headerBoxCfg, widget::Orientation::horizontal);
 
-    headerBox->add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
-    headerBox->add<widget::ImageButton>(Align::end, context::Image::configure);
-    auto definitionGrid = box.add<widget::Grid>(Align::start, definitionGridCfg, 2, widget::Grid::Priorities{0.2F, 0.8F});
+    headerBox->setName("headerBox");
+    headerBox->setExpandType(width_adapt, height_fixed);
     definitionGrid->setName("definitionGrid");
-    // definitionGrid->setBorder(s_border);
-    // definitionGrid->setHorizontalPadding(s_horizontalPadding);
-    // definitionGrid->setPadding(32.F);
-    // definitionGrid->setBorder(32.F);
-    // definitionGrid->setExpandType(width_fixed, height_fixed);
-    for (const auto& option : word->getOptions()) {
-        definitionGrid->add<widget::TextTokenSeq>(Align::start,
-                                                  annotation::tokenVectorFromString(option.pronounciation, {}),
-                                                  ttqConfig);
-        definitionGrid->add<widget::TextTokenSeq>(Align::start,
-                                                  annotation::tokenVectorFromString(option.meanings.front(), {}),
-                                                  ttqConfig);
+
+    createHeader(*headerBox);
+    createDefinition(*definitionGrid);
+}
+
+void VocableOverlay::createHeader(widget::Box& headerBox)
+{
+    headerBox.clear();
+    headerBox.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
+    headerBox.add<widget::ImageButton>(Align::end, context::Image::configure);
+}
+
+void VocableOverlay::drawHeader(widget::Box& headerBox)
+{
+    headerBox.start();
+    headerBox.next<widget::TextTokenSeq>().draw();
+    auto& cfgBtn = headerBox.next<widget::ImageButton>();
+    if (!word->isConfigureable()) {
+        return;
     }
+    if (cfgBtn.clicked()) {
+        cfgBtn.setChecked(!cfgBtn.isChecked());
+    }
+}
+
+void VocableOverlay::createDefinition(widget::Grid& definitionGrid)
+{
+    definitionGrid.clear();
+    for (const auto& option : word->getOptions()) {
+        definitionGrid.add<widget::TextTokenSeq>(Align::start,
+                                                 annotation::tokenVectorFromString(option.pronounciation, {}),
+                                                 ttqConfig);
+        definitionGrid.add<widget::TextTokenSeq>(Align::start,
+                                                 annotation::tokenVectorFromString(option.meanings.front(), {}),
+                                                 ttqConfig);
+    }
+}
+
+void VocableOverlay::drawDefinition(widget::Grid& definitionGrid)
+{
+    definitionGrid.start();
+
+    definitionGrid.next<widget::TextTokenSeq>().draw();
+    definitionGrid.next<widget::TextTokenSeq>().draw();
+}
+
+void VocableOverlay::createOptions(widget::Box& optionBox)
+{
+}
+
+void VocableOverlay::drawOptions(widget::Box& optionBox)
+{
 }
 
 void VocableOverlay::draw()
@@ -86,15 +109,10 @@ void VocableOverlay::draw()
     auto& box = overlay->next<widget::Box>();
     box.start();
     auto& headerBox = box.next<widget::Box>();
-    headerBox.start();
-    headerBox.next<widget::TextTokenSeq>().draw();
-    headerBox.next<widget::ImageButton>().clicked();
+    auto& definitionGrid = box.next<widget::Grid>();
 
-    auto& definitionBox = box.next<widget::Grid>();
-    definitionBox.start();
-
-    definitionBox.next<widget::TextTokenSeq>().draw();
-    definitionBox.next<widget::TextTokenSeq>().draw();
+    drawHeader(headerBox);
+    drawDefinition(definitionGrid);
 }
 
 auto VocableOverlay::shouldClose() const -> bool

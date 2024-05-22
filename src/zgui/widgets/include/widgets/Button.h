@@ -28,6 +28,9 @@ public:
     void setChecked(bool checked);
     void setSensitive(bool sensitive);
 
+    auto isChecked() const -> bool;
+    auto isSensitive() const -> bool;
+
 protected:
     auto calculateSize() const -> WidgetSize override;
 

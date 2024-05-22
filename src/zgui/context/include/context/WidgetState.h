@@ -12,6 +12,6 @@ enum class WidgetState {
     insensitive_hovered
 };
 
-auto getWidgetState(bool disabled, bool enabled) -> WidgetState;
+auto getWidgetState(bool sensitive, bool checked) -> WidgetState;
 
 } // namespace context

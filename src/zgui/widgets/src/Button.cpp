@@ -47,7 +47,16 @@ void Button::setChecked(bool _checked)
 
 void Button::setSensitive(bool _sensitive)
 {
-    sensitive = not _sensitive;
+    sensitive = _sensitive;
+}
+auto Button::isChecked() const -> bool
+{
+    return checked;
+}
+
+auto Button::isSensitive() const -> bool
+{
+    return sensitive;
 }
 
 } // namespace widget

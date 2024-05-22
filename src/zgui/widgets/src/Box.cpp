@@ -119,6 +119,9 @@ void Box::setOrthogonalAlign(Align align)
 
 auto Box::calculateSize() const -> WidgetSize
 {
+    if (widgets.empty()) {
+        return {};
+    }
     if (boxWidgetSize.width == 0 || boxWidgetSize.height == 0) {
         return getWidgetMinSize();
     }
@@ -127,6 +130,9 @@ auto Box::calculateSize() const -> WidgetSize
 
 auto Box::calculateMinSize() const -> WidgetSize
 {
+    if (widgets.empty()) {
+        return {};
+    }
     WidgetSize result{};
     auto widgetSizes = std::vector<WidgetSize>{};
     ranges::transform(widgets, std::back_inserter(widgetSizes),
@@ -259,6 +265,9 @@ auto Box::getWidgetCursor(Measure measure,
 
 auto Box::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
+    if (widgets.empty()) {
+        return {};
+    }
     auto widgetSizes = std::vector<WidgetSize>(widgets.size(), WidgetSize{});
     calculateWidgetSizes(rect, widgetSizes);
     auto measure = orientation == Orientation::horizontal ? Measure::horizontal : Measure::vertical;

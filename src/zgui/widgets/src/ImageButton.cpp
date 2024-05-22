@@ -35,7 +35,7 @@ auto ImageButton::clicked() -> bool
                                       ImVec2(1.0F, 1.0F),
                                       backGroundColor,
                                       iconColor);
-    context::WidgetState widgetState = context::getWidgetState(disabled, enabled);
+    context::WidgetState widgetState = context::getWidgetState(sensitive, checked);
     backGroundColor = getTheme().ColorButton(widgetState);
     iconColor = getTheme().ColorImage(widgetState);
     return clicked;
@@ -43,12 +43,22 @@ auto ImageButton::clicked() -> bool
 
 void ImageButton::setChecked(bool _checked)
 {
-    enabled = _checked;
+    checked = _checked;
 }
 
 void ImageButton::setSensitive(bool _sensitive)
 {
-    disabled = not _sensitive;
+    sensitive = _sensitive;
+}
+
+auto ImageButton::isChecked() const -> bool
+{
+    return checked;
+}
+
+auto ImageButton::isSensitive() const -> bool
+{
+    return sensitive;
 }
 
 auto ImageButton::calculateSize() const -> WidgetSize

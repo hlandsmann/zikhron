@@ -29,6 +29,7 @@ public:
     [[nodiscard]] auto Key() const -> std::string;
     [[nodiscard]] auto getProgress() const -> std::shared_ptr<VocableProgress>;
     [[nodiscard]] auto getOptions() const -> const std::vector<Option>&;
+    [[nodiscard]] auto isConfigureable() const -> bool;
 
 private:
     void parseOptions(std::string_view description);

@@ -68,6 +68,12 @@ auto Word::getOptions() const -> const std::vector<Option>&
     return options;
 }
 
+auto Word::isConfigureable() const -> bool
+{
+    return ((!dictionaryEntries.empty())
+            && (dictionaryEntries.front().meanings.size() > 1 || dictionaryEntries.size() > 1));
+}
+
 void Word::parseOptions(std::string_view description)
 {
     auto rest = std::string_view{description};

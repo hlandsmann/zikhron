@@ -2,12 +2,12 @@
 #include <imgui.h>
 
 namespace context {
-auto getWidgetState(bool disabled, bool enabled) -> WidgetState
+auto getWidgetState(bool sensitive, bool checked) -> WidgetState
 {
     bool hovered = ImGui::IsItemHovered();
     // bool active = hovered && ImGui::IsMouseDown(0) ;
     bool active = ImGui::IsItemActive();
-    if (disabled) {
+    if (!sensitive) {
         if (hovered) {
             return WidgetState::insensitive_hovered;
         }
@@ -16,7 +16,7 @@ auto getWidgetState(bool disabled, bool enabled) -> WidgetState
     if (active) {
         return WidgetState::active;
     }
-    if (enabled) {
+    if (checked) {
         if (hovered) {
             return WidgetState::checked_hovered;
         }
