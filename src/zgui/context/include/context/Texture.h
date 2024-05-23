@@ -46,6 +46,10 @@ class Texture
     static constexpr auto media_skip_backward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-skip-backward_32px.png";
     static constexpr auto media_skip_forward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-skip-forward_32px.png";
     static constexpr auto new_audio_alarm_tex = "/home/harmen/src/zikhron/build/resources/icons/new-audio-alarm_32px.png";
+    static constexpr auto arrow_up_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-up_24px.png";
+    static constexpr auto arrow_down_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-down_24px.png";
+    static constexpr auto arrow_left_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-start_24px.png";
+    static constexpr auto arrow_right_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-end_24px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

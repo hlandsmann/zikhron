@@ -89,10 +89,10 @@ void MainWindow::doImGui()
         break;
     }
 
-    // bool show_demo_window = true;
+    bool show_demo_window = true;
     // if (show_demo_window) {
     //     // ImGui::SetNextWindowFocus();
-    //     ImGui::ShowDemoWindow(&show_demo_window);
+        ImGui::ShowDemoWindow(&show_demo_window);
     // }
 }
 

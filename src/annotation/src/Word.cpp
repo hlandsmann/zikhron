@@ -63,7 +63,7 @@ auto Word::getProgress() const -> std::shared_ptr<VocableProgress>
     return vocableProgress;
 }
 
-auto Word::getOptions() const -> const std::vector<Option>&
+auto Word::getDefinitions() const -> const std::vector<Definition>&
 {
     return options;
 }
@@ -72,6 +72,11 @@ auto Word::isConfigureable() const -> bool
 {
     return ((!dictionaryEntries.empty())
             && (dictionaryEntries.front().meanings.size() > 1 || dictionaryEntries.size() > 1));
+}
+
+auto Word::getDictionaryEntries() const -> const std::vector<ZH_Dictionary::Entry>&
+{
+    return dictionaryEntries;
 }
 
 void Word::parseOptions(std::string_view description)
@@ -86,7 +91,7 @@ void Word::parseOptions(std::string_view description)
     }
 }
 
-Option::Option(std::string_view description)
+Definition::Definition(std::string_view description)
 {
     auto rest = std::string_view{description};
     pronounciation = utl::split_front(rest, ';');

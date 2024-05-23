@@ -70,7 +70,7 @@ void DisplayVocables::addVocable(widget::Grid& grid, const annotation::Word& wor
     ttqConfig.fontType = fontType;
     ttqConfig.wordPadding = 15.F;
     grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word.Key(), colorId), ttqConfig);
-    const auto& option = word.getOptions().front();
+    const auto& option = word.getDefinitions().front();
     grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(option.pronounciation, colorId), ttqConfig);
     grid.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(option.meanings.at(0), colorId), ttqConfig);
 }

@@ -50,7 +50,7 @@ void GlWindow::run()
             mainWindow.arrange(rect);
             mainWindow.doImGui();
         }
-        imglog::renderLogMessages(true);
+        // imglog::renderLogMessages(true);
 
         finishFrame();
 

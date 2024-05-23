@@ -11,7 +11,7 @@ class VocableProgress;
 
 namespace annotation {
 
-struct Option;
+struct Definition;
 
 class Word
 {
@@ -28,8 +28,10 @@ public:
     [[nodiscard]] auto getId() const -> VocableId;
     [[nodiscard]] auto Key() const -> std::string;
     [[nodiscard]] auto getProgress() const -> std::shared_ptr<VocableProgress>;
-    [[nodiscard]] auto getOptions() const -> const std::vector<Option>&;
+    [[nodiscard]] auto getDefinitions() const -> const std::vector<Definition>&;
     [[nodiscard]] auto isConfigureable() const -> bool;
+    [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<ZH_Dictionary::Entry>&;
+
 
 private:
     void parseOptions(std::string_view description);
@@ -37,17 +39,17 @@ private:
     std::shared_ptr<VocableProgress> vocableProgress;
 
     std::string key;
-    std::vector<Option> options;
+    std::vector<Definition> options;
     std::string pronounciation;
     std::vector<std::string> meanings;
 
     std::vector<ZH_Dictionary::Entry> dictionaryEntries;
 };
 
-struct Option
+struct Definition
 {
-    Option() = default;
-    Option(std::string_view description);
+    Definition() = default;
+    Definition(std::string_view description);
     [[nodiscard]] auto serialize() const -> std::string;
 
     std::string pronounciation;
