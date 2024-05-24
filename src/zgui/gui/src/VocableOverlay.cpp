@@ -5,10 +5,12 @@
 #include <annotation/Word.h>
 #include <context/Fonts.h>
 #include <utils/spdlog.h>
+#include <widgets/Button.h>
 #include <widgets/Grid.h>
 #include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
+#include <widgets/Separator.h>
 #include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
 
@@ -48,7 +50,7 @@ auto VocableOverlay::optionsFromWord(const annotation::Word& word) -> std::vecto
         if (optionIt == options.end()) {
             options.push_back({.pronounciation = entry.pronounciation,
                                .meanings = entry.meanings,
-                               .checked = std::vector<bool>(entry.meanings.size())});
+                               .checked = std::vector<int>(entry.meanings.size())});
             ranges::sort(options.back().meanings);
             continue;
         }
@@ -69,7 +71,7 @@ auto VocableOverlay::optionsFromWord(const annotation::Word& word) -> std::vecto
                 continue;
             }
             auto checkedIt = std::next(optionIt->checked.begin(), std::distance(optionIt->meanings.begin(), meaningIt));
-            *checkedIt = true;
+            *checkedIt = 1;
         }
     }
 
@@ -88,7 +90,7 @@ void VocableOverlay::setupBox()
     overlay->start();
     auto& box = overlay->next<widget::Box>();
     box.clear();
-    const auto& headerBox = box.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
+    const auto& headerBox = box.add<widget::Box>(Align::start, headerBoxCfg, widget::Orientation::horizontal);
     const auto& definitionGrid = box.add<widget::Grid>(Align::start, definitionGridCfg, 2, widget::Grid::Priorities{0.2F, 0.8F});
     const auto& optionBox = box.add<widget::Box>(Align::start, widget::Orientation::vertical);
 
@@ -104,6 +106,7 @@ void VocableOverlay::setupHeader(widget::Box& headerBox)
 {
     headerBox.clear();
     headerBox.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
+    headerBox.add<widget::Button>(Align::center, "ok");
     headerBox.add<widget::ImageButton>(Align::end, context::Image::configure);
 }
 
@@ -111,9 +114,13 @@ void VocableOverlay::drawHeader(widget::Box& headerBox)
 {
     headerBox.start();
     headerBox.next<widget::TextTokenSeq>().draw();
+    auto& okBtn = headerBox.next<widget::Button>();
     auto& cfgBtn = headerBox.next<widget::ImageButton>();
     if (!word->isConfigureable()) {
         return;
+    }
+    if (showOptions && !definitions.empty()) {
+        okBtn.clicked();
     }
     if (cfgBtn.clicked()) {
         cfgBtn.setChecked(!cfgBtn.isChecked());
@@ -131,9 +138,16 @@ void VocableOverlay::setupDefinition(widget::Grid& definitionGrid)
         definitionGrid.add<widget::TextTokenSeq>(Align::start,
                                                  annotation::tokenVectorFromString(definition.pronounciation, {}),
                                                  ttqConfig);
-        definitionGrid.add<widget::TextTokenSeq>(Align::start,
-                                                 annotation::tokenVectorFromString(definition.meanings.front(), {}),
-                                                 ttqConfig);
+        bool first = true;
+        for (const auto& meaning : definition.meanings) {
+            if (!first) {
+                definitionGrid.add<widget::Separator>(Align::start, 0.F, 0.F);
+            }
+            first = false;
+            definitionGrid.add<widget::TextTokenSeq>(Align::start,
+                                                     annotation::tokenVectorFromString(meaning, {}),
+                                                     ttqConfig);
+        }
     }
     setupPendingDefinition = false;
 }
@@ -142,23 +156,43 @@ void VocableOverlay::drawDefinition(widget::Grid& definitionGrid)
 {
     definitionGrid.start();
 
-    definitionGrid.next<widget::TextTokenSeq>().draw();
-    definitionGrid.next<widget::TextTokenSeq>().draw();
+    for (const auto& definition : definitions) {
+        definitionGrid.next<widget::TextTokenSeq>().draw();
+        bool first = true;
+        for (const auto& _ : definition.meanings) {
+            if (!first) {
+                definitionGrid.next<widget::Separator>();
+            }
+            first = false;
+            definitionGrid.next<widget::TextTokenSeq>().draw();
+        }
+    }
 }
 
 void VocableOverlay::setupOptions(widget::Box& optionBox)
 {
+    using context::Image;
     optionBox.clear();
     for (const auto& option : options) {
         // spdlog::info("p: {}, o: {}", option.pronounciation, option.open);
         auto& prBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
+        auto& openBtn = *prBox.add<widget::ImageButton>(Align::start, Image::arrow_right, Image::arrow_down);
         prBox.add<widget::TextTokenSeq>(Align::start,
                                         annotation::tokenVectorFromString(option.pronounciation, {}),
                                         ttqConfig);
+        openBtn.setOpen(option.open);
+        if (!option.open) {
+            continue;
+        }
 
-        // for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
-        //     spdlog::info("--- {}, {}", meaning, checked);
-        // }
+        for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
+            auto& meaningBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
+            auto& checkBox = *meaningBox.add<widget::ImageButton>(Align::start, Image::checkbox, Image::checkbox_checked);
+            checkBox.setOpen(checked != 0);
+            meaningBox.add<widget::TextTokenSeq>(Align::start,
+                                                 annotation::tokenVectorFromString(meaning, {}),
+                                                 ttqConfig);
+        }
     }
     setupPendingOptions = false;
 }
@@ -166,14 +200,46 @@ void VocableOverlay::setupOptions(widget::Box& optionBox)
 void VocableOverlay::drawOptions(widget::Box& optionBox)
 {
     optionBox.start();
-    for (const auto& option : options) {
+    for (auto& option : options) {
         // spdlog::info("p: {}, o: {}", option.pronounciation, option.open);
         auto& prBox = optionBox.next<widget::Box>();
+        if (option.open) {
+            for (auto& checked : option.checked) {
+                auto& meaningBox = optionBox.next<widget::Box>();
+                meaningBox.start();
+                auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().isOpen());
+                meaningBox.next<widget::TextTokenSeq>().draw();
+                if (oldState != checked) {
+                    setupPendingDefinition = true;
+                    generateDefinitions();
+                }
+            }
+        }
         prBox.start();
+        bool oldState = std::exchange(option.open, prBox.next<widget::ImageButton>().isOpen());
         prBox.next<widget::TextTokenSeq>().draw();
-        // for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
-        //     spdlog::info("--- {}, {}", meaning, checked);
-        // }
+
+        if (oldState != option.open) {
+            setupPendingOptions = true;
+        }
+    }
+}
+
+void VocableOverlay::generateDefinitions()
+{
+    definitions.clear();
+    for (const auto& option : options) {
+        if (ranges::none_of(option.checked, [](int checked) { return checked != 0; })) {
+            continue;
+        }
+        auto definition = annotation::Definition();
+        definition.pronounciation = option.pronounciation;
+        for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
+            if (checked != 0) {
+                definition.meanings.push_back(meaning);
+            }
+        }
+        definitions.push_back(definition);
     }
 }
 

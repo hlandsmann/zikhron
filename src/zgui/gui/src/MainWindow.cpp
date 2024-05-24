@@ -89,10 +89,10 @@ void MainWindow::doImGui()
         break;
     }
 
-    bool show_demo_window = true;
+    // bool show_demo_window = true;
     // if (show_demo_window) {
     //     // ImGui::SetNextWindowFocus();
-        ImGui::ShowDemoWindow(&show_demo_window);
+    //     ImGui::ShowDemoWindow(&show_demo_window);
     // }
 }
 
@@ -114,7 +114,6 @@ void MainWindow::setup()
                                                       context::Image::video,
                                                       context::Image::audio,
                                                       context::Image::configure_app});
-        
     }
     {
         auto mainLayer = box->add<widget::Layer>(Align::start);

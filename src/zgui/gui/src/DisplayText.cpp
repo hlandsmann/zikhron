@@ -85,6 +85,7 @@ void DisplayText::setupDialogue()
 
 void DisplayText::setupText()
 {
+    ttqConfig.border = s_border;
     layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), ttqConfig);
 }
 

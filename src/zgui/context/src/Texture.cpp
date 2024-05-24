@@ -68,6 +68,13 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::media_skip_backward] = loadTextureFromFile(media_skip_backward_tex);
     textureMap[Image::media_skip_forward] = loadTextureFromFile(media_skip_forward_tex);
     textureMap[Image::new_audio_alarm] = loadTextureFromFile(new_audio_alarm_tex);
+    textureMap[Image::arrow_up] = loadTextureFromFile(arrow_up_tex);
+    textureMap[Image::arrow_down] = loadTextureFromFile(arrow_down_tex);
+    textureMap[Image::arrow_left] = loadTextureFromFile(arrow_left_tex);
+    textureMap[Image::arrow_right] = loadTextureFromFile(arrow_right_tex);
+    textureMap[Image::checkbox] = loadTextureFromFile(checkbox_tex);
+    textureMap[Image::checkbox_checked] = loadTextureFromFile(checkbox_checked_tex);
+
     return textureMap;
 }
 } // namespace context

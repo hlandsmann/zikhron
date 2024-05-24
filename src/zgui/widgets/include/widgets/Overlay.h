@@ -64,6 +64,7 @@ private:
 
     bool firstDrop = false;
     bool closeNext = false;
+    int framesActive = 0;
 };
 
 class OverlayDrop : public context::Drop<OverlayDrop>

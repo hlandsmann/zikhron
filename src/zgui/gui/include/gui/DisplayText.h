@@ -22,6 +22,14 @@ public:
     auto draw() -> std::optional<std::shared_ptr<widget::TextToken>>;
 
 private:
+    constexpr static float s_border = 16.F;
+    constexpr static float s_horizontalPadding = 64.F;
+    constexpr static float s_padding = 24.F;
+    constexpr static widget::BoxCfg boxCfg = {.padding = s_padding,
+                                              .paddingHorizontal = s_horizontalPadding,
+                                              .paddingVertical = s_padding,
+                                              .border = s_border};
+
     auto drawDialogue() -> std::optional<std::shared_ptr<widget::TextToken>>;
     auto drawText() -> std::optional<std::shared_ptr<widget::TextToken>>;
     void setupDialogue();

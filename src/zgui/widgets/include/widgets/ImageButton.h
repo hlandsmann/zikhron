@@ -15,6 +15,7 @@ class ImageButton : public Widget
     friend class MetaBox;
     friend class Widget;
     void setup(context::Image image);
+    void setup(context::Image imageActionOpen, context::Image imageActionClose);
 
 public:
     ImageButton(WidgetInit init);
@@ -26,8 +27,11 @@ public:
     auto operator=(ImageButton&&) -> ImageButton& = default;
 
     auto clicked() -> bool;
+    auto isOpen() -> bool;
+    void setOpen(bool open);
     void setChecked(bool checked);
     void setSensitive(bool sensitive);
+    
 
     auto isChecked() const ->bool;
     auto isSensitive() const -> bool;
@@ -40,7 +44,11 @@ private:
     bool sensitive{true};
     bool checked{false};
     std::string label;
+    bool open{false};
     context::Image image{};
+    context::Image imageActionOpen{};
+    context::Image imageActionClose{};
+
 };
 
 }; // namespace widget

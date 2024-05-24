@@ -59,6 +59,10 @@ void Grid::mergeCell()
 auto Grid::arrange(const layout::Rect& rect) -> bool
 {
     bool needArrange = false;
+    if (widgets.empty()) {
+        gridWidgetSize = {};
+        return needArrange;
+    }
 
     auto sizesX = std::vector<float>(columns, 0.F);
     auto sizesY = std::vector<float>{};
@@ -207,6 +211,9 @@ auto Grid::alignShiftPos(Align align, float pos, float size, float availableSize
 
 auto Grid::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
+    if (widgets.empty()) {
+        return {};
+    }
     auto sizesX = std::vector<float>(columns, 0.F);
     auto sizesY = std::vector<float>{};
     auto widgetSizes = std::vector<WidgetSize>{widgets.size()};

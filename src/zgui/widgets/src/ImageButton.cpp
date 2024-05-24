@@ -15,8 +15,18 @@ namespace widget {
 
 void ImageButton::setup(context::Image _image)
 {
-    label = magic_enum::enum_name(_image);
     image = _image;
+    imageActionOpen = image;
+    imageActionClose = image;
+    label = magic_enum::enum_name(image);
+}
+
+void ImageButton::setup(context::Image _imageActionOpen, context::Image _imageActionClose)
+{
+    imageActionOpen = _imageActionOpen;
+    imageActionClose = _imageActionClose;
+    image = imageActionOpen;
+    label = magic_enum::enum_name(image);
 }
 
 ImageButton::ImageButton(WidgetInit init)
@@ -28,6 +38,8 @@ auto ImageButton::clicked() -> bool
     auto widgetIdDrop = dropWidgetId();
     const auto& btnRect = getRect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
+
+    image = open ? imageActionClose : imageActionOpen;
     auto tex = getTheme().getTexture().get(image);
 
     auto clicked = ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), {tex.width, tex.height},
@@ -39,6 +51,20 @@ auto ImageButton::clicked() -> bool
     backGroundColor = getTheme().ColorButton(widgetState);
     iconColor = getTheme().ColorImage(widgetState);
     return clicked;
+}
+
+auto ImageButton::isOpen() -> bool
+{
+    if (clicked()) {
+        open = !open;
+    }
+
+    return open;
+}
+
+void ImageButton::setOpen(bool _open)
+{
+    open = _open;
 }
 
 void ImageButton::setChecked(bool _checked)

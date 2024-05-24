@@ -52,21 +52,22 @@ auto Overlay::dropOverlay(float x, float y) -> OverlayDrop
 
     imglog::log("overlay drop, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
 
+    if (framesActive++ > 10) {
+        firstDrop = false;
+    }
+
     if (ImGui::IsWindowFocused()) {
-        if (firstDrop) {
-            ImGui::SetNextWindowFocus();
-            firstDrop = false;
-        } else {
+        if (!firstDrop) {
             closeNext = true;
         }
     }
-
     return {
             getName(),
             rect,
             getTheme().dropImGuiStyleColors(context::ColorTheme::Overlay),
             [this] {
-                if (ImGui::IsWindowFocused()) {
+                if (firstDrop && !ImGui::IsWindowFocused()) {
+                    ImGui::SetWindowFocus();
                     firstDrop = false;
                 }
             },
@@ -75,6 +76,7 @@ auto Overlay::dropOverlay(float x, float y) -> OverlayDrop
 
 void Overlay::setFirstDrop()
 {
+    framesActive = 0;
     firstDrop = true;
     closeNext = false;
 }
