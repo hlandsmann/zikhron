@@ -200,4 +200,11 @@ auto TextTokenSeq::draw() -> std::optional<std::shared_ptr<TextToken>>
     return result;
 }
 
+void TextTokenSeq::setParagraph(const Paragraph& _paragraph)
+{
+    paragraph = _paragraph;
+    lineBox->clear();
+    scratchBox->clear();
+}
+
 } // namespace widget

@@ -12,13 +12,17 @@
 #include <widgets/Layer.h>
 #include <widgets/MediaSlider.h>
 #include <widgets/Overlay.h>
+#include <widgets/Separator.h>
 #include <widgets/TextTokenSeq.h>
+#include <widgets/ToggleButtonGroup.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
+#include <initializer_list>
 #include <kocoro/kocoro.hpp>
 #include <memory>
 #include <ranges>
+#include <string>
 #include <utility>
 
 namespace ranges = std::ranges;
@@ -39,30 +43,13 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
 {
     using namespace widget::layout;
     auto box = layer->add<widget::Box>(Align::start, widget::Orientation::vertical);
+    box->setName("DisplayCard_box");
     boxId = box->getWidgetId();
 
-    box->setName("DisplayCard_box");
-    // box->setExpandType(width_expand, height_expand);
     auto& cardWindow = *box->add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
-    auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
-    overlay = cardWindow.add<widget::Overlay>(Align::start, VocableOverlay::maxWidth);
-    cardBox->setName("cardBox");
-    // cardBox->setFlipChildrensOrientation(false);
-    signalCardBox->set(cardBox);
-
-    // auto& testWindow = *box->add<widget::Window>(Align::center, ExpandType::width_expand, ExpandType::height_expand, "test_window");
-    // auto& testBox = *testWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
-
     auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
-    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
-    ctrlBox.setName("ctrlBox");
-    ctrlBox.setExpandType(width_expand, height_fixed);
-    // ctrlBox.setPadding(0.F);
-    ctrlBox.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
-    ctrlBox.add<widget::MediaSlider>(Align::start);
-    ctrlBox.add<widget::Button>(Align::center, "hello");
-
-    spdlog::info("setUp");
+    setupCardWindow(cardWindow);
+    setupCtrlWindow(ctrlWindow);
 }
 
 void TabCard::displayOnLayer(widget::Layer& layer)
@@ -71,21 +58,6 @@ void TabCard::displayOnLayer(widget::Layer& layer)
     box.start();
     doCardWindow(box.next<widget::Window>());
     doCtrlWindow(box.next<widget::Window>());
-
-    // auto& box = window.getBox();
-    // // auto size = box.getExpandedSize();
-    // // auto size = box.getWidgetSize();
-    // // spdlog::critical("w: {}, h: {}, we: {}, he: {}", size.width, size.height, size.widthType, size.heightType);
-    // box.start();
-    // auto& cardBox = box.next<widget::Box>();
-    // cardBox.start();
-    // if (!cardBox.isLast()) {
-    //     cardBox.next<widget::TextTokenSeq>().draw();
-    // }
-    // // imglog::log("width: {}, height: {}", window.getWidgetSize().width, window.getWidgetSize().height);
-    // // while (!cardBox.isLast()) {
-    // // cardBox.next<widget::Button>().clicked();
-    // // }
 }
 
 auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
@@ -131,11 +103,13 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     co_return;
 }
 
-void TabCard::doTestWindow(widget::Window& cardWindow)
+void TabCard::setupCardWindow(widget::Window& cardWindow)
 {
-    auto droppedWindow = cardWindow.dropWindow();
-    // auto& cardBox = cardWindow.next<widget::Box>();
-    // cardBox.start();
+    auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    overlay = cardWindow.add<widget::Overlay>(Align::start, VocableOverlay::maxWidth);
+    cardBox->setName("cardBox");
+
+    signalCardBox->set(cardBox);
 }
 
 void TabCard::doCardWindow(widget::Window& cardWindow)
@@ -169,23 +143,76 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
     // }
 }
 
+void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
+{
+    using context::Image;
+    using namespace widget::layout;
+    using namespace widget::layout;
+    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    ctrlBox.setName("ctrlBox");
+    ctrlBox.setPadding(4.F);
+    ctrlBox.setExpandType(width_expand, height_fixed);
+
+    ctrlBox.add<widget::ImageButton>(Align::start, Image::media_playback_start, Image::media_playback_pause);
+    // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
+    ctrlBox.add<widget::MediaSlider>(Align::start);
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    auto& layer = *ctrlBox.add<widget::Layer>(Align::end);
+    layer.setExpandType(width_fixed, height_adapt);
+
+    layer.add<widget::Button>(Align::center, " reveal vocabulary ")->setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " submit choice of ease ")->setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " next ")->setExpandType(width_fixed, height_adapt);
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ToggleButtonGroup>(Align::end, widget::Orientation::horizontal,
+                                           std::initializer_list<std::string>{"single", "group"})
+            ->setExpandType(width_fixed, height_adapt);
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_backward);
+    // ctrlBox.add<widget::Separator>(Align::end, 4.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_backward);
+    // ctrlBox.add<widget::Separator>(Align::end, 4.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_forward);
+    // ctrlBox.add<widget::Separator>(Align::end, 4.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_forward);
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
+}
+
 void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
 {
     auto droppedWindow = ctrlWindow.dropWindow();
     ctrlWindow.start();
     auto& box = ctrlWindow.next<widget::Box>();
     box.start();
-    box.next<widget::ImageButton>().clicked();
+    box.next<widget::ImageButton>().isOpen();
+    // box.next<widget::Separator>();
+
     static float x = 0;
-    // x += 0.002F;
-    // if (x >= 1.0F) {
-    //     x = 0;
-    // }
     auto optx = box.next<widget::MediaSlider>().slide(x);
     if (optx.has_value()) {
         x = *optx;
     }
-    box.next<widget::Button>().clicked();
+
+    box.next<widget::Separator>();
+    auto& layer = box.next<widget::Layer>();
+    layer.start();
+    layer.next<widget::Button>().clicked();
+
+    box.next<widget::Separator>();
+    box.next<widget::ToggleButtonGroup>().Active(0);
+    box.next<widget::Separator>();
+    box.next<widget::ImageButton>().clicked();
+    // box.next<widget::Separator>();
+    box.next<widget::ImageButton>().clicked();
+    // box.next<widget::Separator>();
+    box.next<widget::ImageButton>().clicked();
+    // box.next<widget::Separator>();
+    box.next<widget::ImageButton>().clicked();
+    box.next<widget::Separator>();
+    box.next<widget::ImageButton>().clicked();
 }
 
 } // namespace gui

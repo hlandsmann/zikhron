@@ -39,6 +39,7 @@ public:
     TextTokenSeq(WidgetInit init);
 
     auto draw() -> std::optional<std::shared_ptr<TextToken>>;
+    void setParagraph(const Paragraph& paragraph);
 
 private:
     [[nodiscard]] auto calculateSize() const -> WidgetSize override;

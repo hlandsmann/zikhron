@@ -38,6 +38,7 @@ private:
     auto startImGuiFrame() -> std::pair<int, int>;
     void finishFrame() const;
     void render();
+    void setStyleVars();
     std::shared_ptr<context::GlfwImguiContext> glfwImguiContext;
 
     bool close{false};

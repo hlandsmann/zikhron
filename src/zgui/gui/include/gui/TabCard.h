@@ -39,8 +39,11 @@ public:
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;
     auto feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>;
-    static void doTestWindow(widget::Window& cardWindow);
+
+    void setupCardWindow(widget::Window& cardWindow);
     void doCardWindow(widget::Window& cardWindow);
+
+    void setupCtrlWindow(widget::Window& ctrlWindow);
     void doCtrlWindow(widget::Window& ctrlWindow);
 
     std::shared_ptr<kocoro::SynchronousExecutor> executor;

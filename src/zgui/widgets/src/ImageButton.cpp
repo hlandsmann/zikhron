@@ -35,6 +35,7 @@ ImageButton::ImageButton(WidgetInit init)
 
 auto ImageButton::clicked() -> bool
 {
+    // auto padding = ImGui::GetStyle().FramePadding;
     auto widgetIdDrop = dropWidgetId();
     const auto& btnRect = getRect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});

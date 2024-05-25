@@ -141,6 +141,7 @@ OverlayDrop::OverlayDrop(const std::string& name, const widget::layout::Rect& re
                          std::function<void()> execAfterWindowOpen)
     : styleColorsDrop{std::move(_styleColorsDrop)}
 {
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.F);
     ImGui::SetNextWindowPos({rect.x, rect.y});
     ImGui::SetNextWindowSize({rect.width, rect.height});
     ImGui::Begin(name.c_str(), nullptr,
@@ -156,5 +157,6 @@ OverlayDrop::OverlayDrop(const std::string& name, const widget::layout::Rect& re
 void OverlayDrop::pop()
 {
     ImGui::End();
+    ImGui::PopStyleVar();
 }
 } // namespace widget

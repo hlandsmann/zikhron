@@ -54,17 +54,20 @@ auto Box::arrange(const layout::Rect& rect) -> bool
     float lastCursorX{};
     float lastCursorY{};
     traverseWidgets(borderedRect, widgetSizes,
-                    [&](const std::shared_ptr<Widget>& widget,
-                        float cursorX, float cursorY,
-                        float width, float height,
-                        float availableWidth, float availableHeight,
-                        const WidgetSize& widgetSize) -> WidgetSize {
+                    [&, this](const std::shared_ptr<Widget>& widget,
+                              float cursorX, float cursorY,
+                              float width, float height,
+                              float availableWidth, float availableHeight,
+                              const WidgetSize& widgetSize) -> WidgetSize {
+                        auto measure = orientation == Orientation::horizontal
+                                               ? Measure::horizontal
+                                               : Measure::vertical;
                         // imglog::log("box1: {}, cursor: {}, size: {}", getName(), cursor, size);
                         lastCursorX = cursorX;
                         lastCursorY = cursorY;
                         auto expandWidth = widget->getExpandTypeWidth();
                         auto expandHeight = widget->getExpandTypeHeight();
-                        const auto& widgetRect = layout::Rect{
+                        auto widgetRect = layout::Rect{
                                 .x = cursorX,
                                 .y = cursorY,
                                 .width = expandWidth == ExpandType::fixed   ? widgetSize.width
@@ -73,13 +76,12 @@ auto Box::arrange(const layout::Rect& rect) -> bool
                                 .height = expandHeight == ExpandType::fixed   ? widgetSize.height
                                           : expandHeight == ExpandType::adapt ? height
                                                                               : availableHeight};
-                        // if (getName() == winName) {
-                        //     parentlog(parentName, "rect.width: {}, rect.height: {}", rect.width, rect.height);
-                        // }
-                        // winlog(winName, "{} - width: {}, height: {}", getName(), width, height);
-                        // parentlog(parentName, "{} - x: {}, y: {}, rw: {}, rh: {}, ex: {}",
-                        //           getName(), widgetRect.x, widgetRect.y,
-                        //           widgetRect.width, widgetRect.height, fmt::format("{}", widget->getExpandTypeWidth()));
+                        if (measure == Measure::horizontal && expandHeight != ExpandType::fixed) {
+                            widgetRect.height = availableHeight;
+                        }
+                        if (measure == Measure::vertical && expandWidth != ExpandType::fixed) {
+                            widgetRect.width = availableWidth;
+                        }
 
                         needArrange |= widget->arrange(widgetRect);
                         return widget->getWidgetSize();
@@ -87,15 +89,15 @@ auto Box::arrange(const layout::Rect& rect) -> bool
     lastCursorX -= rect.x;
     lastCursorY -= rect.y;
     auto measure = orientation == Orientation::horizontal ? Measure::horizontal : Measure::vertical;
-    float width = getExpandTypeWidth() == ExpandType::expand ? rect.width
-                  : measure == Measure::horizontal           ? lastCursorX + widgetSizes.back().width
-                                                             : maxElementMeasure(widgetSizes.begin(), widgetSizes.end(),
-                                                                                 oppositeMeasure(measure));
+    float width = getExpandTypeWidth() != ExpandType::fixed ? rect.width
+                  : measure == Measure::horizontal          ? lastCursorX + widgetSizes.back().width
+                                                            : maxElementMeasure(widgetSizes.begin(), widgetSizes.end(),
+                                                                                oppositeMeasure(measure));
     width += getBorder() * 2;
-    float height = getExpandTypeHeight() == ExpandType::expand ? rect.height
-                   : measure == Measure::vertical              ? lastCursorY + widgetSizes.back().height
-                                                               : maxElementMeasure(widgetSizes.begin(), widgetSizes.end(),
-                                                                                   oppositeMeasure(measure));
+    float height = getExpandTypeHeight() != ExpandType::fixed ? rect.height
+                   : measure == Measure::vertical             ? lastCursorY + widgetSizes.back().height
+                                                              : maxElementMeasure(widgetSizes.begin(), widgetSizes.end(),
+                                                                                  oppositeMeasure(measure));
     height += getBorder() * 2;
     if (width < 0 || height < 0) {
         imglog::log("{} -------- w: {}, h: {}, ew: {}, eh: {}, o: {}, rx: {}, ry: {}, rw: {}, rh: {}, number: {}",
@@ -107,8 +109,8 @@ auto Box::arrange(const layout::Rect& rect) -> bool
                     widgets.size());
         scratchDbg();
     }
-    boxWidgetSize = {.width = width,
-                     .height = height};
+    boxWidgetSize = {.width = std::min(width, rect.width),
+                     .height = std::min(height, rect.height)};
     return needArrange;
 }
 

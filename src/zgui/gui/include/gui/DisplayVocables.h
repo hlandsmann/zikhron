@@ -1,5 +1,6 @@
 #pragma once
 #include <annotation/Ease.h>
+#include <annotation/Token.h>
 #include <annotation/TokenText.h>
 #include <annotation/Word.h>
 #include <annotation/WordDB.h>
@@ -34,24 +35,19 @@ private:
     void setup();
     void setupVocables(widget::Grid& grid);
     void drawVocables(widget::Grid& grid);
-    void addVocable(widget::Grid& grid, const Word& word, ColorId colorId);
     static void addEaseButtonGroup(widget::Grid& grid);
-    [[nodiscard]] static auto wordsFromActiveVocables(const std::vector<ActiveVocable>& activeVocables,
-                                                      std::shared_ptr<annotation::WordDB> wordDB)
-            -> std::vector<std::shared_ptr<Word>>;
+    static auto makeEaseLabel(const Ease& ease, ColorId colorId) -> std::vector<annotation::Token>;
 
     constexpr static widget::BoxCfg gridCfg = {.padding = 0.F,
-                                                         .paddingHorizontal = 64.F,
-                                                         .paddingVertical = 16.F,
-                                                         .border = 16.F};
+                                               .paddingHorizontal = 64.F,
+                                               .paddingVertical = 16.F,
+                                               .border = 16.F};
 
     context::FontType fontType = context::FontType::chineseSmall;
 
     std::shared_ptr<widget::Layer> layer;
     std::shared_ptr<annotation::WordDB> wordDB;
     std::vector<ActiveVocable> activeVocables;
-
-    std::vector<std::shared_ptr<Word>> words;
 };
 
 } // namespace gui

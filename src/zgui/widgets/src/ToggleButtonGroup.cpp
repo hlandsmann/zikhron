@@ -17,6 +17,7 @@
 namespace widget {
 void ToggleButtonGroup::setup(Orientation _orientation, std::initializer_list<context::Image> images)
 {
+    orientation = _orientation;
     box = create<Box>(_orientation);
     box->setPadding(0.F);
     for (const auto& image : images) {
@@ -26,6 +27,7 @@ void ToggleButtonGroup::setup(Orientation _orientation, std::initializer_list<co
 
 void ToggleButtonGroup::setup(Orientation _orientation, std::initializer_list<std::string> labels)
 {
+    orientation = _orientation;
     box = create<Box>(_orientation);
     box->setPadding(0.F);
     box->setName("tbgrp");
@@ -42,6 +44,11 @@ ToggleButtonGroup::ToggleButtonGroup(WidgetInit init)
 auto ToggleButtonGroup::calculateSize() const -> WidgetSize
 {
     return box->getWidgetSize();
+}
+
+auto ToggleButtonGroup::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
+{
+    return box->getWidgetSizeFromRect(rect);
 }
 
 auto ToggleButtonGroup::Active(std::size_t _active) -> std::size_t
@@ -70,6 +77,22 @@ auto ToggleButtonGroup::getActive() -> std::size_t
 auto ToggleButtonGroup::arrange(const layout::Rect& rect) -> bool
 {
     return box->arrange(rect);
+}
+
+void ToggleButtonGroup::setExpandType(layout::ExpandType expandWidth, layout::ExpandType expandHeight)
+{
+    Widget::setExpandType(expandWidth, expandHeight);
+    box->setExpandType(expandWidth, expandHeight);
+    box->start();
+    for (std::size_t index = 0; index < box->numberOfWidgets(); index++) {
+        auto& widget = box->next<Widget>();
+        if (orientation == Orientation::horizontal) {
+            widget.setExpandType(layout::width_fixed, expandHeight);
+        }
+        if (orientation == Orientation::vertical) {
+            widget.setExpandType(expandWidth, layout::height_fixed);
+        }
+    }
 }
 
 } // namespace widget

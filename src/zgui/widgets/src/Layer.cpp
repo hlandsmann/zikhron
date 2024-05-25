@@ -25,10 +25,21 @@ auto Layer::arrange(const layout::Rect& rect) -> bool
     for (const auto& widget : widgets) {
         auto widgetRect = Rect{};
         auto widgetSize = widget->getWidgetSizeFromRect(borderedRect);
-        widgetRect.x = posNewWidget(widget->HorizontalAlign(), borderedRect.x, widgetSize.width, borderedRect.width);
-        widgetRect.y = posNewWidget(widget->VerticalAlign(), borderedRect.y, widgetSize.height, borderedRect.height);
-        widgetRect.width = widgetSize.width;
-        widgetRect.height = widgetSize.height;
+        if (widget->getExpandTypeWidth() == layout::width_fixed) {
+            widgetRect.x = posNewWidget(widget->HorizontalAlign(), borderedRect.x, widgetSize.width, borderedRect.width);
+            widgetRect.width = widgetSize.width;
+        } else {
+            widgetRect.x = borderedRect.x;
+            widgetRect.width = borderedRect.width;
+        }
+
+        if (widget->getExpandTypeHeight() == layout::height_fixed) {
+            widgetRect.y = posNewWidget(widget->VerticalAlign(), borderedRect.y, widgetSize.height, borderedRect.height);
+            widgetRect.height = widgetSize.height;
+        } else {
+            widgetRect.y = borderedRect.y;
+            widgetRect.height = borderedRect.height;
+        }
 
         needArrange |= widget->arrange(widgetRect);
     }

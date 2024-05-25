@@ -21,13 +21,13 @@ enum class ColorTheme {
 
 class Theme
 { // clang-format off
-    static constexpr ImVec4 s_colorButton                          = {0.2F, 0.2F, 0.2F, 1.0F};
-    static constexpr ImVec4 s_colorButtonHovered                   = {0.3F, 0.3F, 0.3F, 1.0F};
-    static constexpr ImVec4 s_colorButtonActive                    = {0.5F, 0.5F, 0.5F, 1.0F};
+    static constexpr ImVec4 s_colorButton                          = {0.25F, 0.25F, 0.25F, 1.0F};
+    static constexpr ImVec4 s_colorButtonHovered                   = {0.4F, 0.4F, 0.4F, 1.0F};
+    static constexpr ImVec4 s_colorButtonActive                    = {0.3F, 0.3F, 0.3F, 1.0F};
     static constexpr ImVec4 s_colorToggleButtonChecked             = {0.5F, 0.5F, 0.5F, 1.0F};
     static constexpr ImVec4 s_colorToggleButtonCheckedHovered      = {0.6F, 0.6F, 0.6F, 1.0F};
     static constexpr ImVec4 s_colorToggleButtonInsensitive         = {0.2F, 0.2F, 0.2F, 1.0F};
-    static constexpr ImVec4 s_colorToggleButtonInsensitiveHovered  = {0.3F, 0.3F, 0.3F, 1.0F};
+    static constexpr ImVec4 s_colorToggleButtonInsensitiveHovered  = {0.2F, 0.2F, 0.2F, 1.0F};
 
     static constexpr ImVec4 s_colorImage                    = {0.8F, 0.8F, 0.8F, 1.0F};
     static constexpr ImVec4 s_colorImageHovered             = {0.8F, 0.9F, 1.0F, 1.0F};
