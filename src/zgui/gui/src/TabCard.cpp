@@ -156,6 +156,7 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
     if (vocableOverlay) {
         vocableOverlay->draw();
         if (vocableOverlay->wasConfigured()) {
+            displayVocables->reload();
         }
         if (vocableOverlay->shouldClose()) {
             vocableOverlay = nullptr;

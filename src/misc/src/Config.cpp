@@ -20,11 +20,6 @@ Config::Config(std::filesystem::path _configDirectory)
     loadJsonFile(configDirectory / configFilename);
 }
 
-Config::~Config()
-{
-    spdlog::info("Config dtor");
-}
-
 auto Config::ConfigDirectory() -> std::filesystem::path
 {
     std::filesystem::path home = std::getenv("HOME");

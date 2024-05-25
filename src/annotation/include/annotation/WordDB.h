@@ -23,7 +23,7 @@ class WordDB
 
 public:
     WordDB(std::shared_ptr<zikhron::Config> config);
-    virtual ~WordDB();
+    virtual ~WordDB() = default;
 
     WordDB(const WordDB&) = delete;
     WordDB(WordDB&&) = delete;

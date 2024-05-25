@@ -1,5 +1,4 @@
 #include "WordDB.h"
-#include <string_view>
 
 #include "Word.h"
 
@@ -21,6 +20,7 @@
 #include <nlohmann/json_fwd.hpp>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 namespace ranges = std::ranges;
@@ -41,11 +41,6 @@ WordDB::WordDB(std::shared_ptr<zikhron::Config> _config)
 
 {
     load();
-}
-
-WordDB::~WordDB()
-{
-    spdlog::info("~WordDB()");
 }
 
 auto WordDB::lookup(const std::string& key) -> std::shared_ptr<Word>

@@ -18,7 +18,7 @@ public:
     Config(const Config&) = delete;
     auto operator=(Config&&) -> Config = delete;
     auto operator=(const Config&) -> Config = delete;
-    virtual ~Config();
+    virtual ~Config() = default;
 
     static auto ConfigDirectory() -> std::filesystem::path;
     [[nodiscard]] auto Dictionary() const -> const std::filesystem::path&;
