@@ -27,7 +27,7 @@ Node::Node(std::shared_ptr<DataBase> _db,
            size_t _cardIndex,
            std::shared_ptr<index_set> _ignoreCardIndices)
     : db{std::move(_db)}
-    , nodes{std::move(_nodes)}
+    , weakNodes{std::move(_nodes)}
     , cardIndex{_cardIndex}
     , ignoreCardIndices{std::move(_ignoreCardIndices)}
     , subCards{collectSubCards()}
@@ -51,6 +51,10 @@ void Node::traverseAndTighten(Path& /* path */)
 
 auto Node::lowerOrder(size_t order) -> size_t
 {
+    auto nodes = weakNodes.lock();
+    if (!nodes) {
+        return {};
+    }
     size_t nextOrder = order;
     auto& cards = db->Cards();
     const auto& thisTnv = cards[cardIndex].getTimingAndVocables();

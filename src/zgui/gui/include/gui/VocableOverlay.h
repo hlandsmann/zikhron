@@ -29,6 +29,7 @@ public:
     VocableOverlay(std::shared_ptr<widget::Overlay> overlay, std::shared_ptr<widget::TextToken> token);
     void draw();
     [[nodiscard]] auto shouldClose() const -> bool;
+    [[nodiscard]] auto wasConfigured() const -> bool;
 
 private:
     [[nodiscard]] static auto optionsFromWord(const annotation::Word& word) -> std::vector<Option>;
@@ -74,5 +75,6 @@ private:
     std::vector<Option> options;
 
     bool showOptions{false};
+    bool wordWasConfigured{false};
 };
 } // namespace gui

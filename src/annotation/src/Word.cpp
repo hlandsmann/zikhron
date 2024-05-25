@@ -7,12 +7,16 @@
 #include <utils/spdlog.h>
 #include <utils/string_split.h>
 
+#include <algorithm>
 #include <cstddef>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
+
+namespace ranges = std::ranges;
 
 namespace annotation {
 
@@ -24,7 +28,7 @@ Word::Word(std::string_view description, VocableId _vocableId, const std::shared
     dictionaryEntries = dictionary->entryVectorFromKey(key);
     vocableProgress = std::make_shared<VocableProgress>(utl::split_front(rest, ';'));
 
-    parseOptions(rest);
+    parseDefinitions(rest);
 
     // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
@@ -35,17 +39,20 @@ Word::Word(std::vector<ZH_Dictionary::Entry>&& _dictionaryEntries, VocableId _vo
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {
     key = dictionaryEntries.front().key;
-    pronounciation = dictionaryEntries.front().pronounciation;
-    meanings.push_back(dictionaryEntries.front().meanings.front());
     vocableProgress = std::make_shared<VocableProgress>(VocableProgress::new_vocable);
+    auto definition = Definition{};
+    definition.pronounciation = dictionaryEntries.front().pronounciation;
+    definition.meanings.push_back(dictionaryEntries.front().meanings.front());
+    definitions.push_back(definition);
 }
 
 auto Word::serialize() const -> std::string
 {
-    return fmt::format("{};{};{};{}/\n", key,
+    std::vector<std::string> serializedDefinitions;
+    ranges::transform(definitions, std::back_inserter(serializedDefinitions), &Definition::serialize);
+    return fmt::format("{};{};{}\\\n", key,
                        vocableProgress->serialize(),
-                       pronounciation,
-                       fmt::join(meanings, "/"));
+                       fmt::join(serializedDefinitions, "\\"));
 }
 
 auto Word::getId() const -> VocableId
@@ -65,7 +72,12 @@ auto Word::getProgress() const -> std::shared_ptr<VocableProgress>
 
 auto Word::getDefinitions() const -> const std::vector<Definition>&
 {
-    return options;
+    return definitions;
+}
+
+void Word::setDefinitions(const std::vector<Definition>& _definitions)
+{
+    definitions = _definitions;
 }
 
 auto Word::isConfigureable() const -> bool
@@ -79,7 +91,7 @@ auto Word::getDictionaryEntries() const -> const std::vector<ZH_Dictionary::Entr
     return dictionaryEntries;
 }
 
-void Word::parseOptions(std::string_view description)
+void Word::parseDefinitions(std::string_view description)
 {
     auto rest = std::string_view{description};
     while (true) {
@@ -87,7 +99,7 @@ void Word::parseOptions(std::string_view description)
         if (optionSV.empty()) {
             break;
         }
-        options.emplace_back(optionSV);
+        definitions.emplace_back(optionSV);
     }
 }
 
@@ -102,5 +114,10 @@ Definition::Definition(std::string_view description)
         }
         meanings.push_back(meaning);
     }
+}
+
+auto Definition::serialize() const -> std::string
+{
+    return fmt::format("{};{}/", pronounciation, fmt::join(meanings, "/"));
 }
 } // namespace annotation

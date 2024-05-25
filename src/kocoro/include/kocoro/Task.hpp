@@ -14,9 +14,10 @@ namespace detail {
 struct promise_base
 {
     friend struct final_awaitable;
+
     struct final_awaitable
     {
-        [[nodiscard]] auto await_ready() noexcept -> bool { return false; }
+        [[nodiscard]] static auto await_ready() noexcept -> bool { return false; }
 
         template<typename promise_type>
         auto await_suspend(std::coroutine_handle<promise_type> coroutine) noexcept
@@ -38,18 +39,17 @@ struct promise_base
     };
 
     promise_base() noexcept = default;
-    ~promise_base() = default;
 
-    auto initial_suspend() noexcept { return std::suspend_always{}; }
+    auto static initial_suspend() noexcept { return std::suspend_always{}; }
 
-    auto final_suspend() noexcept { return final_awaitable{}; }
+    auto static final_suspend() noexcept { return final_awaitable{}; }
 
     auto continuation(std::coroutine_handle<> continuation) noexcept -> void
     {
         m_continuation = continuation;
     }
 
-protected:
+private:
     std::coroutine_handle<> m_continuation{nullptr};
 };
 
@@ -206,6 +206,7 @@ private:
 };
 
 } // namespace detail
+
 class TaskBase
 {
 public:
@@ -253,7 +254,9 @@ public:
 
     explicit Task(coroutine_handle handle)
         : m_coroutine(handle) {}
+
     Task(const Task&) = delete;
+
     Task(Task&& other) noexcept
         : m_coroutine(std::exchange(other.m_coroutine, nullptr)) {}
 
@@ -334,10 +337,12 @@ public:
     }
 
     auto promise() & -> promise_type& { return m_coroutine.promise(); }
+
     [[nodiscard]] auto promise() const& -> const promise_type&
     {
         return m_coroutine.promise();
     }
+
     auto promise() && -> promise_type&&
     {
         return std::move(m_coroutine.promise());

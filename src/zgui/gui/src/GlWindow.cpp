@@ -25,12 +25,12 @@ namespace gui {
 
 GlWindow::GlWindow(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                    std::shared_ptr<context::GlfwImguiContext> _glfwImguiContext,
-                   MainWindow _mainWindow)
+                   std::unique_ptr<MainWindow> _mainWindow)
     : glfwImguiContext{std::move(_glfwImguiContext)}
     , mainWindow{std::move(_mainWindow)}
     , executor{std::move(_synchronousExecutor)}
 {
-    mainWindow.setup();
+    mainWindow->setup();
 }
 
 void GlWindow::run()
@@ -47,8 +47,8 @@ void GlWindow::run()
 
         {
             auto styleVarsDrop = context::Theme::dropImGuiStyleVars();
-            mainWindow.arrange(rect);
-            mainWindow.doImGui();
+            mainWindow->arrange(rect);
+            mainWindow->doImGui();
         }
         // imglog::renderLogMessages(true);
 

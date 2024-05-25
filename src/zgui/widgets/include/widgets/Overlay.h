@@ -33,6 +33,7 @@ public:
     [[nodiscard]] auto dropOverlay(float x, float y) -> OverlayDrop;
     void setFirstDrop();
     [[nodiscard]] auto shouldClose() const -> bool;
+    void close();
 
     // export Layer functions >>>>>>>>>>>
     template<class WidgetType, class... Args>

@@ -75,13 +75,6 @@ auto VocableOverlay::optionsFromWord(const annotation::Word& word) -> std::vecto
         }
     }
 
-    for (const auto& option : options) {
-        spdlog::info("p: {}, o: {}", option.pronounciation, option.open);
-        for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
-            spdlog::info("--- {}, {}", meaning, checked);
-        }
-    }
-
     return options;
 }
 
@@ -119,8 +112,12 @@ void VocableOverlay::drawHeader(widget::Box& headerBox)
     if (!word->isConfigureable()) {
         return;
     }
-    if (showOptions && !definitions.empty()) {
-        okBtn.clicked();
+    if (!definitions.empty() && definitions != word->getDefinitions()) {
+        if (okBtn.clicked()) {
+            word->setDefinitions(definitions);
+            wordWasConfigured = true;
+            overlay->close();
+        }
     }
     if (cfgBtn.clicked()) {
         cfgBtn.setChecked(!cfgBtn.isChecked());
@@ -282,6 +279,11 @@ void VocableOverlay::draw()
 auto VocableOverlay::shouldClose() const -> bool
 {
     return overlay->shouldClose();
+}
+
+auto VocableOverlay::wasConfigured() const -> bool
+{
+    return wordWasConfigured;
 }
 
 } // namespace gui

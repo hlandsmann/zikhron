@@ -15,6 +15,7 @@ public:
     using DataBasePtr = std::shared_ptr<DataBase>;
     using TreeWalkerPtr = std::shared_ptr<ITreeWalker>;
     AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor);
+
     [[nodiscard]] auto getDataBase() const -> kocoro::Async<DataBasePtr>&;
     [[nodiscard]] auto getTreeWalker() const -> kocoro::Async<TreeWalkerPtr>&;
     auto getNextCardChoice() -> kocoro::Async<CardMeta>&;
@@ -24,7 +25,6 @@ private:
     static auto taskCreateDataBase() -> kocoro::Task<DataBasePtr>;
     auto taskFullfillPromises() -> kocoro::Task<>;
 
-    std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor;
     kocoro::AsyncPtr<DataBasePtr> asyncDataBase;
     kocoro::AsyncPtr<TreeWalkerPtr> asyncTreewalker;
     kocoro::AsyncPtr<CardMeta> asyncNextCard;

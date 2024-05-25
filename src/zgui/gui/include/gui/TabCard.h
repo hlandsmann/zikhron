@@ -27,6 +27,12 @@ class TabCard
 public:
     TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
             std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
+    TabCard(const TabCard&) = delete;
+    TabCard(TabCard&&) = delete;
+    auto operator=(const TabCard&) -> TabCard& = delete;
+    auto operator=(TabCard&&) -> TabCard& = delete;
+    virtual ~TabCard() = default;
+
     void setUp(std::shared_ptr<widget::Layer> layer);
     void displayOnLayer(widget::Layer& layer);
 

@@ -20,6 +20,11 @@ public:
                std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
                std::unique_ptr<TabCard> tabCard,
                std::unique_ptr<TabVideo> tabVideo);
+    MainWindow(const MainWindow&) = delete;
+    MainWindow(MainWindow&&) = delete;
+    auto operator=(const MainWindow&) -> MainWindow& = delete;
+    auto operator=(MainWindow&&) -> MainWindow& = delete;
+    virtual ~MainWindow() = default;
 
     void arrange(const widget::layout::Rect& rect);
     void doImGui();

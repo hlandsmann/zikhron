@@ -36,14 +36,20 @@ public:
     using CharacterSequence = annotation::Card::CharacterSequence;
 
     DataBase(std::shared_ptr<zikhron::Config> config);
+    virtual ~DataBase();
+
+    DataBase(const DataBase&) = delete;
+    DataBase(DataBase&&) = delete;
+    auto operator=(const DataBase&) -> DataBase& = delete;
+    auto operator=(DataBase&&) -> DataBase& = delete;
+
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
-    [[nodiscard]] auto getWordDB()const -> std::shared_ptr<WordDB>;
+    [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
 
     void setEaseVocable(VocableId, const Ease&);
     void triggerVocable(VocableId, CardId);
     void resetCardsContainingVocable(VocableId vocId);
-
 
 private:
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;

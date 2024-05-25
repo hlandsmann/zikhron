@@ -11,10 +11,10 @@
 #include <utility>
 
 namespace fs = std::filesystem;
+
 namespace sr {
-AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor)
-    : synchronousExecutor{std::move(_synchronousExecutor)}
-    , asyncDataBase{synchronousExecutor->makeAsync<DataBasePtr>()}
+AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor)
+    : asyncDataBase{synchronousExecutor->makeAsync<DataBasePtr>()}
     , asyncTreewalker{synchronousExecutor->makeAsync<TreeWalkerPtr>()}
     , asyncNextCard{synchronousExecutor->makeAsync<CardMeta>()}
 {

@@ -19,6 +19,7 @@ class DisplayVocables
 {
     using Align = widget::layout::Align;
     using ActiveVocable = annotation::ActiveVocable;
+    using Word = annotation::Word;
 
 public:
     using pair_vocId_Ease = std::pair<VocableId, Ease>;
@@ -27,17 +28,23 @@ public:
                     std::vector<ActiveVocable>&& orderedVocId_ease);
 
     void draw();
+    void reload();
 
 private:
     void setup();
-    void addVocable(widget::Grid& grid, const annotation::Word& word, ColorId colorId);
+    void addVocable(widget::Grid& grid, const Word& word, ColorId colorId);
     static void addEaseButtonGroup(widget::Grid& grid);
+    [[nodiscard]] static auto wordsFromActiveVocables(const std::vector<ActiveVocable>& activeVocables,
+                                 std::shared_ptr<annotation::WordDB> wordDB)
+            -> std::vector<std::shared_ptr<Word>>;
 
     context::FontType fontType = context::FontType::chineseSmall;
 
     std::shared_ptr<widget::Layer> layer;
     std::shared_ptr<annotation::WordDB> wordDB;
     std::vector<ActiveVocable> activeVocables;
+
+    std::vector<std::shared_ptr<Word>> words;
 };
 
 } // namespace gui

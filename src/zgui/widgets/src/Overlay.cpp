@@ -86,6 +86,11 @@ auto Overlay::shouldClose() const -> bool
     return closeNext;
 }
 
+void Overlay::close()
+{
+    closeNext = true;
+}
+
 auto Overlay::calculateSize() const -> WidgetSize
 {
     return layer->getWidgetSize();

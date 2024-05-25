@@ -8,6 +8,7 @@
 #include <context/WidgetIdGenerator.h>
 #include <context/imglog.h>
 #include <imgui.h>
+#include <utils/spdlog.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
@@ -25,7 +26,7 @@ namespace gui {
 
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
-                       std::unique_ptr<TabCard> _TabCard,
+                       std::unique_ptr<TabCard> _tabCard,
                        std::unique_ptr<TabVideo> _tabVideo)
     : theme{std::move(_theme)}
     , boxRect{std::make_shared<widget::layout::Rect>()}
@@ -38,7 +39,7 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
               .parent = std::weak_ptr<widget::Widget>{}
 
       })}
-    , tabCard{std::move(_TabCard)}
+    , tabCard{std::move(_tabCard)}
     , tabVideo{std::move(_tabVideo)}
 {
 }

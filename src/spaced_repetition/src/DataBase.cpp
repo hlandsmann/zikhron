@@ -49,6 +49,11 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     fillIndexMaps();
 }
 
+DataBase::~DataBase()
+{
+    wordDB->save();
+}
+
 auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
 {
     return *vocables;
