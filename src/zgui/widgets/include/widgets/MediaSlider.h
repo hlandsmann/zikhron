@@ -1,7 +1,7 @@
 #pragma once
-#include <optional>
-#include <string>
 #include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
+
+#include <string>
 
 namespace widget {
 
@@ -14,17 +14,20 @@ class MediaSlider : public Widget
     friend class MetaBox;
     friend class Widget;
     void setup();
+
 public:
     MediaSlider(const WidgetInit& init);
 
-    auto slide(float value) -> std::optional<float>;
-private:
-    auto calculateSize() const -> WidgetSize override;
-    // auto calculateMinSize() const -> WidgetSize override;
+    auto slide(double start, double end, double pos) -> double;
 
-    // auto arrange(const layout::Rect& rect) -> bool override;
+private:
+    static auto sliderValueFromPos(double start, double end, double pos) -> float;
+    static auto posFromSliderValue(double start, double end, float value) -> double;
+    static auto timeString(double start, double pos) -> std::string;
+    auto calculateSize() const -> WidgetSize override;
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
 
+    float lastValue{};
 };
 
 } // namespace widget

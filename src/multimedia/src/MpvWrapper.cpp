@@ -1,5 +1,4 @@
 // clang-format off
-
 #include <epoxy/glx.h>
 #include <epoxy/egl.h>
 #include <epoxy/gl_generated.h>
@@ -13,9 +12,11 @@
 #include <mpv/render_gl.h>
 #include <spdlog/spdlog.h>
 
+#include <bit>
 #include <cstdint>
 #include <filesystem>
 #include <kocoro/kocoro.hpp>
+#include <memory>
 #include <stdexcept>
 #include <string>
 
@@ -33,7 +34,7 @@
 #endif
 
 namespace {
-auto get_proc_address(void* fn_ctx, const char* name) -> void*
+auto get_proc_address(void* /* fn_ctx */, const char* name) -> void*
 {
     return reinterpret_cast<void*>(glfwGetProcAddress(name));
 }
@@ -42,7 +43,9 @@ auto get_proc_address(void* fn_ctx, const char* name) -> void*
 namespace multimedia {
 MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     : signalShouldRender{executor->makeVolatileSignal<bool>()}
+    , signalEvent{executor->makeVolatileSignal<bool>()}
 {
+    executor->startCoro(handleEventTask());
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
     mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
@@ -52,10 +55,10 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
         throw std::runtime_error("could not initialize mpv context");
     }
 
-    // mpv_set_wakeup_callback(
-    //         mpv.get(),
-    //         [](void* self) { std::bit_cast<decltype(this), void*>(self)->dispatch_mpvEvent.emit(); },
-    //         this);
+    mpv_set_wakeup_callback(
+            mpv.get(),
+            [](void* self) { std::bit_cast<decltype(this), void*>(self)->signalEvent->set(true); },
+            this);
     mpv_observe_property(mpv.get(), 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "pause", MPV_FORMAT_FLAG);
@@ -68,6 +71,55 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     //         pause();
     //     }
     // });
+}
+
+auto MpvWrapper::handleEventTask() -> kocoro::Task<>
+{
+    while (true) {
+        auto _ = co_await *signalEvent;
+
+        while (true) {
+            mpv_event* event = mpv_wait_event(mpv.get(), 0);
+            if (event->event_id == MPV_EVENT_NONE) {
+                break;
+            }
+            handle_mpv_event(event);
+        }
+        if (!paused && timePos >= stopAtPosition) {
+            pause();
+        }
+    }
+    co_return;
+}
+
+void MpvWrapper::handle_mpv_event(mpv_event* event)
+{
+    switch (event->event_id) {
+    case MPV_EVENT_PROPERTY_CHANGE: {
+        auto* prop = reinterpret_cast<mpv_event_property*>(event->data);
+        if (std::string{prop->name} == "time-pos") {
+            if (prop->format == MPV_FORMAT_DOUBLE) {
+                timePos = *reinterpret_cast<double*>(prop->data);
+                if (duration - timePos <= 1) {
+                    enable_stop_timer();
+                }
+            }
+        } else if (std::string{prop->name} == "duration") {
+            if (prop->format == MPV_FORMAT_DOUBLE) {
+                duration = *reinterpret_cast<double*>(prop->data);
+                spdlog::info("duration: {}", duration);
+            }
+        } else if (std::string{prop->name} == "pause") {
+            if (prop->format == MPV_FORMAT_FLAG) {
+                paused = static_cast<bool>(*reinterpret_cast<int*>(prop->data));
+                spdlog::info("paused: {}", paused);
+            }
+        }
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 void MpvWrapper::openFile(const std::filesystem::path& mediaFile_in)
@@ -101,7 +153,7 @@ void MpvWrapper::play_fragment(double start, double end)
 void MpvWrapper::play(double until)
 {
     if (until == 0) {
-        until = duration;
+        until = duration-0.1F;
     }
     stopAtPosition = until;
     mpv_flag_paused = 0;
@@ -121,6 +173,16 @@ void MpvWrapper::seek(double pos)
     seek_position = std::to_string(pos);
     const char* cmd[] = {"seek", seek_position.c_str(), "absolute", nullptr};
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
+}
+
+auto MpvWrapper::getDuration() const -> double
+{
+    return duration;
+}
+
+auto MpvWrapper::getTimePos() const -> double
+{
+    return timePos;
 }
 
 void MpvWrapper::initGL(/* const std::shared_ptr<Gtk::GLArea>& glArea_in */)
@@ -201,42 +263,12 @@ auto MpvWrapper::getNextFrameTargetTime() const -> int64_t
 
 void MpvWrapper::onMpvUpdate(void* _mpv)
 {
-    MpvWrapper* mpv = static_cast<MpvWrapper*>(_mpv);
+    auto* mpv = static_cast<MpvWrapper*>(_mpv);
     if (!mpv->renderCtx) {
         return;
     }
-    if (mpv_render_context_update(mpv->renderCtx.get()) & MPV_RENDER_UPDATE_FRAME) {
+    if (0 != (mpv_render_context_update(mpv->renderCtx.get()) & MPV_RENDER_UPDATE_FRAME)) {
         mpv->signalShouldRender->set(true);
-    }
-}
-
-void MpvWrapper::handle_mpv_event(mpv_event* event)
-{
-    switch (event->event_id) {
-    case MPV_EVENT_PROPERTY_CHANGE: {
-        auto* prop = reinterpret_cast<mpv_event_property*>(event->data);
-        if (std::string{prop->name} == "time-pos") {
-            if (prop->format == MPV_FORMAT_DOUBLE) {
-                timePos = *reinterpret_cast<double*>(prop->data);
-                if (duration - timePos <= 1) {
-                    enable_stop_timer();
-                }
-            }
-        } else if (std::string{prop->name} == "duration") {
-            if (prop->format == MPV_FORMAT_DOUBLE) {
-                duration = *reinterpret_cast<double*>(prop->data);
-                spdlog::info("duration: {}", duration);
-            }
-        } else if (std::string{prop->name} == "pause") {
-            if (prop->format == MPV_FORMAT_FLAG) {
-                paused = static_cast<bool>(*reinterpret_cast<int*>(prop->data));
-                spdlog::info("paused: {}", paused);
-            }
-        }
-        break;
-    }
-    default:
-        break;
     }
 }
 

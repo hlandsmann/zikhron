@@ -28,6 +28,8 @@ public:
     void play_fragment(double start, double end);
     void pause();
     void seek(double pos);
+    [[nodiscard]] auto getDuration() const -> double;
+    [[nodiscard]] auto getTimePos() const -> double;
 
     [[nodiscard]] auto is_paused() const -> bool { return paused; }
 
@@ -39,6 +41,8 @@ public:
     [[nodiscard]] auto SignalShouldRender() const -> kocoro::VolatileSignal<bool>&;
 
 private:
+    auto handleEventTask() -> kocoro::Task<>;
+
     void observe_duration(std::function<void(double)> observer);
     void observe_timePos(std::function<void(double)> observer);
     void handle_mpv_event(mpv_event* event);
@@ -74,5 +78,6 @@ private:
 
     // Signals:
     std::shared_ptr<kocoro::VolatileSignal<bool>> signalShouldRender;
+    std::shared_ptr<kocoro::VolatileSignal<bool>> signalEvent;
 };
 } // namespace multimedia

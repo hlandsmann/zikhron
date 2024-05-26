@@ -6,6 +6,7 @@
 #include <context/imglog.h>
 #include <misc/Identifier.h>
 #include <multimedia/CardAudioGroup.h>
+#include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/CardMeta.h>
 #include <spdlog/spdlog.h>
@@ -21,6 +22,7 @@
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <initializer_list>
 #include <kocoro/kocoro.hpp>
@@ -31,10 +33,12 @@
 namespace gui {
 
 TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-                 std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker)
+                 std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker,
+                 std::unique_ptr<multimedia::MpvWrapper> _mpv)
     : executor{std::move(_synchronousExecutor)}
     , signalProceed{executor->makeVolatileSignal<Proceed>()}
     , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
+    , mpv{std::move(_mpv)}
 {
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
@@ -115,6 +119,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             break;
         }
         cardAudioInfo = CardAudioInfo{cardMeta.Id(), *dataBase->getGroupDB()};
+        if (cardAudioInfo.audioFragment.has_value()) {
+            mpv->openFile(cardAudioInfo.audioFragment.value().audioFile);
+        }
         auto vocId_ease = cardMeta.getRelevantEase();
         auto tokenText = cardMeta.getStudyTokenText();
 
@@ -125,9 +132,6 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         }
 
         proceed = co_await *signalProceed;
-        // signalVocIdEase
-        // auto& signalVoIdEase = *signalProceed;
-        // const auto& vocIdEase = co_await signalVoIdEase;
     }
 
     co_return;
@@ -166,11 +170,6 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
             vocableOverlay = nullptr;
         }
     }
-    // auto& cardLayer = cardWindow.next<widget::Layer>();
-    // cardLayer.start();
-    // if (!cardLayer.isLast()) {
-    //     cardLayer.next<widget::TextTokenSeq>().draw();
-    // }
 }
 
 void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
@@ -245,10 +244,29 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     if (!cardAudioInfo.audioFragment.has_value()) {
         return;
     }
-    btnPlay.isOpen();
-    auto optProgress = sliderProgress.slide(playAudioProgress);
-    if (optProgress.has_value()) {
-        playAudioProgress = *optProgress;
+    auto& af = *cardAudioInfo.audioFragment;
+    double timePos = std::max(mpv->getTimePos(), af.start);
+
+    bool playing = !mpv->is_paused();
+    btnPlay.setOpen(playing);
+    bool oldPlaying = std::exchange(playing, btnPlay.isOpen());
+    if (oldPlaying != playing) {
+        if (playing) {
+            if (timePos >= af.end - 0.05) {
+                timePos = af.start;
+            }
+            mpv->play_fragment(timePos, af.end);
+        } else {
+            mpv->pause();
+        }
+    }
+    auto oldTimePos = std::exchange(timePos, sliderProgress.slide(af.start, af.end, timePos));
+    if (oldTimePos != timePos) {
+        if (mpv->is_paused()) {
+            mpv->play_fragment(timePos, af.end);
+        } else {
+            mpv->seek(timePos);
+        }
     }
 }
 
@@ -313,18 +331,22 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
     btnLast.setSensitive(cardAudioInfo.lastId.has_value());
     if (btnFirst.clicked()) {
         mode = Mode::story;
+        revealVocables = false;
         signalProceed->set(Proceed::first);
     }
     if (btnPrevious.clicked()) {
         mode = Mode::story;
+        revealVocables = false;
         signalProceed->set(Proceed::previous);
     }
     if (btnFollowing.clicked()) {
         mode = Mode::story;
+        revealVocables = false;
         signalProceed->set(Proceed::next);
     }
     if (btnLast.clicked()) {
         mode = Mode::story;
+        revealVocables = false;
         signalProceed->set(Proceed::last);
     }
 }

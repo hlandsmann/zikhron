@@ -7,6 +7,7 @@
 #include <context/WidgetIdGenerator.h>
 #include <misc/Identifier.h>
 #include <multimedia/CardAudioGroup.h>
+#include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/DataBase.h>
 #include <widgets/Box.h>
@@ -59,7 +60,8 @@ class TabCard
 
 public:
     TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-            std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
+            std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker,
+            std::unique_ptr<multimedia::MpvWrapper> mpv);
     TabCard(const TabCard&) = delete;
     TabCard(TabCard&&) = delete;
     auto operator=(const TabCard&) -> TabCard& = delete;
@@ -104,7 +106,8 @@ private:
     context::WidgetId boxId{};
 
     bool revealVocables{false};
-    float playAudioProgress{0.F};
     Mode mode{Mode::shuffle};
+
+    std::unique_ptr<multimedia::MpvWrapper> mpv;
 };
 } // namespace gui
