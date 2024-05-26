@@ -7,11 +7,9 @@ add_library(zikhron::multimedia ALIAS zikhron_multimedia)
 target_sources(zikhron_multimedia
     PRIVATE
         include/multimedia/CardAudioGroup.h
-        include/multimedia/MediaPlayer.h
         include/multimedia/MpvWrapper.h
         include/multimedia/Subtitles.h
         src/CardAudioGroup.cpp
-        src/MediaPlayer.cpp
         src/MpvWrapper.cpp
         src/Subtitles.cpp
 )

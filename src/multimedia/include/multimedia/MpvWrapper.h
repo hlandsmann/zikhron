@@ -43,20 +43,12 @@ public:
 private:
     auto handleEventTask() -> kocoro::Task<>;
 
-    void observe_duration(std::function<void(double)> observer);
-    void observe_timePos(std::function<void(double)> observer);
     void handle_mpv_event(mpv_event* event);
-    void on_mpv_events();
     [[nodiscard]] auto getNextFrameTargetTime() const -> int64_t;
 
     static void onMpvUpdate(void* mpv);
 
     void closeFile();
-    void enable_stop_timer();
-    void disable_stop_timer();
-    auto timer_stop(int timer_id) -> bool;
-    int timer_id = 0;
-    bool timer_running = false;
 
     std::function<void(mpv_handle*)> mpv_deleter = [](mpv_handle* mpvHandle) {
         mpv_terminate_destroy(mpvHandle);

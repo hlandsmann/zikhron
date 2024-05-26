@@ -100,9 +100,6 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
         if (std::string{prop->name} == "time-pos") {
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 timePos = *reinterpret_cast<double*>(prop->data);
-                if (duration - timePos <= 1) {
-                    enable_stop_timer();
-                }
             }
         } else if (std::string{prop->name} == "duration") {
             if (prop->format == MPV_FORMAT_DOUBLE) {
@@ -153,7 +150,7 @@ void MpvWrapper::play_fragment(double start, double end)
 void MpvWrapper::play(double until)
 {
     if (until == 0) {
-        until = duration-0.1F;
+        until = duration - 0.1F;
     }
     stopAtPosition = until;
     mpv_flag_paused = 0;
@@ -238,18 +235,6 @@ auto MpvWrapper::SignalShouldRender() const -> kocoro::VolatileSignal<bool>&
     return *signalShouldRender;
 }
 
-void MpvWrapper::on_mpv_events()
-{
-    // Process all events, until the event queue is empty.
-    while (mpv) {
-        mpv_event* event = mpv_wait_event(mpv.get(), 0);
-        if (event->event_id == MPV_EVENT_NONE) {
-            break;
-        }
-        handle_mpv_event(event);
-    }
-}
-
 auto MpvWrapper::getNextFrameTargetTime() const -> int64_t
 {
     mpv_render_frame_info frameInfo;
@@ -272,44 +257,4 @@ void MpvWrapper::onMpvUpdate(void* _mpv)
     }
 }
 
-// void MpvWrapper::observe_duration(const std::function<void(double)> observer)
-// {
-//     auto durationObserver = duration.observe(observer);
-//     observers.push(durationObserver);
-// }
-
-// void MpvWrapper::observe_timePos(const std::function<void(double)> observer)
-// {
-//     auto timePosObserver = timePos.observe(observer);
-//     observers.push(timePosObserver);
-// }
-
-void MpvWrapper::enable_stop_timer()
-{
-    // if (!timer_running) {
-    //     sigc::slot<bool()> slot = sigc::bind([this](int _timer_id) { return timer_stop(_timer_id); },
-    //                                          timer_id);
-    //     timer_connection = Glib::signal_timeout().connect(slot, 1000);
-    // }
-    timer_running = true;
-}
-
-void MpvWrapper::disable_stop_timer()
-{
-    spdlog::info("Stop emergency disabled!");
-    // timer_connection.disconnect();
-    timer_running = false;
-}
-
-auto MpvWrapper::timer_stop(int /*timer_id*/) -> bool
-{
-    if (paused) {
-        disable_stop_timer();
-        return false;
-    }
-    spdlog::warn("Mediaplayer - Timer file reload!");
-    pause();
-    openFile(mediaFile);
-    return true;
-}
 } // namespace multimedia
