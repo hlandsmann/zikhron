@@ -12,15 +12,16 @@ Diagnostics:
       - modernize*
       - readability*
     Remove:
+      - bugprone-easily-swappable-parameters
+      - concurrency-mt-unsafe
       - cppcoreguidelines-avoid-c-arrays
       - cppcoreguidelines-avoid-magic-numbers
       - cppcoreguidelines-avoid-reference-coroutine-parameters
       - cppcoreguidelines-pro-type-reinterpret-cast
-      - readability-magic-numbers
-      - modernize-avoid-c-arrays
-      - bugprone-easily-swappable-parameters
-      - concurrency-mt-unsafe
       - cppcoreguidelines-pro-type-vararg
       - misc-non-private-member-variables-in-classes
+      - modernize-avoid-c-arrays
       - readability-function-cognitive-complexity
       - readability-identifier-length
+      - readability-magic-numbers
+      - readability-static-accessed-through-instance
