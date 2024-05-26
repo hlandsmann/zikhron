@@ -92,6 +92,7 @@ void WordDB::save()
     for (const auto& word : words) {
         out << word->serialize();
     }
+    spdlog::info("Saved WordDB");
 }
 
 void WordDB::parse(const std::string& str)

@@ -6,16 +6,24 @@
 #include <annotation/Ease.h>
 #include <context/WidgetIdGenerator.h>
 #include <misc/Identifier.h>
+#include <multimedia/CardAudioGroup.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
+#include <spaced_repetition/DataBase.h>
 #include <widgets/Box.h>
+#include <widgets/Button.h>
+#include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
+#include <widgets/MediaSlider.h>
 #include <widgets/Overlay.h>
+#include <widgets/ToggleButtonGroup.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
+#include <cstddef>
 #include <kocoro/kocoro.hpp>
 #include <map>
 #include <memory>
+#include <optional>
 
 namespace gui {
 
@@ -23,6 +31,31 @@ class TabCard
 {
     using Align = widget::layout::Align;
     using ExpandType = widget::layout::ExpandType;
+
+    enum class Proceed {
+        submit_walkTree,
+        submit_next,
+        first,
+        previous,
+        next,
+        last,
+    };
+
+    enum class Mode : std::size_t {
+        shuffle,
+        story,
+    };
+
+    struct CardAudioInfo
+    {
+        CardAudioInfo(CardId cardId, const CardAudioGroupDB& cagDB);
+        CardAudioInfo() = default;
+        std::optional<CardId> firstId;
+        std::optional<CardId> previousId;
+        std::optional<CardId> nextId;
+        std::optional<CardId> lastId;
+        std::optional<StudyAudioFragment> audioFragment;
+    };
 
 public:
     TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
@@ -43,20 +76,35 @@ private:
     void setupCardWindow(widget::Window& cardWindow);
     void doCardWindow(widget::Window& cardWindow);
 
-    void setupCtrlWindow(widget::Window& ctrlWindow);
+    static void setupCtrlWindow(widget::Window& ctrlWindow);
     void doCtrlWindow(widget::Window& ctrlWindow);
 
+    void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
+    void handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext);
+    void handleMode(widget::ToggleButtonGroup& tbgMode);
+    void handleNextPrevious(widget::ImageButton& btnFirst,
+                            widget::ImageButton& btnPrevious,
+                            widget::ImageButton& btnFollowing,
+                            widget::ImageButton& btnLast);
+    void handleDataBaseSave(widget::ImageButton& btnSave);
+
+    std::shared_ptr<sr::DataBase> dataBase;
     std::shared_ptr<kocoro::SynchronousExecutor> executor;
 
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayVocables> displayVocables;
     std::unique_ptr<VocableOverlay> vocableOverlay;
+    CardAudioInfo cardAudioInfo;
 
     std::shared_ptr<widget::Overlay> overlay;
 
     using BoxPtr = std::shared_ptr<widget::Box>;
-    std::shared_ptr<kocoro::VolatileSignal<VocableId_Ease>> signalVocIdEase;
+    std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
     std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
     context::WidgetId boxId{};
+
+    bool revealVocables{false};
+    float playAudioProgress{0.F};
+    Mode mode{Mode::shuffle};
 };
 } // namespace gui

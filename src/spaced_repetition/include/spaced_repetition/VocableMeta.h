@@ -18,7 +18,7 @@ namespace sr {
 class VocableMeta
 {
 public:
-    VocableMeta(VocableProgress progress);
+    VocableMeta(std::shared_ptr<VocableProgress> progress);
     [[nodiscard]] auto Progress() const -> const VocableProgress&;
     [[nodiscard]] auto CardIndices() const -> const index_set&;
     void advanceByEase(const Ease&);
@@ -28,7 +28,7 @@ public:
     void cardIndices_insert(std::size_t cardIndex);
 
 private:
-    VocableProgress progress;
+    std::shared_ptr<VocableProgress> progress;
     index_set cardIndices;
     // ZH_Tokenizer::ZH_dicItemVec dicItemVec;
 };

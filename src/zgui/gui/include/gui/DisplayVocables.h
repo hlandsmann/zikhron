@@ -10,6 +10,7 @@
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 
+#include <map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -22,6 +23,8 @@ class DisplayVocables
     using ActiveVocable = annotation::ActiveVocable;
     using Word = annotation::Word;
 
+    using VocableId_Ease = std::map<VocableId, Ease>;
+
 public:
     using pair_vocId_Ease = std::pair<VocableId, Ease>;
     DisplayVocables(std::shared_ptr<widget::Layer> layer,
@@ -30,6 +33,8 @@ public:
 
     void draw();
     void reload();
+
+    [[nodiscard]] auto getVocIdEase() const -> VocableId_Ease;
 
 private:
     void setup();

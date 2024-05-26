@@ -64,7 +64,9 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
         intervalDay = progress.intervalDay + partEaseFactor * partIntervalDay;
     }
     // spdlog::info("itdy: {}", intervalDay);
-    return {.intervalDay = intervalDay, .easeFactor = easeFactor};
+    return {.intervalDay = intervalDay,
+            .dueDays = 0,
+            .easeFactor = easeFactor};
 }
 
 auto Ease::getProgress() const -> Progress
@@ -84,5 +86,7 @@ auto Ease::getProgress() const -> Progress
 
     // spdlog::info("itdy: {}, ease {}", intervalDay, mapEaseToUint(easeVal));
     float easeFactor = computeProgress(easeVal, progress).easeFactor;
-    return {.intervalDay = intervalDay, .easeFactor = easeFactor};
+    return {.intervalDay = intervalDay,
+            .dueDays = 0,
+            .easeFactor = easeFactor};
 }

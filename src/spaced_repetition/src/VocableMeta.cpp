@@ -26,13 +26,13 @@ namespace ranges = std::ranges;
 // namespace views = std::views;
 
 namespace sr {
-VocableMeta::VocableMeta(VocableProgress _progress)
+VocableMeta::VocableMeta(std::shared_ptr<VocableProgress> _progress)
     : progress{std::move(_progress)}
 {}
 
 auto VocableMeta::Progress() const -> const VocableProgress&
 {
-    return progress;
+    return *progress;
 }
 
 auto VocableMeta::CardIndices() const -> const index_set&
@@ -42,12 +42,12 @@ auto VocableMeta::CardIndices() const -> const index_set&
 
 void VocableMeta::advanceByEase(const Ease& ease)
 {
-    progress.advanceByEase(ease);
+    progress->advanceByEase(ease);
 }
 
 void VocableMeta::triggerByCardId(CardId cardId)
 {
-    progress.triggeredBy(cardId);
+    progress->triggeredBy(cardId);
 }
 
 auto VocableMeta::getNextTriggerCard(const std::shared_ptr<DataBase>& db) const -> CardId
@@ -56,7 +56,7 @@ auto VocableMeta::getNextTriggerCard(const std::shared_ptr<DataBase>& db) const 
     ranges::transform(cardIndices, std::inserter(cardIds, cardIds.begin()), [&](size_t cardIndex) -> CardId {
         return db->Cards().id_from_index(cardIndex);
     });
-    return progress.getNextTriggerCard(std::move(cardIds));
+    return progress->getNextTriggerCard(std::move(cardIds));
 }
 
 void VocableMeta::cardIndices_insert(std::size_t cardIndex)

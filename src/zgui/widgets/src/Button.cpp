@@ -37,7 +37,11 @@ auto Button::clicked() const -> bool
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
     // imglog::log("Button: x: {}, y: {}, w: {}, h: {}", btnRect.x, btnRect.x, btnRect.width, btnRect.height);
 
-    return ImGui::Button(label.c_str(), {btnRect.width, btnRect.height});
+    bool clicked = ImGui::Button(label.c_str(), {btnRect.width, btnRect.height});
+    if (!sensitive) {
+        return false;
+    }
+    return clicked;
 }
 
 void Button::setChecked(bool _checked)
@@ -49,6 +53,7 @@ void Button::setSensitive(bool _sensitive)
 {
     sensitive = _sensitive;
 }
+
 auto Button::isChecked() const -> bool
 {
     return checked;

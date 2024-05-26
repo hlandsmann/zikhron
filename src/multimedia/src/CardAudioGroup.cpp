@@ -61,15 +61,6 @@ auto CardAudioGroup::fromJson(const json& cag_json) -> CardAudioGroup
     return cardAudioGroup;
 }
 
-auto CardAudioGroupDB::get() -> CardAudioGroupDB&
-{
-    static std::unique_ptr<CardAudioGroupDB> cardAudioGroupDB;
-    if (!cardAudioGroupDB) {
-        cardAudioGroupDB = std::unique_ptr<CardAudioGroupDB>(new CardAudioGroupDB());
-    }
-    return *cardAudioGroupDB;
-}
-
 CardAudioGroupDB::CardAudioGroupDB()
 {
     load();
@@ -287,8 +278,8 @@ auto CardAudioGroupDB::findAudioGroupFromCardId(CardId cardId) const -> std::opt
 }
 
 auto CardAudioGroupDB::cardIdIt_and_group(CardId cardId) const -> std::optional<
-        std::pair<decltype(std::ranges::begin(id_cardAudioGroup.begin()->second.cardId_audioFragment)),
-                  const decltype(CardAudioGroup().cardId_audioFragment)&>>
+                                                                       std::pair<decltype(std::ranges::begin(id_cardAudioGroup.begin()->second.cardId_audioFragment)),
+                                                                                 const decltype(CardAudioGroup().cardId_audioFragment)&>>
 {
     auto audioGroupId = findAudioGroupFromCardId(cardId);
     if (not audioGroupId.has_value()) {

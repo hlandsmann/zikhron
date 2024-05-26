@@ -4,9 +4,11 @@
 #include "ITreeWalker.h"
 
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 
 #include <kocoro/kocoro.hpp>
 #include <memory>
+#include <optional>
 
 namespace sr {
 class AsyncTreeWalker
@@ -18,7 +20,7 @@ public:
 
     [[nodiscard]] auto getDataBase() const -> kocoro::Async<DataBasePtr>&;
     [[nodiscard]] auto getTreeWalker() const -> kocoro::Async<TreeWalkerPtr>&;
-    auto getNextCardChoice() -> kocoro::Async<CardMeta>&;
+    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> kocoro::Async<CardMeta>&;
 
 private:
     static auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>;
@@ -28,5 +30,7 @@ private:
     kocoro::AsyncPtr<DataBasePtr> asyncDataBase;
     kocoro::AsyncPtr<TreeWalkerPtr> asyncTreewalker;
     kocoro::AsyncPtr<CardMeta> asyncNextCard;
+
+    TreeWalkerPtr treeWalker;
 };
 } // namespace sr

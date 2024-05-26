@@ -14,11 +14,15 @@
 #include <widgets/TextTokenSeq.h>
 #include <widgets/ToggleButtonGroup.h>
 
+#include <algorithm>
 #include <initializer_list>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+namespace ranges = std::ranges;
 
 namespace gui {
 DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
@@ -51,6 +55,18 @@ void DisplayVocables::reload()
     layer->start();
     auto& grid = layer->next<widget::Grid>();
     setupVocables(grid);
+}
+
+auto DisplayVocables::getVocIdEase() const -> VocableId_Ease
+{
+    VocableId_Ease vocIdEase;
+    ranges::transform(activeVocables, std::inserter(vocIdEase, vocIdEase.begin()),
+                      [](const auto& idEaseColor) -> std::pair<VocableId, Ease> {
+                          const auto& [vocId, ease, colorId] = idEaseColor;
+                          return {vocId, ease};
+                      });
+
+    return vocIdEase;
 }
 
 void DisplayVocables::setupVocables(widget::Grid& grid)

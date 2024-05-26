@@ -3,11 +3,13 @@
 #include <DataBase.h>
 #include <ITreeWalker.h>
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
 #include <filesystem>
 #include <kocoro/kocoro.hpp>
 #include <memory>
+#include <optional>
 #include <utility>
 
 namespace fs = std::filesystem;
@@ -28,12 +30,20 @@ auto AsyncTreeWalker::getDataBase() const -> kocoro::Async<DataBasePtr>&
 
 auto AsyncTreeWalker::getTreeWalker() const -> kocoro::Async<TreeWalkerPtr>&
 {
+    asyncNextCard->runAsync([_treeWalker = std::move(treeWalker)]() {
+        return _treeWalker->getNextCardChoice();
+    });
     return *asyncTreewalker;
 }
 
-auto AsyncTreeWalker::getNextCardChoice() -> kocoro::Async<CardMeta>&
+auto AsyncTreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> kocoro::Async<CardMeta>&
 {
     asyncNextCard->reset();
+    if (treeWalker) {
+        asyncNextCard->runAsync([_treeWalker = treeWalker, _preferedCardId = preferedCardId]() {
+            return _treeWalker->getNextCardChoice(_preferedCardId);
+        });
+    }
     return *asyncNextCard;
 }
 
@@ -56,8 +66,8 @@ auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
     asyncTreewalker->runAsync([=]() -> TreeWalkerPtr {
         return ITreeWalker::createTreeWalker(std::move(dbPtr));
     });
-    auto treeWalker = co_await getTreeWalker();
-    asyncNextCard->runAsync([_treeWalker = std::move(treeWalker)]() {
+    treeWalker = co_await getTreeWalker();
+    asyncNextCard->runAsync([_treeWalker = treeWalker]() {
         return _treeWalker->getNextCardChoice();
     });
     co_return;

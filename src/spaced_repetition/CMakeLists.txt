@@ -38,6 +38,7 @@ target_link_libraries(zikhron_spaced_repetition
         zikhron::dictionary
         zikhron::kocoro
         zikhron::miscellaneous
+        zikhron::multimedia
         zikhron::utils
     PRIVATE
         spdlog::spdlog

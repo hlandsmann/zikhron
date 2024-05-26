@@ -12,17 +12,15 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <multimedia/CardAudioGroup.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
 
-#include <filesystem>
 #include <map>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
-#include <string_view>
-#include <vector>
 
 #include <sys/types.h>
 
@@ -42,9 +40,11 @@ public:
     DataBase(DataBase&&) = delete;
     auto operator=(const DataBase&) -> DataBase& = delete;
     auto operator=(DataBase&&) -> DataBase& = delete;
+    void save();
 
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
+    [[nodiscard]] auto getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
 
     void setEaseVocable(VocableId, const Ease&);
@@ -54,12 +54,12 @@ public:
 private:
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
     void fillIndexMaps();
-    void addNewVocableIds(const vocId_set& newVocableIds);
 
     std::shared_ptr<zikhron::Config> config;
 
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
+    std::shared_ptr<CardAudioGroupDB> groupDB;
     std::shared_ptr<annotation::WordDB> wordDB;
     std::shared_ptr<annotation::CardDB> cardDB;
     std::map<VocableId, VocableProgress> progressVocables;

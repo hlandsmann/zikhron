@@ -51,6 +51,9 @@ auto ImageButton::clicked() -> bool
     context::WidgetState widgetState = context::getWidgetState(sensitive, checked);
     backGroundColor = getTheme().ColorButton(widgetState);
     iconColor = getTheme().ColorImage(widgetState);
+    if (!sensitive) {
+        return false;
+    }
     return clicked;
 }
 
