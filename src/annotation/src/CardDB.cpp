@@ -2,6 +2,7 @@
 
 #include <Card.h>
 #include <JieBa.h>
+#include <Tokenizer.h>
 #include <WordDB.h>
 #include <ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
@@ -34,7 +35,7 @@ auto cardFromJsonFile(
         const std::string& filename,
         CardId cardId,
         const std::shared_ptr<WordDB>& wordDB,
-        const std::shared_ptr<annotation::JieBa>& jieba
+        const std::shared_ptr<annotation::Tokenizer>& tokenizer
 
         ) -> std::unique_ptr<Card>
 {
@@ -62,12 +63,12 @@ auto cardFromJsonFile(
                                   icu::UnicodeString::fromUTF8(std::string(item.value())));
         }
         dialogue.shrink_to_fit();
-        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, wordDB, jieba, std::move(dialogue));
+        auto dialogueCard = std::make_unique<DialogueCard>(filename, cardId, wordDB, tokenizer, std::move(dialogue));
         return dialogueCard;
     }
     if (jsonCard["type"] == "text") {
         auto text = icu::UnicodeString::fromUTF8(std::string(jsonCard["content"]));
-        auto textCard = std::make_unique<TextCard>(filename, cardId, wordDB, jieba, std::move(text));
+        auto textCard = std::make_unique<TextCard>(filename, cardId, wordDB, tokenizer, std::move(text));
         return textCard;
     }
     throw std::runtime_error("Invalid file format for card json-file");
@@ -77,13 +78,13 @@ CardDB::CardDB(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<WordDB>
     : config{std::move(_config)}
     , wordDB{std::move(_wordDB)}
 
-    , jieba{std::make_shared<annotation::JieBa>(wordDB)}
-    , cards{loadFromDirectory(config->DatabaseDirectory() / s_cardSubdirectory, wordDB, jieba)}
+    , tokenizer{std::make_shared<annotation::Tokenizer>(config, wordDB)}
+    , cards{loadFromDirectory(config->DatabaseDirectory() / s_cardSubdirectory, wordDB, tokenizer)}
 {}
 
 auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
                                const std::shared_ptr<WordDB>& wordDB,
-                               const std::shared_ptr<annotation::JieBa>& jieba)
+                               const std::shared_ptr<annotation::Tokenizer>& tokenizer)
         -> std::map<CardId, CardPtr>
 {
     std::map<CardId, CardPtr> cards;
@@ -104,7 +105,7 @@ auto CardDB::loadFromDirectory(const std::filesystem::path& directoryPath,
                              cardId);
                 continue;
             }
-            cards[cardId] = cardFromJsonFile(entry, cardId, wordDB, jieba);
+            cards[cardId] = cardFromJsonFile(entry, cardId, wordDB, tokenizer);
         } catch (std::exception& e) {
             spdlog::error("{} - file: {}", e.what(), entry.filename().string());
         }
@@ -125,5 +126,10 @@ auto CardDB::atId(CardId cardId) -> CardPtr&
 auto CardDB::atId(CardId cardId) const -> CardPtrConst
 {
     return {cards.at(cardId)};
+}
+
+void CardDB::getAnnotationTokens(CardId cardId)
+{
+    cards.at(cardId)->getAlternatives();
 }
 } // namespace annotation

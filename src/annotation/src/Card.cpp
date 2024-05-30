@@ -1,5 +1,7 @@
 #include "Card.h"
 
+#include "Tokenizer.h"
+
 #include <JieBa.h>
 #include <Token.h>
 #include <WordDB.h>
@@ -28,11 +30,11 @@ namespace annotation {
 Card::Card(std::string _filename,
            CardId _id,
            std::shared_ptr<WordDB> _wordDB,
-           std::shared_ptr<annotation::JieBa> _jieba)
+           std::shared_ptr<annotation::Tokenizer> _tokenizer)
     : filename{std::move(_filename)}
     , id{_id}
     , wordDB{std::move(_wordDB)}
-    , jieba{std::move(_jieba)} {
+    , tokenizer{std::move(_tokenizer)} {
 
     };
 
@@ -51,11 +53,16 @@ auto Card::getWordDB() const -> std::shared_ptr<WordDB>
     return wordDB;
 }
 
+void Card::getAlternatives()
+{
+    tokenizer->getAlternatives(getText());
+}
+
 void Card::executeJieba()
 {
     const auto& cardText = getText();
     // spdlog::info("{}: {}", Id(), cardText);
-    tokens = jieba->split(cardText);
+    tokens = tokenizer->split(cardText);
     // for (const auto& token : tokenVector) {
     //     wordDB->lookup(token);
     // }
@@ -64,9 +71,9 @@ void Card::executeJieba()
 DialogueCard::DialogueCard(std::string _filename,
                            CardId _id,
                            std::shared_ptr<WordDB> _wordDB,
-                           std::shared_ptr<annotation::JieBa> _jieba,
+                           std::shared_ptr<annotation::Tokenizer> _tokenizer,
                            std::vector<DialogueItem>&& _dialogue)
-    : Card{_filename, _id, std::move(_wordDB), std::move(_jieba)}
+    : Card{_filename, _id, std::move(_wordDB), std::move(_tokenizer)}
     , dialogue{std::move(_dialogue)}
 {
     executeJieba();
@@ -103,9 +110,9 @@ auto DialogueCard::getText() const -> utl::StringU8
 TextCard::TextCard(std::string _filename,
                    CardId _id,
                    std::shared_ptr<WordDB> _wordDB,
-                   std::shared_ptr<annotation::JieBa> _jieba,
+                   std::shared_ptr<annotation::Tokenizer> _tokenizer,
                    icu::UnicodeString _text)
-    : Card{_filename, _id, std::move(_wordDB), std::move(_jieba)}
+    : Card{_filename, _id, std::move(_wordDB), std::move(_tokenizer)}
     , text{std::move(_text)}
 {
     executeJieba();

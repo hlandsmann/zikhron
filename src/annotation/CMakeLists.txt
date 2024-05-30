@@ -18,6 +18,7 @@ target_sources(zikhron_annotation
         include/annotation/Rules.h
         include/annotation/Token.h
         include/annotation/TokenText.h
+        include/annotation/Tokenizer.h
         include/annotation/Word.h
         include/annotation/WordDB.h
         include/annotation/ZH_Tokenizer.h
@@ -30,6 +31,7 @@ target_sources(zikhron_annotation
         src/Rules.cpp
         src/Token.cpp
         src/TokenText.cpp
+        src/Tokenizer.cpp
         src/Word.cpp
         src/WordDB.cpp
         src/ZH_Tokenizer.cpp

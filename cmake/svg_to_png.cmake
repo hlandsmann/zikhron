@@ -3,7 +3,7 @@ file(MAKE_DIRECTORY ${ICONS_DIRECTORY})
 
 function(svg_to_png filename pixel)
   get_filename_component(svg_base_name ${filename} NAME_WLE)
-  get_filename_component(target ${filename} NAME_WLE)
+  set(target ${svg_base_name}_${pixel})
   set(png_file ${ICONS_DIRECTORY}/${svg_base_name}_${pixel}px.png)
   add_custom_command(
       OUTPUT

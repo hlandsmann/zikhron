@@ -113,7 +113,7 @@ auto Fonts::getFontColor(ColorId colorId, ColorId maxColorId) const -> const ImV
     }
 
     maxColorId = static_cast<ColorId>(fontColors.size());
-    auto colorIndex = static_cast<ColorId>((colorId - 1) % maxColorId + 1);
+    auto colorIndex = static_cast<ColorId>((colorId - 1) % maxColorId);
 
     return fontColors.at(colorIndex);
 }

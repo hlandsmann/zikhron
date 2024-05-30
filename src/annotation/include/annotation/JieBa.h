@@ -17,12 +17,12 @@ class Jieba;
 
 namespace annotation {
 
-struct JToken
-{
-    utl::StringU8 key;
-    int freq;
-    float idf;
-};
+// struct JToken
+// {
+//     utl::StringU8 key;
+//     int freq;
+//     float idf;
+// };
 
 class JieBa
 {
@@ -40,13 +40,12 @@ class JieBa
 public:
     JieBa(std::shared_ptr<WordDB> wordDB);
 
-    [[nodiscard]] auto split(const std::string& text) -> std::vector<Token>;
+    [[nodiscard]] auto cut(const std::string& text) -> std::vector<std::string>;
+    [[nodiscard]] auto cutAll(const std::string& text) -> std::vector<std::string>;
     void debug();
 
 private:
-    auto splitFurther(const std::string& text) -> std::vector<JToken>;
     std::shared_ptr<WordDB> wordDB;
-    std::shared_ptr<FreqDictionary> freqDictionary;
     std::shared_ptr<cppjieba::Jieba> jieba;
     // std::set<std::string> rules;
     // std::set<std::string> no_rule;

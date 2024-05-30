@@ -65,6 +65,11 @@ auto DataBase::Cards() -> utl::index_map<CardId, CardMeta>&
     return *cards;
 }
 
+auto DataBase::getCardDB() const -> std::shared_ptr<CardDB>
+{
+    return cardDB;
+}
+
 auto DataBase::getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>
 {
     return groupDB;

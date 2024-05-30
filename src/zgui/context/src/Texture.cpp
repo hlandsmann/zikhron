@@ -56,6 +56,7 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::audio] = loadTextureFromFile(audio_tex);
     textureMap[Image::cards] = loadTextureFromFile(cards_tex);
     textureMap[Image::configure_app] = loadTextureFromFile(configure_app_tex);
+    textureMap[Image::configure_mid] = loadTextureFromFile(configure_mid_tex);
     textureMap[Image::configure] = loadTextureFromFile(configure_tex);
     textureMap[Image::video] = loadTextureFromFile(video_tex);
     textureMap[Image::document_open] = loadTextureFromFile(document_open_tex);

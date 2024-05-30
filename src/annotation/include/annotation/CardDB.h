@@ -1,6 +1,6 @@
 #pragma once
 #include "Card.h"
-#include "JieBa.h"
+#include "Tokenizer.h"
 #include "WordDB.h"
 
 #include <dictionary/ZH_Dictionary.h>
@@ -31,19 +31,21 @@ public:
     CardDB(std::shared_ptr<zikhron::Config> config, std::shared_ptr<WordDB> wordDB);
     static auto loadFromDirectory(const std::filesystem::path& directoryPath,
                                   const std::shared_ptr<WordDB>& wordDB,
-                                  const std::shared_ptr<annotation::JieBa>& jieba)
+                                  const std::shared_ptr<annotation::Tokenizer>& tokenizer)
             -> std::map<CardId, CardPtr>;
 
     [[nodiscard]] auto get() const -> const std::map<CardId, CardPtr>&;
     [[nodiscard]] auto atId(CardId) -> CardPtr&;
     [[nodiscard]] auto atId(CardId) const -> CardPtrConst;
 
-    [[nodiscard]] auto getJieba() const -> std::shared_ptr<annotation::JieBa> { return jieba; }
+    [[nodiscard]] auto getTokenizer() const -> std::shared_ptr<annotation::Tokenizer> { return tokenizer; }
+
+    void getAnnotationTokens(CardId cardId);
 
 private:
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<WordDB> wordDB;
-    std::shared_ptr<annotation::JieBa> jieba;
+    std::shared_ptr<annotation::Tokenizer> tokenizer;
     std::map<CardId, CardPtr> cards;
 };
 

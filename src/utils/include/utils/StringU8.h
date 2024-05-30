@@ -69,12 +69,31 @@ public:
     auto operator<=>(const StringU8&) const -> std::weak_ordering;
     auto operator==(const StringU8&) const -> bool;
     operator std::string() const;
+
+    auto operator+=(const StringU8& rhs) -> StringU8&
+    {
+        chars.insert(chars.end(), rhs.chars.begin(), rhs.chars.end());
+        return *this;
+    }
+
+    auto operator+=(const CharU8& rhs) -> StringU8&
+    {
+        chars.insert(chars.end(), rhs);
+        return *this;
+    }
+
+    friend auto operator+(StringU8 lhs, const StringU8& rhs) -> StringU8
+    {
+        lhs += rhs;
+        return lhs;
+    }
+
     [[nodiscard]] auto string() const -> std::string;
 
     [[nodiscard]] auto length() const -> size_t;
     [[nodiscard]] auto vlength() const -> size_t;
     [[nodiscard]] auto empty() const -> bool;
-    [[nodiscard]] auto at(size_t pos) const -> StringU8;
+    [[nodiscard]] auto at(size_t pos) const -> CharU8;
     [[nodiscard]] auto substr(long pos, long n) const -> std::string;
     [[nodiscard]] auto back() const -> const CharU8&;
     [[nodiscard]] auto front() const -> const CharU8&;

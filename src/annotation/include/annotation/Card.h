@@ -1,5 +1,6 @@
 #pragma once
 #include "Token.h"
+#include "Tokenizer.h"
 #include "WordDB.h"
 
 #include <annotation/JieBa.h>
@@ -27,7 +28,7 @@ public:
     Card(std::string filename,
          CardId id,
          std::shared_ptr<WordDB> wordDB,
-         std::shared_ptr<annotation::JieBa> jieba);
+         std::shared_ptr<annotation::Tokenizer> tokenizer);
     Card(const Card&) = default;
     Card(Card&&) = default;
     virtual ~Card() = default;
@@ -37,6 +38,7 @@ public:
     [[nodiscard]] auto Id() const -> CardId;
     [[nodiscard]] auto getTokens() const -> const std::vector<Token>&;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
+    void getAlternatives();
 
 protected:
     void executeJieba();
@@ -47,7 +49,7 @@ private:
     std::string filename;
     CardId id;
     std::shared_ptr<WordDB> wordDB;
-    std::shared_ptr<JieBa> jieba;
+    std::shared_ptr<Tokenizer> tokenizer;
 
     std::vector<Token> tokens;
 };
@@ -64,7 +66,7 @@ public:
     DialogueCard(std::string filename,
                  CardId id,
                  std::shared_ptr<WordDB> wordDB,
-                 std::shared_ptr<JieBa> jieba,
+                 std::shared_ptr<Tokenizer> tokenizer,
                  std::vector<DialogueItem>&& dialogue);
     DialogueCard(const DialogueCard&) = default;
     DialogueCard(DialogueCard&&) = default;
@@ -86,7 +88,7 @@ public:
     TextCard(std::string filename,
              CardId id,
              std::shared_ptr<WordDB> wordDB,
-             std::shared_ptr<JieBa> jieba,
+             std::shared_ptr<Tokenizer> tokenizer,
              icu::UnicodeString text);
     TextCard(const TextCard&) = default;
     TextCard(TextCard&&) = default;

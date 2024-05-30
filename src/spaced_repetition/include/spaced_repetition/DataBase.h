@@ -44,6 +44,7 @@ public:
 
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
+    [[nodiscard]] auto getCardDB() const -> std::shared_ptr<CardDB>;
     [[nodiscard]] auto getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
 

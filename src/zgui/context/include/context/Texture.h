@@ -13,6 +13,7 @@ enum class Image {
     cards,
     audio,
     configure_app,
+    configure_mid,
     configure,
     video,
     document_open,
@@ -37,10 +38,11 @@ struct TextureData;
 
 class Texture
 {
-    static constexpr auto audio_tex = "/home/harmen/src/zikhron/build/resources/icons/audio_48px.png";
+    static constexpr auto audio_tex = "/home/harmen/src/zikhron/build/resources/icons/audiobook_48px.png";
     static constexpr auto cards_tex = "/home/harmen/src/zikhron/build/resources/icons/cards_48px.png";
     static constexpr auto configure_app_tex = "/home/harmen/src/zikhron/build/resources/icons/configure_app_48px.png";
     static constexpr auto configure_tex = "/home/harmen/src/zikhron/build/resources/icons/configure_24px.png";
+    static constexpr auto configure_mid_tex = "/home/harmen/src/zikhron/build/resources/icons/configure_32px.png";
     static constexpr auto video_tex = "/home/harmen/src/zikhron/build/resources/icons/video_48px.png";
     static constexpr auto document_open_tex = "/home/harmen/src/zikhron/build/resources/icons/document-open_32px.png";
     static constexpr auto document_save_tex = "/home/harmen/src/zikhron/build/resources/icons/document-save_32px.png";

@@ -36,8 +36,9 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
                  std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker,
                  std::unique_ptr<multimedia::MpvWrapper> _mpv)
     : executor{std::move(_synchronousExecutor)}
-    , signalProceed{executor->makeVolatileSignal<Proceed>()}
     , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
+    , signalProceed{executor->makeVolatileSignal<Proceed>()}
+    , signalAnnotationDone{executor->makeVolatileSignal<bool>()}
     , mpv{std::move(_mpv)}
 {
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
@@ -84,6 +85,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     auto treeWalker = co_await asyncTreeWalker->getTreeWalker();
     dataBase = co_await asyncTreeWalker->getDataBase();
     auto wordDB = dataBase->getWordDB();
+    auto cardDB = dataBase->getCardDB();
 
     sr::CardMeta cardMeta;
     Proceed proceed = Proceed::submit_walkTree;
@@ -100,7 +102,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 
         switch (proceed) {
         case Proceed::submit_walkTree:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice();
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice({static_cast<CardId>(1176)});
             break;
         case Proceed::first:
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.firstId);
@@ -115,6 +117,15 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         case Proceed::last:
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.lastId);
             break;
+        case Proceed::reload:
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice({cardMeta.Id()});
+            break;
+        case Proceed::annotate: {
+            cardDB->getAnnotationTokens(cardMeta.Id());
+            bool _ = co_await *signalAnnotationDone;
+            signalProceed->set(Proceed::reload);
+        } break;
+
         default:
             break;
         }
@@ -203,7 +214,9 @@ void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
     ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_backward);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_forward);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_forward);
-    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
+    ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
 }
 
@@ -230,12 +243,15 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
     auto& btnFollowing = box.next<widget::ImageButton>();
     auto& btnLast = box.next<widget::ImageButton>();
     box.next<widget::Separator>();
+    auto& btnAnnotate = box.next<widget::ImageButton>();
+    box.next<widget::Separator>();
     auto& btnSave = box.next<widget::ImageButton>();
 
     handlePlayback(btnPlay, sliderProgress);
     handleCardSubmission(btnReveal, btnSubmit, btnNext);
     handleMode(tbgMode);
     handleNextPrevious(btnFirst, btnPrevious, btnFollowing, btnLast);
+    handleAnnotate(btnAnnotate);
     handleDataBaseSave(btnSave);
 }
 
@@ -307,7 +323,7 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
 
 void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
 {
-    if (!cardAudioInfo.previousId.has_value() && !cardAudioInfo.nextId.has_value()) {
+    if (!cardAudioInfo.nextId.has_value()) {
         mode = Mode::shuffle;
         return;
     }
@@ -348,6 +364,21 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
         mode = Mode::story;
         revealVocables = false;
         signalProceed->set(Proceed::last);
+    }
+}
+
+void TabCard::handleAnnotate(widget::ImageButton& btnAnnotate)
+{
+    if (!dataBase /* || !displayText */) {
+        return;
+    }
+    if (btnAnnotate.clicked()) {
+        if (btnAnnotate.isChecked()) {
+            signalAnnotationDone->set(true);
+        } else {
+            signalProceed->set(Proceed::annotate);
+        }
+        btnAnnotate.setChecked(!btnAnnotate.isChecked());
     }
 }
 

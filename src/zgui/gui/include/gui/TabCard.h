@@ -40,6 +40,8 @@ class TabCard
         previous,
         next,
         last,
+        reload,
+        annotate,
     };
 
     enum class Mode : std::size_t {
@@ -88,6 +90,7 @@ private:
                             widget::ImageButton& btnPrevious,
                             widget::ImageButton& btnFollowing,
                             widget::ImageButton& btnLast);
+    void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);
 
     std::shared_ptr<sr::DataBase> dataBase;
@@ -101,8 +104,9 @@ private:
     std::shared_ptr<widget::Overlay> overlay;
 
     using BoxPtr = std::shared_ptr<widget::Box>;
-    std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
     std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
+    std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
+    std::shared_ptr<kocoro::VolatileSignal<bool>> signalAnnotationDone;
     context::WidgetId boxId{};
 
     bool revealVocables{false};

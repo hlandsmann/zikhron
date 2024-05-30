@@ -67,11 +67,9 @@ auto StringU8::empty() const -> bool
     return chars.empty();
 }
 
-auto StringU8::at(size_t pos) const -> StringU8
+auto StringU8::at(size_t pos) const -> CharU8
 {
-    StringU8 strU8;
-    strU8.push_back(chars.at(pos));
-    return strU8;
+    return chars.at(pos);
 }
 
 auto StringU8::substr(long pos, long n) const -> std::string
