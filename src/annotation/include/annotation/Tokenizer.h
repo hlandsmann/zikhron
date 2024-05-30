@@ -16,12 +16,6 @@
 
 namespace annotation {
 
-struct JToken
-{
-    utl::StringU8 key;
-    int freq;
-    float idf;
-};
 struct AToken
 {
     utl::StringU8 key;

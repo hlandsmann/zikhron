@@ -2,7 +2,6 @@
 
 #include <Card.h>
 #include <Token.h>
-#include <ZH_Tokenizer.h>
 #include <annotation/Ease.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>

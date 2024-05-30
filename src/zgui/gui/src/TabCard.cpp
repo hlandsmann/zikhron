@@ -102,7 +102,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 
         switch (proceed) {
         case Proceed::submit_walkTree:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice({static_cast<CardId>(1176)});
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice();
             break;
         case Proceed::first:
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.firstId);

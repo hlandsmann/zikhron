@@ -46,6 +46,7 @@ public:
         auto operator<=>(const Entry&) const -> std::weak_ordering;
         auto operator==(const Entry&) const -> bool = default;
     };
+    using EntryVector = std::vector<Entry>;
 
     [[nodiscard]] auto characterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType;
     [[nodiscard]] auto keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>;

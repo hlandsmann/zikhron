@@ -27,7 +27,34 @@ namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 
 namespace {
-using JToken = annotation::JToken;
+// struct JToken
+// {
+//     utl::StringU8 key;
+//     int freq;
+//     float idf;
+// };
+// using JToken = annotation::JToken;
+// auto getJTokenCandidates(const utl::StringU8& text,
+//                          const ZH_Dictionary& dict,
+//                          const annotation::FreqDictionary& freqDic) -> std::vector<std::vector<JToken>>
+// {
+//     auto candidates = getCandidates(text, dict);
+//     std::vector<std::vector<JToken>> jTokenCandidates;
+//     ranges::transform(candidates, std::back_inserter(jTokenCandidates),
+//                       [&](const std::vector<AToken>& atokens) -> std::vector<JToken> {
+//                           std::vector<JToken> jTokenVec;
+//                           for (const auto& atoken : atokens) {
+//                               if (atoken.key.empty()) {
+//                                   break;
+//                               }
+//                               jTokenVec.push_back({.key = atoken.key,
+//                                                    .freq = freqDic.getFreq(std::string{atoken.key}),
+//                                                    .idf = freqDic.getIdf(std::string{atoken.key})});
+//                           }
+//                           return jTokenVec;
+//                       });
+//     return jTokenCandidates;
+// }
 using AToken = annotation::AToken;
 
 auto getCandidates(const utl::StringU8& text,
@@ -56,35 +83,13 @@ auto getCandidates(const utl::StringU8& text,
         if (tokens.empty()) {
             int indexEnd = std::min(static_cast<int>(text.length()), indexBegin + 1);
             const auto key = text.substr(indexBegin, indexEnd - indexBegin);
-            tokens.push_back({.key = utl::StringU8{},
+            tokens.push_back({.key = {},
                               .str = key});
         }
         candidates.push_back(std::move(tokens));
     }
 
     return candidates;
-}
-
-auto getJTokenCandidates(const utl::StringU8& text,
-                         const ZH_Dictionary& dict,
-                         const annotation::FreqDictionary& freqDic) -> std::vector<std::vector<JToken>>
-{
-    auto candidates = getCandidates(text, dict);
-    std::vector<std::vector<JToken>> jTokenCandidates;
-    ranges::transform(candidates, std::back_inserter(jTokenCandidates),
-                      [&](const std::vector<AToken>& atokens) -> std::vector<JToken> {
-                          std::vector<JToken> jTokenVec;
-                          for (const auto& atoken : atokens) {
-                              if (atoken.key.empty()) {
-                                  break;
-                              }
-                              jTokenVec.push_back({.key = atoken.key,
-                                                   .freq = freqDic.getFreq(std::string{atoken.key}),
-                                                   .idf = freqDic.getIdf(std::string{atoken.key})});
-                          }
-                          return jTokenVec;
-                      });
-    return jTokenCandidates;
 }
 
 auto previousIndex(const std::vector<std::size_t>& currentVec,
@@ -381,43 +386,9 @@ auto Tokenizer::splitFurther(const std::string& str) -> std::vector<AToken>
     if (splitVector.size() == 1) {
         return {};
     }
-    // std::vector<std::string> found;
-    // ranges::copy_if(splitVector, std::back_inserter(found),
-    //                 [this](const std::string key) -> bool { return wordDB->getDictionary()->contains(key); });
-
-    // auto tokenizer = ZH_Tokenizer{str, wordDB->getDictionary()};
-    // std::vector<std::string> tokens;
-
-    // ranges::transform(tokenizer.Tokens(), std::back_inserter(tokens),
-    //                   [](const ZH_Tokenizer::Token& token) -> std::string {
-    //                       return token.text;
-    //                   });
-    // if (isUnique(tokenizer.Chunks())) {
-    //     return true;
-    // }
-    // auto candidates = getJTokenCandidates(str, *wordDB->getDictionary(), *freqDictionary);
     auto candidates = getCandidates(str, *wordDB->getDictionary());
-    // spdlog::info("{}: --- {} --- {} *** {} | {}", str,
-    //              fmt::join(splitVector, ", "),
-    //              fmt::join(found, ", "),
-    //              fmt::join(tokens, ", "),
-    //              tokenizer.Chunks().size());
-    // for (const auto& v1 : tokenizer.Chunks()) {
-    //     fmt::print("v1.size: ({})\n", v1.size());
-    //     for (const auto& v2 : v1) {
-    //         fmt::print("v2.size: {}, --- {}\n", v2.size(), fmt::join(v2, ", "));
-    //     }
-    // }
-    // for (const auto& c1 : candidates) {
-    //     std::string cd;
-    //     for (const auto& c : c1) {
-    //         cd += fmt::format("({}:{},{:.2F}) ", c.key, c.freq, c.idf);
-    //     }
-    //     fmt::print("cd: {}\n", cd);
-    // }
 
     return chooseCombination(candidates);
-    // return {};
 }
 
 } // namespace annotation

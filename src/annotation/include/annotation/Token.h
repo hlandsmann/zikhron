@@ -1,5 +1,4 @@
 #pragma once
-#include "ZH_Tokenizer.h"
 
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
@@ -23,19 +22,19 @@ class Token
 {
 public:
     using DictionaryEntry = std::optional<std::shared_ptr<ZH_Dictionary::Entry>>;
-    using ZH_dicItemVec = ZH_Tokenizer::ZH_dicItemVec;
+    using EntryVector = ZH_Dictionary::EntryVector;
 
     Token() = default;
     Token(utl::StringU8 value);
     Token(utl::StringU8 value, std::shared_ptr<Word> word);
-    Token(utl::StringU8 value, ZH_dicItemVec dictionaryEntries);
+    Token(utl::StringU8 value, EntryVector dictionaryEntries);
     [[nodiscard]] auto getWord() const -> std::shared_ptr<Word>;
     [[nodiscard]] auto getValue() const -> utl::StringU8;
     [[nodiscard]] auto getNoBreak() const -> NoBreak;
     [[nodiscard]] auto getColorId() const -> ColorId;
     void setColorId(ColorId colorId);
     [[nodiscard]] auto getVocableId() const -> std::optional<VocableId>;
-    [[nodiscard]] auto getDictionaryEntries() const -> const ZH_dicItemVec&;
+    [[nodiscard]] auto getDictionaryEntries() const -> const EntryVector&;
 
     [[nodiscard]] auto string() const -> std::string;
     operator std::string() const;
@@ -46,7 +45,7 @@ private:
     ColorId colorId{0};
     NoBreak noBreak{NoBreak::none};
     std::size_t dictionaryEntryIndex{0};
-    ZH_dicItemVec dictionaryEntries;
+    EntryVector dictionaryEntries;
 };
 
 auto tokenVectorFromString(const std::string& str, ColorId colorId) -> std::vector<Token>;

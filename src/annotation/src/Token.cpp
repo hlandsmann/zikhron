@@ -24,7 +24,7 @@ Token::Token(utl::StringU8 _value, std::shared_ptr<Word> _word)
     , word{std::move(_word)}
 {}
 
-Token::Token(utl::StringU8 _value, ZH_dicItemVec _dictionaryEntries)
+Token::Token(utl::StringU8 _value, EntryVector _dictionaryEntries)
     : value{std::move(_value)}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {}
@@ -63,7 +63,7 @@ auto Token::getVocableId() const -> std::optional<VocableId>
 }
 
 
-auto Token::getDictionaryEntries() const -> const ZH_dicItemVec&
+auto Token::getDictionaryEntries() const -> const EntryVector&
 {
     return dictionaryEntries;
 }

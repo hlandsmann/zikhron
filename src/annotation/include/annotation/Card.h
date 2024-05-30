@@ -4,7 +4,6 @@
 #include "WordDB.h"
 
 #include <annotation/JieBa.h>
-#include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <unicode/unistr.h>

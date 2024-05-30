@@ -3,7 +3,6 @@
 #include <VocableProgress.h>
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
-#include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>

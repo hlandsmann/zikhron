@@ -5,7 +5,6 @@
 
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
-#include <annotation/ZH_Tokenizer.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/index_map.h>
@@ -30,7 +29,6 @@ public:
 private:
     std::shared_ptr<VocableProgress> progress;
     index_set cardIndices;
-    // ZH_Tokenizer::ZH_dicItemVec dicItemVec;
 };
 
 } // namespace sr

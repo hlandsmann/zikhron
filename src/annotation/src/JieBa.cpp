@@ -1,7 +1,6 @@
 #include "JieBa.h"
 
 #include "FreqDictionary.h"
-#include "ZH_Tokenizer.h"
 
 #include <Token.h>
 #include <WordDB.h>
@@ -36,80 +35,80 @@ namespace views = std::ranges::views;
 
 namespace {
 
-struct JToken
-{
-    utl::StringU8 key;
-    int freq;
-    float idf;
-};
-auto calculateTokenVectorValue(const std::vector<JToken> tokenVector,
-                               const std::vector<std::vector<JToken>>& tokenVectors) -> float
-{
-    const std::vector<JToken>& hiTokenVec = tokenVector;
-    const std::vector<JToken>& loTokenVec = tokenVectors.back();
-    std::vector<float> hiValues;
-    std::vector<float> loValues;
-    float loVal = 0;
-    // float hiVal = 0;
-
-    auto hiTokenIt = tokenVector.begin();
-    auto loTokenIt = loTokenVec.begin();
-    auto hiLen = hiTokenIt->key.length();
-    auto loLen = loTokenIt->key.length();
-    while (true) {
-        auto fHiLen = static_cast<float>(hiLen);
-        auto fLoLen = static_cast<float>(loLen);
-
-        if (loLen < hiLen) {
-            float factor = static_cast<float>(loTokenIt->key.length()) / fLoLen;
-            loVal += static_cast<float>(loTokenIt->freq) * factor;
-
-            hiLen -= loLen;
-
-            loTokenIt++;
-            loLen = loTokenIt->key.length();
-
-            continue;
-        }
-        if (loLen > hiLen) {
-            float factor = fHiLen / fLoLen; // fLoLen is loToken key length
-            loVal += static_cast<float>(loTokenIt->freq) * factor;
-
-            loValues.push_back(loVal);
-            loVal = 0;
-
-            hiTokenIt++;
-            loLen -= hiLen;
-            hiLen = hiTokenIt->key.length();
-            continue;
-        }
-        if (loLen == hiLen) {
-            float factor = static_cast<float>(loTokenIt->key.length()) / fLoLen;
-            loVal += static_cast<float>(loTokenIt->freq) * factor;
-
-            loValues.push_back(loVal);
-            loVal = 0;
-
-            hiTokenIt++;
-            loTokenIt++;
-
-            if (loTokenIt == loTokenVec.end()) {
-                assert(hiTokenIt == hiTokenVec.end());
-                break;
-            }
-            loLen = loTokenIt->key.length();
-            hiLen = hiTokenIt->key.length();
-        }
-    }
-    ranges::transform(hiTokenVec, std::back_inserter(hiValues), &JToken::freq);
-    std::vector<float> div;
-    ranges::transform(hiValues, loValues,
-                      std::back_inserter(div),
-                      [](float a, float b) {
-                      // spdlog::info("{} - {}", a, std::max(0.1F, b));
-                      return a / std::max(0.1F, b); });
-    return std::accumulate(div.begin(), div.end(), 0.F, std::plus<>());
-}
+// struct JToken
+// {
+//     utl::StringU8 key;
+//     int freq;
+//     float idf;
+// };
+// auto calculateTokenVectorValue(const std::vector<JToken> tokenVector,
+//                                const std::vector<std::vector<JToken>>& tokenVectors) -> float
+// {
+//     const std::vector<JToken>& hiTokenVec = tokenVector;
+//     const std::vector<JToken>& loTokenVec = tokenVectors.back();
+//     std::vector<float> hiValues;
+//     std::vector<float> loValues;
+//     float loVal = 0;
+//     // float hiVal = 0;
+//
+//     auto hiTokenIt = tokenVector.begin();
+//     auto loTokenIt = loTokenVec.begin();
+//     auto hiLen = hiTokenIt->key.length();
+//     auto loLen = loTokenIt->key.length();
+//     while (true) {
+//         auto fHiLen = static_cast<float>(hiLen);
+//         auto fLoLen = static_cast<float>(loLen);
+//
+//         if (loLen < hiLen) {
+//             float factor = static_cast<float>(loTokenIt->key.length()) / fLoLen;
+//             loVal += static_cast<float>(loTokenIt->freq) * factor;
+//
+//             hiLen -= loLen;
+//
+//             loTokenIt++;
+//             loLen = loTokenIt->key.length();
+//
+//             continue;
+//         }
+//         if (loLen > hiLen) {
+//             float factor = fHiLen / fLoLen; // fLoLen is loToken key length
+//             loVal += static_cast<float>(loTokenIt->freq) * factor;
+//
+//             loValues.push_back(loVal);
+//             loVal = 0;
+//
+//             hiTokenIt++;
+//             loLen -= hiLen;
+//             hiLen = hiTokenIt->key.length();
+//             continue;
+//         }
+//         if (loLen == hiLen) {
+//             float factor = static_cast<float>(loTokenIt->key.length()) / fLoLen;
+//             loVal += static_cast<float>(loTokenIt->freq) * factor;
+//
+//             loValues.push_back(loVal);
+//             loVal = 0;
+//
+//             hiTokenIt++;
+//             loTokenIt++;
+//
+//             if (loTokenIt == loTokenVec.end()) {
+//                 assert(hiTokenIt == hiTokenVec.end());
+//                 break;
+//             }
+//             loLen = loTokenIt->key.length();
+//             hiLen = hiTokenIt->key.length();
+//         }
+//     }
+//     ranges::transform(hiTokenVec, std::back_inserter(hiValues), &JToken::freq);
+//     std::vector<float> div;
+//     ranges::transform(hiValues, loValues,
+//                       std::back_inserter(div),
+//                       [](float a, float b) {
+//                       // spdlog::info("{} - {}", a, std::max(0.1F, b));
+//                       return a / std::max(0.1F, b); });
+//     return std::accumulate(div.begin(), div.end(), 0.F, std::plus<>());
+// }
 // void printv(const std::vector<std::size_t> vec,
 //             const std::span<const std::vector<JToken>>& tokens)
 // {

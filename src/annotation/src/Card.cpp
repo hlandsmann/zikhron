@@ -5,7 +5,6 @@
 #include <JieBa.h>
 #include <Token.h>
 #include <WordDB.h>
-#include <ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>

@@ -5,7 +5,6 @@
 #include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/WordDB.h>
-#include <annotation/ZH_Tokenizer.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Config.h>

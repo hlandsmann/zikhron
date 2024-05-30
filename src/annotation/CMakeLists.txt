@@ -21,7 +21,6 @@ target_sources(zikhron_annotation
         include/annotation/Tokenizer.h
         include/annotation/Word.h
         include/annotation/WordDB.h
-        include/annotation/ZH_Tokenizer.h
         src/AdaptJiebaDict.cpp
         src/Card.cpp
         src/CardDB.cpp
@@ -34,7 +33,6 @@ target_sources(zikhron_annotation
         src/Tokenizer.cpp
         src/Word.cpp
         src/WordDB.cpp
-        src/ZH_Tokenizer.cpp
 )
 target_link_libraries(zikhron_annotation
     PUBLIC
