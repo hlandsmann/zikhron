@@ -233,7 +233,7 @@ Tokenizer::Tokenizer(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<W
 
 struct CandidateSplit
 {
-    utl::StringU8 cover;
+    utl::StringU8 key;
     std::vector<std::vector<AToken>> alts;
 
     [[nodiscard]] auto empty() const -> bool { return alts.empty(); }
@@ -253,7 +253,7 @@ auto splitCandidates(const std::span<std::vector<AToken>> candidates) -> Candida
         if (!alt.empty() || maxLen > 1) {
             alt.alts.push_back(tokenVec);
         }
-        alt.cover += candidate.front().str.front();
+        alt.key += candidate.front().str.front();
         maxLen--;
         if (maxLen == 0) {
             break;
@@ -263,8 +263,9 @@ auto splitCandidates(const std::span<std::vector<AToken>> candidates) -> Candida
     return alt;
 }
 
-void Tokenizer::getAlternatives(const std::string& text)
+auto Tokenizer::getAlternatives(const std::string& text, const std::vector<Token>& currentSplit) -> std::vector<Alternative>
 {
+    std::vector<Alternative> alternatives;
     spdlog::info("{}", text);
     auto candidates = getCandidates({text}, *wordDB->getDictionary());
     for (const auto& ts : candidates) {
@@ -280,15 +281,18 @@ void Tokenizer::getAlternatives(const std::string& text)
     auto first = candidates.begin();
     auto span = std::span(first, candidates.end());
     while (!span.empty()) {
+        auto alternative = Alternative{};
         auto alt = splitCandidates(span);
-        std::advance(first, alt.cover.length());
+        std::advance(first, alt.key.length());
         span = std::span(first, candidates.end());
 
         if (alt.alts.empty()) {
+            alternative.current.push_back(alt.key);
+            alternatives.push_back(alternative);
             continue;
         }
         auto altATokenVec = getAlternativeATokenVector(alt.alts);
-        spdlog::info("{}", alt.cover);
+        spdlog::info("{}", alt.key);
         for (const auto& ts : altATokenVec) {
             for (const auto& t : ts) {
                 fmt::print("{}/", t.key);
@@ -300,8 +304,11 @@ void Tokenizer::getAlternatives(const std::string& text)
             fmt::print("\n");
         }
     }
+    return alternatives;
 }
 
+// jieba misses some words, which are present in dictionary - if they contain some elements (like commas).
+// joinMissed joins missed words to bigger token.
 auto Tokenizer::joinMissed(const std::vector<Token>& splitVector, const std::string& text) -> std::vector<Token>
 {
     std::vector<Token> result;

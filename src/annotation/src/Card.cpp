@@ -54,10 +54,10 @@ auto Card::getWordDB() const -> std::shared_ptr<WordDB>
 
 void Card::getAlternatives()
 {
-    tokenizer->getAlternatives(getText());
+    tokenizer->getAlternatives(getText(), tokens);
 }
 
-void Card::executeJieba()
+void Card::executeTokenizer()
 {
     const auto& cardText = getText();
     // spdlog::info("{}: {}", Id(), cardText);
@@ -75,7 +75,7 @@ DialogueCard::DialogueCard(std::string _filename,
     : Card{_filename, _id, std::move(_wordDB), std::move(_tokenizer)}
     , dialogue{std::move(_dialogue)}
 {
-    executeJieba();
+    executeTokenizer();
 };
 
 auto DialogueCard::getDialogue() const -> const std::vector<DialogueItem>&
@@ -114,7 +114,7 @@ TextCard::TextCard(std::string _filename,
     : Card{_filename, _id, std::move(_wordDB), std::move(_tokenizer)}
     , text{std::move(_text)}
 {
-    executeJieba();
+    executeTokenizer();
 };
 
 // auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>

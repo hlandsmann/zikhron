@@ -10,9 +10,9 @@
 #include <utils/StringU8.h>
 
 #include <memory>
+#include <set>
 #include <string>
 #include <vector>
-#include <set>
 
 namespace annotation {
 
@@ -22,13 +22,19 @@ struct AToken
     utl::StringU8 str;
 };
 
+struct Alternative
+{
+    std::vector<utl::StringU8> current;
+    std::vector<std::vector<utl::StringU8>> alts;
+};
+
 class Tokenizer
 {
 public:
     Tokenizer(std::shared_ptr<zikhron::Config> config, std::shared_ptr<WordDB> wordDB);
 
     [[nodiscard]] auto split(const std::string& text) -> std::vector<Token>;
-    void getAlternatives(const std::string& text);
+    auto getAlternatives(const std::string& text, const std::vector<Token>& currentSplit) -> std::vector<Alternative>;
 
 private:
     auto joinMissed(const std::vector<Token>& splitVector, const std::string& text) -> std::vector<Token>;

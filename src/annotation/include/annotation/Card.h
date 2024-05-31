@@ -40,7 +40,7 @@ public:
     void getAlternatives();
 
 protected:
-    void executeJieba();
+    void executeTokenizer();
 
 private:
     // [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
