@@ -10,10 +10,18 @@
 
 namespace widget {
 
-void TextToken::setup(annotation::Token _token)
+void TextToken::setup(const annotation::Token& _token)
 {
-    token = std::move(_token);
+    token = _token;
+    const auto& fontTheme = getTheme().getFont();
+    color = fontTheme.getFontColor(token.getColorId(), {});
     shadowId = getWidgetIdGenerator()->getNextId();
+}
+
+void TextToken::setup(const annotation::Token& _token, const Color& _color)
+{
+    setup(_token);
+    color = _color;
 }
 
 TextToken::TextToken(WidgetInit _init)
@@ -24,6 +32,16 @@ TextToken::TextToken(WidgetInit _init)
 void TextToken::setFontType(context::FontType _fontType)
 {
     fontType = _fontType;
+}
+
+auto TextToken::hovered() const -> bool
+{
+    return isHovered;
+}
+
+void TextToken::setNextFrameActive()
+{
+    isActive = true;
 }
 
 void TextToken::renderShadow()
@@ -59,26 +77,31 @@ auto TextToken::testHovered() const -> bool
 
 auto TextToken::clicked() -> bool
 {
+    bool clicked{false};
     const auto& rect = getRect();
     const auto& fontTheme = getTheme().getFont();
     auto fontDrop = fontTheme.dropFont(fontType);
 
-    bool isHovered = testHovered();
+    isHovered = testHovered();
+    isActive |= isHovered;
     {
-        auto colorDrop = isHovered ? fontTheme.dropFontColor(token.getColorId(), maxColorId)
-                                   : fontTheme.dropShadowFontColor();
+        auto colorDrop = isActive ? context::FontColorDrop{color}
+                                  : fontTheme.dropShadowFontColor();
         renderShadow();
     }
     {
         auto idDrop = dropWidgetId();
-        auto colorDrop = isHovered ? fontTheme.dropShadowFontColor()
-                                   : fontTheme.dropFontColor(token.getColorId(), maxColorId);
+        auto colorDrop = isActive ? fontTheme.dropShadowFontColor()
+                                  : context::FontColorDrop{color};
         renderText(rect.x, rect.y);
         if (!token.getWord()) {
             return false;
         }
-        return ImGui::IsItemClicked();
+        clicked = ImGui::IsItemClicked();
     }
+
+    isActive = false;
+    return clicked;
 }
 
 auto TextToken::getPositionRect() const -> layout::Rect

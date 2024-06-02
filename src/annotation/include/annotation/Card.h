@@ -37,7 +37,7 @@ public:
     [[nodiscard]] auto Id() const -> CardId;
     [[nodiscard]] auto getTokens() const -> const std::vector<Token>&;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
-    void getAlternatives();
+    [[nodiscard]] auto getAlternatives() const -> std::vector<Alternative>;
 
 protected:
     void executeTokenizer();

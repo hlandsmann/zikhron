@@ -52,9 +52,9 @@ auto Card::getWordDB() const -> std::shared_ptr<WordDB>
     return wordDB;
 }
 
-void Card::getAlternatives()
+auto Card::getAlternatives() const -> std::vector<Alternative>
 {
-    tokenizer->getAlternatives(getText(), tokens);
+    return tokenizer->getAlternatives(getText(), tokens);
 }
 
 void Card::executeTokenizer()

@@ -4,6 +4,7 @@
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
+#include <cstddef>
 #include <memory>
 #include <utility>
 
@@ -76,11 +77,6 @@ auto Fonts::dropShadowFontColor() const -> FontColorDrop
     return getShadowFontColor();
 }
 
-auto Fonts::dropFontColor(ColorId colorId, ColorId maxColorId) const -> FontColorDrop
-{
-    return getFontColor(colorId, maxColorId);
-}
-
 auto Fonts::ChineseBig() const -> ImFont*
 {
     return chineseBig;
@@ -116,6 +112,13 @@ auto Fonts::getFontColor(ColorId colorId, ColorId maxColorId) const -> const ImV
     auto colorIndex = static_cast<ColorId>((colorId - 1) % maxColorId);
 
     return fontColors.at(colorIndex);
+}
+
+auto Fonts::getFontColorAlternative(std::size_t indexAlt, bool alt) const -> const ImVec4&
+{
+    auto index = indexAlt % (fontColorsAlternatives.size() / 2);
+    index = index * 2 + (alt ? 1 : 0);
+    return fontColorsAlternatives.at(index);
 }
 
 FontDrop::FontDrop(ImFont* font)

@@ -100,6 +100,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         cardLayer->clear();
         vocableLayer->clear();
 
+        bool cardIsValid = true;
         switch (proceed) {
         case Proceed::submit_walkTree:
             cardMeta = co_await asyncTreeWalker->getNextCardChoice();
@@ -121,14 +122,21 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             cardMeta = co_await asyncTreeWalker->getNextCardChoice({cardMeta.Id()});
             break;
         case Proceed::annotate: {
-            cardDB->getAnnotationTokens(cardMeta.Id());
+            auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
             bool _ = co_await *signalAnnotationDone;
             signalProceed->set(Proceed::reload);
+
+            cardIsValid = false;
         } break;
 
         default:
             break;
         }
+        if (!cardIsValid) {
+            proceed = co_await *signalProceed;
+            continue;
+        }
+
         cardAudioInfo = CardAudioInfo{cardMeta.Id(), *dataBase->getGroupDB()};
         if (cardAudioInfo.audioFragment.has_value()) {
             mpv->openFile(cardAudioInfo.audioFragment.value().audioFile);

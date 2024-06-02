@@ -9,15 +9,20 @@ namespace widget {
 
 class TextToken : public Widget
 {
+    using Color = context::Fonts::Color;
+
     template<class T>
     friend class MetaBox;
     friend class Widget;
-    void setup(annotation::Token token);
+    void setup(const annotation::Token& token);
+    void setup(const annotation::Token& token, const Color& color);
 
 public:
     TextToken(WidgetInit init);
 
     void setFontType(context::FontType fontType);
+    auto hovered() const -> bool;
+    void setNextFrameActive();
     auto clicked() -> bool;
     auto getPositionRect() const -> layout::Rect;
     auto getToken() const -> const annotation::Token&;
@@ -36,7 +41,10 @@ private:
 
     WidgetId shadowId{};
     FontType fontType{FontType::Gui};
-    static constexpr ColorId maxColorId{};
+    Color color;
+    bool isHovered{false};
+    bool isActive{false};
+    // static constexpr ColorId maxColorId{};
 };
 
 } // namespace widget

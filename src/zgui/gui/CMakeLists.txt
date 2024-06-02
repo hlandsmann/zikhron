@@ -4,6 +4,7 @@ add_library(zgui::gui ALIAS zgui_gui)
 
 target_sources(zgui_gui
     PRIVATE
+        include/gui/DisplayAnnotation.h
         include/gui/DisplayText.h
         include/gui/DisplayVocables.h
         include/gui/GlWindow.h
@@ -11,6 +12,7 @@ target_sources(zgui_gui
         include/gui/TabCard.h
         include/gui/TabVideo.h
         include/gui/VocableOverlay.h
+        src/DisplayAnnotation.cpp
         src/DisplayText.cpp
         src/DisplayVocables.cpp
         src/GlWindow.cpp

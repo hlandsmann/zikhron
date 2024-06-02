@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include "Card.h"
 #include "Tokenizer.h"
 #include "WordDB.h"
@@ -40,7 +41,7 @@ public:
 
     [[nodiscard]] auto getTokenizer() const -> std::shared_ptr<annotation::Tokenizer> { return tokenizer; }
 
-    void getAnnotationTokens(CardId cardId);
+    [[nodiscard]] auto getAnnotationAlternativesForCard(CardId cardId) const -> std::vector<Alternative>;
 
 private:
     std::shared_ptr<zikhron::Config> config;

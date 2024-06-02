@@ -127,8 +127,8 @@ auto CardDB::atId(CardId cardId) const -> CardPtrConst
     return {cards.at(cardId)};
 }
 
-void CardDB::getAnnotationTokens(CardId cardId)
+auto CardDB::getAnnotationAlternativesForCard(CardId cardId) const -> std::vector<Alternative>
 {
-    cards.at(cardId)->getAlternatives();
+    return cards.at(cardId)->getAlternatives();
 }
 } // namespace annotation
