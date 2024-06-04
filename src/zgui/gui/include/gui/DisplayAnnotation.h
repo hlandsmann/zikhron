@@ -1,5 +1,7 @@
 #pragma once
+#include <annotation/TokenText.h>
 #include <annotation/Tokenizer.h>
+#include <context/WidgetIdGenerator.h>
 #include <widgets/Layer.h>
 #include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
@@ -11,7 +13,9 @@ namespace gui {
 class DisplayAnnotation
 {
 public:
-    DisplayAnnotation(std::shared_ptr<widget::Layer> layer, std::vector<annotation::Alternative> alternatives);
+    DisplayAnnotation(std::shared_ptr<widget::Layer> layer,
+                      std::vector<annotation::Alternative> alternatives,
+                      std::unique_ptr<annotation::TokenText> tokenText);
     void draw();
 
 private:
@@ -32,6 +36,8 @@ private:
 
     std::shared_ptr<widget::Layer> layer;
     std::vector<annotation::Alternative> alternatives;
+    std::unique_ptr<annotation::TokenText> tokenText;
+    context::WidgetId textWidgetId{};
 };
 
 } // namespace gui

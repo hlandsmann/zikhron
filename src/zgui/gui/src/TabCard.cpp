@@ -145,7 +145,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         auto tokenText = cardMeta.getStudyTokenText();
 
         auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
-        displayText = std::make_unique<DisplayText>(cardLayer, std::move(tokenText));
+        displayText = std::make_unique<DisplayText>(cardLayer, overlay, std::move(tokenText));
         if (!vocId_ease.empty()) {
             displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease));
         }
@@ -168,25 +168,13 @@ void TabCard::setupCardWindow(widget::Window& cardWindow)
 void TabCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
-    if (displayText) {
-        auto textToken = displayText->draw();
-        if (textToken.has_value()) {
-            vocableOverlay = std::make_unique<VocableOverlay>(overlay, textToken.value());
-            const auto& annotationToken = textToken.value()->getToken();
-            const auto& rect = textToken.value()->getPositionRect();
-            spdlog::info("Clicked token: {}, x: {}, y: {}, h: {}", annotationToken.getValue(), rect.x, rect.y, rect.height);
-        }
-    }
+    // first draw displayVocables to prevent flickering on configuring vocable (vocableOverlay)
     if (displayVocables && revealVocables) {
         displayVocables->draw();
     }
-    if (vocableOverlay) {
-        vocableOverlay->draw();
-        if (vocableOverlay->wasConfigured() && displayVocables) {
+    if (displayText) {
+        if (displayText->draw() && displayVocables) {
             displayVocables->reload();
-        }
-        if (vocableOverlay->shouldClose()) {
-            vocableOverlay = nullptr;
         }
     }
 }

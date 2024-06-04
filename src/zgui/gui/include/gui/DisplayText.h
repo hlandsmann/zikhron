@@ -1,8 +1,12 @@
 #pragma once
+#include "VocableOverlay.h"
+
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
+#include <context/WidgetIdGenerator.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
+#include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/detail/Widget.h>
@@ -17,9 +21,11 @@ class DisplayText
     using Align = widget::layout::Align;
 
 public:
-    DisplayText(std::shared_ptr<widget::Layer> layer, std::unique_ptr<annotation::TokenText> tokenText);
+    DisplayText(std::shared_ptr<widget::Layer> layer,
+                std::shared_ptr<widget::Overlay> overlay,
+                std::unique_ptr<annotation::TokenText> tokenText);
 
-    auto draw() -> std::optional<std::shared_ptr<widget::TextToken>>;
+    auto draw() -> bool;
 
 private:
     constexpr static float s_border = 16.F;
@@ -38,7 +44,11 @@ private:
     widget::TextTokenSeq::Config ttqConfig;
 
     std::shared_ptr<widget::Layer> layer;
+    std::shared_ptr<widget::Overlay> overlay;
     std::unique_ptr<annotation::TokenText> tokenText;
+    context::WidgetId textWidgetId{};
+
+    std::unique_ptr<VocableOverlay> vocableOverlay;
 };
 
 } // namespace gui

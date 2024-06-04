@@ -1,21 +1,25 @@
 #include "DisplayText.h"
 
+#include <VocableOverlay.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
 #include <utils/spdlog.h>
 #include <widgets/Layer.h>
+#include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
 
 #include <memory>
 #include <optional>
-#include <stdexcept>
 #include <utility>
 
 namespace gui {
 
-DisplayText::DisplayText(std::shared_ptr<widget::Layer> _layer, std::unique_ptr<annotation::TokenText> _tokenText)
+DisplayText::DisplayText(std::shared_ptr<widget::Layer> _layer,
+                         std::shared_ptr<widget::Overlay> _overlay,
+                         std::unique_ptr<annotation::TokenText> _tokenText)
     : layer{std::move(_layer)}
+    , overlay{std::move(_overlay)}
     , tokenText{std::move(_tokenText)}
 {
     ttqConfig.fontType = context::FontType::chineseBig;
@@ -31,29 +35,38 @@ DisplayText::DisplayText(std::shared_ptr<widget::Layer> _layer, std::unique_ptr<
     }
 }
 
-auto DisplayText::draw() -> std::optional<std::shared_ptr<widget::TextToken>>
+auto DisplayText::draw() -> bool
 {
-    layer->start();
-    if (layer->isLast()) {
-        throw std::runtime_error("Empty DisplayText is invalid!");
-    }
+    std::optional<std::shared_ptr<widget::TextToken>> optTextToken;
+    bool configured = false;
+
     using annotation::TextType;
     switch (tokenText->getType()) {
     case TextType::dialogue:
-        return drawDialogue();
+        optTextToken = drawDialogue();
         break;
     case TextType::subtitle:
     case TextType::text:
-        return drawText();
+        optTextToken = drawText();
         break;
     }
-    return std::nullopt;
+    if (optTextToken.has_value()) {
+        vocableOverlay = std::make_unique<VocableOverlay>(overlay, optTextToken.value());
+    }
+    if (vocableOverlay) {
+        vocableOverlay->draw();
+        configured = vocableOverlay->wasConfigured();
+        if (vocableOverlay->shouldClose()) {
+            vocableOverlay = nullptr;
+        }
+    }
+    return configured;
 }
 
 auto DisplayText::drawDialogue() -> std::optional<std::shared_ptr<widget::TextToken>>
 {
     std::optional<std::shared_ptr<widget::TextToken>> result;
-    auto& grid = layer->next<widget::Grid>();
+    auto& grid = layer->getWidget<widget::Grid>(textWidgetId);
     grid.start();
     while (!grid.isLast()) {
         auto optResult = grid.next<widget::TextTokenSeq>().draw();
@@ -66,13 +79,15 @@ auto DisplayText::drawDialogue() -> std::optional<std::shared_ptr<widget::TextTo
 
 auto DisplayText::drawText() -> std::optional<std::shared_ptr<widget::TextToken>>
 {
-    return layer->next<widget::TextTokenSeq>().draw();
+    auto& ttq = layer->getWidget<widget::TextTokenSeq>(textWidgetId);
+    return ttq.draw();
 }
 
 void DisplayText::setupDialogue()
 {
     int index = 0;
     auto grid = layer->add<widget::Grid>(Align::start, 2, widget::Grid::Priorities{0.3F, 0.7F});
+    textWidgetId = grid->getWidgetId();
     grid->setBorder(16.F);
     grid->setHorizontalPadding(64.F);
     grid->setVerticalPadding(24.F);
@@ -86,7 +101,8 @@ void DisplayText::setupDialogue()
 void DisplayText::setupText()
 {
     ttqConfig.border = s_border;
-    layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), ttqConfig);
+    auto ttq = layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), ttqConfig);
+    textWidgetId = ttq->getWidgetId();
 }
 
 } // namespace gui

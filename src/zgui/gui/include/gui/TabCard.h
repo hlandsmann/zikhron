@@ -1,7 +1,6 @@
 #pragma once
 #include "DisplayText.h"
 #include "DisplayVocables.h"
-#include "VocableOverlay.h"
 
 #include <annotation/Ease.h>
 #include <context/WidgetIdGenerator.h>
@@ -98,7 +97,6 @@ private:
 
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayVocables> displayVocables;
-    std::unique_ptr<VocableOverlay> vocableOverlay;
     CardAudioInfo cardAudioInfo;
 
     std::shared_ptr<widget::Overlay> overlay;
