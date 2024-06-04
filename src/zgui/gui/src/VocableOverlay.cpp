@@ -4,6 +4,7 @@
 #include <annotation/TokenText.h>
 #include <annotation/Word.h>
 #include <context/Fonts.h>
+#include <misc/Identifier.h>
 #include <utils/spdlog.h>
 #include <widgets/Button.h>
 #include <widgets/Grid.h>
@@ -98,7 +99,7 @@ void VocableOverlay::setupBox()
 void VocableOverlay::setupHeader(widget::Box& headerBox)
 {
     headerBox.clear();
-    headerBox.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key(), {}), ttqConfig);
+    headerBox.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key()), ttqConfig);
     headerBox.add<widget::Button>(Align::center, "ok");
     headerBox.add<widget::ImageButton>(Align::end, context::Image::configure);
 }
@@ -133,7 +134,7 @@ void VocableOverlay::setupDefinition(widget::Grid& definitionGrid)
     definitionGrid.clear();
     for (const auto& definition : definitions) {
         definitionGrid.add<widget::TextTokenSeq>(Align::start,
-                                                 annotation::tokenVectorFromString(definition.pronounciation, {}),
+                                                 annotation::tokenVectorFromString(definition.pronounciation),
                                                  ttqConfig);
         bool first = true;
         for (const auto& meaning : definition.meanings) {
@@ -142,7 +143,7 @@ void VocableOverlay::setupDefinition(widget::Grid& definitionGrid)
             }
             first = false;
             definitionGrid.add<widget::TextTokenSeq>(Align::start,
-                                                     annotation::tokenVectorFromString(meaning, {}),
+                                                     annotation::tokenVectorFromString(meaning),
                                                      ttqConfig);
         }
     }
@@ -175,7 +176,7 @@ void VocableOverlay::setupOptions(widget::Box& optionBox)
         auto& prBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
         auto& openBtn = *prBox.add<widget::ImageButton>(Align::start, Image::arrow_right, Image::arrow_down);
         prBox.add<widget::TextTokenSeq>(Align::start,
-                                        annotation::tokenVectorFromString(option.pronounciation, {}),
+                                        annotation::tokenVectorFromString(option.pronounciation),
                                         ttqConfig);
         openBtn.setOpen(option.open);
         if (!option.open) {
@@ -187,7 +188,7 @@ void VocableOverlay::setupOptions(widget::Box& optionBox)
             auto& checkBox = *meaningBox.add<widget::ImageButton>(Align::start, Image::checkbox, Image::checkbox_checked);
             checkBox.setOpen(checked != 0);
             meaningBox.add<widget::TextTokenSeq>(Align::start,
-                                                 annotation::tokenVectorFromString(meaning, {}),
+                                                 annotation::tokenVectorFromString(meaning),
                                                  ttqConfig);
         }
     }

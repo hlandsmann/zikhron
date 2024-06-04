@@ -1,10 +1,11 @@
+#include "ColorSet.h"
+
 #include <Fonts.h>
 #include <GlfwImguiContext.h>
 #include <imgui.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
-#include <cstddef>
 #include <memory>
 #include <utility>
 
@@ -67,16 +68,6 @@ auto Fonts::dropGui() const -> FontDrop
     return {Gui()};
 }
 
-auto Fonts::dropDefaultFontColor() const -> FontColorDrop
-{
-    return getDefaultFontColor();
-}
-
-auto Fonts::dropShadowFontColor() const -> FontColorDrop
-{
-    return getShadowFontColor();
-}
-
 auto Fonts::ChineseBig() const -> ImFont*
 {
     return chineseBig;
@@ -92,35 +83,6 @@ auto Fonts::Gui() const -> ImFont*
     return gui;
 }
 
-auto Fonts::getDefaultFontColor() const -> const ImVec4&
-{
-    return defaultFontColor;
-}
-
-auto Fonts::getShadowFontColor() const -> const ImVec4&
-{
-    return shadowFontColor;
-}
-
-auto Fonts::getFontColor(ColorId colorId, ColorId maxColorId) const -> const ImVec4&
-{
-    if (colorId == 0) {
-        return getDefaultFontColor();
-    }
-
-    maxColorId = static_cast<ColorId>(fontColors.size());
-    auto colorIndex = static_cast<ColorId>((colorId - 1) % maxColorId);
-
-    return fontColors.at(colorIndex);
-}
-
-auto Fonts::getFontColorAlternative(std::size_t indexAlt, bool alt) const -> const ImVec4&
-{
-    auto index = indexAlt % (fontColorsAlternatives.size() / 2);
-    index = index * 2 + (alt ? 1 : 0);
-    return fontColorsAlternatives.at(index);
-}
-
 FontDrop::FontDrop(ImFont* font)
 {
     ImGui::PushFont(font);
@@ -132,7 +94,7 @@ void FontDrop::pop()
     ImGui::PopFont();
 }
 
-FontColorDrop::FontColorDrop(ImVec4 fontColor)
+FontColorDrop::FontColorDrop(Color fontColor)
 {
     ImGui::PushStyleColor(ImGuiCol_Text, fontColor);
     incPopCount();

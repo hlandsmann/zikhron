@@ -3,6 +3,7 @@ add_library(zgui::context ALIAS zgui_context)
 
 target_sources(zgui_context
     PRIVATE
+        include/context/ColorSet.h
         include/context/Drop.h
         include/context/Fonts.h
         include/context/GlfwImguiContext.h
@@ -11,6 +12,7 @@ target_sources(zgui_context
         include/context/WidgetIdGenerator.h
         include/context/WidgetState.h
         include/context/imglog.h
+        src/ColorSet.cpp
         src/Fonts.cpp
         src/GlfwImguiContext.cpp
         src/Texture.cpp

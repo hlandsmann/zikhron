@@ -1,4 +1,5 @@
 #pragma once
+#include "DisplayAnnotation.h"
 #include "DisplayText.h"
 #include "DisplayVocables.h"
 
@@ -96,6 +97,7 @@ private:
     std::shared_ptr<kocoro::SynchronousExecutor> executor;
 
     std::unique_ptr<DisplayText> displayText;
+    std::unique_ptr<DisplayAnnotation> displayAnnotation;
     std::unique_ptr<DisplayVocables> displayVocables;
     CardAudioInfo cardAudioInfo;
 

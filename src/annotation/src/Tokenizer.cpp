@@ -5,6 +5,7 @@
 #include <Token.h>
 #include <WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
+#include <misc/Config.h>
 #include <utils/StringU8.h>
 #include <utils/spdlog.h>
 
@@ -26,7 +27,7 @@
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 
-namespace {
+namespace annotation {
 // struct JToken
 // {
 //     utl::StringU8 key;
@@ -55,10 +56,17 @@ namespace {
 //                       });
 //     return jTokenCandidates;
 // }
-using AToken = annotation::AToken;
 
-auto getCandidates(const utl::StringU8& text,
-                   const ZH_Dictionary& dict) -> std::vector<std::vector<AToken>>
+Tokenizer::Tokenizer(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<WordDB> _wordDB)
+    : config{std::move(_config)}
+    , wordDB{std::move(_wordDB)}
+    , jieba{wordDB}
+    , rules{wordDB->getDictionary()}
+    , freqDictionary{std::make_shared<FreqDictionary>()}
+{}
+
+auto Tokenizer::getCandidates(const utl::StringU8& text,
+                              const ZH_Dictionary& dict) -> std::vector<std::vector<AToken>>
 {
     std::vector<std::vector<AToken>> candidates;
     candidates.reserve(text.length());
@@ -70,11 +78,13 @@ auto getCandidates(const utl::StringU8& text,
         for (int indexEnd = indexBegin + 1; indexEnd <= static_cast<int>(text.length()); indexEnd++) {
             const auto key = text.substr(indexBegin, indexEnd - indexBegin);
             const auto found = ZH_Dictionary::Lower_bound(key, span_now);
+            const auto& rule = rules.findRule(key);
 
-            if (found.empty() || found.begin()->key.substr(0, key.length()) != key) {
+            if ((rule.empty() && !rules.approachRule(key))
+                && (found.empty() || found.begin()->key.substr(0, key.length()) != key)) {
                 break;
             }
-            if (key == found.front().key) {
+            if ((!rule.empty()) || key == found.front().key) {
                 auto token = AToken{.key = key,
                                     .str = key};
                 tokens.push_back(token);
@@ -92,9 +102,9 @@ auto getCandidates(const utl::StringU8& text,
     return candidates;
 }
 
-auto previousIndex(const std::vector<std::size_t>& currentVec,
-                   std::size_t currentIndex,
-                   const std::span<const std::vector<AToken>>& tokens) -> std::size_t
+auto Tokenizer::previousIndex(const std::vector<std::size_t>& currentVec,
+                              std::size_t currentIndex,
+                              std::span<const std::vector<AToken>> tokens) -> std::size_t
 {
     std::size_t pi = 0;
     std::size_t approachIndex = 0;
@@ -114,15 +124,15 @@ auto previousIndex(const std::vector<std::size_t>& currentVec,
     }
 }
 
-auto lastIndex(std::vector<std::size_t>& cvec,
-               const std::span<const std::vector<AToken>>& tokens) -> std::size_t
+auto Tokenizer::lastIndex(std::vector<std::size_t>& cvec,
+                          std::span<const std::vector<AToken>> tokens) -> std::size_t
 {
     std::size_t currentIndex = cvec.size() - 1;
     return previousIndex(cvec, currentIndex, tokens);
 }
 
-auto doPseudoPerm(std::vector<std::size_t>& cvec,
-                  const std::span<const std::vector<AToken>>& tokens) -> bool
+auto Tokenizer::doPseudoPerm(std::vector<std::size_t>& cvec,
+                             std::span<const std::vector<AToken>> tokens) -> bool
 {
     std::size_t i = lastIndex(cvec, tokens);
     // spdlog::critical("{}", fmt::join(cvec, ", "));
@@ -148,8 +158,8 @@ auto doPseudoPerm(std::vector<std::size_t>& cvec,
     return true;
 }
 
-auto verifyPerm(std::vector<std::size_t>& perm,
-                const std::span<const std::vector<AToken>>& tokens) -> bool
+auto Tokenizer::verifyPerm(std::vector<std::size_t>& perm,
+                           std::span<const std::vector<AToken>> tokens) -> bool
 {
     std::size_t extend = 0;
     for (const auto& [i, v] : views::enumerate(perm)) {
@@ -166,8 +176,8 @@ auto verifyPerm(std::vector<std::size_t>& perm,
     return true;
 }
 
-[[nodiscard]] auto genTokenVector(const std::vector<std::size_t> vec,
-                                  const std::span<const std::vector<AToken>>& tokens) -> std::vector<AToken>
+auto Tokenizer::genTokenVector(const std::vector<std::size_t>& vec,
+                               std::span<const std::vector<AToken>> tokens) -> std::vector<AToken>
 {
     std::vector<AToken> result;
 
@@ -188,8 +198,12 @@ auto verifyPerm(std::vector<std::size_t>& perm,
     return result;
 }
 
-auto getAlternativeATokenVector(const std::span<const std::vector<AToken>>& tokens) -> std::vector<std::vector<AToken>>
+auto Tokenizer::getAlternativeATokenVector(std::span<const std::vector<AToken>> tokens)
+        -> std::vector<std::vector<AToken>>
 {
+    if (tokens.empty()) {
+        return {};
+    }
     std::vector<std::vector<AToken>> altATokenVec;
     auto perm = std::vector<std::size_t>(tokens.size(), 0);
     // printv(perm, tokens);
@@ -204,7 +218,7 @@ auto getAlternativeATokenVector(const std::span<const std::vector<AToken>>& toke
     return altATokenVec;
 }
 
-auto chooseCombination(const std::span<const std::vector<AToken>>& tokens)
+auto Tokenizer::chooseCombination(std::span<const std::vector<AToken>> tokens)
         -> std::vector<AToken>
 {
     std::vector<std::vector<AToken>> altATokenVec = getAlternativeATokenVector(tokens);
@@ -219,27 +233,8 @@ auto chooseCombination(const std::span<const std::vector<AToken>>& tokens)
     // }
     return altATokenVec.front();
 }
-} // namespace
 
-namespace annotation {
-
-Tokenizer::Tokenizer(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<WordDB> _wordDB)
-    : config{std::move(_config)}
-    , wordDB{std::move(_wordDB)}
-    , jieba{wordDB}
-    , rules{wordDB->getDictionary()}
-    , freqDictionary{std::make_shared<FreqDictionary>()}
-{}
-
-struct CandidateSplit
-{
-    utl::StringU8 key;
-    std::vector<std::vector<AToken>> alts;
-
-    [[nodiscard]] auto empty() const -> bool { return alts.empty(); }
-};
-
-auto splitCandidates(const std::span<std::vector<AToken>> candidates) -> CandidateSplit
+auto Tokenizer::splitCandidates(std::span<std::vector<AToken>> candidates) -> CandidateSplit
 {
     CandidateSplit alt;
     std::size_t maxLen{1};
@@ -251,7 +246,7 @@ auto splitCandidates(const std::span<std::vector<AToken>> candidates) -> Candida
             tokenVec.push_back(atoken);
         }
         if (!alt.empty() || maxLen > 1) {
-            alt.alts.push_back(tokenVec);
+            alt.candidates.push_back(tokenVec);
         }
         alt.key += candidate.front().str.front();
         maxLen--;
@@ -263,53 +258,57 @@ auto splitCandidates(const std::span<std::vector<AToken>> candidates) -> Candida
     return alt;
 }
 
-auto Tokenizer::getAlternatives(const std::string& text, const std::vector<Token>& currentSplit) -> std::vector<Alternative>
+auto Tokenizer::findEndItForLength(std::vector<Token>::const_iterator firstSplit,
+                                   const CandidateSplit& candidateSplit)
+        -> std::vector<Token>::const_iterator
+{
+    auto lastSplit = firstSplit;
+    std::size_t length = 0;
+    while (length < candidateSplit.key.length()) {
+        lastSplit = std::next(lastSplit);
+        length = std::accumulate(firstSplit, lastSplit, std::size_t{},
+                                 [](std::size_t len, const Token& token) -> std::size_t {
+                                     return token.getValue().length() + len;
+                                 });
+    }
+    assert(length == candidateSplit.key.length());
+    return lastSplit;
+}
+
+auto Tokenizer::getAlternatives(const std::string& text, const std::vector<Token>& currentSplit)
+        -> std::vector<Alternative>
 {
     std::vector<Alternative> alternatives;
-    spdlog::info("{}", text);
     auto candidates = getCandidates({text}, *wordDB->getDictionary());
-    for (const auto& ts : candidates) {
-        for (const auto& t : ts) {
-            fmt::print("{}/", t.key);
-        }
-        if (ts.empty()) {
-            fmt::print("empty");
-        }
-        fmt::print("\n");
-    }
-    fmt::print("---------------\n");
-    auto first = candidates.begin();
-    auto span = std::span(first, candidates.end());
+    auto firstCandidate = candidates.begin();
+    auto firstSplit = currentSplit.begin();
+    auto span = std::span(firstCandidate, candidates.end());
     while (!span.empty()) {
         auto alternative = Alternative{};
         auto alt = splitCandidates(span);
-        std::advance(first, alt.key.length());
-        span = std::span(first, candidates.end());
+        std::advance(firstCandidate, alt.key.length());
+        span = std::span(firstCandidate, candidates.end());
 
-        if (alt.alts.empty()) {
-            alternative.current.push_back(alt.key);
-            alternatives.push_back(alternative);
-            continue;
-        }
-        auto altATokenVec = getAlternativeATokenVector(alt.alts);
-        spdlog::info("{}", alt.key);
-        for (const auto& ts : altATokenVec) {
-            for (const auto& t : ts) {
-                fmt::print("{}/", t.key);
-            }
-            fmt::print(" s: {}", altATokenVec.size());
-            if (ts.empty()) {
-                fmt::print("empty");
-            }
-            fmt::print("\n");
-        }
+        auto lastSplit = findEndItForLength(firstSplit, alt);
+        ranges::transform(firstSplit, lastSplit, std::back_inserter(alternative.current), &Token::getValue);
+        firstSplit = lastSplit;
+
+        auto altATokenVec = getAlternativeATokenVector(alt.candidates);
+        ranges::transform(altATokenVec, std::back_inserter(alternative.candidates),
+                          [](const std::vector<AToken>& candidateATokens) -> std::vector<utl::StringU8> {
+                              std::vector<utl::StringU8> candidate;
+                              ranges::transform(candidateATokens, std::back_inserter(candidate), &AToken::key);
+                              return candidate;
+                          });
+        alternatives.push_back(alternative);
     }
     return alternatives;
 }
 
 // jieba misses some words, which are present in dictionary - if they contain some elements (like commas).
 // joinMissed joins missed words to bigger token.
-auto Tokenizer::joinMissed(const std::vector<Token>& splitVector, const std::string& text) -> std::vector<Token>
+auto Tokenizer::joinMissed(const std::vector<Token>& splitVector, const std::string& text)
+        -> std::vector<Token>
 {
     std::vector<Token> result;
     auto candidates = getCandidates({text}, *wordDB->getDictionary());
@@ -334,8 +333,8 @@ auto Tokenizer::joinMissed(const std::vector<Token>& splitVector, const std::str
         }
 
         std::vector<std::vector<AToken>> altATokenVec;
-        if (auto alt = splitCandidates(span); !alt.alts.empty()) {
-            altATokenVec = getAlternativeATokenVector(alt.alts);
+        if (auto alt = splitCandidates(span); !alt.candidates.empty()) {
+            altATokenVec = getAlternativeATokenVector(alt.candidates);
         }
         if (altATokenVec.size() == 1) {
             for (const auto& t : altATokenVec.front()) {
@@ -381,9 +380,9 @@ auto Tokenizer::split(const std::string& text) -> std::vector<Token>
     return result;
 }
 
-auto Tokenizer::splitFurther(const std::string& str) -> std::vector<AToken>
+auto Tokenizer::splitFurther(const std::string& text) -> std::vector<AToken>
 {
-    std::vector<std::string> splitVector = jieba.cutAll(str);
+    std::vector<std::string> splitVector = jieba.cutAll(text);
     if (ranges::none_of(splitVector, [](const std::string& tk) -> bool {
             auto strU8 = utl::StringU8{tk};
             return strU8.length() > 1 || strU8.front().string().length() > 1;
@@ -393,7 +392,7 @@ auto Tokenizer::splitFurther(const std::string& str) -> std::vector<AToken>
     if (splitVector.size() == 1) {
         return {};
     }
-    auto candidates = getCandidates(str, *wordDB->getDictionary());
+    auto candidates = getCandidates(text, *wordDB->getDictionary());
 
     return chooseCombination(candidates);
 }

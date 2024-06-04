@@ -1,5 +1,6 @@
 #include "TabCard.h"
 
+#include <DisplayAnnotation.h>
 #include <DisplayText.h>
 #include <DisplayVocables.h>
 #include <VocableOverlay.h>
@@ -113,6 +114,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             break;
         case Proceed::next:
         case Proceed::submit_next:
+            if (!cardAudioInfo.nextId.has_value()) {
+                mode = Mode::shuffle;
+            }
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.nextId);
             break;
         case Proceed::last:
@@ -123,7 +127,10 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             break;
         case Proceed::annotate: {
             auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
+            auto tokenText = cardMeta.getStudyTokenText();
+            displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, alternatives, std::move(tokenText));
             bool _ = co_await *signalAnnotationDone;
+            displayAnnotation.reset();
             signalProceed->set(Proceed::reload);
 
             cardIsValid = false;
@@ -172,7 +179,9 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
     if (displayVocables && revealVocables) {
         displayVocables->draw();
     }
-    if (displayText) {
+    if (displayAnnotation) {
+        displayAnnotation->draw();
+    } else if (displayText) {
         if (displayText->draw() && displayVocables) {
             displayVocables->reload();
         }
@@ -291,9 +300,6 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
     if (displayVocables == nullptr) {
         if (btnNext.clicked()) {
             signalProceed->set(Proceed::next);
-            if (!cardAudioInfo.nextId.has_value()) {
-                mode = Mode::shuffle;
-            }
         }
     } else if (revealVocables) {
         if (btnSubmit.clicked()) {
@@ -304,9 +310,6 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
                 break;
             case Mode::story:
                 signalProceed->set(Proceed::submit_next);
-                if (!cardAudioInfo.nextId.has_value()) {
-                    mode = Mode::shuffle;
-                }
                 break;
             }
         }
@@ -320,7 +323,6 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
 void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
 {
     if (!cardAudioInfo.nextId.has_value()) {
-        mode = Mode::shuffle;
         return;
     }
     mode = static_cast<Mode>(tbgMode.Active(static_cast<std::size_t>(mode)));
@@ -337,6 +339,11 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
         && !cardAudioInfo.lastId.has_value()) {
         return;
     }
+
+    // if (!cardAudioInfo.nextId.has_value()) {
+    //     mode = Mode::shuffle;
+    // }
+
     btnFirst.setSensitive(cardAudioInfo.firstId.has_value());
     btnPrevious.setSensitive(cardAudioInfo.previousId.has_value());
     btnFollowing.setSensitive(cardAudioInfo.nextId.has_value());
@@ -357,7 +364,6 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
         signalProceed->set(Proceed::next);
     }
     if (btnLast.clicked()) {
-        mode = Mode::story;
         revealVocables = false;
         signalProceed->set(Proceed::last);
     }

@@ -4,6 +4,7 @@
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
 #include <utils/spdlog.h>
+#include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
@@ -22,7 +23,7 @@ DisplayText::DisplayText(std::shared_ptr<widget::Layer> _layer,
     , overlay{std::move(_overlay)}
     , tokenText{std::move(_tokenText)}
 {
-    ttqConfig.fontType = context::FontType::chineseBig;
+    colorSetId = layer->getTheme().getColorSet().getColorSetId(tokenText->getVocableCount());
     using annotation::TextType;
     switch (tokenText->getType()) {
     case TextType::dialogue:
@@ -92,7 +93,7 @@ void DisplayText::setupDialogue()
     grid->setHorizontalPadding(64.F);
     grid->setVerticalPadding(24.F);
     for (const auto& dialogue : tokenText->getDialogue()) {
-        auto ttq = grid->add<widget::TextTokenSeq>(Align::start, dialogue, ttqConfig);
+        auto ttq = grid->add<widget::TextTokenSeq>(Align::start, dialogue, ttqConfig, colorSetId);
         ttq->setName(fmt::format("ttq_{}", index));
         index++;
     }
@@ -101,7 +102,7 @@ void DisplayText::setupDialogue()
 void DisplayText::setupText()
 {
     ttqConfig.border = s_border;
-    auto ttq = layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), ttqConfig);
+    auto ttq = layer->add<widget::TextTokenSeq>(Align::start, tokenText->getParagraph(), ttqConfig, colorSetId);
     textWidgetId = ttq->getWidgetId();
 }
 

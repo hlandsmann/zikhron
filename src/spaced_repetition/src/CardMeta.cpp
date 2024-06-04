@@ -86,8 +86,7 @@ void CardMeta::resetTimingAndVocables()
 
 auto CardMeta::getStudyTokenText() -> std::unique_ptr<annotation::TokenText>
 {
-    std::vector<VocableId> vocableIds = generateVocableIDs();
-    return std::make_unique<annotation::TokenText>(card, std::move(vocableIds));
+    return std::make_unique<annotation::TokenText>(card);
 }
 
 auto CardMeta::getRelevantEase() const -> std::map<VocableId, Ease>

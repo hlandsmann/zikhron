@@ -62,10 +62,14 @@ auto Token::getVocableId() const -> std::optional<VocableId>
     return {};
 }
 
-
 auto Token::getDictionaryEntries() const -> const EntryVector&
 {
     return dictionaryEntries;
+}
+
+void Token::resetWord()
+{
+    word.reset();
 }
 
 auto Token::string() const -> std::string

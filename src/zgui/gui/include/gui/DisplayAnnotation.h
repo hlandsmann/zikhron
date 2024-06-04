@@ -1,6 +1,8 @@
 #pragma once
 #include <annotation/TokenText.h>
 #include <annotation/Tokenizer.h>
+#include <context/ColorSet.h>
+#include <context/Fonts.h>
 #include <context/WidgetIdGenerator.h>
 #include <widgets/Layer.h>
 #include <widgets/TextToken.h>
@@ -12,6 +14,8 @@
 namespace gui {
 class DisplayAnnotation
 {
+    using Align = widget::layout::Align;
+
 public:
     DisplayAnnotation(std::shared_ptr<widget::Layer> layer,
                       std::vector<annotation::Alternative> alternatives,
@@ -32,12 +36,13 @@ private:
     void setupDialogue();
     void setupText();
 
-    widget::TextTokenSeq::Config ttqConfig;
+    widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseBig};
 
     std::shared_ptr<widget::Layer> layer;
     std::vector<annotation::Alternative> alternatives;
     std::unique_ptr<annotation::TokenText> tokenText;
     context::WidgetId textWidgetId{};
+    context::ColorSetId colorSetId{context::ColorSetId::adjacentAlternate};
 };
 
 } // namespace gui

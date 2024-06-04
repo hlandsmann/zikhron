@@ -1,12 +1,11 @@
 #pragma once
+#include "ColorSet.h"
 #include "Drop.h"
 #include "Fonts.h"
 #include "Texture.h"
 #include "WidgetState.h"
 
 #include <imgui.h>
-
-#include <array>
 
 namespace context {
 class StyleVarsDrop;
@@ -43,6 +42,8 @@ class Theme
 
 public:
     Theme(Fonts, Texture);
+
+    [[nodiscard]] auto getColorSet() const -> const ColorSet&;
 
     [[nodiscard]] static auto dropImGuiStyleVars() -> StyleVarsDrop;
     [[nodiscard]] auto dropImGuiStyleColors(ColorTheme) const -> StyleColorsDrop;
@@ -93,6 +94,7 @@ private:
 
     Fonts fonts;
     Texture texture;
+    ColorSet colorSet;
 };
 
 class StyleVarsDrop : public Drop<StyleVarsDrop>
@@ -108,7 +110,7 @@ private:
     void PushStyleVar(ImGuiStyleVar idx, const ImVec2& val);
 };
 
-class StyleColorsDrop: public Drop<StyleColorsDrop>
+class StyleColorsDrop : public Drop<StyleColorsDrop>
 {
 public:
     StyleColorsDrop(const Theme& theme, ColorTheme);

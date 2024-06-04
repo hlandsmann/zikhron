@@ -33,6 +33,13 @@ auto Rules::findRule(const std::string& word) const -> std::string
     return {};
 }
 
+auto Rules::approachRule(const std::string& word) const -> bool
+{
+    // ToDo: Implement this to support other rules also
+    auto u8Str = utl::StringU8{word};
+    return u8Str.length() <= 4;
+}
+
 auto Rules::AABB_rule(const utl::StringU8& u8Str) const -> std::string
 {
     if (u8Str.length() != 4) {

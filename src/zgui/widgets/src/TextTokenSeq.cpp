@@ -9,6 +9,7 @@
 #include <utils/spdlog.h>
 
 #include <algorithm>
+#include <generator>
 #include <memory>
 #include <optional>
 #include <string>
@@ -36,10 +37,22 @@ void TextTokenSeq::setup(const Paragraph& _paragraph)
     scratchBox->cutWidgetIdGen();
 }
 
+void TextTokenSeq::setup(const Paragraph& _paragraph, ColorSetId _colorSetId)
+{
+    colorSetId = _colorSetId;
+    setup(_paragraph);
+}
+
 void TextTokenSeq::setup(const Paragraph& _paragraph, const Config& _config)
 {
     config = _config;
     setup(_paragraph);
+}
+
+void TextTokenSeq::setup(const Paragraph& _paragraph, const Config& _config, ColorSetId _colorSetId)
+{
+    colorSetId = _colorSetId;
+    setup(_paragraph, _config);
 }
 
 TextTokenSeq::TextTokenSeq(WidgetInit init)
@@ -139,7 +152,7 @@ auto TextTokenSeq::linesFit(const layout::Rect& rect) const -> bool
 
 void TextTokenSeq::addTextToken(Box& box, const annotation::Token& token) const
 {
-    auto textToken = box.add<TextToken>(Align::start, token);
+    auto textToken = box.add<TextToken>(Align::start, token, colorSetId);
     textToken->setFontType(config.fontType);
 }
 
@@ -186,15 +199,9 @@ auto TextTokenSeq::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 auto TextTokenSeq::draw() -> std::optional<std::shared_ptr<TextToken>>
 {
     std::optional<std::shared_ptr<TextToken>> result;
-    lineBox->start();
-    while (!lineBox->isLast()) {
-        auto& line = lineBox->next<Box>();
-        line.start();
-        while (!line.isLast()) {
-            auto& textToken = line.next<TextToken>();
-            if (textToken.clicked()) {
-                result.emplace(std::dynamic_pointer_cast<TextToken>(textToken.shared_from_this()));
-            }
+    for (const auto& textToken : traverseToken()) {
+        if (textToken->clicked()) {
+            result = textToken;
         }
     }
     return result;
@@ -205,6 +212,20 @@ void TextTokenSeq::setParagraph(const Paragraph& _paragraph)
     paragraph = _paragraph;
     lineBox->clear();
     scratchBox->clear();
+}
+
+auto TextTokenSeq::traverseToken() -> std::generator<const std::shared_ptr<TextToken>&>
+{
+    lineBox->start();
+    while (!lineBox->isLast()) {
+        auto& line = lineBox->next<Box>();
+        line.start();
+        while (!line.isLast()) {
+            auto& textToken = line.next<TextToken>();
+            co_yield std::dynamic_pointer_cast<TextToken>(textToken.shared_from_this());
+        }
+    }
+    co_return;
 }
 
 } // namespace widget

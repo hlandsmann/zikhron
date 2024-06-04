@@ -1,10 +1,10 @@
+#include <ColorSet.h>
 #include <Fonts.h>
 #include <Texture.h>
 #include <Theme.h>
 #include <WidgetState.h>
 #include <imgui.h>
 
-#include <cstddef>
 #include <utility>
 
 namespace context {
@@ -13,6 +13,11 @@ Theme::Theme(Fonts _fonts, Texture _texture)
     : fonts{std::move(_fonts)}
     , texture{std::move(_texture)}
 {}
+
+auto Theme::getColorSet() const -> const ColorSet&
+{
+    return colorSet;
+}
 
 auto Theme::dropImGuiStyleVars() -> StyleVarsDrop
 {

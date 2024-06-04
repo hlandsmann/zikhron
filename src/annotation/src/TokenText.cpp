@@ -2,6 +2,7 @@
 
 #include <Card.h>
 #include <Token.h>
+#include <Tokenizer.h>
 #include <annotation/Ease.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
@@ -9,6 +10,7 @@
 #include <utils/StringU8.h>
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <functional>
 #include <iterator>
@@ -17,6 +19,7 @@
 #include <ranges>
 #include <span>
 #include <stdexcept>
+#include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
@@ -26,9 +29,9 @@ namespace views = std::ranges::views;
 
 namespace annotation {
 
-TokenText::TokenText(std::shared_ptr<Card> _card, std::vector<VocableId> _vocableIds)
+TokenText::TokenText(std::shared_ptr<Card> _card)
     : card{std::move(_card)}
-    , vocableIds{std::move(_vocableIds)}
+
 {
     if (const auto* dlgCard = dynamic_cast<const DialogueCard*>(card.get())) {
         textType = TextType::dialogue;
@@ -56,22 +59,52 @@ auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_eas
 
     std::size_t colorId = 0;
     for (auto& activeVocable : activeVocables) {
-        colorId++;
         activeVocable.colorId = static_cast<ColorId>(colorId);
+        colorId++;
     }
     std::size_t lastColorId = 0;
 
     for (auto& token : tokens) {
         auto it = ranges::find(activeVocables, token.getVocableId(), &ActiveVocable::vocableId);
         if (it != activeVocables.end()) {
-            if (it->colorId > lastColorId) {
+            if (it->colorId == 0 || it->colorId > lastColorId) {
                 token.setColorId(it->colorId);
                 lastColorId = it->colorId;
             }
         }
     }
-
+    vocableCount = vocId_ease.size();
     return activeVocables;
+}
+
+void TokenText::setupAnnotation(const std::vector<annotation::Alternative>& alternatives)
+{
+    auto tokens = views::join(paragraphSeq);
+    auto alternativeIt = alternatives.cbegin();
+    auto currentIt = alternativeIt->current.cbegin();
+    unsigned alternatingColor = 0;
+    bool altColor = false;
+    for (auto& token : tokens) {
+        if (*currentIt != token.getValue() && *currentIt == std::string{"~"}) {
+            std::advance(alternativeIt, 1);
+            currentIt = alternativeIt->current.cbegin();
+        }
+        assert(*currentIt == token.getValue());
+
+        if (!alternativeIt->candidates.empty()) {
+            token.setColorId(static_cast<ColorId>(alternatingColor * 2 + (altColor ? 1 : 0)));
+            altColor = !altColor;
+        }
+        std::advance(currentIt, 1);
+        if (currentIt == alternativeIt->current.end()) {
+            if (!alternativeIt->candidates.empty()) {
+                alternatingColor++;
+                altColor = false;
+            }
+            std::advance(alternativeIt, 1);
+            currentIt = alternativeIt->current.begin();
+        }
+    }
 }
 
 auto TokenText::getType() const -> TextType
@@ -93,6 +126,11 @@ auto TokenText::getDialogue() const -> const std::vector<Paragraph>&
         throw std::runtime_error("TokenText is not of type dialogue");
     }
     return paragraphSeq;
+}
+
+auto TokenText::getVocableCount() const -> std::size_t
+{
+    return vocableCount;
 }
 
 void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)

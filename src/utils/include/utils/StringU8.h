@@ -1,4 +1,6 @@
 #pragma once
+#include "spdlog.h"
+
 #include <fmt/format.h> // IWYU pragma: export core.h
 
 #include <compare>
@@ -113,33 +115,9 @@ private:
 } // namespace utl
 
 template<>
-struct fmt::formatter<utl::CharU8>
-{
-    template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template<typename FormatContext>
-    auto format(const utl::CharU8& charU8, FormatContext& ctx)
-    {
-        return std::format_to(ctx.out(), "{}", std::string(charU8));
-    }
-};
+struct fmt::formatter<utl::CharU8> : fmt::formatter<std::string>
+{};
 
 template<>
-struct fmt::formatter<utl::StringU8>
-{
-    template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
-    {
-        return ctx.begin();
-    }
-
-    template<typename FormatContext>
-    auto format(const utl::StringU8& stringU8, FormatContext& ctx)
-    {
-        return std::format_to(ctx.out(), "{}", std::string(stringU8));
-    }
-};
+struct fmt::formatter<utl::StringU8> : fmt::formatter<std::string>
+{};

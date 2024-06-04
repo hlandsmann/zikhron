@@ -13,8 +13,8 @@ namespace widget {
 void TextToken::setup(const annotation::Token& _token)
 {
     token = _token;
-    const auto& fontTheme = getTheme().getFont();
-    color = fontTheme.getFontColor(token.getColorId(), {});
+    const auto& colorSet = getTheme().getColorSet();
+    color = colorSet.getColor(token.getColorId(), colorSetId);
     shadowId = getWidgetIdGenerator()->getNextId();
 }
 
@@ -24,8 +24,15 @@ void TextToken::setup(const annotation::Token& _token, const Color& _color)
     color = _color;
 }
 
+void TextToken::setup(const annotation::Token& _token, ColorSetId _colorSetId)
+{
+    colorSetId = _colorSetId;
+    setup(_token);
+}
+
 TextToken::TextToken(WidgetInit _init)
     : Widget{std::move(_init)}
+    , colorSetId{getTheme().getColorSet().getColorSetId(0)}
 {
 }
 
@@ -68,9 +75,6 @@ void TextToken::renderText(float x, float y) const
 auto TextToken::testHovered() const -> bool
 {
     const auto& rect = getRect();
-    if (!token.getWord()) {
-        return false;
-    }
     renderText(rect.x, rect.y);
     return ImGui::IsItemHovered();
 }
@@ -82,16 +86,21 @@ auto TextToken::clicked() -> bool
     const auto& fontTheme = getTheme().getFont();
     auto fontDrop = fontTheme.dropFont(fontType);
 
+    const auto& colorSet = getTheme().getColorSet();
+    const auto& shadowColor = colorSet.getColor(ColorId::shadowFontColor, {});
+
     isHovered = testHovered();
-    isActive |= isHovered;
+    if (token.getWord()) {
+        isActive |= isHovered;
+    }
     {
         auto colorDrop = isActive ? context::FontColorDrop{color}
-                                  : fontTheme.dropShadowFontColor();
+                                  : context::FontColorDrop{shadowColor};
         renderShadow();
     }
     {
         auto idDrop = dropWidgetId();
-        auto colorDrop = isActive ? fontTheme.dropShadowFontColor()
+        auto colorDrop = isActive ? context::FontColorDrop{shadowColor}
                                   : context::FontColorDrop{color};
         renderText(rect.x, rect.y);
         if (!token.getWord()) {
@@ -112,6 +121,11 @@ auto TextToken::getPositionRect() const -> layout::Rect
 auto TextToken::getToken() const -> const annotation::Token&
 {
     return token;
+}
+
+void TextToken::resetWord()
+{
+    token.resetWord();
 }
 
 auto TextToken::calculateSize() const -> WidgetSize

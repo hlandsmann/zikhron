@@ -2,9 +2,9 @@
 #include "VocableOverlay.h"
 
 #include <annotation/TokenText.h>
+#include <context/ColorSet.h>
 #include <context/Fonts.h>
 #include <context/WidgetIdGenerator.h>
-#include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
@@ -41,7 +41,8 @@ private:
     void setupDialogue();
     void setupText();
 
-    widget::TextTokenSeq::Config ttqConfig;
+    widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseBig};
+    context::ColorSetId colorSetId;
 
     std::shared_ptr<widget::Layer> layer;
     std::shared_ptr<widget::Overlay> overlay;

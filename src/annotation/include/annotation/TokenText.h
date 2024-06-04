@@ -1,6 +1,7 @@
 #pragma once
 #include "Card.h"
 #include "Token.h"
+#include "Tokenizer.h"
 
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
@@ -9,7 +10,6 @@
 #include <map>
 #include <memory>
 #include <ranges>
-#include <utility>
 #include <vector>
 
 namespace annotation {
@@ -30,11 +30,13 @@ class TokenText
 {
 public:
     using Paragraph = std::vector<Token>;
-    TokenText(std::shared_ptr<Card> card, std::vector<VocableId> vocableIds);
+    TokenText(std::shared_ptr<Card> card);
     [[nodiscard]] auto setupActiveVocableIds(const std::map<VocableId, Ease>&) -> std::vector<ActiveVocable>;
+    void setupAnnotation(const std::vector<annotation::Alternative>& alternatives);
     [[nodiscard]] auto getType() const -> TextType;
     [[nodiscard]] auto getParagraph() const -> const Paragraph&;
     [[nodiscard]] auto getDialogue() const -> const std::vector<Paragraph>&;
+    [[nodiscard]] auto getVocableCount() const -> std::size_t;
 
 private:
     using tokenSubrange = std::ranges::subrange<std::vector<annotation::Token>::const_iterator>;
@@ -47,7 +49,7 @@ private:
     TextType textType{TextType::dialogue};
     std::vector<Paragraph> paragraphSeq;
     std::shared_ptr<Card> card;
-    std::vector<VocableId> vocableIds;
+    std::size_t vocableCount{};
 };
 
 } // namespace annotation

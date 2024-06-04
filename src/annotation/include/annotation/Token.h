@@ -1,9 +1,10 @@
 #pragma once
 
+#include "Word.h"
+
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
-#include "Word.h"
 
 #include <cstddef>
 #include <memory>
@@ -35,6 +36,7 @@ public:
     void setColorId(ColorId colorId);
     [[nodiscard]] auto getVocableId() const -> std::optional<VocableId>;
     [[nodiscard]] auto getDictionaryEntries() const -> const EntryVector&;
+    void resetWord();
 
     [[nodiscard]] auto string() const -> std::string;
     operator std::string() const;
@@ -42,11 +44,12 @@ public:
 private:
     utl::StringU8 value;
     std::shared_ptr<Word> word;
-    ColorId colorId{0};
+    ColorId colorId{ColorId::defaultFontColor};
     NoBreak noBreak{NoBreak::none};
     std::size_t dictionaryEntryIndex{0};
     EntryVector dictionaryEntries;
 };
 
-auto tokenVectorFromString(const std::string& str, ColorId colorId) -> std::vector<Token>;
+auto tokenVectorFromString(const std::string& str, ColorId colorId = ColorId::defaultFontColor)
+        -> std::vector<Token>;
 } // namespace annotation
