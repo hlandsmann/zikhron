@@ -82,6 +82,11 @@ Token::operator std::string() const
     return value;
 }
 
+auto Token::fromStringU8(const utl::StringU8& str) -> Token
+{
+    return {str};
+}
+
 auto tokenVectorFromString(const std::string& str, ColorId colorId) -> std::vector<Token>
 {
     std::vector<Token> result;

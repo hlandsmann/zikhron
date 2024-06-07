@@ -19,7 +19,7 @@ class Overlay : public Widget
     template<class T>
     friend class MetaBox;
     friend class Widget;
-    void setup(float maxWidth);
+    void setup();
 
 public:
     Overlay(WidgetInit init);
@@ -29,6 +29,8 @@ public:
     Overlay(Overlay&&) = default;
     auto operator=(const Overlay&) -> Overlay& = default;
     auto operator=(Overlay&&) -> Overlay& = default;
+
+    void setMaxWidth(float maxWidth);
 
     [[nodiscard]] auto dropOverlay(float x, float y) -> OverlayDrop;
     void setFirstDrop();

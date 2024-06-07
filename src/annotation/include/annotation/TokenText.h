@@ -7,6 +7,7 @@
 #include <misc/Identifier.h>
 
 #include <cstddef>
+#include <generator>
 #include <map>
 #include <memory>
 #include <ranges>
@@ -37,6 +38,7 @@ public:
     [[nodiscard]] auto getParagraph() const -> const Paragraph&;
     [[nodiscard]] auto getDialogue() const -> const std::vector<Paragraph>&;
     [[nodiscard]] auto getVocableCount() const -> std::size_t;
+    auto traverseToken() -> std::generator<Token&>;
 
 private:
     using tokenSubrange = std::ranges::subrange<std::vector<annotation::Token>::const_iterator>;

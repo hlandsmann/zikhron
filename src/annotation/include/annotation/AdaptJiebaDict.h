@@ -2,6 +2,7 @@
 #include "Rules.h"
 
 #include <dictionary/ZH_Dictionary.h>
+#include <misc/Config.h>
 
 #include <filesystem>
 #include <memory>
@@ -39,4 +40,7 @@ private:
     std::shared_ptr<const ZH_Dictionary> dictionary;
     Rules rules;
 };
+
+void adaptJiebaDictionaries(const std::shared_ptr<zikhron::Config>& config);
+
 } // namespace annotation

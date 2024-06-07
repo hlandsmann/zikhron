@@ -13,6 +13,7 @@
 #include <cassert>
 #include <cstddef>
 #include <functional>
+#include <generator>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -62,14 +63,14 @@ auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_eas
         activeVocable.colorId = static_cast<ColorId>(colorId);
         colorId++;
     }
-    std::size_t lastColorId = 0;
+    std::size_t nextColorId = 0;
 
     for (auto& token : tokens) {
         auto it = ranges::find(activeVocables, token.getVocableId(), &ActiveVocable::vocableId);
         if (it != activeVocables.end()) {
-            if (it->colorId == 0 || it->colorId > lastColorId) {
+            if (it->colorId >= nextColorId) {
                 token.setColorId(it->colorId);
-                lastColorId = it->colorId;
+                nextColorId = it->colorId + 1;
             }
         }
     }
@@ -131,6 +132,16 @@ auto TokenText::getDialogue() const -> const std::vector<Paragraph>&
 auto TokenText::getVocableCount() const -> std::size_t
 {
     return vocableCount;
+}
+
+auto TokenText::traverseToken() -> std::generator<Token&>
+{
+    for (auto& paragraph : paragraphSeq) {
+        for (auto& token : paragraph) {
+            co_yield token;
+        }
+    }
+    co_return;
 }
 
 void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)

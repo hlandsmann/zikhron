@@ -30,11 +30,12 @@ namespace views = std::views;
 VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::shared_ptr<widget::TextToken> _token)
     : overlay{std::move(_overlay)}
     , word{_token->getToken().getWord()}
-    , token{std::move(_token)}
+    , textToken{std::move(_token)}
     , definitions{word->getDefinitions()}
     , options{optionsFromWord(*word)}
 {
     using namespace widget::layout;
+    overlay->setMaxWidth(maxWidth);
     overlay->clear();
     overlay->setFirstDrop();
 
@@ -243,7 +244,7 @@ void VocableOverlay::generateDefinitions()
 
 void VocableOverlay::draw()
 {
-    auto ltoken = token.lock();
+    auto ltoken = textToken.lock();
     if (!ltoken) {
         return;
     }
@@ -282,7 +283,7 @@ auto VocableOverlay::shouldClose() const -> bool
     return overlay->shouldClose();
 }
 
-auto VocableOverlay::wasConfigured() const -> bool
+auto VocableOverlay::configured() const -> bool
 {
     return wordWasConfigured;
 }

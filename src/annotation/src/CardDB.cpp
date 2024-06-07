@@ -1,7 +1,6 @@
 #include "CardDB.h"
 
 #include <Card.h>
-#include <JieBa.h>
 #include <Tokenizer.h>
 #include <WordDB.h>
 #include <dictionary/ZH_Dictionary.h>

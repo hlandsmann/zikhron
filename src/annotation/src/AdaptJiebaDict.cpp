@@ -1,6 +1,7 @@
 #include "AdaptJiebaDict.h"
 
 #include <dictionary/ZH_Dictionary.h>
+#include <misc/Config.h>
 #include <utils/StringU8.h>
 #include <utils/spdlog.h>
 #include <utils/string_split.h>
@@ -20,9 +21,7 @@ namespace annotation {
 AdaptJiebaDict::AdaptJiebaDict(std::shared_ptr<const ZH_Dictionary> _dictionary)
     : dictionary{std::move(_dictionary)}
     , rules{dictionary}
-{
-    spdlog::info("Merged dict has {} entries", output.size());
-}
+{}
 
 void AdaptJiebaDict::load(const std::filesystem::path& dictionaryFileIn)
 {
@@ -54,6 +53,8 @@ void AdaptJiebaDict::save(const std::filesystem::path& dictionaryFileOut)
     for (const auto& [key, value] : output) {
         out << fmt::format("{} {}\n", key, value);
     }
+    spdlog::info("Merged dict {} has {} entries",
+                 dictionaryFileOut.filename().string(), output.size());
 }
 
 void AdaptJiebaDict::saveUserDict()
@@ -90,6 +91,30 @@ void AdaptJiebaDict::merge()
         output.push_back(*inp_it);
         lastKey = inp_it->key;
         inp_it++;
+    }
+}
+
+void adaptJiebaDictionaries(const std::shared_ptr<zikhron::Config>& config)
+{
+    std::shared_ptr<ZH_Dictionary> dictionary;
+    if (!std::filesystem::exists(AdaptJiebaDict::dict_out_path)) {
+        if (!dictionary) {
+            dictionary = std::make_shared<ZH_Dictionary>(config->Dictionary());
+        }
+        auto adaptDictionary = annotation::AdaptJiebaDict{dictionary};
+        adaptDictionary.load(annotation::AdaptJiebaDict::dict_in_path);
+        adaptDictionary.merge();
+        adaptDictionary.save(annotation::AdaptJiebaDict::dict_out_path);
+        adaptDictionary.saveUserDict();
+    }
+    if (!std::filesystem::exists(AdaptJiebaDict::idf_out_path)) {
+        if (!dictionary) {
+            dictionary = std::make_shared<ZH_Dictionary>(config->Dictionary());
+        }
+        auto adaptIdf = annotation::AdaptJiebaDict{dictionary};
+        adaptIdf.load(annotation::AdaptJiebaDict::idf_in_path);
+        adaptIdf.merge();
+        adaptIdf.save(annotation::AdaptJiebaDict::idf_out_path);
     }
 }
 } // namespace annotation

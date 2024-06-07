@@ -103,10 +103,9 @@ auto TextToken::clicked() -> bool
         auto colorDrop = isActive ? context::FontColorDrop{shadowColor}
                                   : context::FontColorDrop{color};
         renderText(rect.x, rect.y);
-        if (!token.getWord()) {
-            return false;
+        if (isActive) {
+            clicked = ImGui::IsItemClicked();
         }
-        clicked = ImGui::IsItemClicked();
     }
 
     isActive = false;
@@ -123,18 +122,13 @@ auto TextToken::getToken() const -> const annotation::Token&
     return token;
 }
 
-void TextToken::resetWord()
-{
-    token.resetWord();
-}
-
 auto TextToken::calculateSize() const -> WidgetSize
 {
     auto fontDrop = getTheme().getFont().dropFont(fontType);
     auto string = token.string();
     auto textSize = ImGui::CalcTextSize(string.cbegin().base(), string.cend().base());
 
-    return {.width = textSize.x,
+    return {.width = textSize.x-1,
             .height = textSize.y};
 }
 } // namespace widget

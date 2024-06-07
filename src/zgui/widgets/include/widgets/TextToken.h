@@ -29,7 +29,6 @@ public:
     auto clicked() -> bool;
     auto getPositionRect() const -> layout::Rect;
     auto getToken() const -> const annotation::Token&;
-    void resetWord();
 
 protected:
     auto calculateSize() const -> WidgetSize override;

@@ -128,7 +128,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         case Proceed::annotate: {
             auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
             auto tokenText = cardMeta.getStudyTokenText();
-            displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, alternatives, std::move(tokenText));
+            displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlay, alternatives, std::move(tokenText));
             bool _ = co_await *signalAnnotationDone;
             displayAnnotation.reset();
             signalProceed->set(Proceed::reload);
@@ -166,7 +166,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 void TabCard::setupCardWindow(widget::Window& cardWindow)
 {
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
-    overlay = cardWindow.add<widget::Overlay>(Align::start, VocableOverlay::maxWidth);
+    overlay = cardWindow.add<widget::Overlay>(Align::start);
     cardBox->setName("cardBox");
 
     signalCardBox->set(cardBox);

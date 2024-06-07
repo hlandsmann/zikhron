@@ -24,12 +24,10 @@ class VocableOverlay
     };
 
 public:
-    constexpr static float maxWidth = 650;
-
     VocableOverlay(std::shared_ptr<widget::Overlay> overlay, std::shared_ptr<widget::TextToken> token);
     void draw();
     [[nodiscard]] auto shouldClose() const -> bool;
-    [[nodiscard]] auto wasConfigured() const -> bool;
+    [[nodiscard]] auto configured() const -> bool;
 
 private:
     [[nodiscard]] static auto optionsFromWord(const annotation::Word& word) -> std::vector<Option>;
@@ -46,6 +44,7 @@ private:
     bool setupPendingDefinition{true};
     bool setupPendingOptions{false};
 
+    constexpr static float maxWidth = 650;
     constexpr static float s_border = 8.F;
     constexpr static float s_horizontalPadding = 32.F;
     constexpr static float s_padding = 32.F;
@@ -69,7 +68,7 @@ private:
 
     std::shared_ptr<widget::Overlay> overlay;
     std::shared_ptr<annotation::Word> word;
-    std::weak_ptr<widget::TextToken> token;
+    std::weak_ptr<widget::TextToken> textToken;
 
     std::vector<annotation::Definition> definitions;
     std::vector<Option> options;

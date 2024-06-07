@@ -51,15 +51,15 @@ auto DisplayText::draw() -> bool
         optTextToken = drawText();
         break;
     }
-    if (optTextToken.has_value()) {
-        vocableOverlay = std::make_unique<VocableOverlay>(overlay, optTextToken.value());
-    }
     if (vocableOverlay) {
         vocableOverlay->draw();
-        configured = vocableOverlay->wasConfigured();
+        configured = vocableOverlay->configured();
         if (vocableOverlay->shouldClose()) {
-            vocableOverlay = nullptr;
+            vocableOverlay.reset();
         }
+    }
+    if (optTextToken.has_value()) {
+        vocableOverlay = std::make_unique<VocableOverlay>(overlay, optTextToken.value());
     }
     return configured;
 }

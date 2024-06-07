@@ -2,6 +2,7 @@
 #include <CardMeta.h>
 #include <DataBase.h>
 #include <ITreeWalker.h>
+#include <annotation/AdaptJiebaDict.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -58,6 +59,7 @@ auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
 {
     asyncDataBase->runAsync([]() -> DataBasePtr {
         auto zikhron_cfg = get_zikhron_cfg();
+        annotation::adaptJiebaDictionaries(zikhron_cfg);
         auto db = std::make_shared<DataBase>(zikhron_cfg);
         return db;
     });

@@ -41,6 +41,8 @@ public:
     [[nodiscard]] auto string() const -> std::string;
     operator std::string() const;
 
+    static auto fromStringU8(const utl::StringU8& str) -> Token;
+
 private:
     utl::StringU8 value;
     std::shared_ptr<Word> word;

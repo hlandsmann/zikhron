@@ -1,14 +1,20 @@
 #pragma once
+#include "TokenizationOverlay.h"
+
 #include <annotation/TokenText.h>
 #include <annotation/Tokenizer.h>
 #include <context/ColorSet.h>
 #include <context/Fonts.h>
 #include <context/WidgetIdGenerator.h>
 #include <widgets/Layer.h>
+#include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
 
+#include <generator>
 #include <memory>
+#include <optional>
+#include <utility>
 #include <vector>
 
 namespace gui {
@@ -18,6 +24,7 @@ class DisplayAnnotation
 
 public:
     DisplayAnnotation(std::shared_ptr<widget::Layer> layer,
+                      std::shared_ptr<widget::Overlay> overlay,
                       std::vector<annotation::Alternative> alternatives,
                       std::unique_ptr<annotation::TokenText> tokenText);
     void draw();
@@ -30,19 +37,26 @@ private:
                                               .paddingHorizontal = s_horizontalPadding,
                                               .paddingVertical = s_padding,
                                               .border = s_border};
+    using TokenAlternative = std::pair<std::shared_ptr<widget::TextToken>,
+                                       std::vector<annotation::Alternative>::const_iterator>;
 
     void drawDialogue();
     void drawText();
     void setupDialogue();
     void setupText();
+    auto traverseToken() -> std::generator<const std::shared_ptr<widget::TextToken>&>;
+    auto alternativeClicked() -> std::optional<TokenAlternative>;
 
     widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseBig};
 
     std::shared_ptr<widget::Layer> layer;
+    std::shared_ptr<widget::Overlay> overlay;
     std::vector<annotation::Alternative> alternatives;
     std::unique_ptr<annotation::TokenText> tokenText;
     context::WidgetId textWidgetId{};
     context::ColorSetId colorSetId{context::ColorSetId::adjacentAlternate};
+
+    std::unique_ptr<TokenizationOverlay> tokenizationOverlay;
 };
 
 } // namespace gui

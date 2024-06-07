@@ -15,12 +15,10 @@
 
 namespace widget {
 
-void Overlay::setup(float _maxWidth)
+void Overlay::setup()
 {
     using namespace widget::layout;
     setExpandType(width_expand, height_expand);
-
-    maxWidth = _maxWidth;
 }
 
 Overlay::Overlay(WidgetInit _init)
@@ -36,6 +34,11 @@ Overlay::Overlay(WidgetInit _init)
             .expandTypeWidth = layout::width_expand,
             .expandTypeHeight = layout::width_expand,
             .parent = std::weak_ptr<widget::Widget>{}});
+}
+
+void Overlay::setMaxWidth(float _maxWidth)
+{
+    maxWidth = _maxWidth;
 }
 
 auto Overlay::dropOverlay(float x, float y) -> OverlayDrop
