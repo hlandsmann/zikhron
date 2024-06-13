@@ -4,9 +4,9 @@
 #include <DisplayText.h>
 #include <DisplayVocables.h>
 #include <VocableOverlay.h>
+#include <annotation/CardPackDB.h>
 #include <context/imglog.h>
 #include <misc/Identifier.h>
-#include <multimedia/CardAudioGroup.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/CardMeta.h>
@@ -25,9 +25,11 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <filesystem>
 #include <initializer_list>
 #include <kocoro/kocoro.hpp>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 
@@ -45,13 +47,64 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-TabCard::CardAudioInfo::CardAudioInfo(CardId cardId, const CardAudioGroupDB& cagDB)
-    : firstId{cagDB.skipBackward(cardId)}
-    , previousId{cagDB.seekBackward(cardId)}
-    , nextId{cagDB.seekForward(cardId)}
-    , lastId{cagDB.skipForward(cardId)}
-    , audioFragment{cagDB.get_studyAudioFragment(cardId)}
+TabCard::CardAudioInfo::CardAudioInfo(CardId cardId, const annotation::CardPackDB& cardPackDB)
+    : cardAudio{cardPackDB.getCardAtCardId(cardId)}
+    , cardPack{cardPackDB.getCardPackForCardId(cardAudio.card->getCardId())}
 {}
+
+auto TabCard::CardAudioInfo::firstId() const -> std::optional<CardId>
+{
+    auto firstCardId = cardPack->getFirstCard().card->getCardId();
+    if (firstCardId != cardAudio.card->getCardId()) {
+        return {firstCardId};
+    }
+    return {};
+}
+
+auto TabCard::CardAudioInfo::previousId() const -> std::optional<CardId>
+{
+    auto previousCard = cardPack->getPreviousCard(cardAudio.card);
+    if (!previousCard.has_value()) {
+        return {};
+    }
+    return previousCard->card->getCardId();
+}
+
+auto TabCard::CardAudioInfo::nextId() const -> std::optional<CardId>
+{
+    auto nextCard = cardPack->getNextCard(cardAudio.card);
+    if (!nextCard.has_value()) {
+        return {};
+    }
+    return nextCard->card->getCardId();
+}
+
+auto TabCard::CardAudioInfo::lastId() const -> std::optional<CardId>
+{
+    auto lastCardId = cardPack->getLastCard().card->getCardId();
+    if (lastCardId != cardAudio.card->getCardId()) {
+        return {lastCardId};
+    }
+    return {};
+}
+
+auto TabCard::CardAudioInfo::getAudio() const -> std::optional<std::filesystem::path>
+{
+    if (cardAudio.audioFile.empty()) {
+        return {};
+    }
+    return {cardAudio.audioFile};
+}
+
+auto TabCard::CardAudioInfo::getStartTime() const -> double
+{
+    return cardAudio.start;
+}
+
+auto TabCard::CardAudioInfo::getEndTime() const -> double
+{
+    return cardAudio.end;
+}
 
 void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
 {
@@ -86,7 +139,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     auto treeWalker = co_await asyncTreeWalker->getTreeWalker();
     dataBase = co_await asyncTreeWalker->getDataBase();
     auto wordDB = dataBase->getWordDB();
-    auto cardDB = dataBase->getCardDB();
+    auto cardDB = dataBase->getCardPackDB();
 
     sr::CardMeta cardMeta;
     Proceed proceed = Proceed::submit_walkTree;
@@ -107,20 +160,20 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             cardMeta = co_await asyncTreeWalker->getNextCardChoice();
             break;
         case Proceed::first:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.firstId);
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->firstId());
             break;
         case Proceed::previous:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.previousId);
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->previousId());
             break;
         case Proceed::next:
         case Proceed::submit_next:
-            if (!cardAudioInfo.nextId.has_value()) {
+            if (!cardAudioInfo->nextId().has_value()) {
                 mode = Mode::shuffle;
             }
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.nextId);
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->nextId());
             break;
         case Proceed::last:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo.lastId);
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->lastId());
             break;
         case Proceed::reload:
             cardMeta = co_await asyncTreeWalker->getNextCardChoice({cardMeta.Id()});
@@ -144,9 +197,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             continue;
         }
 
-        cardAudioInfo = CardAudioInfo{cardMeta.Id(), *dataBase->getGroupDB()};
-        if (cardAudioInfo.audioFragment.has_value()) {
-            mpv->openFile(cardAudioInfo.audioFragment.value().audioFile);
+        cardAudioInfo = std::make_unique<CardAudioInfo>(cardMeta.Id(), *dataBase->getCardPackDB());
+        if (cardAudioInfo->getAudio().has_value()) {
+            mpv->openFile(cardAudioInfo->getAudio().value());
         }
         auto vocId_ease = cardMeta.getRelevantEase();
         auto tokenText = cardMeta.getStudyTokenText();
@@ -262,29 +315,30 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
 
 void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress)
 {
-    if (!cardAudioInfo.audioFragment.has_value()) {
+    if (!cardAudioInfo || !cardAudioInfo->getAudio().has_value()) {
         return;
     }
-    auto& af = *cardAudioInfo.audioFragment;
-    double timePos = std::max(mpv->getTimePos(), af.start);
+    double start = cardAudioInfo->getStartTime();
+    double end = cardAudioInfo->getEndTime();
+    double timePos = std::max(mpv->getTimePos(), start);
 
     bool playing = !mpv->is_paused();
     btnPlay.setOpen(playing);
     bool oldPlaying = std::exchange(playing, btnPlay.isOpen());
     if (oldPlaying != playing) {
         if (playing) {
-            if (timePos >= af.end - 0.05) {
-                timePos = af.start;
+            if (timePos >= end - 0.05) {
+                timePos = start;
             }
-            mpv->play_fragment(timePos, af.end);
+            mpv->play_fragment(timePos, end);
         } else {
             mpv->pause();
         }
     }
-    auto oldTimePos = std::exchange(timePos, sliderProgress.slide(af.start, af.end, timePos));
+    auto oldTimePos = std::exchange(timePos, sliderProgress.slide(start, end, timePos));
     if (oldTimePos != timePos) {
         if (mpv->is_paused()) {
-            mpv->play_fragment(timePos, af.end);
+            mpv->play_fragment(timePos, end);
         } else {
             mpv->seek(timePos);
         }
@@ -322,7 +376,7 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
 
 void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
 {
-    if (!cardAudioInfo.nextId.has_value()) {
+    if (!cardAudioInfo || !cardAudioInfo->nextId().has_value()) {
         return;
     }
     mode = static_cast<Mode>(tbgMode.Active(static_cast<std::size_t>(mode)));
@@ -333,10 +387,11 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                  widget::ImageButton& btnFollowing,
                                  widget::ImageButton& btnLast)
 {
-    if (!cardAudioInfo.firstId.has_value()
-        && !cardAudioInfo.previousId.has_value()
-        && !cardAudioInfo.nextId.has_value()
-        && !cardAudioInfo.lastId.has_value()) {
+    if (!cardAudioInfo
+        || (!cardAudioInfo->firstId().has_value()
+            && !cardAudioInfo->previousId().has_value()
+            && !cardAudioInfo->nextId().has_value()
+            && !cardAudioInfo->lastId().has_value())) {
         return;
     }
 
@@ -344,10 +399,10 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
     //     mode = Mode::shuffle;
     // }
 
-    btnFirst.setSensitive(cardAudioInfo.firstId.has_value());
-    btnPrevious.setSensitive(cardAudioInfo.previousId.has_value());
-    btnFollowing.setSensitive(cardAudioInfo.nextId.has_value());
-    btnLast.setSensitive(cardAudioInfo.lastId.has_value());
+    btnFirst.setSensitive(cardAudioInfo->firstId().has_value());
+    btnPrevious.setSensitive(cardAudioInfo->previousId().has_value());
+    btnFollowing.setSensitive(cardAudioInfo->nextId().has_value());
+    btnLast.setSensitive(cardAudioInfo->lastId().has_value());
     if (btnFirst.clicked()) {
         mode = Mode::story;
         revealVocables = false;

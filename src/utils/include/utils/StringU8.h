@@ -8,6 +8,7 @@
 #include <format>
 #include <span>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -62,6 +63,8 @@ public:
     StringU8() = default;
     ~StringU8() = default;
     StringU8(const std::string&);
+    StringU8(std::string_view);
+
     StringU8(const std::span<const CharU8>&);
     StringU8(const icu::UnicodeString&);
     StringU8(const StringU8&) = default;
@@ -109,9 +112,9 @@ public:
     void append(const icu::UnicodeString&);
 
 private:
-    static auto icustringToString(const icu::UnicodeString& str) -> std::string;
 };
 
+auto icustringToString(const icu::UnicodeString& str) -> std::string;
 } // namespace utl
 
 template<>

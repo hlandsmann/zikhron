@@ -3,7 +3,6 @@
 #include "VocableProgress.h"
 #include "srtypes.h"
 
-#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>

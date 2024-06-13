@@ -9,35 +9,54 @@
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <sys/types.h>
 
 namespace annotation {
 
+class Card;
+using CardPtr = std::shared_ptr<Card>;
+
+struct CardInit
+{
+    std::string packName;
+    PackId packId;
+    std::size_t indexInPack;
+    std::shared_ptr<WordDB> wordDB;
+    std::shared_ptr<Tokenizer> tokenizer;
+};
+
 class Card
 {
 public:
     using CharacterSequence = std::vector<utl::CharU8>;
+    static auto deserializeCard(std::string_view content, const CardInit& cardInit) -> CardPtr;
 
     Card(std::string filename,
-         CardId id,
          std::shared_ptr<WordDB> wordDB,
          std::shared_ptr<annotation::Tokenizer> tokenizer);
+    Card(const CardInit& cardInit);
     Card(const Card&) = default;
     Card(Card&&) = default;
     virtual ~Card() = default;
     auto operator=(const Card&) = delete;
     auto operator=(Card&&) = delete;
 
-    [[nodiscard]] auto Id() const -> CardId;
+    void setCardId(CardId);
+    [[nodiscard]] auto getCardId() const -> CardId;
     [[nodiscard]] auto getTokens() const -> const std::vector<Token>&;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
     [[nodiscard]] auto getAlternatives() const -> std::vector<Alternative>;
+    [[nodiscard]] virtual auto serialize() const -> std::string = 0;
+    [[nodiscard]] auto getPackId() const -> PackId;
+    [[nodiscard]] auto getIndexInPack() const -> std::size_t;
 
 protected:
     void executeTokenizer();
@@ -45,11 +64,13 @@ protected:
 private:
     // [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
-    std::string filename;
-    CardId id;
+    std::string packName;
+    PackId packId;
+    std::size_t indexInPack;
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<Tokenizer> tokenizer;
 
+    CardId cardId{};
     std::vector<Token> tokens;
 };
 
@@ -58,15 +79,16 @@ class DialogueCard : public Card
 public:
     struct DialogueItem
     {
-        icu::UnicodeString speaker;
-        icu::UnicodeString text;
+        utl::StringU8 speaker;
+        utl::StringU8 text;
     };
 
     DialogueCard(std::string filename,
-                 CardId id,
                  std::shared_ptr<WordDB> wordDB,
                  std::shared_ptr<Tokenizer> tokenizer,
                  std::vector<DialogueItem>&& dialogue);
+    DialogueCard(std::string_view content,
+                 const CardInit& cardInit);
     DialogueCard(const DialogueCard&) = default;
     DialogueCard(DialogueCard&&) = default;
     ~DialogueCard() override = default;
@@ -75,8 +97,11 @@ public:
 
     [[nodiscard]] auto getDialogue() const -> const std::vector<DialogueItem>&;
 
+    static auto deserialize(std::string_view content) -> std::vector<DialogueItem>;
+    [[nodiscard]] auto serialize() const -> std::string override;
+
 private:
-    // [[nodiscard]] auto getTextVector() const -> std::vector<icu::UnicodeString> override;
+    constexpr static auto s_prefix = "dlg";
     [[nodiscard]] auto getText() const -> utl::StringU8 override;
     std::vector<DialogueItem> dialogue;
 };
@@ -85,20 +110,24 @@ class TextCard : public Card
 {
 public:
     TextCard(std::string filename,
-             CardId id,
              std::shared_ptr<WordDB> wordDB,
              std::shared_ptr<Tokenizer> tokenizer,
              icu::UnicodeString text);
+    TextCard(std::string_view content,
+             const CardInit& cardInit);
     TextCard(const TextCard&) = default;
     TextCard(TextCard&&) = default;
     ~TextCard() override = default;
     auto operator=(const TextCard&) = delete;
     auto operator=(TextCard&&) = delete;
 
+    static auto deserialize(std::string_view content) -> utl::StringU8;
+    [[nodiscard]] auto serialize() const -> std::string override;
+
 private:
-    // [[nodiscard]] auto getTextVector() const -> std::vector<icu::UnicodeString> override;
+    constexpr static auto s_prefix = "txt";
     [[nodiscard]] auto getText() const -> utl::StringU8 override;
-    icu::UnicodeString text;
+    utl::StringU8 text;
 };
 
 } // namespace annotation

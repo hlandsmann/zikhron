@@ -2,7 +2,6 @@
 #include "CardMeta.h"
 #include "DataBase.h"
 
-#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
 

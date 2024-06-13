@@ -1,7 +1,6 @@
 #include <DataBase.h>
 #include <VocableMeta.h>
 #include <VocableProgress.h>
-#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>

@@ -11,6 +11,7 @@
 #include <numeric>
 #include <span>
 #include <string>
+#include <string_view>
 
 namespace ranges = std::ranges;
 
@@ -22,6 +23,11 @@ StringU8::StringU8(const icu::UnicodeString& _str)
 StringU8::StringU8(const std::string& str)
 {
     append(str);
+}
+
+StringU8::StringU8(std::string_view sv)
+{
+    append(std::string{sv});
 }
 
 StringU8::StringU8(const std::span<const CharU8>& items)
@@ -89,13 +95,6 @@ auto StringU8::front() const -> const CharU8&
     return chars.front();
 }
 
-auto StringU8::icustringToString(const icu::UnicodeString& _str) -> std::string
-{
-    std::string tempString;
-    _str.toUTF8String(tempString);
-    return tempString;
-}
-
 void StringU8::push_back(const CharU8& itemU8)
 {
     chars.push_back(itemU8);
@@ -116,5 +115,12 @@ void StringU8::append(const icu::UnicodeString& uniStr)
 {
     const std::string str = icustringToString(uniStr);
     append(str);
+}
+
+auto icustringToString(const icu::UnicodeString& str) -> std::string
+{
+    std::string tempString;
+    str.toUTF8String(tempString);
+    return tempString;
 }
 } // namespace utl

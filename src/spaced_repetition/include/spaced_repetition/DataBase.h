@@ -5,13 +5,12 @@
 #include "srtypes.h"
 
 #include <annotation/Card.h>
-#include <annotation/CardDB.h>
+#include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>
 #include <annotation/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
-#include <multimedia/CardAudioGroup.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
 #include <utils/index_map.h>
@@ -26,7 +25,7 @@
 namespace sr {
 class DataBase
 {
-    using CardDB = annotation::CardDB;
+    using CardPackDB = annotation::CardPackDB;
     using WordDB = annotation::WordDB;
 
 public:
@@ -43,8 +42,8 @@ public:
 
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
-    [[nodiscard]] auto getCardDB() const -> std::shared_ptr<CardDB>;
-    [[nodiscard]] auto getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>;
+    [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
+    // [[nodiscard]] auto getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
 
     void setEaseVocable(VocableId, const Ease&);
@@ -59,9 +58,10 @@ private:
 
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
-    std::shared_ptr<CardAudioGroupDB> groupDB;
+    // std::shared_ptr<CardAudioGroupDB> groupDB;
     std::shared_ptr<annotation::WordDB> wordDB;
-    std::shared_ptr<annotation::CardDB> cardDB;
+    std::shared_ptr<annotation::CardPackDB> cardDB;
+    // std::shared_ptr<annotation::CardDB> cardDB;
     std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;

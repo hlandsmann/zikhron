@@ -5,7 +5,6 @@
 #include "Tree.h"
 #include "srtypes.h"
 
-#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>

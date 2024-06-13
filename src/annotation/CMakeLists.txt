@@ -11,7 +11,8 @@ target_sources(zikhron_annotation
     PRIVATE
         include/annotation/AdaptJiebaDict.h
         include/annotation/Card.h
-        include/annotation/CardDB.h
+        include/annotation/CardPack.h
+        include/annotation/CardPackDB.h
         include/annotation/Ease.h
         include/annotation/FreqDictionary.h
         include/annotation/JieBa.h
@@ -23,7 +24,8 @@ target_sources(zikhron_annotation
         include/annotation/WordDB.h
         src/AdaptJiebaDict.cpp
         src/Card.cpp
-        src/CardDB.cpp
+        src/CardPack.cpp
+        src/CardPackDB.cpp
         src/Ease.cpp
         src/FreqDictionary.cpp
         src/JieBa.cpp
@@ -40,8 +42,9 @@ target_link_libraries(zikhron_annotation
         zikhron::miscellaneous
     PRIVATE
         Microsoft.GSL::GSL
-        ctre::ctre
         cppjieba::cppjieba
+        ctre::ctre
+        magic_enum::magic_enum
         nlohmann_json::nlohmann_json
         spdlog::spdlog
         zikhron::spaced_repetition

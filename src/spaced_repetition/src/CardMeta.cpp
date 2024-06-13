@@ -1,7 +1,6 @@
 #include <CardMeta.h>
 #include <VocableProgress.h>
 #include <annotation/Card.h>
-#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
@@ -31,15 +30,17 @@ namespace views = std::views;
 
 namespace sr {
 
-CardMeta::CardMeta(std::shared_ptr<Card> _card,
+CardMeta::CardMeta(CardId _cardId,
+                   std::shared_ptr<Card> _card,
                    std::shared_ptr<utl::index_map<VocableId, VocableMeta>> _vocables)
-    : card{std::move(_card)}
+    : cardId{_cardId}
+    , card{std::move(_card)}
     , vocables{std::move(_vocables)}
 {}
 
 auto CardMeta::Id() const -> CardId
 {
-    return card->Id();
+    return cardId;
 }
 
 auto CardMeta::VocableIndices() const -> const index_set&

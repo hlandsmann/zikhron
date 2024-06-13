@@ -2,6 +2,7 @@
 #include <utils/spdlog.h>
 
 #include <limits>
+enum PackId : unsigned;
 enum CardId : unsigned;
 enum VocableId : unsigned;
 

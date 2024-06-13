@@ -3,10 +3,11 @@
 #include "DisplayText.h"
 #include "DisplayVocables.h"
 
+#include <annotation/CardPack.h>
+#include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>
 #include <context/WidgetIdGenerator.h>
 #include <misc/Identifier.h>
-#include <multimedia/CardAudioGroup.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/DataBase.h>
@@ -21,6 +22,7 @@
 #include <widgets/detail/Widget.h>
 
 #include <cstddef>
+#include <filesystem>
 #include <kocoro/kocoro.hpp>
 #include <map>
 #include <memory>
@@ -32,7 +34,8 @@ class TabCard
 {
     using Align = widget::layout::Align;
     using ExpandType = widget::layout::ExpandType;
-
+    using CardPackDB = annotation::CardPackDB;
+    using CardPack = annotation::CardPack;
     enum class Proceed {
         submit_walkTree,
         submit_next,
@@ -49,15 +52,22 @@ class TabCard
         story,
     };
 
-    struct CardAudioInfo
+    class CardAudioInfo
     {
-        CardAudioInfo(CardId cardId, const CardAudioGroupDB& cagDB);
+    public:
+        CardAudioInfo(CardId cardId, const annotation::CardPackDB& cardPackDB);
         CardAudioInfo() = default;
-        std::optional<CardId> firstId;
-        std::optional<CardId> previousId;
-        std::optional<CardId> nextId;
-        std::optional<CardId> lastId;
-        std::optional<StudyAudioFragment> audioFragment;
+        [[nodiscard]] auto firstId() const -> std::optional<CardId>;
+        [[nodiscard]] auto previousId() const -> std::optional<CardId>;
+        [[nodiscard]] auto nextId() const -> std::optional<CardId>;
+        [[nodiscard]] auto lastId() const -> std::optional<CardId>;
+        [[nodiscard]] auto getAudio() const -> std::optional<std::filesystem::path>;
+        [[nodiscard]] auto getStartTime() const -> double;
+        [[nodiscard]] auto getEndTime() const -> double;
+
+    private:
+        annotation::CardAudio cardAudio;
+        std::shared_ptr<CardPack> cardPack;
     };
 
 public:
@@ -99,7 +109,7 @@ private:
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayAnnotation> displayAnnotation;
     std::unique_ptr<DisplayVocables> displayVocables;
-    CardAudioInfo cardAudioInfo;
+    std::unique_ptr<CardAudioInfo> cardAudioInfo;
 
     std::shared_ptr<widget::Overlay> overlay;
 

@@ -3,7 +3,6 @@
 #include "srtypes.h"
 
 #include <annotation/Card.h>
-#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/TokenText.h>
 #include <dictionary/ZH_Dictionary.h>
@@ -26,7 +25,8 @@ class CardMeta
 
 public:
     CardMeta() = default;
-    CardMeta(std::shared_ptr<Card> card,
+    CardMeta(CardId cardId,
+             std::shared_ptr<Card> card,
              std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables);
     [[nodiscard]] auto Id() const -> CardId;
     [[nodiscard]] auto VocableIndices() const -> const index_set&;
@@ -45,6 +45,7 @@ private:
     auto generateVocableIndexes() const -> index_set;
     auto getActiveVocableIds() const -> std::vector<VocableId>;
     auto easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>;
+    CardId cardId;
     std::shared_ptr<Card> card;
     mutable std::optional<index_set> optVocableIndices;
     mutable std::optional<vocId_set> optVocableIds;

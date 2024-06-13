@@ -2,14 +2,12 @@
 #include <DataBase.h>
 #include <VocableMeta.h>
 #include <VocableProgress.h>
-#include <annotation/CardDB.h>
 #include <annotation/Ease.h>
 #include <annotation/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
-#include <multimedia/CardAudioGroup.h>
 #include <spdlog/spdlog.h>
 #include <srtypes.h>
 #include <utils/StringU8.h>
@@ -34,10 +32,10 @@ namespace views = std::views;
 namespace sr {
 DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
-    , groupDB{std::make_shared<CardAudioGroupDB>()}
+    // , groupDB{std::make_shared<CardAudioGroupDB>()}
     , wordDB{std::make_shared<annotation::WordDB>(config)}
-    , cardDB{std::make_shared<CardDB>(config,
-                                      wordDB)}
+    , cardDB{std::make_shared<CardPackDB>(config,
+                                          wordDB)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
     , cards{std::make_shared<utl::index_map<CardId, CardMeta>>()}
 {
@@ -64,15 +62,15 @@ auto DataBase::Cards() -> utl::index_map<CardId, CardMeta>&
     return *cards;
 }
 
-auto DataBase::getCardDB() const -> std::shared_ptr<CardDB>
+auto DataBase::getCardPackDB() const -> std::shared_ptr<CardPackDB>
 {
     return cardDB;
 }
 
-auto DataBase::getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>
-{
-    return groupDB;
-}
+// auto DataBase::getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>
+// {
+//     return groupDB;
+// }
 
 auto DataBase::getWordDB() const -> std::shared_ptr<WordDB>
 {
@@ -116,8 +114,8 @@ auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, Vocab
 void DataBase::fillIndexMaps()
 {
     vocId_set allVocableIds;
-    for (const auto& [id, cardPtr] : cardDB->get()) {
-        (*cards).emplace(id, cardPtr, vocables);
+    for (const auto& [id, card] : cardDB->getCards()) {
+        (*cards).emplace(id, id, card.card, vocables);
     }
 
     for (const auto& card : *cards) {

@@ -11,14 +11,16 @@
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
+#include <utils/spdlog.h>
+#include <utils/string_split.h>
 
-#include <algorithm>
+#include <cstddef>
 #include <ctre.hpp>
-#include <iterator>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -26,20 +28,45 @@
 
 namespace annotation {
 
-Card::Card(std::string _filename,
-           CardId _id,
+auto Card::deserializeCard(std::string_view content, const CardInit& cardInit) -> CardPtr
+{
+    auto rest = content;
+    auto type = utl::split_front(rest, ':');
+    if (type == "dlg") {
+        return std::make_shared<DialogueCard>(rest, cardInit);
+    }
+    if (type == "txt") {
+        return std::make_shared<TextCard>(rest, cardInit);
+    }
+
+    return {};
+}
+
+Card::Card(std::string /* _filename */,
            std::shared_ptr<WordDB> _wordDB,
            std::shared_ptr<annotation::Tokenizer> _tokenizer)
-    : filename{std::move(_filename)}
-    , id{_id}
-    , wordDB{std::move(_wordDB)}
-    , tokenizer{std::move(_tokenizer)} {
-
-    };
-
-auto Card::Id() const -> CardId
+    : wordDB{std::move(_wordDB)}
+    , tokenizer{std::move(_tokenizer)}
 {
-    return id;
+}
+
+Card::Card(const CardInit& cardInit)
+    : packName{cardInit.packName}
+    , packId{cardInit.packId}
+    , indexInPack{cardInit.indexInPack}
+    , wordDB{cardInit.wordDB}
+    , tokenizer{cardInit.tokenizer}
+{
+}
+
+void Card::setCardId(CardId _cardId)
+{
+    cardId = _cardId;
+}
+
+auto Card::getCardId() const -> CardId
+{
+    return cardId;
 }
 
 auto Card::getTokens() const -> const std::vector<Token>&
@@ -57,6 +84,16 @@ auto Card::getAlternatives() const -> std::vector<Alternative>
     return tokenizer->getAlternatives(getText(), tokens);
 }
 
+auto Card::getPackId() const -> PackId
+{
+    return packId;
+}
+
+auto Card::getIndexInPack() const -> std::size_t
+{
+    return indexInPack;
+}
+
 void Card::executeTokenizer()
 {
     const auto& cardText = getText();
@@ -68,19 +105,47 @@ void Card::executeTokenizer()
 }
 
 DialogueCard::DialogueCard(std::string _filename,
-                           CardId _id,
                            std::shared_ptr<WordDB> _wordDB,
                            std::shared_ptr<annotation::Tokenizer> _tokenizer,
                            std::vector<DialogueItem>&& _dialogue)
-    : Card{_filename, _id, std::move(_wordDB), std::move(_tokenizer)}
+    : Card{_filename, std::move(_wordDB), std::move(_tokenizer)}
     , dialogue{std::move(_dialogue)}
 {
     executeTokenizer();
-};
+}
+
+DialogueCard::DialogueCard(std::string_view content,
+                           const CardInit& cardInit)
+    : Card{cardInit}
+    , dialogue{deserialize(content)}
+{
+    executeTokenizer();
+}
 
 auto DialogueCard::getDialogue() const -> const std::vector<DialogueItem>&
 {
     return dialogue;
+}
+
+auto DialogueCard::deserialize(std::string_view content) -> std::vector<DialogueItem>
+{
+    auto rest = content;
+
+    std::vector<DialogueItem> dialogue;
+    while (!rest.empty()) {
+        dialogue.push_back({.speaker = utl::split_front(rest, '/'),
+                            .text = utl::split_front(rest, '/')});
+    }
+    return dialogue;
+}
+
+auto DialogueCard::serialize() const -> std::string
+{
+    std::string result = fmt::format("{}:", s_prefix);
+    for (const auto& dlg : dialogue) {
+        result += fmt::format("{}/{}/", dlg.speaker, dlg.text);
+    }
+    return result;
 }
 
 // auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString>
@@ -107,15 +172,29 @@ auto DialogueCard::getText() const -> utl::StringU8
 }
 
 TextCard::TextCard(std::string _filename,
-                   CardId _id,
                    std::shared_ptr<WordDB> _wordDB,
                    std::shared_ptr<annotation::Tokenizer> _tokenizer,
                    icu::UnicodeString _text)
-    : Card{_filename, _id, std::move(_wordDB), std::move(_tokenizer)}
+    : Card{_filename, std::move(_wordDB), std::move(_tokenizer)}
     , text{std::move(_text)}
 {
     executeTokenizer();
-};
+}
+
+TextCard::TextCard(std::string_view content,
+                   const CardInit& cardInit)
+    : Card{cardInit}
+    , text{deserialize(content)}
+{
+    executeTokenizer();
+}
+
+auto TextCard::deserialize(std::string_view content) -> utl::StringU8
+{
+    auto rest = content;
+    utl::StringU8 text = utl::split_front(rest, '/');
+    return text;
+}
 
 // auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>
 // {
@@ -125,6 +204,12 @@ TextCard::TextCard(std::string _filename,
 auto TextCard::getText() const -> utl::StringU8
 {
     return {text};
+}
+
+auto TextCard::serialize() const -> std::string
+{
+    // std::string serText = text.findAndReplace("/", "／");
+    return fmt::format("{}:{}/", s_prefix, text);
 }
 
 } // namespace annotation
