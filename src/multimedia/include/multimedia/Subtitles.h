@@ -1,5 +1,4 @@
 #pragma once
-#include <utils/Property.h>
 #include <functional>
 #include <map>
 #include <memory>
@@ -11,28 +10,35 @@ extern "C" {
 #include <libavformat/avformat.h>
 }
 
-struct SubText {
+struct SubText
+{
     const std::string text;
     const int64_t start_time;
     const int64_t duration;
 };
 
-class Subtitle {
+class Subtitle
+{
     friend class SubtitleDecoder;
     std::vector<SubText> subtext;
     const AVCodecID codecID;
 
 public:
-    struct Init {
+    struct Init
+    {
         const bool isTextSub;
         const std::string language;
         const std::string title;
         const AVCodecID codecID;
     };
+
     Subtitle(Init& init)
-        : codecID(init.codecID), isTextSub(init.isTextSub), language(init.language), title(init.title){};
+        : codecID(init.codecID), isTextSub(init.isTextSub), language(init.language), title(init.title) {};
+
     auto cbegin() const { return subtext.cbegin(); }
+
     auto cend() const { return subtext.cend(); };
+
     auto empty() const { return subtext.empty(); };
 
     const bool isTextSub;
@@ -40,13 +46,14 @@ public:
     const std::string title;
 };
 
-class SubtitleDecoder {
+class SubtitleDecoder
+{
 public:
     SubtitleDecoder(const std::string& filename);
     ~SubtitleDecoder();
 
-    auto observeProgress(const std::function<void(double)>&) -> std::shared_ptr<utl::Observer<double>>;
-    auto observeFinished(const std::function<void(bool)>&) -> std::shared_ptr<utl::Observer<bool>>;
+    // auto observeProgress(const std::function<void(double)>&) -> std::shared_ptr<utl::Observer<double>>;
+    // auto observeFinished(const std::function<void(bool)>&) -> std::shared_ptr<utl::Observer<bool>>;
 
 private:
     void worker_thread(std::stop_token token);
@@ -63,6 +70,6 @@ private:
     std::map<int, Subtitle> subtitles;
     std::jthread worker;
     std::string filename;
-    utl::Property<double> progress = 0.;
-    utl::Property<bool> finished = false;
+    double progress = 0.;
+    bool finished = false;
 };

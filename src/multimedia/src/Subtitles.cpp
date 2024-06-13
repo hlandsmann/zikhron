@@ -17,14 +17,14 @@ SubtitleDecoder::~SubtitleDecoder() {
     worker.join();
 }
 
-auto SubtitleDecoder::observeProgress(const std::function<void(double)>& observeCallback)
-    -> std::shared_ptr<utl::Observer<double>> {
-    return progress.observe(observeCallback);
-}
-auto SubtitleDecoder::observeFinished(const std::function<void(bool)>& finishedCallback)
-    -> std::shared_ptr<utl::Observer<bool>> {
-    return finished.observe(finishedCallback);
-}
+// auto SubtitleDecoder::observeProgress(const std::function<void(double)>& observeCallback)
+//     -> std::shared_ptr<utl::Observer<double>> {
+//     return progress.observe(observeCallback);
+// }
+// auto SubtitleDecoder::observeFinished(const std::function<void(bool)>& finishedCallback)
+//     -> std::shared_ptr<utl::Observer<bool>> {
+//     return finished.observe(finishedCallback);
+// }
 
 void SubtitleDecoder::worker_thread(std::stop_token token) {
     AVFormatContext* pFormatCtx = NULL;
