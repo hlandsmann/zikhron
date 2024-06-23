@@ -5,7 +5,7 @@
 #include "WordDB.h"
 
 #include <misc/Identifier.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <utils/string_split.h>
 
 #include <exception>

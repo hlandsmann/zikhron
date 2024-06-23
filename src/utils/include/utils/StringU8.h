@@ -1,11 +1,10 @@
 #pragma once
-#include "spdlog.h"
+#include "format.h"
 
 #include <fmt/format.h> // IWYU pragma: export core.h
 
 #include <compare>
 #include <cstddef>
-#include <format>
 #include <span>
 #include <string>
 #include <string_view>
@@ -66,7 +65,6 @@ public:
     StringU8(std::string_view);
 
     StringU8(const std::span<const CharU8>&);
-    StringU8(const icu::UnicodeString&);
     StringU8(const StringU8&) = default;
     StringU8(StringU8&&) = default;
     auto operator=(const StringU8& other) -> StringU8& = default;
@@ -109,12 +107,11 @@ public:
 
     void push_back(const CharU8&);
     void append(const std::string&);
-    void append(const icu::UnicodeString&);
 
 private:
 };
 
-auto icustringToString(const icu::UnicodeString& str) -> std::string;
+auto concanateStringsU8(const std::vector<StringU8>& strings) -> StringU8;
 } // namespace utl
 
 template<>

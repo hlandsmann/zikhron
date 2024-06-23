@@ -24,6 +24,7 @@ public:
     [[nodiscard]] auto getNextTriggerCard(const std::shared_ptr<DataBase>& db) const -> CardId;
 
     void cardIndices_insert(std::size_t cardIndex);
+    void cardIndices_erase(std::size_t cardIndex);
 
 private:
     std::shared_ptr<VocableProgress> progress;

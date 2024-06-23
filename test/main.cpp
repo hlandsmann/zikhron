@@ -10,7 +10,7 @@
 #include <spaced_repetition/ITreeWalker.h>
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <filesystem>
 #include <memory>

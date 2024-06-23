@@ -47,7 +47,7 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
 {
     executor->startCoro(handleEventTask());
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
-    mpv_set_option_string(mpv.get(), "terminal", "yes");
+    // mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
     mpv_set_option_string(mpv.get(), "sid", "no");
     mpv_set_option_string(mpv.get(), "audio-display", "no");

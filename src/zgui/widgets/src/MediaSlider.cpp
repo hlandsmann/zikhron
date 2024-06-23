@@ -1,7 +1,7 @@
 #include <MediaSlider.h>
 #include <detail/Widget.h>
 #include <imgui.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <chrono>
 #include <format>

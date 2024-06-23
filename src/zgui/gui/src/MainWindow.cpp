@@ -8,7 +8,7 @@
 #include <context/WidgetIdGenerator.h>
 #include <context/imglog.h>
 #include <imgui.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>

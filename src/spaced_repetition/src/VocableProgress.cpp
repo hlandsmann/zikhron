@@ -2,7 +2,7 @@
 #include <annotation/Ease.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <utils/string_split.h>
 
 #include <algorithm>

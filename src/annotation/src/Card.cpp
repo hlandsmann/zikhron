@@ -1,5 +1,6 @@
 #include "Card.h"
 
+#include "AnnotationFwd.h"
 #include "Tokenizer.h"
 
 #include <JieBa.h>
@@ -11,7 +12,7 @@
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <utils/string_split.h>
 
 #include <cstddef>
@@ -40,14 +41,6 @@ auto Card::deserializeCard(std::string_view content, const CardInit& cardInit) -
     }
 
     return {};
-}
-
-Card::Card(std::string /* _filename */,
-           std::shared_ptr<WordDB> _wordDB,
-           std::shared_ptr<annotation::Tokenizer> _tokenizer)
-    : wordDB{std::move(_wordDB)}
-    , tokenizer{std::move(_tokenizer)}
-{
 }
 
 Card::Card(const CardInit& cardInit)
@@ -89,9 +82,19 @@ auto Card::getPackId() const -> PackId
     return packId;
 }
 
+auto Card::getPackName() const -> std::string
+{
+    return packName;
+}
+
 auto Card::getIndexInPack() const -> std::size_t
 {
     return indexInPack;
+}
+
+void Card::setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoices)
+{
+    tokens = tokenizer->getSplitForChoices(tokenizationChoices, getText(), tokens);
 }
 
 void Card::executeTokenizer()
@@ -102,16 +105,6 @@ void Card::executeTokenizer()
     // for (const auto& token : tokenVector) {
     //     wordDB->lookup(token);
     // }
-}
-
-DialogueCard::DialogueCard(std::string _filename,
-                           std::shared_ptr<WordDB> _wordDB,
-                           std::shared_ptr<annotation::Tokenizer> _tokenizer,
-                           std::vector<DialogueItem>&& _dialogue)
-    : Card{_filename, std::move(_wordDB), std::move(_tokenizer)}
-    , dialogue{std::move(_dialogue)}
-{
-    executeTokenizer();
 }
 
 DialogueCard::DialogueCard(std::string_view content,
@@ -169,16 +162,6 @@ auto DialogueCard::getText() const -> utl::StringU8
         result.append(std::string("~"));
     }
     return result;
-}
-
-TextCard::TextCard(std::string _filename,
-                   std::shared_ptr<WordDB> _wordDB,
-                   std::shared_ptr<annotation::Tokenizer> _tokenizer,
-                   icu::UnicodeString _text)
-    : Card{_filename, std::move(_wordDB), std::move(_tokenizer)}
-    , text{std::move(_text)}
-{
-    executeTokenizer();
 }
 
 TextCard::TextCard(std::string_view content,

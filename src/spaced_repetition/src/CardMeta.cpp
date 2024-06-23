@@ -104,6 +104,14 @@ auto CardMeta::getRelevantEase() const -> std::map<VocableId, Ease>
     return relevantEases;
 }
 
+void CardMeta::resetMetaData()
+{
+    optVocableIndices.reset();
+    optVocableIds.reset();
+    timingAndVocables.reset();
+    timingAndVocablesPulled.reset();
+}
+
 auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
 {
     auto vocable_progress = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].Progress(); };

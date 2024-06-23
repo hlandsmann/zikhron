@@ -10,6 +10,7 @@ PUBLIC
 target_sources(zikhron_annotation
     PRIVATE
         include/annotation/AdaptJiebaDict.h
+        include/annotation/AnnotationFwd.h
         include/annotation/Card.h
         include/annotation/CardPack.h
         include/annotation/CardPackDB.h
@@ -19,6 +20,7 @@ target_sources(zikhron_annotation
         include/annotation/Rules.h
         include/annotation/Token.h
         include/annotation/TokenText.h
+        include/annotation/TokenizationChoiceDB.h
         include/annotation/Tokenizer.h
         include/annotation/Word.h
         include/annotation/WordDB.h
@@ -32,6 +34,7 @@ target_sources(zikhron_annotation
         src/Rules.cpp
         src/Token.cpp
         src/TokenText.cpp
+        src/TokenizationChoiceDB.cpp
         src/Tokenizer.cpp
         src/Word.cpp
         src/WordDB.cpp

@@ -61,4 +61,9 @@ void VocableMeta::cardIndices_insert(std::size_t cardIndex)
 {
     cardIndices.insert(cardIndex);
 }
+
+void VocableMeta::cardIndices_erase(std::size_t cardIndex)
+{
+    cardIndices.erase(cardIndex);
+}
 } // namespace sr

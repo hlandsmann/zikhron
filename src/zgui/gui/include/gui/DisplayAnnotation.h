@@ -6,6 +6,7 @@
 #include <context/ColorSet.h>
 #include <context/Fonts.h>
 #include <context/WidgetIdGenerator.h>
+#include <utils/StringU8.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
@@ -28,6 +29,7 @@ public:
                       std::vector<annotation::Alternative> alternatives,
                       std::unique_ptr<annotation::TokenText> tokenText);
     void draw();
+    [[nodiscard]] auto getChoice() const -> std::vector<utl::StringU8>;
 
 private:
     constexpr static float s_border = 16.F;
@@ -57,6 +59,7 @@ private:
     context::ColorSetId colorSetId{context::ColorSetId::adjacentAlternate};
 
     std::unique_ptr<TokenizationOverlay> tokenizationOverlay;
+    std::vector<utl::StringU8> choice;
 };
 
 } // namespace gui

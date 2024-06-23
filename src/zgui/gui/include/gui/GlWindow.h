@@ -8,7 +8,7 @@
 #include <imgui.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <widgets/Box.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>

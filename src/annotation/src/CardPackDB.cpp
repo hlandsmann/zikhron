@@ -7,7 +7,7 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/Memory.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <algorithm>
 #include <filesystem>

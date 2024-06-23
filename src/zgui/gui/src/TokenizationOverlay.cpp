@@ -67,6 +67,11 @@ auto TokenizationOverlay::configured() const -> bool
     return wasConfigured;
 }
 
+auto TokenizationOverlay::getTokenizationChoice() const -> std::vector<utl::StringU8>
+{
+    return choice;
+}
+
 void TokenizationOverlay::setupBox()
 {
     overlay->start();
@@ -109,6 +114,10 @@ void TokenizationOverlay::drawAlternatives(widget::Box& box)
             current = *candidateIt;
             setupCurrent();
             hovered = true;
+        }
+        if (ranges::any_of(ttq.traverseToken(), &widget::TextToken::clicked)) {
+            choice = current;
+            overlay->close();
         }
         std::advance(candidateIt, 1);
     }

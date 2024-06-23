@@ -4,9 +4,11 @@
 #include "VocableProgress.h"
 #include "srtypes.h"
 
+#include <annotation/AnnotationFwd.h>
 #include <annotation/Card.h>
 #include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>
+#include <annotation/TokenizationChoiceDB.h>
 #include <annotation/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
@@ -43,8 +45,9 @@ public:
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
     [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
-    // [[nodiscard]] auto getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>;
+    [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<annotation::TokenizationChoiceDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
+    void reloadCard(const annotation::CardPtr& card);
 
     void setEaseVocable(VocableId, const Ease&);
     void triggerVocable(VocableId, CardId);
@@ -58,10 +61,9 @@ private:
 
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
-    // std::shared_ptr<CardAudioGroupDB> groupDB;
     std::shared_ptr<annotation::WordDB> wordDB;
-    std::shared_ptr<annotation::CardPackDB> cardDB;
-    // std::shared_ptr<annotation::CardDB> cardDB;
+    std::shared_ptr<annotation::CardPackDB> cardPackDB;
+    std::shared_ptr<annotation::TokenizationChoiceDB> tokenizationChoiceDB;
     std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;

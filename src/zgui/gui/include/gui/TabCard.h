@@ -6,11 +6,13 @@
 #include <annotation/CardPack.h>
 #include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>
+#include <annotation/TokenizationChoiceDB.h>
 #include <context/WidgetIdGenerator.h>
 #include <misc/Identifier.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/DataBase.h>
+#include <utils/StringU8.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
@@ -116,7 +118,8 @@ private:
     using BoxPtr = std::shared_ptr<widget::Box>;
     std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
     std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
-    std::shared_ptr<kocoro::VolatileSignal<bool>> signalAnnotationDone;
+    using TokenizationChoice = annotation::TokenizationChoice;
+    std::shared_ptr<kocoro::VolatileSignal<TokenizationChoice>> signalAnnotationDone;
     context::WidgetId boxId{};
 
     bool revealVocables{false};

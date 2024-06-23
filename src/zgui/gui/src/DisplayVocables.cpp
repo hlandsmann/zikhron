@@ -7,7 +7,7 @@
 #include <annotation/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Separator.h>

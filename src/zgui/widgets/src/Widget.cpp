@@ -2,7 +2,7 @@
 #include <context/WidgetIdGenerator.h>
 #include <detail/Widget.h>
 #include <spdlog/spdlog.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <algorithm>
 #include <memory>

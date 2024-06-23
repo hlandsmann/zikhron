@@ -12,13 +12,11 @@
 #include <span>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace ranges = std::ranges;
 
 namespace utl {
-
-StringU8::StringU8(const icu::UnicodeString& _str)
-    : StringU8(icustringToString(_str)) {}
 
 StringU8::StringU8(const std::string& str)
 {
@@ -111,16 +109,8 @@ void StringU8::append(const std::string& str)
     }
 }
 
-void StringU8::append(const icu::UnicodeString& uniStr)
+auto concanateStringsU8(const std::vector<StringU8>& strings) -> StringU8
 {
-    const std::string str = icustringToString(uniStr);
-    append(str);
-}
-
-auto icustringToString(const icu::UnicodeString& str) -> std::string
-{
-    std::string tempString;
-    str.toUTF8String(tempString);
-    return tempString;
+    return std::accumulate(strings.begin(), strings.end(), std::string{}, stringPlusT<StringU8>);
 }
 } // namespace utl

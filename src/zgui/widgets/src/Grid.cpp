@@ -2,7 +2,7 @@
 #include <context/imglog.h>
 #include <detail/MetaBox.h>
 #include <detail/Widget.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <algorithm>
 #include <cstddef>

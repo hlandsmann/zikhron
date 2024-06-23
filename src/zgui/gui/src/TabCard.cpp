@@ -41,7 +41,7 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
     : executor{std::move(_synchronousExecutor)}
     , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
     , signalProceed{executor->makeVolatileSignal<Proceed>()}
-    , signalAnnotationDone{executor->makeVolatileSignal<bool>()}
+    , signalAnnotationDone{executor->makeVolatileSignal<TokenizationChoice>()}
     , mpv{std::move(_mpv)}
 {
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
@@ -182,11 +182,17 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
             auto tokenText = cardMeta.getStudyTokenText();
             displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlay, alternatives, std::move(tokenText));
-            bool _ = co_await *signalAnnotationDone;
+            auto tokenizationChoice = co_await *signalAnnotationDone;
             displayAnnotation.reset();
-            signalProceed->set(Proceed::reload);
+            if (!tokenizationChoice.empty()) {
+                auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
+                auto card = cardDB->getCardAtCardId(cardMeta.Id()).card;
+                tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
+                dataBase->reloadCard(card);
 
-            cardIsValid = false;
+                cardIsValid = false;
+                signalProceed->set(Proceed::reload);
+            }
         } break;
 
         default:
@@ -234,6 +240,10 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
     }
     if (displayAnnotation) {
         displayAnnotation->draw();
+        auto choice = displayAnnotation->getChoice();
+        if (!choice.empty()) {
+            signalAnnotationDone->set(choice);
+        }
     } else if (displayText) {
         if (displayText->draw() && displayVocables) {
             displayVocables->reload();
@@ -350,26 +360,26 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
     if (displayText == nullptr) {
         return;
     }
+    bool submitOrNextClicked = false;
 
     if (displayVocables == nullptr) {
-        if (btnNext.clicked()) {
-            signalProceed->set(Proceed::next);
-        }
+        submitOrNextClicked |= btnNext.clicked();
     } else if (revealVocables) {
-        if (btnSubmit.clicked()) {
-            revealVocables = false;
-            switch (mode) {
-            case Mode::shuffle:
-                signalProceed->set(Proceed::submit_walkTree);
-                break;
-            case Mode::story:
-                signalProceed->set(Proceed::submit_next);
-                break;
-            }
-        }
+        submitOrNextClicked |= btnSubmit.clicked();
     } else {
         if (btnReveal.clicked()) {
             revealVocables = true;
+        }
+    }
+    if (submitOrNextClicked) {
+        revealVocables = false;
+        switch (mode) {
+        case Mode::shuffle:
+            signalProceed->set(Proceed::submit_walkTree);
+            break;
+        case Mode::story:
+            signalProceed->set(Proceed::submit_next);
+            break;
         }
     }
 }
@@ -431,12 +441,12 @@ void TabCard::handleAnnotate(widget::ImageButton& btnAnnotate)
     }
     if (btnAnnotate.clicked()) {
         if (btnAnnotate.isChecked()) {
-            signalAnnotationDone->set(true);
+            signalAnnotationDone->set({});
         } else {
             signalProceed->set(Proceed::annotate);
         }
-        btnAnnotate.setChecked(!btnAnnotate.isChecked());
     }
+    btnAnnotate.setChecked(displayAnnotation != nullptr);
 }
 
 void TabCard::handleDataBaseSave(widget::ImageButton& btnSave)

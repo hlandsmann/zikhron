@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/VocableProgress.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <utils/string_split.h>
 
 #include <algorithm>

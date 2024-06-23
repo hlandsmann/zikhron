@@ -5,7 +5,7 @@
 #include <annotation/Word.h>
 #include <context/Fonts.h>
 #include <misc/Identifier.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <widgets/Button.h>
 #include <widgets/Grid.h>
 #include <widgets/ImageButton.h>

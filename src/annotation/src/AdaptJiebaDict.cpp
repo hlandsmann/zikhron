@@ -3,7 +3,7 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <utils/StringU8.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <utils/string_split.h>
 
 #include <algorithm>

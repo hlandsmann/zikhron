@@ -27,6 +27,7 @@ public:
     void draw();
     [[nodiscard]] auto shouldClose() const -> bool;
     [[nodiscard]] auto configured() const -> bool;
+    [[nodiscard]] auto getTokenizationChoice() const -> std::vector<utl::StringU8>;
 
 private:
     void setupBox();
@@ -52,6 +53,7 @@ private:
     annotation::Alternative alternative;
 
     std::vector<utl::StringU8> current;
+    std::vector<utl::StringU8> choice;
     ColorId colorId{};
     bool wasConfigured = false;
 };

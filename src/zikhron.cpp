@@ -1,6 +1,6 @@
 #include <gui/GlWindow.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <boost/di.hpp>
 #include <kocoro/kocoro.hpp>

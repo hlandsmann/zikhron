@@ -6,7 +6,7 @@
 #include <WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <algorithm>
 #include <cassert>

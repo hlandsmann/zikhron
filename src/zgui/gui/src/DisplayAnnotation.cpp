@@ -5,7 +5,8 @@
 #include <annotation/TokenText.h>
 #include <annotation/Tokenizer.h>
 #include <context/Fonts.h>
-#include <utils/spdlog.h>
+#include <utils/StringU8.h>
+#include <utils/format.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
@@ -64,6 +65,7 @@ void DisplayAnnotation::draw()
     if (tokenizationOverlay) {
         tokenizationOverlay->draw();
         if (tokenizationOverlay->shouldClose()) {
+            choice = tokenizationOverlay->getTokenizationChoice();
             tokenizationOverlay.reset();
         }
     }
@@ -72,6 +74,11 @@ void DisplayAnnotation::draw()
         auto& [token, alternative] = optAlternateToken.value();
         tokenizationOverlay = std::make_unique<TokenizationOverlay>(overlay, token, alternative);
     }
+}
+
+auto DisplayAnnotation::getChoice() const -> std::vector<utl::StringU8>
+{
+    return choice;
 }
 
 void DisplayAnnotation::drawDialogue()

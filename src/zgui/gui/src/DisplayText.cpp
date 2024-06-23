@@ -3,7 +3,7 @@
 #include <VocableOverlay.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>

@@ -1,4 +1,5 @@
 #pragma once
+#include "AnnotationFwd.h"
 #include "Token.h"
 #include "Tokenizer.h"
 #include "WordDB.h"
@@ -10,9 +11,7 @@
 #include <utils/StringU8.h>
 
 #include <cstddef>
-#include <map>
 #include <memory>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -20,9 +19,6 @@
 #include <sys/types.h>
 
 namespace annotation {
-
-class Card;
-using CardPtr = std::shared_ptr<Card>;
 
 struct CardInit
 {
@@ -39,9 +35,6 @@ public:
     using CharacterSequence = std::vector<utl::CharU8>;
     static auto deserializeCard(std::string_view content, const CardInit& cardInit) -> CardPtr;
 
-    Card(std::string filename,
-         std::shared_ptr<WordDB> wordDB,
-         std::shared_ptr<annotation::Tokenizer> tokenizer);
     Card(const CardInit& cardInit);
     Card(const Card&) = default;
     Card(Card&&) = default;
@@ -56,7 +49,9 @@ public:
     [[nodiscard]] auto getAlternatives() const -> std::vector<Alternative>;
     [[nodiscard]] virtual auto serialize() const -> std::string = 0;
     [[nodiscard]] auto getPackId() const -> PackId;
+    [[nodiscard]] auto getPackName() const -> std::string;
     [[nodiscard]] auto getIndexInPack() const -> std::size_t;
+    void setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoices);
 
 protected:
     void executeTokenizer();
@@ -83,10 +78,6 @@ public:
         utl::StringU8 text;
     };
 
-    DialogueCard(std::string filename,
-                 std::shared_ptr<WordDB> wordDB,
-                 std::shared_ptr<Tokenizer> tokenizer,
-                 std::vector<DialogueItem>&& dialogue);
     DialogueCard(std::string_view content,
                  const CardInit& cardInit);
     DialogueCard(const DialogueCard&) = default;
@@ -109,10 +100,6 @@ private:
 class TextCard : public Card
 {
 public:
-    TextCard(std::string filename,
-             std::shared_ptr<WordDB> wordDB,
-             std::shared_ptr<Tokenizer> tokenizer,
-             icu::UnicodeString text);
     TextCard(std::string_view content,
              const CardInit& cardInit);
     TextCard(const TextCard&) = default;

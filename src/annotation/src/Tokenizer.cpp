@@ -1,5 +1,6 @@
 #include "Tokenizer.h"
 
+#include "AnnotationFwd.h"
 #include "FreqDictionary.h"
 
 #include <Token.h>
@@ -7,7 +8,7 @@
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <utils/StringU8.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <algorithm>
 #include <cassert>
@@ -303,6 +304,38 @@ auto Tokenizer::getAlternatives(const std::string& text, const std::vector<Token
         alternatives.push_back(alternative);
     }
     return alternatives;
+}
+
+auto Tokenizer::getSplitForChoices(const TokenizationChoiceVec& choices,
+                                     const std::string& text,
+                                     const std::vector<Token>& currentSplit)
+        -> std::vector<Token>
+{
+    auto alternatives = getAlternatives(text, currentSplit);
+    for (const auto& choice : choices) {
+        auto alternativeIt = ranges::find_if(alternatives, [&choice](const Alternative& alternative) {
+            return utl::concanateStringsU8(alternative.current) == utl::concanateStringsU8(choice);
+        });
+        if (alternativeIt != alternatives.end()) {
+            alternativeIt->current = choice;
+        }
+    }
+    std::vector<Token> result;
+    for (const auto& alternative : alternatives) {
+        for (const auto& str : alternative.current) {
+            if (auto word = wordDB->lookup(str)) {
+                result.emplace_back(str, word);
+                continue;
+            }
+            if (const auto& rule = rules.findRule(str); !rule.empty()) {
+                auto word = wordDB->lookup(rule);
+                result.emplace_back(str, word);
+                continue;
+            }
+            result.emplace_back(utl::StringU8{str});
+        }
+    }
+    return result;
 }
 
 // jieba misses some words, which are present in dictionary - if they contain some elements (like commas).

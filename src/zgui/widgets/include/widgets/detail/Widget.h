@@ -3,7 +3,7 @@
 #include <context/WidgetIdGenerator.h>
 #include <context/imglog.h>
 #include <imgui.h>
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <format>
 #include <magic_enum.hpp>

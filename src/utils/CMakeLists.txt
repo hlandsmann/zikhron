@@ -12,9 +12,9 @@ target_sources(zikhron_utils
         include/utils/Memory.h
         include/utils/StringU8.h
         include/utils/counting_iterator.h
+        include/utils/format.h
         include/utils/index_map.h
         include/utils/min_element_val.h
-        include/utils/spdlog.h
         include/utils/string_split.h
         include/utils/variant_cast.h
         src/StringU8.cpp

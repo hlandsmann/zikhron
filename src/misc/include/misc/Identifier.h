@@ -1,5 +1,5 @@
 #pragma once
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <limits>
 enum PackId : unsigned;

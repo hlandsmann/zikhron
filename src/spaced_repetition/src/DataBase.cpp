@@ -2,7 +2,9 @@
 #include <DataBase.h>
 #include <VocableMeta.h>
 #include <VocableProgress.h>
+#include <annotation/AnnotationFwd.h>
 #include <annotation/Ease.h>
+#include <annotation/TokenizationChoiceDB.h>
 #include <annotation/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
@@ -34,8 +36,9 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
     // , groupDB{std::make_shared<CardAudioGroupDB>()}
     , wordDB{std::make_shared<annotation::WordDB>(config)}
-    , cardDB{std::make_shared<CardPackDB>(config,
-                                          wordDB)}
+    , cardPackDB{std::make_shared<CardPackDB>(config,
+                                              wordDB)}
+    , tokenizationChoiceDB{std::make_shared<annotation::TokenizationChoiceDB>(config)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
     , cards{std::make_shared<utl::index_map<CardId, CardMeta>>()}
 {
@@ -64,17 +67,40 @@ auto DataBase::Cards() -> utl::index_map<CardId, CardMeta>&
 
 auto DataBase::getCardPackDB() const -> std::shared_ptr<CardPackDB>
 {
-    return cardDB;
+    return cardPackDB;
 }
 
-// auto DataBase::getGroupDB() const -> std::shared_ptr<CardAudioGroupDB>
-// {
-//     return groupDB;
-// }
+auto DataBase::getTokenizationChoiceDB() const -> std::shared_ptr<annotation::TokenizationChoiceDB>
+{
+    return tokenizationChoiceDB;
+}
 
 auto DataBase::getWordDB() const -> std::shared_ptr<WordDB>
 {
     return wordDB;
+}
+
+void DataBase::reloadCard(const annotation::CardPtr& card)
+{
+    const auto& [cardIndex, cardMeta] = cards->at_id(card->getCardId());
+    for (auto vocableIndex : cardMeta.VocableIndices()) {
+        auto& vocableMeta = (*vocables)[vocableIndex];
+        vocableMeta.cardIndices_erase(cardIndex);
+    }
+    auto tokenizationChoices = tokenizationChoiceDB->getChoicesForCard(card->getCardId());
+    card->setTokenizationChoices(tokenizationChoices);
+    (*cards)[cardIndex].resetMetaData();
+    for (VocableId vocId : cardMeta.VocableIds()) {
+        if (vocables->contains(vocId)) {
+            continue;
+        }
+        const auto& word = wordDB->lookupId(vocId);
+        vocables->emplace(word->getId(), word->getProgress());
+    }
+    for (auto vocableIndex : cardMeta.VocableIndices()) {
+        auto& vocableMeta = (*vocables)[vocableIndex];
+        vocableMeta.cardIndices_insert(cardIndex);
+    }
 }
 
 void DataBase::setEaseVocable(VocableId vocId, const Ease& ease)
@@ -114,7 +140,7 @@ auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, Vocab
 void DataBase::fillIndexMaps()
 {
     vocId_set allVocableIds;
-    for (const auto& [id, card] : cardDB->getCards()) {
+    for (const auto& [id, card] : cardPackDB->getCards()) {
         (*cards).emplace(id, id, card.card, vocables);
     }
 

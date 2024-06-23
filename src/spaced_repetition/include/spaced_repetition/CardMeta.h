@@ -39,13 +39,15 @@ public:
 
     [[nodiscard]] auto getRelevantEase() const -> std::map<VocableId, Ease>;
 
+    void resetMetaData();
+
 private:
     [[nodiscard]] auto generateTimingAndVocables(bool pull) const -> TimingAndVocables;
     auto generateVocableIDs() const -> std::vector<VocableId>;
     auto generateVocableIndexes() const -> index_set;
     auto getActiveVocableIds() const -> std::vector<VocableId>;
     auto easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>;
-    CardId cardId;
+    CardId cardId{};
     std::shared_ptr<Card> card;
     mutable std::optional<index_set> optVocableIndices;
     mutable std::optional<vocId_set> optVocableIds;

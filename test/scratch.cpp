@@ -1,4 +1,4 @@
-#include <utils/spdlog.h>
+#include <utils/format.h>
 
 #include <algorithm>
 #include <cstddef>

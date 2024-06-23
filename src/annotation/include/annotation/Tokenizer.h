@@ -1,4 +1,5 @@
 #pragma once
+#include "AnnotationFwd.h"
 #include "FreqDictionary.h"
 #include "JieBa.h"
 #include "Rules.h"
@@ -46,6 +47,10 @@ public:
 
     [[nodiscard]] auto split(const std::string& text) -> std::vector<Token>;
     auto getAlternatives(const std::string& text, const std::vector<Token>& currentSplit) -> std::vector<Alternative>;
+    auto getSplitForChoices(const TokenizationChoiceVec& choices,
+                              const std::string& text,
+                              const std::vector<Token>& currentSplit)
+            -> std::vector<Token>;
 
 private:
     [[nodiscard]] auto getCandidates(const utl::StringU8& text,
