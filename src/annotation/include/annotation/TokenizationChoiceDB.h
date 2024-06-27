@@ -13,6 +13,7 @@
 #include <set>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace annotation {
@@ -24,7 +25,13 @@ class TokenizationChoiceDB
 
     using PackName = std::string;
     using IndicesInPack = std::set<std::size_t>;
-    using PackPosition = std::map<PackName, IndicesInPack>;
+    using PackPosition = std::pair<PackName, IndicesInPack>;
+
+    struct TokenizationChoicePosition
+    {
+        TokenizationChoice tokenizationChoice;
+        std::map<PackName, IndicesInPack> packPositions;
+    };
 
 public:
     TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config);
@@ -32,11 +39,13 @@ public:
     auto getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>;
 
 private:
-    [[nodiscard]] static auto deserialize(const std::filesystem::path& dbFile) -> std::map<TokenizationChoice, PackPosition>;
+    [[nodiscard]] static auto deserialize(const std::filesystem::path& dbFile) -> std::vector<TokenizationChoicePosition>;
     [[nodiscard]] static auto parseChoice(std::string_view sv) -> TokenizationChoice;
+    [[nodiscard]] static auto parsePackPosition(std::string_view sv) -> PackPosition;
+
     std::filesystem::path dbFile;
 
-    std::map<TokenizationChoice, PackPosition> choices;
+    std::vector<TokenizationChoicePosition> choices;
     std::map<CardId, TokenizationChoiceVec> choicesForCards;
 };
 } // namespace annotation

@@ -10,10 +10,13 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <stdexcept>
+#include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace ranges = std::ranges;
@@ -30,14 +33,17 @@ void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, 
     auto oldChoiceIt = ranges::find_if(choices,
                                        [&choice](const TokenizationChoice& tc) -> bool {
                                            return utl::concanateStringsU8(tc) == utl::concanateStringsU8(choice);
-                                       }, &decltype(choices)::value_type::first);
+                                       }, &TokenizationChoicePosition::tokenizationChoice);
     // clang-format on
-    if (oldChoiceIt != choices.end() && oldChoiceIt->first != choice) {
-        choices[choice] = oldChoiceIt->second;
-        choices.erase(oldChoiceIt);
+    if (oldChoiceIt != choices.end()) {
+        oldChoiceIt->tokenizationChoice = choice;
+    } else {
+        choices.push_back({.tokenizationChoice = choice,
+                           .packPositions = {}});
+        oldChoiceIt = std::prev(choices.end());
     }
 
-    auto& location = choices[choice];
+    auto& location = oldChoiceIt->packPositions;
     location[card->getPackName()].insert(card->getIndexInPack());
 
     auto& choicesForCard = choicesForCards[card->getCardId()];
@@ -59,9 +65,9 @@ auto TokenizationChoiceDB::getChoicesForCard(CardId cardId) -> std::vector<Token
     return {};
 }
 
-auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> std::map<TokenizationChoice, PackPosition>
+auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> std::vector<TokenizationChoicePosition>
 {
-    std::map<TokenizationChoice, PackPosition> choices;
+    std::vector<TokenizationChoicePosition> choices;
     if (!std::filesystem::exists(dbFile)) {
         return {};
     }
@@ -82,12 +88,44 @@ auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> s
     }
 
     while (!rest.empty()) {
+        auto choiceSV = utl::split_front(rest, '\n');
+        auto choice = parseChoice(choiceSV);
+
+        std::map<PackName, IndicesInPack> packPositions;
+        auto packPositionSV = utl::split_front(rest, '\n');
+        while (!packPositionSV.empty()) {
+            auto packPosition = parsePackPosition(packPositionSV);
+            packPositions.insert(std::move(packPosition));
+            packPositionSV = utl::split_front(rest, '\n');
+        }
+        choices.push_back({.tokenizationChoice = std::move(choice),
+                           .packPositions = std::move(packPositions)});
     }
     return choices;
 }
 
-auto parseChoice(std::string_view sv) -> TokenizationChoice
+auto TokenizationChoiceDB::parseChoice(std::string_view sv) -> TokenizationChoice
 {
-    return {};
+    auto rest = sv;
+    TokenizationChoice choice;
+    while (!rest.empty()) {
+        auto token = utl::split_front(rest, '/');
+        choice.emplace_back(token);
+    }
+    return choice;
 }
+
+auto TokenizationChoiceDB::parsePackPosition(std::string_view sv) -> PackPosition
+{
+    auto rest = sv;
+    PackPosition packPosition;
+    utl::StringU8 packName = utl::split_front(rest, '/');
+    IndicesInPack indicesInPack;
+    while (!rest.empty()) {
+        auto index = std::string{utl::split_front(rest, '/')};
+        indicesInPack.insert(std::stoul(index));
+    }
+    return {packName, indicesInPack};
+}
+
 } // namespace annotation
