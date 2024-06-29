@@ -34,11 +34,10 @@ namespace views = std::views;
 namespace sr {
 DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
-    // , groupDB{std::make_shared<CardAudioGroupDB>()}
     , wordDB{std::make_shared<annotation::WordDB>(config)}
     , cardPackDB{std::make_shared<CardPackDB>(config,
                                               wordDB)}
-    , tokenizationChoiceDB{std::make_shared<annotation::TokenizationChoiceDB>(config)}
+    , tokenizationChoiceDB{std::make_shared<annotation::TokenizationChoiceDB>(config, *cardPackDB)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
     , cards{std::make_shared<utl::index_map<CardId, CardMeta>>()}
 {
@@ -47,13 +46,13 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
 
 DataBase::~DataBase()
 {
-    wordDB->save();
-    tokenizationChoiceDB->save();
+    save();
 }
 
 void DataBase::save()
 {
     wordDB->save();
+    tokenizationChoiceDB->save();
 }
 
 auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
@@ -141,6 +140,10 @@ auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, Vocab
 void DataBase::fillIndexMaps()
 {
     vocId_set allVocableIds;
+    for (const auto& [cardId, choices] : tokenizationChoiceDB->getChoicesForCards()) {
+        const auto& cardPtr = cardPackDB->getCardAtCardId(cardId).card;
+        cardPtr->setTokenizationChoices(choices);
+    }
     for (const auto& [id, card] : cardPackDB->getCards()) {
         (*cards).emplace(id, id, card.card, vocables);
     }

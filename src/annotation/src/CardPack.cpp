@@ -1,5 +1,6 @@
 #include "CardPack.h"
 
+#include "AnnotationFwd.h"
 #include "Card.h"
 #include "Tokenizer.h"
 #include "WordDB.h"
@@ -8,6 +9,7 @@
 #include <utils/format.h>
 #include <utils/string_split.h>
 
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <magic_enum.hpp>
@@ -43,6 +45,11 @@ auto CardPack::getCards() const -> const std::vector<CardAudio>&
     return cards;
 }
 
+auto CardPack::getCardByIndex(std::size_t index) const -> const CardAudio&
+{
+    return cards.at(index);
+}
+
 auto CardPack::getFirstCard() const -> const CardAudio&
 {
     return cards.front();
@@ -75,6 +82,11 @@ auto CardPack::getPreviousCard(const CardPtr& card) const -> std::optional<CardA
         return {cards.at(indexInPack - 1)};
     }
     return {};
+}
+
+auto CardPack::getName() const -> std::string
+{
+    return name;
 }
 
 void CardPack::deserialize()

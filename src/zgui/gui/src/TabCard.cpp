@@ -198,6 +198,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         default:
             break;
         }
+        if (mpv && !mpv->is_paused()) {
+            mpv->pause();
+        }
         if (!cardIsValid) {
             proceed = co_await *signalProceed;
             continue;

@@ -1,6 +1,7 @@
 #include "TokenizationChoiceDB.h"
 
 #include "AnnotationFwd.h"
+#include "CardPackDB.h"
 
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -23,19 +24,34 @@
 namespace ranges = std::ranges;
 
 namespace annotation {
-TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config)
+TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config, const CardPackDB& cardPackDB)
     : dbFile{config->DatabaseDirectory() / s_tokenizationChoiceDBFile}
     , choices{deserialize(dbFile)}
-{}
+{
+    syncIdsWithCardPackDB(cardPackDB);
+}
+
+void TokenizationChoiceDB::syncIdsWithCardPackDB(const CardPackDB& cardPackDB)
+{
+    for (const auto& tokenizationChoicePosition : choices) {
+        const auto& choice = tokenizationChoicePosition.tokenizationChoice;
+        for (const auto& [packName, indicesInPack] : tokenizationChoicePosition.packPositions) {
+            const auto& pack = cardPackDB.getCardPack(packName);
+            for (const auto indexInPack : indicesInPack) {
+                const auto& card = pack->getCardByIndex(indexInPack);
+                choicesForCards[card.card->getCardId()].push_back(choice);
+            }
+        }
+    }
+}
 
 void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, CardPtr card)
 {
-    // clang-format off
-    auto oldChoiceIt = ranges::find_if(choices,
+    // put choice into choices container
+    auto oldChoiceIt = ranges::find_if(choices, // clang-format off
                                        [&choice](const TokenizationChoice& tc) -> bool {
                                            return utl::concanateStringsU8(tc) == utl::concanateStringsU8(choice);
-                                       }, &TokenizationChoicePosition::tokenizationChoice);
-    // clang-format on
+                                       }, &TokenizationChoicePosition::tokenizationChoice); // clang-format on
     if (oldChoiceIt != choices.end()) {
         oldChoiceIt->tokenizationChoice = choice;
     } else {
@@ -43,10 +59,10 @@ void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, 
                            .packPositions = {}});
         oldChoiceIt = std::prev(choices.end());
     }
-
     auto& location = oldChoiceIt->packPositions;
     location[card->getPackName()].insert(card->getIndexInPack());
 
+    // synchronize choicesForCards with choices container
     auto& choicesForCard = choicesForCards[card->getCardId()];
     auto oldChoiceForCardIt = ranges::find_if(choicesForCard,
                                               [&choice](const TokenizationChoice& tc) -> bool {
@@ -64,6 +80,11 @@ auto TokenizationChoiceDB::getChoicesForCard(CardId cardId) -> std::vector<Token
         return choicesForCards.at(cardId);
     }
     return {};
+}
+
+auto TokenizationChoiceDB::getChoicesForCards() const -> const std::map<CardId, TokenizationChoiceVec>&
+{
+    return choicesForCards;
 }
 
 void TokenizationChoiceDB::save()

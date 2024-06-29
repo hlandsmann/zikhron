@@ -1,5 +1,6 @@
 #pragma once
-#include "Card.h"
+#include <cstddef>
+#include "AnnotationFwd.h"
 #include "Tokenizer.h"
 #include "WordDB.h"
 
@@ -9,7 +10,6 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
-#include <set>
 #include <string>
 #include <vector>
 
@@ -37,10 +37,12 @@ public:
              std::shared_ptr<Tokenizer> tokenizer);
     [[nodiscard]] auto getCards() const -> const std::vector<CardAudio>&;
 
+    [[nodiscard]] auto getCardByIndex(std::size_t index) const -> const CardAudio&;
     [[nodiscard]] auto getFirstCard() const -> const CardAudio&;
     [[nodiscard]] auto getLastCard() const -> const CardAudio&;
     [[nodiscard]] auto getNextCard(const CardPtr& card) const -> std::optional<CardAudio>;
     [[nodiscard]] auto getPreviousCard(const CardPtr& card) const -> std::optional<CardAudio>;
+    [[nodiscard]] auto getName() const -> std::string;
 
 private:
     void deserialize();

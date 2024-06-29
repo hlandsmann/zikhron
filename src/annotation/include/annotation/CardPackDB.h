@@ -10,6 +10,7 @@
 #include <generator>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace annotation {
@@ -26,14 +27,22 @@ public:
     [[nodiscard]] auto getAnnotationAlternativesForCard(CardId) const -> std::vector<Alternative>;
     [[nodiscard]] auto getCardAtCardId(CardId) const -> const CardAudio&;
     [[nodiscard]] auto getCardPackForCardId(CardId) const -> CardPackPtr;
+    [[nodiscard]] auto getCardPack(const std::string& packName) const -> CardPackPtr;
 
 private:
-    auto loadCardPacks(std::filesystem::path directory) -> std::vector<CardPackPtr>;
+    [[nodiscard]] static auto loadCardPacks(const std::filesystem::path& directory,
+                                            const std::shared_ptr<WordDB>& wordDB,
+                                            const std::shared_ptr<Tokenizer>& tokenizer)
+            -> std::vector<CardPackPtr>;
+    [[nodiscard]] static auto setupNameCardPack(const std::vector<CardPackPtr>& cardPacks)
+            -> std::map<std::string, CardPackPtr>;
     [[nodiscard]] auto traverseCards() const -> std::generator<CardAudio>;
     void setupCards();
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<Tokenizer> tokenizer;
     std::vector<CardPackPtr> cardPacks;
+    std::map<std::string, CardPackPtr> name_cardPack;
+
     std::map<CardId, CardAudio> cards;
 };
 } // namespace annotation

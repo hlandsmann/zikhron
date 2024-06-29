@@ -18,6 +18,8 @@
 
 namespace annotation {
 
+class CardPackDB;
+
 class TokenizationChoiceDB
 {
     static constexpr auto s_tokenizationChoiceDBFile = "tokenizationChoices.zdb";
@@ -34,12 +36,14 @@ class TokenizationChoiceDB
     };
 
 public:
-    TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config);
+    TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config, const CardPackDB& cardPackDB);
     void insertTokenization(const TokenizationChoice& choice, std::shared_ptr<Card> card);
     auto getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>;
+    [[nodiscard]] auto getChoicesForCards() const -> const std::map<CardId, TokenizationChoiceVec>&;
     void save();
 
 private:
+    void syncIdsWithCardPackDB(const CardPackDB& cardPackDB);
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] static auto serializeChoice(const TokenizationChoice&) -> std::string;
     [[nodiscard]] static auto serializePackPosition(const PackPosition&) -> std::string;
