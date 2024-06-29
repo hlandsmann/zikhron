@@ -50,7 +50,7 @@ VocableProgress::VocableProgress(std::string_view sv)
         if (cardId.empty()) {
             break;
         }
-        triggerCards.push_back(static_cast<CardId>(std::stoul(cardId)));
+        triggerCardIndices.push_back(static_cast<CardId>(std::stoul(cardId)));
     }
 }
 
@@ -60,7 +60,7 @@ auto VocableProgress::serialize() const -> std::string
                        serialize_time_t(lastSeen),
                        easeFactor,
                        intervalDay,
-                       fmt::join(triggerCards, ","));
+                       fmt::join(triggerCardIndices, ","));
 }
 
 auto VocableProgress::RepeatRange::implies(const RepeatRange& other) const -> bool
@@ -100,30 +100,44 @@ void VocableProgress::advanceByEase(const Ease& ease)
     easeFactor = progress.easeFactor;
 }
 
-void VocableProgress::triggeredBy(CardId cardId)
+void VocableProgress::triggeredBy(CardId cardId, const std::vector<CardId>& availableCardIds)
 {
-    auto it = ranges::find(triggerCards, cardId);
-    if (it != triggerCards.end()) {
-        triggerCards.erase(it);
+    auto cardIdit = ranges::find(availableCardIds, cardId);
+    auto cardIdindex = static_cast<std::size_t>(std::distance(availableCardIds.begin(), cardIdit));
+    auto it = ranges::find(triggerCardIndices, cardIdindex);
+    if (it != triggerCardIndices.end()) {
+        triggerCardIndices.erase(it);
     }
-    triggerCards.push_back(cardId);
+    triggerCardIndices.push_back(cardIdindex);
 }
 
-auto VocableProgress::getNextTriggerCard(std::set<CardId> availableCardIds) const -> CardId
+auto VocableProgress::getNextTriggerCard(const std::vector<CardId>& availableCardIds) const -> CardId
 {
-    for (CardId cardId : triggerCards) {
-        availableCardIds.erase(cardId);
-    }
+    std::vector<std::size_t> triggerCardsTemp;
+    ranges::copy_if(triggerCardIndices, std::back_inserter(triggerCardsTemp),
+                    [maxIndex = availableCardIds.size() - 1](std::size_t index) -> bool {
+                        return index <= maxIndex;
+                    });
+
+    std::vector<CardId> triggerCardIds;
+    ranges::transform(triggerCardsTemp, std::back_inserter(triggerCardIds),
+                      [&availableCardIds](std::size_t index) { return availableCardIds.at(index); });
     CardId result{};
-    if (not availableCardIds.empty()) {
-        result = *availableCardIds.begin();
-        spdlog::info("Triggered so far by [{}], now triggering: {} (new avaliable)", fmt::join(triggerCards, ", "), result);
-    } else if (not triggerCards.empty()) {
-        result = *triggerCards.begin();
-        spdlog::info("Triggered so far by [{}], now triggering: {} (old card)", fmt::join(triggerCards, ", "), result);
-    } else {
-        spdlog::error("Couldn't find next trigger card");
+    if (triggerCardsTemp.size() == availableCardIds.size()) {
+        result = availableCardIds.at(triggerCardsTemp.front());
+        spdlog::info("Triggered so far by [{}], now triggering: {} (old card)", fmt::join(triggerCardIds, ", "), result);
+        return result;
     }
+    ranges::sort(triggerCardsTemp);
+    std::size_t cardIndex = 0;
+    for (auto index : triggerCardsTemp) {
+        if (cardIndex != index) {
+            break;
+        }
+        cardIndex++;
+    }
+    result = availableCardIds.at(cardIndex);
+    spdlog::info("Triggered so far by [{}], now triggering: {} (new avaliable)", fmt::join(triggerCardIds, ", "), result);
     return result;
 }
 
@@ -140,26 +154,6 @@ auto VocableProgress::pauseTimeOver() const -> bool
     std::time_t now_time = std::time(nullptr);
 
     return last_time < now_time;
-}
-
-auto VocableProgress::fromJson(const nlohmann::json& jsonIn) -> pair_t
-{
-    Init init = {.easeFactor = jsonIn.at(VocableProgress::s_ease_factor),
-                 .intervalDay = jsonIn.at(VocableProgress::s_interval_day),
-                 .triggeredBy = deserialize_vector<CardId>(jsonIn.at(VocableProgress::s_triggered_by)),
-                 .lastSeen = deserialize_time_t(jsonIn.at(VocableProgress::s_last_seen))};
-    return {jsonIn.at(std::string(VocableProgress::s_id)), {init}};
-}
-
-auto VocableProgress::toJson(const pair_t& pair) -> nlohmann::json
-{
-    const VocableProgress& vocSR = pair.second;
-    return {
-            {VocableProgress::s_id, pair.first},
-            {VocableProgress::s_ease_factor, vocSR.easeFactor},
-            {VocableProgress::s_interval_day, vocSR.intervalDay},
-            {VocableProgress::s_triggered_by, serialize_vector(vocSR.triggerCards)},
-            {VocableProgress::s_last_seen, serialize_time_t(vocSR.lastSeen)}};
 }
 
 auto VocableProgress::isToBeRepeatedToday() const -> bool

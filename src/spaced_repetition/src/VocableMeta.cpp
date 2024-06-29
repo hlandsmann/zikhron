@@ -16,6 +16,7 @@
 #include <memory>
 #include <set>
 #include <utility>
+#include <vector>
 
 #include <sys/types.h>
 
@@ -43,18 +44,16 @@ void VocableMeta::advanceByEase(const Ease& ease)
     progress->advanceByEase(ease);
 }
 
-void VocableMeta::triggerByCardId(CardId cardId)
+void VocableMeta::triggerByCardId(CardId cardId, const utl::index_map<CardId, CardMeta>& cards)
 {
-    progress->triggeredBy(cardId);
+    auto cardIds = getCardIds(cards);
+    progress->triggeredBy(cardId, cardIds);
 }
 
-auto VocableMeta::getNextTriggerCard(const std::shared_ptr<DataBase>& db) const -> CardId
+auto VocableMeta::getNextTriggerCard(const utl::index_map<CardId, CardMeta>& cards) const -> CardId
 {
-    std::set<CardId> cardIds;
-    ranges::transform(cardIndices, std::inserter(cardIds, cardIds.begin()), [&](size_t cardIndex) -> CardId {
-        return db->Cards().id_from_index(cardIndex);
-    });
-    return progress->getNextTriggerCard(std::move(cardIds));
+    auto cardIds = getCardIds(cards);
+    return progress->getNextTriggerCard(cardIds);
 }
 
 void VocableMeta::cardIndices_insert(std::size_t cardIndex)
@@ -65,5 +64,14 @@ void VocableMeta::cardIndices_insert(std::size_t cardIndex)
 void VocableMeta::cardIndices_erase(std::size_t cardIndex)
 {
     cardIndices.erase(cardIndex);
+}
+
+auto VocableMeta::getCardIds(const utl::index_map<CardId, CardMeta>& cards) const -> std::vector<CardId>
+{
+    std::vector<CardId> cardIds;
+    ranges::transform(cardIndices, std::inserter(cardIds, cardIds.begin()), [&](size_t cardIndex) -> CardId {
+        return cards.id_from_index(cardIndex);
+    });
+    return cardIds;
 }
 } // namespace sr

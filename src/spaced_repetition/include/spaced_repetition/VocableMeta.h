@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <vector>
 
 namespace sr {
 
@@ -20,13 +21,14 @@ public:
     [[nodiscard]] auto Progress() const -> const VocableProgress&;
     [[nodiscard]] auto CardIndices() const -> const index_set&;
     void advanceByEase(const Ease&);
-    void triggerByCardId(CardId cardId);
-    [[nodiscard]] auto getNextTriggerCard(const std::shared_ptr<DataBase>& db) const -> CardId;
+    void triggerByCardId(CardId cardId, const utl::index_map<CardId, CardMeta>& cards);
+    [[nodiscard]] auto getNextTriggerCard(const utl::index_map<CardId, CardMeta>& cards) const -> CardId;
 
     void cardIndices_insert(std::size_t cardIndex);
     void cardIndices_erase(std::size_t cardIndex);
 
 private:
+    [[nodiscard]] auto getCardIds(const utl::index_map<CardId, CardMeta>& cards) const -> std::vector<CardId>;
     std::shared_ptr<VocableProgress> progress;
     index_set cardIndices;
 };

@@ -62,7 +62,7 @@ auto TreeWalker::getNextTargetVocable(const std::shared_ptr<index_set>& ignoreCa
         auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
         size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
 
-        auto cardId = db->Vocables()[targetVocable].getNextTriggerCard(db);
+        auto cardId = db->Vocables()[targetVocable].getNextTriggerCard(db->Cards());
         auto cardIndex = db->Cards().index_at_id(cardId);
         if (not ignoreCards->contains(cardIndex)) {
             return {targetVocable};
@@ -122,12 +122,13 @@ auto TreeWalker::getFailedVocableCleanTreeCardIndex(const std::shared_ptr<index_
 auto TreeWalker::removeRepeatNowCardIndex(const std::shared_ptr<index_set>& ignoreCards) -> bool
 {
     bool cardRemoved = false;
-    for (size_t failedVoc : failedVocables) {
+    const auto failedVocablesTmp = failedVocables;
+    for (size_t failedVoc : failedVocablesTmp) {
         const VocableMeta& vocable = db->Vocables()[failedVoc];
         if (vocable.Progress().pauseTimeOver()) {
             spdlog::info("pause time over for: {}", failedVoc);
             failedVocables.erase(failedVoc);
-            CardId triggerCard = vocable.getNextTriggerCard(db);
+            CardId triggerCard = vocable.getNextTriggerCard(db->Cards());
             size_t triggerCardIndex = db->Cards().index_at_id(triggerCard);
             ignoreCards->erase(triggerCardIndex);
             cardRemoved = true;
@@ -201,7 +202,7 @@ void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
 
 auto TreeWalker::createTree(size_t targetVocableIndex, std::shared_ptr<index_set> ignoreCardIndices) const -> Tree
 {
-    auto cardId = db->Vocables()[targetVocableIndex].getNextTriggerCard(db);
+    auto cardId = db->Vocables()[targetVocableIndex].getNextTriggerCard(db->Cards());
     auto cardIndex = db->Cards().index_at_id(cardId);
 
     spdlog::info("TargetVocable: {}, cardSize: {}", targetVocableIndex,

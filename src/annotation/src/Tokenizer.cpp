@@ -307,17 +307,21 @@ auto Tokenizer::getAlternatives(const std::string& text, const std::vector<Token
 }
 
 auto Tokenizer::getSplitForChoices(const TokenizationChoiceVec& choices,
-                                     const std::string& text,
-                                     const std::vector<Token>& currentSplit)
+                                   const std::string& text,
+                                   const std::vector<Token>& currentSplit)
         -> std::vector<Token>
 {
     auto alternatives = getAlternatives(text, currentSplit);
     for (const auto& choice : choices) {
-        auto alternativeIt = ranges::find_if(alternatives, [&choice](const Alternative& alternative) {
-            return utl::concanateStringsU8(alternative.current) == utl::concanateStringsU8(choice);
-        });
-        if (alternativeIt != alternatives.end()) {
-            alternativeIt->current = choice;
+        auto alternativeIt = alternatives.begin();
+        while (alternativeIt != alternatives.end()) {
+            alternativeIt = ranges::find_if(alternativeIt, alternatives.end(), [&choice](const Alternative& alternative) {
+                return utl::concanateStringsU8(alternative.current) == utl::concanateStringsU8(choice);
+            });
+            if (alternativeIt != alternatives.end()) {
+                alternativeIt->current = choice;
+                std::advance(alternativeIt, 1);
+            }
         }
     }
     std::vector<Token> result;

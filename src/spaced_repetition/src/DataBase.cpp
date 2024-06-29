@@ -112,7 +112,7 @@ void DataBase::setEaseVocable(VocableId vocId, const Ease& ease)
 void DataBase::triggerVocable(VocableId vocId, CardId cardId)
 {
     VocableMeta& vocable = vocables->at_id(vocId).second;
-    vocable.triggerByCardId(cardId);
+    vocable.triggerByCardId(cardId, *cards);
 }
 
 void DataBase::resetCardsContainingVocable(VocableId vocId)

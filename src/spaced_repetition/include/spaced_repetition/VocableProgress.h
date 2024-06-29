@@ -1,5 +1,4 @@
 #pragma once
-#include <string_view>
 #include <annotation/Ease.h>
 #include <misc/Identifier.h>
 
@@ -8,6 +7,7 @@
 #include <nlohmann/json_fwd.hpp> // IWYU pragma: export
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -18,7 +18,7 @@ public:
     {
         float easeFactor = 0.F;
         float intervalDay = 0.F;
-        std::vector<CardId> triggeredBy;
+        std::vector<std::size_t> triggeredBy;
         std::time_t lastSeen{std::time(nullptr)};
     };
 
@@ -31,7 +31,7 @@ public:
     VocableProgress(Init init)
         : easeFactor{init.easeFactor}
         , intervalDay{init.intervalDay}
-        , triggerCards{std::move(init.triggeredBy)}
+        , triggerCardIndices{std::move(init.triggeredBy)}
         , lastSeen{init.lastSeen}
     {}
 
@@ -59,8 +59,8 @@ public:
     static constexpr std::string s_triggered_by = "triggered_by";
 
     void advanceByEase(const Ease&);
-    void triggeredBy(CardId cardId);
-    [[nodiscard]] auto getNextTriggerCard(std::set<CardId> availableCardIds) const -> CardId;
+    void triggeredBy(CardId cardId, const std::vector<CardId>& availableCardIds);
+    [[nodiscard]] auto getNextTriggerCard(const std::vector<CardId>& availableCardIds) const -> CardId;
     [[nodiscard]] auto recency() const -> float;
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
@@ -73,12 +73,9 @@ public:
 
     [[nodiscard]] auto dueDays() const -> int;
 
-    static auto toJson(const pair_t&) -> nlohmann::json;
-    static auto fromJson(const nlohmann::json&) -> pair_t;
-
 private:
     float easeFactor = 0.F;
     float intervalDay = 0.F;
-    std::vector<CardId> triggerCards;
+    std::vector<std::size_t> triggerCardIndices;
     std::time_t lastSeen{std::time(nullptr)};
 };
