@@ -37,11 +37,15 @@ public:
     TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config);
     void insertTokenization(const TokenizationChoice& choice, std::shared_ptr<Card> card);
     auto getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>;
+    void save();
 
 private:
+    [[nodiscard]] auto serialize() const -> std::string;
+    [[nodiscard]] static auto serializeChoice(const TokenizationChoice&) -> std::string;
+    [[nodiscard]] static auto serializePackPosition(const PackPosition&) -> std::string;
     [[nodiscard]] static auto deserialize(const std::filesystem::path& dbFile) -> std::vector<TokenizationChoicePosition>;
-    [[nodiscard]] static auto parseChoice(std::string_view sv) -> TokenizationChoice;
-    [[nodiscard]] static auto parsePackPosition(std::string_view sv) -> PackPosition;
+    [[nodiscard]] static auto deserializeChoice(std::string_view sv) -> TokenizationChoice;
+    [[nodiscard]] static auto deserializePackPosition(std::string_view sv) -> PackPosition;
 
     std::filesystem::path dbFile;
 

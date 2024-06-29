@@ -17,9 +17,7 @@ using namespace std::literals;
 
 class WordDB
 {
-    static constexpr auto s_fn_metaVocableSR = "metaVocableSR.json"sv;
-    static constexpr auto s_fn_vocableChoices = "vocableChoices.json"sv;
-    static constexpr auto s_fn_progressVocableDB = "progressVocables.db"sv;
+    static constexpr auto s_fn_progressVocableDB = "progressVocables.zdb"sv;
 
 public:
     WordDB(std::shared_ptr<zikhron::Config> config);

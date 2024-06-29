@@ -48,6 +48,7 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
 DataBase::~DataBase()
 {
     wordDB->save();
+    tokenizationChoiceDB->save();
 }
 
 void DataBase::save()

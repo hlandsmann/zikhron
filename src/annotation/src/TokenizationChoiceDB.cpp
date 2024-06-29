@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <filesystem>
+#include <fstream>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -65,6 +66,42 @@ auto TokenizationChoiceDB::getChoicesForCard(CardId cardId) -> std::vector<Token
     return {};
 }
 
+void TokenizationChoiceDB::save()
+{
+    if (choices.empty()) {
+        return;
+    }
+    auto out = std::ofstream{dbFile};
+    out << serialize();
+    spdlog::info("Saved tokenization choices");
+}
+
+auto TokenizationChoiceDB::serialize() const -> std::string
+{
+    std::string result;
+    result += fmt::format("{};version:1.0\n", s_type);
+    for (const auto& choice : choices) {
+        result += fmt::format("{}\n", serializeChoice(choice.tokenizationChoice));
+        for (const auto& position : choice.packPositions) {
+            result += fmt::format("{}\n", serializePackPosition(position));
+        }
+        result += "\n";
+    }
+
+    return result;
+}
+
+auto TokenizationChoiceDB::serializeChoice(const TokenizationChoice& choice) -> std::string
+{
+    return fmt::format("{}/", fmt::join(choice, "/"));
+}
+
+auto TokenizationChoiceDB::serializePackPosition(const PackPosition& position) -> std::string
+{
+    const auto& [packName, indicesInPack] = position;
+    return fmt::format("{}/{}/", packName, fmt::join(indicesInPack, "/"));
+}
+
 auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> std::vector<TokenizationChoicePosition>
 {
     std::vector<TokenizationChoicePosition> choices;
@@ -89,12 +126,12 @@ auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> s
 
     while (!rest.empty()) {
         auto choiceSV = utl::split_front(rest, '\n');
-        auto choice = parseChoice(choiceSV);
+        auto choice = deserializeChoice(choiceSV);
 
         std::map<PackName, IndicesInPack> packPositions;
         auto packPositionSV = utl::split_front(rest, '\n');
         while (!packPositionSV.empty()) {
-            auto packPosition = parsePackPosition(packPositionSV);
+            auto packPosition = deserializePackPosition(packPositionSV);
             packPositions.insert(std::move(packPosition));
             packPositionSV = utl::split_front(rest, '\n');
         }
@@ -104,7 +141,7 @@ auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> s
     return choices;
 }
 
-auto TokenizationChoiceDB::parseChoice(std::string_view sv) -> TokenizationChoice
+auto TokenizationChoiceDB::deserializeChoice(std::string_view sv) -> TokenizationChoice
 {
     auto rest = sv;
     TokenizationChoice choice;
@@ -115,7 +152,7 @@ auto TokenizationChoiceDB::parseChoice(std::string_view sv) -> TokenizationChoic
     return choice;
 }
 
-auto TokenizationChoiceDB::parsePackPosition(std::string_view sv) -> PackPosition
+auto TokenizationChoiceDB::deserializePackPosition(std::string_view sv) -> PackPosition
 {
     auto rest = sv;
     PackPosition packPosition;
