@@ -14,20 +14,20 @@
 
 namespace gui {
 
-class TabVideo
+class DisplayVideo
 {
 public:
-    TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor,
+    DisplayVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor,
              std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker,
              std::unique_ptr<multimedia::MpvWrapper> mpv);
     void setUp(std::shared_ptr<widget::Layer> layer);
     void displayOnLayer(widget::Layer& layer);
-    virtual ~TabVideo() = default;
+    virtual ~DisplayVideo() = default;
 
-    TabVideo(const TabVideo&) = delete;
-    TabVideo(TabVideo&&) = delete;
-    auto operator=(const TabVideo&) -> TabVideo& = delete;
-    auto operator=(TabVideo&&) -> TabVideo& = delete;
+    DisplayVideo(const DisplayVideo&) = delete;
+    DisplayVideo(DisplayVideo&&) = delete;
+    auto operator=(const DisplayVideo&) -> DisplayVideo& = delete;
+    auto operator=(DisplayVideo&&) -> DisplayVideo& = delete;
 
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;

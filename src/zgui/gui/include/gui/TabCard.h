@@ -3,6 +3,7 @@
 #include "DisplayText.h"
 #include "DisplayVocables.h"
 
+#include <annotation/AnnotationFwd.h>
 #include <annotation/CardPack.h>
 #include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>

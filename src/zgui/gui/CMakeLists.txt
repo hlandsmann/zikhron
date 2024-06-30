@@ -6,20 +6,20 @@ target_sources(zgui_gui
     PRIVATE
         include/gui/DisplayAnnotation.h
         include/gui/DisplayText.h
+        include/gui/DisplayVideo.h
         include/gui/DisplayVocables.h
         include/gui/GlWindow.h
         include/gui/MainWindow.h
         include/gui/TabCard.h
-        include/gui/TabVideo.h
         include/gui/TokenizationOverlay.h
         include/gui/VocableOverlay.h
         src/DisplayAnnotation.cpp
         src/DisplayText.cpp
+        src/DisplayVideo.cpp
         src/DisplayVocables.cpp
         src/GlWindow.cpp
         src/MainWindow.cpp
         src/TabCard.cpp
-        src/TabVideo.cpp
         src/TokenizationOverlay.cpp
         src/VocableOverlay.cpp
 )

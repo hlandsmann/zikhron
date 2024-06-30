@@ -1,4 +1,5 @@
-#include <TabVideo.h>
+#include "DisplayVideo.h"
+
 #include <context/imglog.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
@@ -20,9 +21,9 @@
 
 namespace gui {
 
-TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-                   std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker,
-                   std::unique_ptr<multimedia::MpvWrapper> _mpv)
+DisplayVideo::DisplayVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
+                           std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker,
+                           std::unique_ptr<multimedia::MpvWrapper> _mpv)
     : executor{std::move(_synchronousExecutor)}
     , mpv{std::move(_mpv)}
     , signalShouldRender{executor->makeVolatileSignal<bool>()}
@@ -31,7 +32,7 @@ TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExec
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-void TabVideo::setUp(std::shared_ptr<widget::Layer> layer)
+void DisplayVideo::setUp(std::shared_ptr<widget::Layer> layer)
 {
     using namespace widget::layout;
     auto box = layer->add<widget::Box>(Align::start, widget::Orientation::vertical);
@@ -49,7 +50,7 @@ void TabVideo::setUp(std::shared_ptr<widget::Layer> layer)
     ctrlBox.add<widget::Button>(Align::center, "world");
 }
 
-void TabVideo::displayOnLayer(widget::Layer& layer)
+void DisplayVideo::displayOnLayer(widget::Layer& layer)
 {
     auto box = layer.getWidget<widget::Box>(boxId);
     box.start();
@@ -57,7 +58,7 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
     doCtrlWindow(box.next<widget::Window>());
 }
 
-auto TabVideo::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
+auto DisplayVideo::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     using Align = widget::layout::Align;
     while (true) {
@@ -69,7 +70,7 @@ auto TabVideo::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker)
     co_return;
 }
 
-void TabVideo::doVideoWindow(widget::Window& videoWindow)
+void DisplayVideo::doVideoWindow(widget::Window& videoWindow)
 {
     auto droppedWindow = videoWindow.dropWindow();
     videoWindow.start();
@@ -78,7 +79,7 @@ void TabVideo::doVideoWindow(widget::Window& videoWindow)
     video.displayTexture();
 }
 
-void TabVideo::doCtrlWindow(widget::Window& ctrlWindow)
+void DisplayVideo::doCtrlWindow(widget::Window& ctrlWindow)
 {
     auto droppedWindow = ctrlWindow.dropWindow();
 }

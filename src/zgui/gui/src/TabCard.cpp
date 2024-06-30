@@ -3,6 +3,7 @@
 #include <DisplayAnnotation.h>
 #include <DisplayText.h>
 #include <DisplayVocables.h>
+#include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
 #include <annotation/CardPackDB.h>
 #include <context/imglog.h>
@@ -460,6 +461,28 @@ void TabCard::handleDataBaseSave(widget::ImageButton& btnSave)
     if (btnSave.clicked()) {
         dataBase->save();
     }
+
+    // // open Dialog Simple
+    // if (btnSave.clicked()) {
+    //     IGFD::FileDialogConfig config;
+    //     config.path = ".";
+    //     config.flags = ImGuiFileDialogFlags_Modal;
+    //     ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".cpp,.h,.hpp", config);
+    // }
+    //
+    // // display
+    // if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
+    //     // action if OK
+    //     if (ImGuiFileDialog::Instance()->IsOk()) {
+    //         std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
+    //         std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
+    //         spdlog::warn("open: {}, {}", filePath, filePathName);
+    //         // action
+    //     }
+    //
+    //     // close
+    //     ImGuiFileDialog::Instance()->Close();
+    // }
 }
 
 } // namespace gui
