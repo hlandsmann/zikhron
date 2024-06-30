@@ -32,6 +32,7 @@ enum class Image {
     arrow_right,
     checkbox,
     checkbox_checked,
+    list_add,
 };
 
 struct TextureData;
@@ -60,6 +61,7 @@ class Texture
     static constexpr auto arrow_right_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-end_24px.png";
     static constexpr auto checkbox_tex = "/home/harmen/src/zikhron/build/resources/icons/checkbox-symbolic_24px.png";
     static constexpr auto checkbox_checked_tex = "/home/harmen/src/zikhron/build/resources/icons/checkbox-checked-symbolic_24px.png";
+    static constexpr auto list_add_tex = "/home/harmen/src/zikhron/build/resources/icons/list-add_24px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

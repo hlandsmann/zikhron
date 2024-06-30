@@ -75,6 +75,7 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::arrow_right] = loadTextureFromFile(arrow_right_tex);
     textureMap[Image::checkbox] = loadTextureFromFile(checkbox_tex);
     textureMap[Image::checkbox_checked] = loadTextureFromFile(checkbox_checked_tex);
+    textureMap[Image::list_add] = loadTextureFromFile(list_add_tex);
 
     return textureMap;
 }
