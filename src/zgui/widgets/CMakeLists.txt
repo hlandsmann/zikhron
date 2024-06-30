@@ -45,6 +45,7 @@ target_include_directories(zgui_widgets
 target_link_libraries(zgui_widgets
     PUBLIC
         imgui::imgui
+        ImGui::FileDialog
         magic_enum::magic_enum
         zgui::context
         zikhron::annotation
