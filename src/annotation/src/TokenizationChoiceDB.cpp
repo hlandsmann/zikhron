@@ -45,33 +45,50 @@ void TokenizationChoiceDB::syncIdsWithCardPackDB(const CardPackDB& cardPackDB)
     }
 }
 
-void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, CardPtr card)
+void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<Card>& card)
 {
-    // put choice into choices container
-    auto oldChoiceIt = ranges::find_if(choices, // clang-format off
-                                       [&choice](const TokenizationChoice& tc) -> bool {
-                                           return utl::concanateStringsU8(tc) == utl::concanateStringsU8(choice);
-                                       }, &TokenizationChoicePosition::tokenizationChoice); // clang-format on
-    if (oldChoiceIt != choices.end()) {
-        oldChoiceIt->tokenizationChoice = choice;
-    } else {
-        choices.push_back({.tokenizationChoice = choice,
-                           .packPositions = {}});
-        oldChoiceIt = std::prev(choices.end());
-    }
-    auto& location = oldChoiceIt->packPositions;
-    location[card->getPackName()].insert(card->getIndexInPack());
+    removeSimilarChoiceForCard(choice, card);
+    addChoiceForCard(choice, card);
+}
 
-    // synchronize choicesForCards with choices container
+void TokenizationChoiceDB::removeSimilarChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card)
+{
     auto& choicesForCard = choicesForCards[card->getCardId()];
     auto oldChoiceForCardIt = ranges::find_if(choicesForCard,
                                               [&choice](const TokenizationChoice& tc) -> bool {
                                                   return utl::concanateStringsU8(tc) == utl::concanateStringsU8(choice);
                                               });
-    if (oldChoiceForCardIt != choicesForCard.end()) {
-        choicesForCard.erase(oldChoiceForCardIt);
+    if (oldChoiceForCardIt == choicesForCard.end()) {
+        return;
     }
-    choicesForCard.push_back(choice);
+    auto oldChoice = *oldChoiceForCardIt;
+    choicesForCard.erase(oldChoiceForCardIt);
+
+    auto oldChoiceIt = ranges::find(choices, oldChoice, &TokenizationChoicePosition::tokenizationChoice);
+    if (oldChoiceIt == choices.end()) {
+        throw std::runtime_error(fmt::format("Bad TokenizationChoiceDB structure, {} not found", fmt::join(oldChoice, "/")));
+    }
+    auto& packPosition = oldChoiceIt->packPositions;
+    packPosition.at(card->getPackName()).erase(card->getIndexInPack());
+    if (packPosition.at(card->getPackName()).empty()) {
+        packPosition.erase(card->getPackName());
+    }
+    if (packPosition.empty()) {
+        choices.erase(oldChoiceIt);
+    }
+}
+
+void TokenizationChoiceDB::addChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card)
+{
+    auto choiceIt = ranges::find(choices, choice, &TokenizationChoicePosition::tokenizationChoice);
+    if (choiceIt == choices.end()) {
+        choices.push_back({.tokenizationChoice = choice,
+                           .packPositions = {}});
+        choiceIt = std::prev(choices.end());
+    }
+    auto& location = choiceIt->packPositions;
+    location[card->getPackName()].insert(card->getIndexInPack());
+    choicesForCards[card->getCardId()].push_back(choice);
 }
 
 auto TokenizationChoiceDB::getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>

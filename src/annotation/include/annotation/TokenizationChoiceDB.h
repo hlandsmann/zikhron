@@ -37,12 +37,14 @@ class TokenizationChoiceDB
 
 public:
     TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config, const CardPackDB& cardPackDB);
-    void insertTokenization(const TokenizationChoice& choice, std::shared_ptr<Card> card);
+    void insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<Card>& card);
     auto getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>;
     [[nodiscard]] auto getChoicesForCards() const -> const std::map<CardId, TokenizationChoiceVec>&;
     void save();
 
 private:
+    void removeSimilarChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card);
+    void addChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card);
     void syncIdsWithCardPackDB(const CardPackDB& cardPackDB);
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] static auto serializeChoice(const TokenizationChoice&) -> std::string;
