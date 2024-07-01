@@ -20,7 +20,7 @@ namespace views = std::ranges::views;
 
 namespace widget {
 
-void Grid::setup(std::size_t _columns, std::initializer_list<float> _priorities)
+void Grid::setup(std::size_t _columns, Priorities _priorities)
 {
     columns = _columns;
     if (_priorities.size() > columns) {

@@ -1,5 +1,5 @@
 #pragma once
-#include "DisplayVideo.h"
+#include "TabVideo.h"
 #include "TabCard.h"
 
 #include <context/GlfwImguiContext.h>
@@ -19,7 +19,7 @@ public:
     MainWindow(std::shared_ptr<context::Theme> theme,
                std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
                std::unique_ptr<TabCard> tabCard,
-               std::unique_ptr<DisplayVideo> displayVideo);
+               std::unique_ptr<TabVideo> tabVideo);
     MainWindow(const MainWindow&) = delete;
     MainWindow(MainWindow&&) = delete;
     auto operator=(const MainWindow&) -> MainWindow& = delete;
@@ -35,7 +35,7 @@ private:
     std::shared_ptr<widget::layout::Rect> boxRect;
     std::shared_ptr<widget::Box> box;
     std::unique_ptr<TabCard> tabCard;
-    std::unique_ptr<DisplayVideo> displayVideo;
+    std::unique_ptr<TabVideo> tabVideo;
     bool needArrange = false;
 
     std::size_t activeTab{0};

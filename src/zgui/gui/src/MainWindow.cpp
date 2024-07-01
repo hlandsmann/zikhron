@@ -1,7 +1,7 @@
 #include "MainWindow.h"
 
 #include <TabCard.h>
-#include <DisplayVideo.h>
+#include <TabVideo.h>
 #include <context/Fonts.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
@@ -27,7 +27,7 @@ namespace gui {
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
                        std::unique_ptr<TabCard> _tabCard,
-                       std::unique_ptr<DisplayVideo> _displayVideo)
+                       std::unique_ptr<TabVideo> _tabVideo)
     : theme{std::move(_theme)}
     , boxRect{std::make_shared<widget::layout::Rect>()}
     , box{std::make_shared<widget::Box>(widget::WidgetInit{
@@ -40,7 +40,7 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
 
       })}
     , tabCard{std::move(_tabCard)}
-    , displayVideo{std::move(_displayVideo)}
+    , tabVideo{std::move(_tabVideo)}
 {
 }
 
@@ -82,7 +82,7 @@ void MainWindow::doImGui()
         tabCard->displayOnLayer(layer);
         break;
     case 1:
-        displayVideo->displayOnLayer(layer);
+        tabVideo->displayOnLayer(layer);
         break;
     case 2:
     case 3:
@@ -122,7 +122,7 @@ void MainWindow::setup()
         mainLayer->setName("mainLayer");
 
         tabCard->setUp(mainLayer);
-        displayVideo->setUp(mainLayer);
+        tabVideo->setUp(mainLayer);
     }
 }
 } // namespace gui

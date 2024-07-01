@@ -14,7 +14,7 @@ namespace widget {
 class Grid : public MetaBox<Grid>
 {
 public:
-    using Priorities = std::initializer_list<float>;
+    using Priorities = std::vector<float>;
 
 private:
     friend class MetaBox<Grid>;
