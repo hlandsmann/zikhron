@@ -72,7 +72,7 @@ private:
             -> std::vector<AToken>;
     [[nodiscard]] static auto splitCandidates(std::span<std::vector<AToken>> candidates) -> CandidateSplit;
 
-    [[nodiscard]] static auto findEndItForLength(std::vector<Token>::const_iterator firstSplit,
+    [[nodiscard]] static auto findEndItForLengthOfAlternativeSplit(std::vector<Token>::const_iterator firstSplit,
                                                  const CandidateSplit& candidateSplit)
             -> std::vector<Token>::const_iterator;
     [[nodiscard]] auto joinMissed(const std::vector<Token>& splitVector, const std::string& text)

@@ -223,6 +223,9 @@ auto Tokenizer::chooseCombination(std::span<const std::vector<AToken>> tokens)
         -> std::vector<AToken>
 {
     std::vector<std::vector<AToken>> altATokenVec = getAlternativeATokenVector(tokens);
+    if (altATokenVec.empty()) {
+        return {};
+    }
     // if (combinations.size() > 1) {
     //     for (const auto& v : combinations) {
     //         float val = calculateTokenVectorValue(v, combinations);
@@ -259,19 +262,22 @@ auto Tokenizer::splitCandidates(std::span<std::vector<AToken>> candidates) -> Ca
     return alt;
 }
 
-auto Tokenizer::findEndItForLength(std::vector<Token>::const_iterator firstSplit,
-                                   const CandidateSplit& candidateSplit)
+auto Tokenizer::findEndItForLengthOfAlternativeSplit(std::vector<Token>::const_iterator firstSplit,
+                                                     const CandidateSplit& candidateSplit)
         -> std::vector<Token>::const_iterator
 {
     auto lastSplit = firstSplit;
     std::size_t length = 0;
     while (length < candidateSplit.key.length()) {
+        // spdlog::info("csk: {}", candidateSplit.key.string());
         lastSplit = std::next(lastSplit);
         length = std::accumulate(firstSplit, lastSplit, std::size_t{},
                                  [](std::size_t len, const Token& token) -> std::size_t {
+                                     // spdlog::info("t: {}", token.string());
                                      return token.getValue().length() + len;
                                  });
     }
+    // spdlog::info("length: {}, csl: {}", length, candidateSplit.key.length());
     assert(length == candidateSplit.key.length());
     return lastSplit;
 }
@@ -290,7 +296,7 @@ auto Tokenizer::getAlternatives(const std::string& text, const std::vector<Token
         std::advance(firstCandidate, alt.key.length());
         span = std::span(firstCandidate, candidates.end());
 
-        auto lastSplit = findEndItForLength(firstSplit, alt);
+        auto lastSplit = findEndItForLengthOfAlternativeSplit(firstSplit, alt);
         ranges::transform(firstSplit, lastSplit, std::back_inserter(alternative.current), &Token::getValue);
         firstSplit = lastSplit;
 
@@ -403,8 +409,8 @@ auto Tokenizer::split(const std::string& text) -> std::vector<Token>
         if (const auto& tokens = splitFurther(str); !tokens.empty()) {
             ranges::transform(tokens, std::back_inserter(result),
                               [this](const AToken& token) -> Token {
-                                  auto word = wordDB->lookup(token.key);
-                                  return {token.key, word};
+                                  auto word = wordDB->lookup(token.str);
+                                  return {token.str, word};
                               });
             continue;
         }
@@ -420,14 +426,31 @@ auto Tokenizer::split(const std::string& text) -> std::vector<Token>
 auto Tokenizer::splitFurther(const std::string& text) -> std::vector<AToken>
 {
     std::vector<std::string> splitVector = jieba.cutAll(text);
+    if (splitVector.size() == 1) {
+        return {};
+    }
     if (ranges::none_of(splitVector, [](const std::string& tk) -> bool {
             auto strU8 = utl::StringU8{tk};
             return strU8.length() > 1 || strU8.front().string().length() > 1;
         })) {
-        return {};
+        std::vector<AToken> result;
+        ranges::transform(splitVector, std::back_inserter(result),
+                          [](const auto& str) -> AToken {
+                              return {.key = {}, .str = str};
+                          });
+        return result;
     }
     if (splitVector.size() == 1) {
-        return {};
+        auto frontSplitU8 = utl::StringU8(splitVector.front());
+        if (frontSplitU8.length() == 1) {
+            return {};
+        }
+        std::vector<AToken> result;
+        std::transform(frontSplitU8.cbegin(), frontSplitU8.cend(), std::back_inserter(result),
+                       [](const utl::CharU8 charU8) -> AToken {
+                           return {.key = {}, .str = charU8.string()};
+                       });
+        return result;
     }
     auto candidates = getCandidates(text, *wordDB->getDictionary());
 

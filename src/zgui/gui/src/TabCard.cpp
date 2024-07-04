@@ -171,6 +171,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             if (!cardAudioInfo->nextId().has_value()) {
                 mode = Mode::shuffle;
             }
+            // cardMeta = co_await asyncTreeWalker->getNextCardChoice(static_cast<CardId>(1005));
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->nextId());
             break;
         case Proceed::last:
@@ -206,7 +207,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             proceed = co_await *signalProceed;
             continue;
         }
-
+        spdlog::info("kocoro, loading CardID {}..", cardMeta.Id());
         cardAudioInfo = std::make_unique<CardAudioInfo>(cardMeta.Id(), *dataBase->getCardPackDB());
         if (cardAudioInfo->getAudio().has_value()) {
             mpv->openFile(cardAudioInfo->getAudio().value());
@@ -238,6 +239,9 @@ void TabCard::setupCardWindow(widget::Window& cardWindow)
 void TabCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
+
+    // ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    // draw_list->AddRectFilled({0., 0.}, {100., 100.}, 0xFFFFFFFF, 5.);
     // first draw displayVocables to prevent flickering on configuring vocable (vocableOverlay)
     if (displayVocables && revealVocables) {
         displayVocables->draw();
