@@ -14,7 +14,7 @@
 namespace widget {
 void Window::setup(ExpandType _expandTypeWidth,
                    ExpandType _expandTypeHeight,
-                   std::string _name)
+                   const std::string& _name)
 {
     layer = std::make_shared<widget::Layer>(widget::WidgetInit{
             .theme = getThemePtr(),

@@ -5,6 +5,7 @@ target_sources(zgui_widgets
     PRIVATE
         include/widgets/Box.h
         include/widgets/Button.h
+        include/widgets/Child.h
         include/widgets/Grid.h
         include/widgets/ImageButton.h
         include/widgets/Layer.h
@@ -20,6 +21,7 @@ target_sources(zgui_widgets
         include/widgets/detail/Widget.h
         src/Box.cpp
         src/Button.cpp
+        src/Child.cpp
         src/Grid.cpp
         src/ImageButton.cpp
         src/Layer.cpp

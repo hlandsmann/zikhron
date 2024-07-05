@@ -141,6 +141,11 @@ auto Theme::ColorImageInsensitiveHovered() const -> const ImVec4&
     return colorImageInsensitiveHovered;
 }
 
+auto Theme::ColorChildBackground() const -> const ImVec4&
+{
+    return colorChildBackground;
+}
+
 auto Theme::ColorWindowBackground() const -> const ImVec4&
 {
     return colorWindowBackground;
@@ -196,6 +201,9 @@ StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
         PushStyleColor(ImGuiCol_Button, theme.ColorToggleButtonChecked());
         PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorToggleButtonCheckedHovered());
         PushStyleColor(ImGuiCol_ButtonActive, theme.ColorButtonActive());
+        break;
+    case ColorTheme::Child:
+        PushStyleColor(ImGuiCol_ChildBg, theme.ColorChildBackground());
         break;
     case ColorTheme::Window:
         PushStyleColor(ImGuiCol_WindowBg, theme.ColorWindowBackground());

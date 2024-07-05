@@ -1,22 +1,18 @@
 #pragma once
-#include "Box.h"
-#include "Grid.h"
 #include "Layer.h"
 #include "detail/Widget.h" // IWYU pragma: export detail/Widget.h
 
 #include <context/Drop.h>
 #include <context/Theme.h>
-#include <imgui.h>
 
 #include <memory>
 #include <string>
-#include <type_traits>
 
 namespace widget {
 
-class WindowDrop;
+class ChildDrop;
 
-class Window : public Widget
+class Child : public Widget
 {
     using Align = layout::Align;
     using ExpandType = layout::ExpandType;
@@ -25,22 +21,21 @@ class Window : public Widget
     friend class MetaBox;
     friend class Widget;
     friend class Overlay;
-    void setup(ExpandType expandTypeWidth,
-               ExpandType expandTypeHeight,
-               const std::string& name);
+    void setup(float width, const std::string& name);
+    void setup(const std::string& name);
 
 public:
-    Window(const WidgetInit& init);
-    ~Window() override = default;
+    Child(const WidgetInit& init);
+    ~Child() override = default;
 
-    Window(const Window&) = default;
-    Window(Window&&) = default;
-    auto operator=(const Window&) -> Window& = default;
-    auto operator=(Window&&) -> Window& = default;
+    Child(const Child&) = default;
+    Child(Child&&) = default;
+    auto operator=(const Child&) -> Child& = default;
+    auto operator=(Child&&) -> Child& = default;
 
     auto arrange(const layout::Rect& rect) -> bool override;
 
-    [[nodiscard]] auto dropWindow() -> WindowDrop;
+    [[nodiscard]] auto dropChild() -> ChildDrop;
 
     // export Layer functions >>>>>>>>>>>
     template<class WidgetType, class... Args>
@@ -64,20 +59,19 @@ protected:
     auto calculateMinSize() const -> WidgetSize override;
 
 private:
+    float width{};
     std::shared_ptr<widget::Layer> layer;
-    ExpandType expandTypeWidth{ExpandType::fixed};
-    ExpandType expandTypeHeight{ExpandType::fixed};
 };
 
-class WindowDrop : public context::Drop<WindowDrop>
+class ChildDrop : public context::Drop<ChildDrop>
 {
 public:
-    WindowDrop(const std::string& name,
-               const widget::layout::Rect& rect,
-               context::StyleColorsDrop styleColorsDrop);
+    ChildDrop(const std::string& name,
+              const widget::layout::Rect& rect,
+              context::StyleColorsDrop styleColorsDrop);
 
 private:
-    friend class Drop<WindowDrop>;
+    friend class Drop<ChildDrop>;
     static void pop();
     context::StyleColorsDrop styleColorsDrop;
 };
