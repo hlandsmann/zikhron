@@ -4,7 +4,7 @@
 
 #include <context/GlfwImguiContext.h>
 #include <context/Theme.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <widgets/Box.h>
 #include <widgets/detail/Widget.h>
 

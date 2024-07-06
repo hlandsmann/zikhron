@@ -5,7 +5,7 @@
 #include <context/Fonts.h>
 #include <context/Texture.h>
 #include <context/Theme.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <context/imglog.h>
 #include <imgui.h>
 #include <utils/format.h>
@@ -90,11 +90,11 @@ void MainWindow::doImGui()
         break;
     }
 
-    // bool show_demo_window = true;
-    // if (show_demo_window) {
-    //     // ImGui::SetNextWindowFocus();
-    //     ImGui::ShowDemoWindow(&show_demo_window);
-    // }
+    bool show_demo_window = true;
+    if (show_demo_window) {
+        // ImGui::SetNextWindowFocus();
+        ImGui::ShowDemoWindow(&show_demo_window);
+    }
 }
 
 void MainWindow::setup()

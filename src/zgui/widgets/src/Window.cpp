@@ -36,7 +36,9 @@ Window::Window(const WidgetInit& init)
 
 auto Window::arrange(const layout::Rect& rect) -> bool
 {
+    setLocalOffset(rect.x, rect.y);
     setRect(rect);
+
     auto layerRect = rect;
     layerRect.x = 0;
     layerRect.y = 0;

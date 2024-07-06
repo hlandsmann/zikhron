@@ -1,6 +1,6 @@
 #pragma once
 #include <annotation/Ease.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <widgets/Box.h>

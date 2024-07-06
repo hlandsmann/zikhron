@@ -24,7 +24,8 @@ class Window : public Widget
     template<class T>
     friend class MetaBox;
     friend class Widget;
-    friend class Overlay;
+    // friend class Overlay;
+    // friend class Child;
     void setup(ExpandType expandTypeWidth,
                ExpandType expandTypeHeight,
                const std::string& name);

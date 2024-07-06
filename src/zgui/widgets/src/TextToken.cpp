@@ -51,17 +51,16 @@ void TextToken::setNextFrameActive()
     isActive = true;
 }
 
-void TextToken::renderShadow()
+void TextToken::renderShadow(float x, float y)
 {
     constexpr int thickness = 2;
-    const auto& rect = getRect();
     auto idDrop = dropWidgetId(shadowId);
     for (int xshift = 0; xshift <= thickness * 2; xshift++) {
         for (int yshift = 0; yshift <= thickness * 2; yshift++) {
             int xs = xshift - (thickness);
             int ys = yshift - (thickness);
-            renderText(rect.x + static_cast<float>(xs),
-                       rect.y + static_cast<float>(ys));
+            renderText(x + static_cast<float>(xs),
+                       y + static_cast<float>(ys));
         }
     }
 }
@@ -96,7 +95,7 @@ auto TextToken::clicked() -> bool
     {
         auto colorDrop = isActive ? context::FontColorDrop{color}
                                   : context::FontColorDrop{shadowColor};
-        renderShadow();
+        renderShadow(rect.x, rect.y);
     }
     {
         auto idDrop = dropWidgetId();
@@ -128,7 +127,7 @@ auto TextToken::calculateSize() const -> WidgetSize
     auto string = token.string();
     auto textSize = ImGui::CalcTextSize(string.cbegin().base(), string.cend().base());
 
-    return {.width = textSize.x-1,
+    return {.width = textSize.x,
             .height = textSize.y};
 }
 } // namespace widget

@@ -60,7 +60,6 @@ private:
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
 
     [[nodiscard]] auto getLayerRect(const layout::Rect& rect) const -> layout::Rect;
-    [[nodiscard]] auto getParentWindowRect() const -> layout::Rect;
 
     std::shared_ptr<widget::Layer> layer;
     float maxWidth{};

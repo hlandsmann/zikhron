@@ -1,6 +1,6 @@
 #pragma once
 #include <context/Theme.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <context/imglog.h>
 #include <imgui.h>
 #include <utils/format.h>
@@ -158,6 +158,7 @@ public:
     [[nodiscard]] auto anyParentHasId(WidgetId id) const -> bool;
 
     [[nodiscard]] auto anyParentHasId(unsigned id) const -> bool { return anyParentHasId(static_cast<WidgetId>(id)); }
+
     void scratchDbg();
 
 protected:
@@ -168,6 +169,9 @@ protected:
     [[nodiscard]] auto getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGenerator>;
     [[nodiscard]] auto getRect() const -> const layout::Rect&;
     void setRect(const layout::Rect&);
+    void setLocalOffset(float x, float y);
+    [[nodiscard]] auto getLocalOffset() const -> const layout::Rect&;
+    [[nodiscard]] auto getOffset() const -> const layout::Rect&;
 
 private:
     auto makeWidgetInit() -> WidgetInit;
@@ -175,6 +179,7 @@ private:
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     mutable std::string name;
     std::shared_ptr<layout::Rect> rectPtr;
+    layout::Rect localOffset{};
     layout::Align horizontalAlign;
     layout::Align verticalAlign;
     ExpandType expandTypeWidth{ExpandType::width_fixed};

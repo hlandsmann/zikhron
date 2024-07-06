@@ -37,7 +37,8 @@ class Theme
     static constexpr ImVec4 s_colorImageInsensitive         = {0.6F, 0.6F, 0.6F, 1.0F};
     static constexpr ImVec4 s_colorImageInsensitiveHovered  = {0.6F, 0.6F, 0.6F, 1.0F};
 
-    static constexpr ImVec4 s_colorChildBackground = {0.19F, 0.19F, 0.19F, 1.0F};
+    static constexpr ImVec4 s_colorBorder = {0.3F, 0.3F, 0.3F, 1.0F};
+    static constexpr ImVec4 s_colorChildBackground = {0.15F, 0.15F, 0.15F, 1.0F};
     static constexpr ImVec4 s_colorWindowBackground = {0.17F, 0.17F, 0.17F, 1.0F};
     static constexpr ImVec4 s_colorOverlayBackground = {0.13F, 0.13F, 0.13F, 1.0F};
     // clang-format on
@@ -68,6 +69,7 @@ public:
     [[nodiscard]] auto ColorImageInsensitive() const -> const ImVec4&;
     [[nodiscard]] auto ColorImageInsensitiveHovered() const -> const ImVec4&;
 
+    [[nodiscard]] auto ColorBorder() const -> const ImVec4&;
     [[nodiscard]] auto ColorChildBackground() const -> const ImVec4&;
     [[nodiscard]] auto ColorWindowBackground() const -> const ImVec4&;
     [[nodiscard]] auto ColorOverlayBackground() const -> const ImVec4&;
@@ -92,6 +94,7 @@ private:
     ImVec4 colorImageInsensitive{s_colorImageInsensitive};
     ImVec4 colorImageInsensitiveHovered{s_colorImageInsensitiveHovered};
 
+    ImVec4 colorBorder{s_colorBorder};
     ImVec4 colorChildBackground{s_colorChildBackground};
     ImVec4 colorWindowBackground{s_colorWindowBackground};
     ImVec4 colorOverlayBackground{s_colorOverlayBackground};

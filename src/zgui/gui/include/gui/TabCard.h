@@ -8,7 +8,7 @@
 #include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>
 #include <annotation/TokenizationChoiceDB.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <misc/Identifier.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>

@@ -1,5 +1,5 @@
 #include <context/Theme.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <detail/Widget.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
@@ -198,6 +198,30 @@ void Widget::scratchDbg()
 void Widget::setRect(const layout::Rect& rect)
 {
     *rectPtr = rect;
+}
+
+void Widget::setLocalOffset(float x, float y)
+{
+    localOffset.x = x;
+    localOffset.y = y;
+}
+
+auto Widget::getLocalOffset() const -> const layout::Rect&
+{
+    return localOffset;
+}
+
+auto Widget::getOffset() const -> const layout::Rect&
+{
+    auto widgetParent = getParent();
+    while (widgetParent) {
+        const auto& parentOffset = widgetParent->getLocalOffset();
+        if (parentOffset.x != 0 || parentOffset.y != 0) {
+            return parentOffset;
+        }
+        widgetParent = widgetParent->getParent();
+    }
+    return localOffset;
 }
 
 void Widget::setExpandType(layout::ExpandType width, layout::ExpandType height)

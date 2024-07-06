@@ -46,10 +46,10 @@ auto Overlay::dropOverlay(float x, float y) -> OverlayDrop
     auto layerSize = layer->getWidgetSize();
     auto rect = getRect();
     // auto layerSize = layer->getWidgetSizeFromRect(getLayerRect(rect));
-    auto parentWindowRect = getParentWindowRect();
+    auto offset = getOffset();
     // imglog::log("overlay in drop, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
-    rect.x = std::min(x + parentWindowRect.x, rect.width - layerSize.width);
-    rect.y = std::min(y + parentWindowRect.y, rect.height - layerSize.height);
+    rect.x = std::min(x + offset.x, rect.width - layerSize.width);
+    rect.y = std::min(y + offset.y, rect.height - layerSize.height);
     rect.width = layerSize.width;
     rect.height = layerSize.height;
 
@@ -125,18 +125,6 @@ auto Overlay::getLayerRect(const layout::Rect& rect) const -> layout::Rect
                                   .width = std::min(rect.width, maxWidth),
                                   .height = rect.height};
     return layerRect;
-}
-
-auto Overlay::getParentWindowRect() const -> layout::Rect
-{
-    auto winParent = getParent();
-    while (winParent) {
-        if (auto* window = dynamic_cast<widget::Window*>(winParent.get())) {
-            return window->getRect();
-        }
-        winParent = winParent->getParent();
-    }
-    return {};
 }
 
 OverlayDrop::OverlayDrop(const std::string& name, const widget::layout::Rect& rect,

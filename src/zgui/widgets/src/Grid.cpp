@@ -82,7 +82,7 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
                         needArrange |= widget->arrange({.x = cursorX,
                                                         .y = alignShiftPos(widget->VerticalAlign(), cursorY, widgetSize.height, height),
                                                         .width = width,
-                                                        .height = rect.height});
+                                                        .height = height});
                         auto widgetS = widget->getWidgetSize();
                         return widgetS;
                     });
@@ -124,7 +124,8 @@ void Grid::traverseWidgets(const layout::Rect& rect,
         rowMaxSizeY = std::max(widgetSize.height, rowMaxSizeY);
 
         cursorX += sizeX + getHorizontalPadding();
-        if ((static_cast<std::size_t>(index) + 1) % columns == 0) {
+        if ((static_cast<std::size_t>(index) + 1) % columns == 0
+            || static_cast<std::size_t>(index + 1) == numberOfWidgets()) {
             cursorX = borderedRect.x;
             cursorY += rowMaxSizeY;
             cursorY += getVerticalPadding();

@@ -141,6 +141,11 @@ auto Theme::ColorImageInsensitiveHovered() const -> const ImVec4&
     return colorImageInsensitiveHovered;
 }
 
+auto Theme::ColorBorder() const -> const ImVec4&
+{
+    return colorBorder;
+}
+
 auto Theme::ColorChildBackground() const -> const ImVec4&
 {
     return colorChildBackground;
@@ -168,8 +173,8 @@ auto Theme::getTexture() const -> const Texture&
 
 StyleVarsDrop::StyleVarsDrop()
 {
-    PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0F, 0.0F));
-    PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0F, 0.0F));
+    // PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0F, 0.0F));
+    // PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0F, 0.0F));
 }
 
 void StyleVarsDrop::PushStyleVar(ImGuiStyleVar idx, float val)
@@ -210,6 +215,7 @@ StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
         break;
     case ColorTheme::Overlay:
         PushStyleColor(ImGuiCol_WindowBg, theme.ColorOverlayBackground());
+        PushStyleColor(ImGuiCol_Border, theme.ColorBorder());
         break;
     }
 }

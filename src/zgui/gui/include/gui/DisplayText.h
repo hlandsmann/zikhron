@@ -4,7 +4,7 @@
 #include <annotation/TokenText.h>
 #include <context/ColorSet.h>
 #include <context/Fonts.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
@@ -31,10 +31,10 @@ private:
     constexpr static float s_border = 16.F;
     constexpr static float s_horizontalPadding = 64.F;
     constexpr static float s_padding = 24.F;
-    constexpr static widget::BoxCfg boxCfg = {.padding = s_padding,
-                                              .paddingHorizontal = s_horizontalPadding,
-                                              .paddingVertical = s_padding,
-                                              .border = s_border};
+    // constexpr static widget::BoxCfg boxCfg = {.padding = s_padding,
+    //                                           .paddingHorizontal = s_horizontalPadding,
+    //                                           .paddingVertical = s_padding,
+    //                                           .border = s_border};
 
     auto drawDialogue() -> std::optional<std::shared_ptr<widget::TextToken>>;
     auto drawText() -> std::optional<std::shared_ptr<widget::TextToken>>;

@@ -1,4 +1,4 @@
-#include <WidgetIdGenerator.h>
+#include <WidgetId.h>
 #include <imgui.h>
 
 namespace context {

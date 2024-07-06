@@ -5,7 +5,7 @@
 #include <annotation/Tokenizer.h>
 #include <context/ColorSet.h>
 #include <context/Fonts.h>
-#include <context/WidgetIdGenerator.h>
+#include <context/WidgetId.h>
 #include <utils/StringU8.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>

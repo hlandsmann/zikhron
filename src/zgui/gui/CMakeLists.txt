@@ -9,6 +9,7 @@ target_sources(zgui_gui
         include/gui/DisplayVideo.h
         include/gui/DisplayVocables.h
         include/gui/GlWindow.h
+        include/gui/GroupAdd.h
         include/gui/MainWindow.h
         include/gui/TabCard.h
         include/gui/TabVideo.h
@@ -19,6 +20,7 @@ target_sources(zgui_gui
         src/DisplayVideo.cpp
         src/DisplayVocables.cpp
         src/GlWindow.cpp
+        src/GroupAdd.cpp
         src/MainWindow.cpp
         src/TabCard.cpp
         src/TabVideo.cpp
