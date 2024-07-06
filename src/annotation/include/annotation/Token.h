@@ -1,7 +1,6 @@
 #pragma once
 
-#include "Word.h"
-
+#include <dictionary/Word.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>

@@ -1,6 +1,6 @@
 #pragma once
-#include <annotation/Word.h>
 #include <context/Fonts.h>
+#include <dictionary/Word.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>

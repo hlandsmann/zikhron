@@ -1,9 +1,7 @@
 #pragma once
-#include "FreqDictionary.h"
 #include "Rules.h"
-#include "Token.h"
-#include "WordDB.h"
 
+#include <dictionary/WordDB.h>
 #include <utils/StringU8.h>
 
 #include <memory>

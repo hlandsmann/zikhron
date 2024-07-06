@@ -1,10 +1,9 @@
 #pragma once
-#include "AnnotationFwd.h"
-#include "Token.h"
-#include "Tokenizer.h"
-#include "WordDB.h"
-
 #include <annotation/JieBa.h>
+#include <annotation/Token.h>
+#include <annotation/Tokenizer.h>
+#include "CbdFwd.h"
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <unicode/unistr.h>

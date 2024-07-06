@@ -4,10 +4,10 @@
 #include "DisplayVocables.h"
 
 #include <annotation/AnnotationFwd.h>
-#include <annotation/CardPack.h>
-#include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>
 #include <annotation/TokenizationChoiceDB.h>
+#include <card_data_base/CardPack.h>
+#include <card_data_base/CardPackDB.h>
 #include <context/WidgetId.h>
 #include <misc/Identifier.h>
 #include <multimedia/MpvWrapper.h>

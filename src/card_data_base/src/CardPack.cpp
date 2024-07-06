@@ -1,10 +1,10 @@
 #include "CardPack.h"
 
-#include "AnnotationFwd.h"
 #include "Card.h"
-#include "Tokenizer.h"
-#include "WordDB.h"
+#include "CbdFwd.h"
 
+#include <annotation/Tokenizer.h>
+#include <dictionary/WordDB.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
 #include <utils/string_split.h>

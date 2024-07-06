@@ -1,7 +1,7 @@
 #pragma once
 #include "AnnotationFwd.h"
-#include "Card.h"
 
+#include <card_data_base/Card.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>

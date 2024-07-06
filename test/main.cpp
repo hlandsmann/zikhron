@@ -1,9 +1,9 @@
 #include <annotation/AdaptJiebaDict.h>
-#include <annotation/CardPack.h>
-#include <annotation/CardPackDB.h>
 #include <annotation/FreqDictionary.h>
 #include <annotation/JieBa.h>
-#include <annotation/WordDB.h>
+#include <card_data_base/CardPack.h>
+#include <card_data_base/CardPackDB.h>
+#include <dictionary/WordDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/DataBase.h>

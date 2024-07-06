@@ -1,8 +1,8 @@
 #pragma once
-#include <dictionary/ZH_Dictionary.h>
+#include "ZH_Dictionary.h"
+
 #include <misc/Identifier.h>
 
-#include <cstddef>
 #include <memory>
 #include <string>
 #include <string_view>

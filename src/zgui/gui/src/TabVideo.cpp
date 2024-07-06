@@ -27,9 +27,9 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
     // open Dialog Simple
     if (groupAdd->draw()) {
         IGFD::FileDialogConfig config;
-        config.path = ".";
+        config.path = "/home/harmen/Videos/chinesisch";
         config.flags = ImGuiFileDialogFlags_Modal;
-        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".cpp,.h,.hpp", config);
+        ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".((mp4|mkv))", config);
     }
 
     // display

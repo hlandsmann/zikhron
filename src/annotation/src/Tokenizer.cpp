@@ -4,7 +4,7 @@
 #include "FreqDictionary.h"
 
 #include <Token.h>
-#include <WordDB.h>
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <utils/StringU8.h>

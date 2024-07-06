@@ -2,8 +2,8 @@
 
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
-#include <annotation/Word.h>
 #include <context/Fonts.h>
+#include <dictionary/Word.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
 #include <widgets/Button.h>

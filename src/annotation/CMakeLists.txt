@@ -11,9 +11,6 @@ target_sources(zikhron_annotation
     PRIVATE
         include/annotation/AdaptJiebaDict.h
         include/annotation/AnnotationFwd.h
-        include/annotation/Card.h
-        include/annotation/CardPack.h
-        include/annotation/CardPackDB.h
         include/annotation/Ease.h
         include/annotation/FreqDictionary.h
         include/annotation/JieBa.h
@@ -22,12 +19,7 @@ target_sources(zikhron_annotation
         include/annotation/TokenText.h
         include/annotation/TokenizationChoiceDB.h
         include/annotation/Tokenizer.h
-        include/annotation/Word.h
-        include/annotation/WordDB.h
         src/AdaptJiebaDict.cpp
-        src/Card.cpp
-        src/CardPack.cpp
-        src/CardPackDB.cpp
         src/Ease.cpp
         src/FreqDictionary.cpp
         src/JieBa.cpp
@@ -36,11 +28,10 @@ target_sources(zikhron_annotation
         src/TokenText.cpp
         src/TokenizationChoiceDB.cpp
         src/Tokenizer.cpp
-        src/Word.cpp
-        src/WordDB.cpp
 )
 target_link_libraries(zikhron_annotation
     PUBLIC
+        zikhron::card_data_base
         zikhron::dictionary
         zikhron::miscellaneous
     PRIVATE

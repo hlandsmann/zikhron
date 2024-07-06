@@ -35,6 +35,7 @@ target_link_libraries(zikhron_spaced_repetition
         # folly
         nlohmann_json::nlohmann_json
         zikhron::annotation
+        zikhron::card_data_base
         zikhron::dictionary
         zikhron::kocoro
         zikhron::miscellaneous

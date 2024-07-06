@@ -1,8 +1,8 @@
 #include "WordDB.h"
 
 #include "Word.h"
+#include "ZH_Dictionary.h"
 
-#include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/VocableProgress.h>

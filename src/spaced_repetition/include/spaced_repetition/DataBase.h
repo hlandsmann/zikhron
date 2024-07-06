@@ -4,12 +4,12 @@
 #include "VocableProgress.h"
 #include "srtypes.h"
 
-#include <annotation/AnnotationFwd.h>
-#include <annotation/Card.h>
-#include <annotation/CardPackDB.h>
 #include <annotation/Ease.h>
 #include <annotation/TokenizationChoiceDB.h>
-#include <annotation/WordDB.h>
+#include <card_data_base/Card.h>
+#include <card_data_base/CardPackDB.h>
+#include <card_data_base/CbdFwd.h>
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>

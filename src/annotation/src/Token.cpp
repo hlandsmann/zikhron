@@ -1,5 +1,5 @@
 #include <Token.h>
-#include <Word.h>
+#include <dictionary/Word.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 

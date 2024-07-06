@@ -1,12 +1,11 @@
 #pragma once
-#include <cstddef>
-#include "AnnotationFwd.h"
-#include "Tokenizer.h"
-#include "WordDB.h"
-
+#include "CbdFwd.h"
+#include <annotation/Tokenizer.h>
+#include <dictionary/WordDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <optional>

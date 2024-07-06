@@ -3,8 +3,8 @@
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
-#include <annotation/Word.h>
-#include <annotation/WordDB.h>
+#include <dictionary/Word.h>
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>

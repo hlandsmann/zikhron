@@ -1,8 +1,8 @@
 #include "TokenizationChoiceDB.h"
 
 #include "AnnotationFwd.h"
-#include "CardPackDB.h"
 
+#include <card_data_base/CardPackDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>

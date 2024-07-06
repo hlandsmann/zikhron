@@ -1,8 +1,8 @@
 #pragma once
 #include "CardPack.h"
-#include "Tokenizer.h"
-#include "WordDB.h"
 
+#include <annotation/Tokenizer.h>
+#include <dictionary/WordDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 

@@ -2,10 +2,10 @@
 #include <DataBase.h>
 #include <VocableMeta.h>
 #include <VocableProgress.h>
-#include <annotation/AnnotationFwd.h>
+#include <card_data_base/CbdFwd.h>
 #include <annotation/Ease.h>
 #include <annotation/TokenizationChoiceDB.h>
-#include <annotation/WordDB.h>
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Config.h>

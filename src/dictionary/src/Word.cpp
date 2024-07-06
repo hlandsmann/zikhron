@@ -1,4 +1,4 @@
-#include "annotation/Word.h"
+#include "Word.h"
 
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>

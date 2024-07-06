@@ -45,6 +45,7 @@ target_link_libraries(zgui_gui
         zgui::context
         zgui::widgets
         zikhron::annotation
+        zikhron::card_data_base
         zikhron::dictionary
         zikhron::kocoro
         zikhron::miscellaneous

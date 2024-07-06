@@ -1,13 +1,12 @@
 #pragma once
 #include "Word.h"
+#include "ZH_Dictionary.h"
 
-#include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <string_view>
 #include <vector>

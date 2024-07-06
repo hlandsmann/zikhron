@@ -4,8 +4,8 @@
 #include "JieBa.h"
 #include "Rules.h"
 #include "Token.h"
-#include "WordDB.h"
 
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -48,8 +48,8 @@ public:
     [[nodiscard]] auto split(const std::string& text) -> std::vector<Token>;
     auto getAlternatives(const std::string& text, const std::vector<Token>& currentSplit) -> std::vector<Alternative>;
     auto getSplitForChoices(const TokenizationChoiceVec& choices,
-                              const std::string& text,
-                              const std::vector<Token>& currentSplit)
+                            const std::string& text,
+                            const std::vector<Token>& currentSplit)
             -> std::vector<Token>;
 
 private:
@@ -73,7 +73,7 @@ private:
     [[nodiscard]] static auto splitCandidates(std::span<std::vector<AToken>> candidates) -> CandidateSplit;
 
     [[nodiscard]] static auto findEndItForLengthOfAlternativeSplit(std::vector<Token>::const_iterator firstSplit,
-                                                 const CandidateSplit& candidateSplit)
+                                                                   const CandidateSplit& candidateSplit)
             -> std::vector<Token>::const_iterator;
     [[nodiscard]] auto joinMissed(const std::vector<Token>& splitVector, const std::string& text)
             -> std::vector<Token>;

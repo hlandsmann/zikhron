@@ -2,9 +2,9 @@
 #include "VocableMeta.h"
 #include "srtypes.h"
 
-#include <annotation/Card.h>
 #include <annotation/Ease.h>
 #include <annotation/TokenText.h>
+#include <card_data_base/Card.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>

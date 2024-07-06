@@ -1,11 +1,9 @@
 #include "Card.h"
 
-#include "AnnotationFwd.h"
-#include "Tokenizer.h"
-
-#include <JieBa.h>
-#include <Token.h>
-#include <WordDB.h>
+#include <annotation/AnnotationFwd.h>
+#include <annotation/Token.h>
+#include <annotation/Tokenizer.h>
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
@@ -16,7 +14,6 @@
 #include <utils/string_split.h>
 
 #include <cstddef>
-#include <ctre.hpp>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>

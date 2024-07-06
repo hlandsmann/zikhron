@@ -1,23 +1,15 @@
 #include "JieBa.h"
 
-#include "FreqDictionary.h"
+// #include "FreqDictionary.h"
 
 #include <Token.h>
-#include <WordDB.h>
+#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
 
-#include <algorithm>
 #include <cassert>
-#include <cstddef>
-#include <functional>
-#include <iterator>
 #include <memory>
-#include <numeric>
-#include <ranges>
-#include <set>
-#include <span>
 #include <string>
 #include <utility>
 #include <vector>
@@ -29,9 +21,6 @@
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #include <cppjieba/Jieba.hpp>
 #pragma GCC diagnostic pop
-
-namespace ranges = std::ranges;
-namespace views = std::ranges::views;
 
 namespace {
 
@@ -130,7 +119,6 @@ namespace {
 //     fmt::print("\n");
 // }
 
-
 } // namespace
 
 namespace annotation {
@@ -152,9 +140,9 @@ auto JieBa::cut(const std::string& text) -> std::vector<std::string>
     jieba->Cut(text, splitVector, true);
     return splitVector;
 }
-     auto JieBa::cutAll(const std::string& text) -> std::vector<std::string>
-{
 
+auto JieBa::cutAll(const std::string& text) -> std::vector<std::string>
+{
     std::vector<std::string> splitVector;
     jieba->CutAll(text, splitVector);
     return splitVector;
@@ -173,7 +161,6 @@ auto JieBa::cut(const std::string& text) -> std::vector<std::string>
 //     }
 //     return true;
 // }
-
 
 void JieBa::debug()
 {

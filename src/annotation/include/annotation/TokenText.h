@@ -1,9 +1,9 @@
 #pragma once
-#include "Card.h"
 #include "Token.h"
 #include "Tokenizer.h"
 
 #include <annotation/Ease.h>
+#include <card_data_base/Card.h>
 #include <misc/Identifier.h>
 
 #include <cstddef>
