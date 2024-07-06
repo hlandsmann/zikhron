@@ -1,9 +1,9 @@
 #include "Word.h"
 
+#include <VocableProgress.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
-#include <spaced_repetition/VocableProgress.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
 
@@ -18,7 +18,7 @@
 
 namespace ranges = std::ranges;
 
-namespace annotation {
+namespace database {
 
 Word::Word(std::string_view description, VocableId _vocableId, const std::shared_ptr<ZH_Dictionary>& dictionary)
     : vocableId{_vocableId}
@@ -120,4 +120,4 @@ auto Definition::serialize() const -> std::string
 {
     return fmt::format("{};{}/", pronounciation, fmt::join(meanings, "/"));
 }
-} // namespace annotation
+} // namespace dictionary

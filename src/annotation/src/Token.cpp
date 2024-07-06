@@ -1,5 +1,5 @@
 #include <Token.h>
-#include <dictionary/Word.h>
+#include <database/Word.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 
@@ -19,7 +19,7 @@ Token::Token(utl::StringU8 _value)
     : value{std::move(_value)}
 {}
 
-Token::Token(utl::StringU8 _value, std::shared_ptr<Word> _word)
+Token::Token(utl::StringU8 _value, std::shared_ptr<database::Word> _word)
     : value{std::move(_value)}
     , word{std::move(_word)}
 {}
@@ -29,7 +29,7 @@ Token::Token(utl::StringU8 _value, EntryVector _dictionaryEntries)
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {}
 
-auto Token::getWord() const -> std::shared_ptr<Word>
+auto Token::getWord() const -> std::shared_ptr<database::Word>
 {
     return word;
 }

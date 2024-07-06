@@ -1,9 +1,8 @@
 #pragma once
-#include "Token.h"
-#include "Tokenizer.h"
-
 #include <annotation/Ease.h>
-#include <card_data_base/Card.h>
+#include <annotation/Token.h>
+#include <annotation/Tokenizer.h>
+#include <database/Card.h>
 #include <misc/Identifier.h>
 
 #include <cstddef>
@@ -29,9 +28,13 @@ struct ActiveVocable
 
 class TokenText
 {
+    using Card = database::Card;
+    using DialogueCard = database::DialogueCard;
+    using TextCard = database::TextCard;
+
 public:
     using Paragraph = std::vector<Token>;
-    TokenText(std::shared_ptr<Card> card);
+    TokenText(std::shared_ptr<database::Card> card);
     [[nodiscard]] auto setupActiveVocableIds(const std::map<VocableId, Ease>&) -> std::vector<ActiveVocable>;
     void setupAnnotation(const std::vector<annotation::Alternative>& alternatives);
     [[nodiscard]] auto getType() const -> TextType;
@@ -41,16 +44,16 @@ public:
     auto traverseToken() -> std::generator<Token&>;
 
 private:
-    using tokenSubrange = std::ranges::subrange<std::vector<annotation::Token>::const_iterator>;
-    void setupDialogueCard(const DialogueCard&);
-    void setupTextCard(const TextCard&);
+    using tokenSubrange = std::ranges::subrange<std::vector<Token>::const_iterator>;
+    void setupDialogueCard(const database::DialogueCard&);
+    void setupTextCard(const database::TextCard&);
     [[nodiscard]] static auto tokenVector(tokenSubrange tokens) -> std::vector<Token>;
     [[nodiscard]] static auto findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
             -> std::vector<annotation::Token>::const_iterator;
 
     TextType textType{TextType::dialogue};
     std::vector<Paragraph> paragraphSeq;
-    std::shared_ptr<Card> card;
+    std::shared_ptr<database::Card> card;
     std::size_t vocableCount{};
 };
 

@@ -1,9 +1,10 @@
-add_library(zikhron_miscellaneous OBJECT)
+add_library(zikhron_miscellaneous)
 add_library(zikhron::miscellaneous ALIAS zikhron_miscellaneous)
 
 target_sources(zikhron_miscellaneous
     PRIVATE
         include/misc/Config.h
+        include/misc/TokenizationChoice.h
         include/misc/Identifier.h
         src/Config.cpp
 )

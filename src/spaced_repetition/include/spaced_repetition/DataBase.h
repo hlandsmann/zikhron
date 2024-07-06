@@ -1,15 +1,15 @@
 #pragma once
 #include "CardMeta.h"
 #include "VocableMeta.h"
-#include "VocableProgress.h"
 #include "srtypes.h"
 
 #include <annotation/Ease.h>
-#include <annotation/TokenizationChoiceDB.h>
-#include <card_data_base/Card.h>
-#include <card_data_base/CardPackDB.h>
-#include <card_data_base/CbdFwd.h>
-#include <dictionary/WordDB.h>
+#include <database/Card.h>
+#include <database/CardPackDB.h>
+#include <database/CbdFwd.h>
+#include <database/TokenizationChoiceDB.h>
+#include <database/VocableProgress.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -27,11 +27,11 @@
 namespace sr {
 class DataBase
 {
-    using CardPackDB = annotation::CardPackDB;
-    using WordDB = annotation::WordDB;
+    using CardPackDB = database::CardPackDB;
+    using WordDB = database::WordDB;
 
 public:
-    using CharacterSequence = annotation::Card::CharacterSequence;
+    using CharacterSequence = database::Card::CharacterSequence;
 
     DataBase(std::shared_ptr<zikhron::Config> config);
     virtual ~DataBase();
@@ -45,9 +45,9 @@ public:
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
     [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
-    [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<annotation::TokenizationChoiceDB>;
+    [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
-    void reloadCard(const annotation::CardPtr& card);
+    void reloadCard(const database::CardPtr& card);
 
     void setEaseVocable(VocableId, const Ease&);
     void triggerVocable(VocableId, CardId);
@@ -61,9 +61,9 @@ private:
 
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
-    std::shared_ptr<annotation::WordDB> wordDB;
-    std::shared_ptr<annotation::CardPackDB> cardPackDB;
-    std::shared_ptr<annotation::TokenizationChoiceDB> tokenizationChoiceDB;
+    std::shared_ptr<database::WordDB> wordDB;
+    std::shared_ptr<database::CardPackDB> cardPackDB;
+    std::shared_ptr<database::TokenizationChoiceDB> tokenizationChoiceDB;
     std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;

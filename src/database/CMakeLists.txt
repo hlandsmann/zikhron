@@ -1,0 +1,44 @@
+add_library(zikhron_database)
+add_library(zikhron::database ALIAS zikhron_database)
+target_include_directories(zikhron_database
+PRIVATE
+    include/database
+    src
+PUBLIC
+    include
+)
+target_sources(zikhron_database
+    PRIVATE
+        include/database/Card.h
+        include/database/CardPack.h
+        include/database/CardPackDB.h
+        include/database/TokenizationChoiceDB.h
+        include/database/Video.h
+        include/database/VideoPack.h
+        include/database/VideoPackDB.h
+        include/database/VocableProgress.h
+        include/database/Word.h
+        include/database/WordDB.h
+        src/Card.cpp
+        src/CardPack.cpp
+        src/CardPackDB.cpp
+        src/TokenizationChoiceDB.cpp
+        src/Video.cpp
+        src/VideoPack.cpp
+        src/VideoPackDB.cpp
+        src/VocableProgress.cpp
+        src/Word.cpp
+        src/WordDB.cpp
+)
+
+set_property(TARGET zikhron_database PROPERTY CXX_STANDARD 23)
+target_link_libraries(zikhron_database
+    PUBLIC
+        zikhron::annotation
+        zikhron::dictionary
+    PRIVATE
+        magic_enum::magic_enum
+        spdlog::spdlog
+        zikhron::miscellaneous
+        zikhron::warnings
+)

@@ -17,7 +17,7 @@ target_compile_options(zikhron-warnings
 add_library(zikhron::warnings ALIAS zikhron-warnings)
 
 add_subdirectory(annotation)
-add_subdirectory(card_data_base)
+add_subdirectory(database)
 add_subdirectory(dictionary)
 add_subdirectory(kocoro)
 add_subdirectory(misc)
@@ -47,7 +47,7 @@ target_link_libraries(zikhron
         zgui::gui
         zgui::widgets
         zikhron::annotation
-        zikhron::card_data_base
+        zikhron::database
         zikhron::dictionary
         zikhron::kocoro
         zikhron::miscellaneous

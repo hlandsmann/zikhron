@@ -2,8 +2,8 @@
 
 #include <TokenizationOverlay.h>
 #include <annotation/Token.h>
-#include <annotation/TokenText.h>
 #include <annotation/Tokenizer.h>
+#include <annotation/TokenText.h>
 #include <context/Fonts.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>

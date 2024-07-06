@@ -3,7 +3,7 @@
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
-#include <dictionary/Word.h>
+#include <database/Word.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
 #include <widgets/Button.h>
@@ -44,7 +44,7 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::s
     setupBox();
 }
 
-auto VocableOverlay::optionsFromWord(const annotation::Word& word) -> std::vector<Option>
+auto VocableOverlay::optionsFromWord(const database::Word& word) -> std::vector<Option>
 {
     std::vector<Option> options;
     for (const auto& entry : word.getDictionaryEntries()) {
@@ -231,7 +231,7 @@ void VocableOverlay::generateDefinitions()
         if (ranges::none_of(option.checked, [](int checked) { return checked != 0; })) {
             continue;
         }
-        auto definition = annotation::Definition();
+        auto definition = database::Definition();
         definition.pronounciation = option.pronounciation;
         for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
             if (checked != 0) {

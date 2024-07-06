@@ -57,6 +57,7 @@ target_link_libraries(zgui_widgets
         glfw
         spdlog::spdlog
         zikhron::kocoro
+        zikhron::database
         zikhron::multimedia
         zikhron::utils
         zikhron::warnings

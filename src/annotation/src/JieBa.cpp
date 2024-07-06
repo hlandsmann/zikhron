@@ -3,7 +3,7 @@
 // #include "FreqDictionary.h"
 
 #include <Token.h>
-#include <dictionary/WordDB.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
@@ -122,7 +122,7 @@ namespace {
 } // namespace
 
 namespace annotation {
-JieBa::JieBa(std::shared_ptr<WordDB> _wordDB)
+JieBa::JieBa(std::shared_ptr<database::WordDB> _wordDB)
     : wordDB{std::move(_wordDB)}
     , jieba{std::make_shared<cppjieba::Jieba>(
               dict_path,

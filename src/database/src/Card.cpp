@@ -1,12 +1,12 @@
 #include "Card.h"
 
-#include <annotation/AnnotationFwd.h>
 #include <annotation/Token.h>
 #include <annotation/Tokenizer.h>
-#include <dictionary/WordDB.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
+#include <misc/TokenizationChoice.h>
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
@@ -24,7 +24,7 @@
 
 #include <sys/types.h>
 
-namespace annotation {
+namespace database {
 
 auto Card::deserializeCard(std::string_view content, const CardInit& cardInit) -> CardPtr
 {
@@ -59,17 +59,17 @@ auto Card::getCardId() const -> CardId
     return cardId;
 }
 
-auto Card::getTokens() const -> const std::vector<Token>&
+auto Card::getTokens() const -> const std::vector<annotation::Token>&
 {
     return tokens;
 }
 
-auto Card::getWordDB() const -> std::shared_ptr<WordDB>
+auto Card::getWordDB() const -> std::shared_ptr<database::WordDB>
 {
     return wordDB;
 }
 
-auto Card::getAlternatives() const -> std::vector<Alternative>
+auto Card::getAlternatives() const -> std::vector<annotation::Alternative>
 {
     return tokenizer->getAlternatives(getText(), tokens);
 }
@@ -192,4 +192,4 @@ auto TextCard::serialize() const -> std::string
     return fmt::format("{}:{}/", s_prefix, text);
 }
 
-} // namespace annotation
+} // namespace database

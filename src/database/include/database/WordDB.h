@@ -1,7 +1,7 @@
 #pragma once
 #include "Word.h"
-#include "ZH_Dictionary.h"
 
+#include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
@@ -11,7 +11,7 @@
 #include <string_view>
 #include <vector>
 
-namespace annotation {
+namespace database {
 using namespace std::literals;
 
 class WordDB
@@ -45,4 +45,4 @@ private:
     std::map<std::string, std::shared_ptr<Word>> key_word;
 };
 
-} // namespace annotation
+} // namespace database

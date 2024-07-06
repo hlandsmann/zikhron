@@ -1,11 +1,10 @@
 #include "WordDB.h"
 
 #include "Word.h"
-#include "ZH_Dictionary.h"
 
+#include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
-#include <spaced_repetition/VocableProgress.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
 
@@ -18,7 +17,6 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <nlohmann/json_fwd.hpp>
-#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -33,7 +31,7 @@ using vocId_vocId_map = std::map<VocableId, VocableId>;
 
 } // namespace
 
-namespace annotation {
+namespace database {
 
 WordDB::WordDB(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
@@ -113,4 +111,4 @@ void WordDB::parse(const std::string& str)
     }
 }
 
-} // namespace annotation
+} // namespace dictionary

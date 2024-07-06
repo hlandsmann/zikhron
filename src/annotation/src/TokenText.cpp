@@ -1,9 +1,9 @@
 #include "TokenText.h"
 
-#include <Token.h>
-#include <Tokenizer.h>
 #include <annotation/Ease.h>
-#include <card_data_base/Card.h>
+#include <annotation/Token.h>
+#include <annotation/Tokenizer.h>
+#include <database/Card.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>

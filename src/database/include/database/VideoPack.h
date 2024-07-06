@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
 
-namespace annotation {
+namespace database {
 
 class VideoPack
 {

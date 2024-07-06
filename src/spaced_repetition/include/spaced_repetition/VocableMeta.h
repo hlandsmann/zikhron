@@ -1,9 +1,9 @@
 #pragma once
 #include "DataBase.h"
-#include "VocableProgress.h"
 #include "srtypes.h"
 
 #include <annotation/Ease.h>
+#include <database/VocableProgress.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/index_map.h>

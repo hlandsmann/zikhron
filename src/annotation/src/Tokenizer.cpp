@@ -1,10 +1,10 @@
 #include "Tokenizer.h"
 
-#include "AnnotationFwd.h"
 #include "FreqDictionary.h"
+#include "misc/TokenizationChoice.h"
 
 #include <Token.h>
-#include <dictionary/WordDB.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <utils/StringU8.h>
@@ -58,7 +58,7 @@ namespace annotation {
 //     return jTokenCandidates;
 // }
 
-Tokenizer::Tokenizer(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<WordDB> _wordDB)
+Tokenizer::Tokenizer(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<database::WordDB> _wordDB)
     : config{std::move(_config)}
     , wordDB{std::move(_wordDB)}
     , jieba{wordDB}

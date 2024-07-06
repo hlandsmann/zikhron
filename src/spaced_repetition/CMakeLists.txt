@@ -13,7 +13,6 @@ target_sources(zikhron_spaced_repetition
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/ITreeWalker.h
         include/spaced_repetition/VocableMeta.h
-        include/spaced_repetition/VocableProgress.h
         include/spaced_repetition/srtypes.h
         src/AsyncTreeWalker.cpp
         src/CardMeta.cpp
@@ -21,21 +20,18 @@ target_sources(zikhron_spaced_repetition
         src/Node.cpp
         src/Node.h
         src/Path.h
-        src/Time.cpp
-        src/Time.h
         src/Tree.cpp
         src/Tree.h
         src/TreeWalker.cpp
         src/TreeWalker.h
         src/VocableMeta.cpp
-        src/VocableProgress.cpp
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC
         # folly
         nlohmann_json::nlohmann_json
         zikhron::annotation
-        zikhron::card_data_base
+        zikhron::database
         zikhron::dictionary
         zikhron::kocoro
         zikhron::miscellaneous

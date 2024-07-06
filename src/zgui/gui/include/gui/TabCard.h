@@ -3,12 +3,12 @@
 #include "DisplayText.h"
 #include "DisplayVocables.h"
 
-#include <annotation/AnnotationFwd.h>
+#include <misc/TokenizationChoice.h>
 #include <annotation/Ease.h>
-#include <annotation/TokenizationChoiceDB.h>
-#include <card_data_base/CardPack.h>
-#include <card_data_base/CardPackDB.h>
 #include <context/WidgetId.h>
+#include <database/CardPack.h>
+#include <database/CardPackDB.h>
+#include <database/TokenizationChoiceDB.h>
 #include <misc/Identifier.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
@@ -37,8 +37,9 @@ class TabCard
 {
     using Align = widget::layout::Align;
     using ExpandType = widget::layout::ExpandType;
-    using CardPackDB = annotation::CardPackDB;
-    using CardPack = annotation::CardPack;
+    using CardPackDB = database::CardPackDB;
+    using CardPack = database::CardPack;
+    using CardAudio = database::CardAudio;
     enum class Proceed {
         submit_walkTree,
         submit_next,
@@ -58,7 +59,7 @@ class TabCard
     class CardAudioInfo
     {
     public:
-        CardAudioInfo(CardId cardId, const annotation::CardPackDB& cardPackDB);
+        CardAudioInfo(CardId cardId, const CardPackDB& cardPackDB);
         CardAudioInfo() = default;
         [[nodiscard]] auto firstId() const -> std::optional<CardId>;
         [[nodiscard]] auto previousId() const -> std::optional<CardId>;
@@ -69,7 +70,7 @@ class TabCard
         [[nodiscard]] auto getEndTime() const -> double;
 
     private:
-        annotation::CardAudio cardAudio;
+        CardAudio cardAudio;
         std::shared_ptr<CardPack> cardPack;
     };
 
@@ -119,7 +120,6 @@ private:
     using BoxPtr = std::shared_ptr<widget::Box>;
     std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
     std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
-    using TokenizationChoice = annotation::TokenizationChoice;
     std::shared_ptr<kocoro::VolatileSignal<TokenizationChoice>> signalAnnotationDone;
     context::WidgetId boxId{};
 

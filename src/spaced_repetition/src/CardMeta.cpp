@@ -1,9 +1,9 @@
 #include <CardMeta.h>
-#include <VocableProgress.h>
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
-#include <card_data_base/Card.h>
+#include <database/Card.h>
+#include <database/VocableProgress.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -31,7 +31,7 @@ namespace views = std::views;
 namespace sr {
 
 CardMeta::CardMeta(CardId _cardId,
-                   std::shared_ptr<Card> _card,
+                   std::shared_ptr<database::Card> _card,
                    std::shared_ptr<utl::index_map<VocableId, VocableMeta>> _vocables)
     : cardId{_cardId}
     , card{std::move(_card)}

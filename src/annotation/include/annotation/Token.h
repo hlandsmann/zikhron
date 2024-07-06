@@ -1,6 +1,6 @@
 #pragma once
 
-#include <dictionary/Word.h>
+#include <database/Word.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
@@ -26,9 +26,9 @@ public:
 
     Token() = default;
     Token(utl::StringU8 value);
-    Token(utl::StringU8 value, std::shared_ptr<Word> word);
+    Token(utl::StringU8 value, std::shared_ptr<database::Word> word);
     Token(utl::StringU8 value, EntryVector dictionaryEntries);
-    [[nodiscard]] auto getWord() const -> std::shared_ptr<Word>;
+    [[nodiscard]] auto getWord() const -> std::shared_ptr<database::Word>;
     [[nodiscard]] auto getValue() const -> utl::StringU8;
     [[nodiscard]] auto getNoBreak() const -> NoBreak;
     [[nodiscard]] auto getColorId() const -> ColorId;
@@ -44,7 +44,7 @@ public:
 
 private:
     utl::StringU8 value;
-    std::shared_ptr<Word> word;
+    std::shared_ptr<database::Word> word;
     ColorId colorId{ColorId::defaultFontColor};
     NoBreak noBreak{NoBreak::none};
     std::size_t dictionaryEntryIndex{0};

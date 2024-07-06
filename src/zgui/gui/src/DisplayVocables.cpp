@@ -3,8 +3,8 @@
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
-#include <dictionary/Word.h>
-#include <dictionary/WordDB.h>
+#include <database/Word.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
@@ -26,7 +26,7 @@ namespace ranges = std::ranges;
 
 namespace gui {
 DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
-                                 std::shared_ptr<annotation::WordDB> _wordDB,
+                                 std::shared_ptr<database::WordDB> _wordDB,
                                  std::vector<ActiveVocable>&& _orderedVocId_ease)
     : layer{std::move(_layer)}
     , wordDB{std::move(_wordDB)}

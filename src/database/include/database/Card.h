@@ -1,11 +1,13 @@
 #pragma once
+#include "CbdFwd.h"
+#include "WordDB.h"
+
 #include <annotation/JieBa.h>
 #include <annotation/Token.h>
 #include <annotation/Tokenizer.h>
-#include "CbdFwd.h"
-#include <dictionary/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
+#include <misc/TokenizationChoice.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 
@@ -17,15 +19,15 @@
 
 #include <sys/types.h>
 
-namespace annotation {
+namespace database {
 
 struct CardInit
 {
     std::string packName;
     PackId packId;
     std::size_t indexInPack;
-    std::shared_ptr<WordDB> wordDB;
-    std::shared_ptr<Tokenizer> tokenizer;
+    std::shared_ptr<database::WordDB> wordDB;
+    std::shared_ptr<annotation::Tokenizer> tokenizer;
 };
 
 class Card
@@ -43,9 +45,9 @@ public:
 
     void setCardId(CardId);
     [[nodiscard]] auto getCardId() const -> CardId;
-    [[nodiscard]] auto getTokens() const -> const std::vector<Token>&;
-    [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
-    [[nodiscard]] auto getAlternatives() const -> std::vector<Alternative>;
+    [[nodiscard]] auto getTokens() const -> const std::vector<annotation::Token>&;
+    [[nodiscard]] auto getWordDB() const -> std::shared_ptr<database::WordDB>;
+    [[nodiscard]] auto getAlternatives() const -> std::vector<annotation::Alternative>;
     [[nodiscard]] virtual auto serialize() const -> std::string = 0;
     [[nodiscard]] auto getPackId() const -> PackId;
     [[nodiscard]] auto getPackName() const -> std::string;
@@ -61,11 +63,11 @@ private:
     std::string packName;
     PackId packId;
     std::size_t indexInPack;
-    std::shared_ptr<WordDB> wordDB;
-    std::shared_ptr<Tokenizer> tokenizer;
+    std::shared_ptr<database::WordDB> wordDB;
+    std::shared_ptr<annotation::Tokenizer> tokenizer;
 
     CardId cardId{};
-    std::vector<Token> tokens;
+    std::vector<annotation::Token> tokens;
 };
 
 class DialogueCard : public Card
@@ -116,4 +118,4 @@ private:
     utl::StringU8 text;
 };
 
-} // namespace annotation
+} // namespace database

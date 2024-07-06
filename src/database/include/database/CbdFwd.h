@@ -1,8 +1,9 @@
 #pragma once
 #include <memory>
 
-namespace annotation {
+namespace database {
 
 class Card;
+class CardPackDB;
 using CardPtr = std::shared_ptr<Card>;
-} // namespace annotation
+} // namespace database

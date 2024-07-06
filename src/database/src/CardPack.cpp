@@ -4,7 +4,7 @@
 #include "CbdFwd.h"
 
 #include <annotation/Tokenizer.h>
-#include <dictionary/WordDB.h>
+#include <database/WordDB.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
@@ -21,12 +21,12 @@
 #include <utility>
 #include <vector>
 
-namespace annotation {
+namespace database {
 
 CardPack::CardPack(std::filesystem::path _filename,
                    PackId _packId,
                    std::shared_ptr<WordDB> _wordDB,
-                   std::shared_ptr<Tokenizer> _tokenizer)
+                   std::shared_ptr<annotation::Tokenizer> _tokenizer)
     : filename{std::move(_filename)}
     , packId{_packId}
     , wordDB{std::move(_wordDB)}
@@ -139,4 +139,4 @@ void CardPack::deserialize()
         cardInit.indexInPack++;
     }
 }
-} // namespace annotation
+} // namespace database

@@ -1,6 +1,6 @@
 #pragma once
+#include <database/Word.h>
 #include <context/Fonts.h>
-#include <dictionary/Word.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
@@ -30,7 +30,7 @@ public:
     [[nodiscard]] auto configured() const -> bool;
 
 private:
-    [[nodiscard]] static auto optionsFromWord(const annotation::Word& word) -> std::vector<Option>;
+    [[nodiscard]] static auto optionsFromWord(const database::Word& word) -> std::vector<Option>;
 
     void setupBox();
     void setupHeader(widget::Box& headerBox);
@@ -67,10 +67,10 @@ private:
                                                          .border = s_border};
 
     std::shared_ptr<widget::Overlay> overlay;
-    std::shared_ptr<annotation::Word> word;
+    std::shared_ptr<database::Word> word;
     std::weak_ptr<widget::TextToken> textToken;
 
-    std::vector<annotation::Definition> definitions;
+    std::vector<database::Definition> definitions;
     std::vector<Option> options;
 
     bool showOptions{false};

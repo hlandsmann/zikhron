@@ -3,11 +3,11 @@
 #include <filesystem>
 #include <utility>
 
-namespace annotation {
+namespace database {
 
 VideoPack::VideoPack(std::filesystem::path _videoPackFile)
     : videoPackFile{std::move(_videoPackFile)}
 
 {}
 
-} // namespace annotation
+} // namespace database

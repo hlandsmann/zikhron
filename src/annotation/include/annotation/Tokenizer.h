@@ -1,11 +1,11 @@
 #pragma once
-#include "AnnotationFwd.h"
 #include "FreqDictionary.h"
 #include "JieBa.h"
 #include "Rules.h"
 #include "Token.h"
+#include "misc/TokenizationChoice.h"
 
-#include <dictionary/WordDB.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -43,7 +43,7 @@ class Tokenizer
     };
 
 public:
-    Tokenizer(std::shared_ptr<zikhron::Config> config, std::shared_ptr<WordDB> wordDB);
+    Tokenizer(std::shared_ptr<zikhron::Config> config, std::shared_ptr<database::WordDB> wordDB);
 
     [[nodiscard]] auto split(const std::string& text) -> std::vector<Token>;
     auto getAlternatives(const std::string& text, const std::vector<Token>& currentSplit) -> std::vector<Alternative>;
@@ -80,7 +80,7 @@ private:
     [[nodiscard]] auto splitFurther(const std::string& text) -> std::vector<AToken>;
 
     std::shared_ptr<zikhron::Config> config;
-    std::shared_ptr<WordDB> wordDB;
+    std::shared_ptr<database::WordDB> wordDB;
     JieBa jieba;
     Rules rules;
     std::shared_ptr<FreqDictionary> freqDictionary;

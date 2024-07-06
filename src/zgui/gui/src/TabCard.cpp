@@ -5,7 +5,7 @@
 #include <DisplayVocables.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
-#include <card_data_base/CardPackDB.h>
+#include <database/CardPackDB.h>
 #include <context/imglog.h>
 #include <misc/Identifier.h>
 #include <multimedia/MpvWrapper.h>
@@ -48,7 +48,7 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
-TabCard::CardAudioInfo::CardAudioInfo(CardId cardId, const annotation::CardPackDB& cardPackDB)
+TabCard::CardAudioInfo::CardAudioInfo(CardId cardId, const database::CardPackDB& cardPackDB)
     : cardAudio{cardPackDB.getCardAtCardId(cardId)}
     , cardPack{cardPackDB.getCardPackForCardId(cardAudio.card->getCardId())}
 {}

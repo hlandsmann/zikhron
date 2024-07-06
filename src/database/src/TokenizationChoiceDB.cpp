@@ -1,10 +1,10 @@
 #include "TokenizationChoiceDB.h"
 
-#include "AnnotationFwd.h"
-
-#include <card_data_base/CardPackDB.h>
+#include <database/CardPackDB.h>
+#include <database/CbdFwd.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/TokenizationChoice.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
@@ -23,15 +23,15 @@
 
 namespace ranges = std::ranges;
 
-namespace annotation {
-TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config, const CardPackDB& cardPackDB)
+namespace database {
+TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config, const database::CardPackDB& cardPackDB)
     : dbFile{config->DatabaseDirectory() / s_tokenizationChoiceDBFile}
     , choices{deserialize(dbFile)}
 {
     syncIdsWithCardPackDB(cardPackDB);
 }
 
-void TokenizationChoiceDB::syncIdsWithCardPackDB(const CardPackDB& cardPackDB)
+void TokenizationChoiceDB::syncIdsWithCardPackDB(const database::CardPackDB& cardPackDB)
 {
     for (const auto& tokenizationChoicePosition : choices) {
         const auto& choice = tokenizationChoicePosition.tokenizationChoice;
@@ -45,13 +45,13 @@ void TokenizationChoiceDB::syncIdsWithCardPackDB(const CardPackDB& cardPackDB)
     }
 }
 
-void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<Card>& card)
+void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
 {
     removeSimilarChoiceForCard(choice, card);
     addChoiceForCard(choice, card);
 }
 
-void TokenizationChoiceDB::removeSimilarChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card)
+void TokenizationChoiceDB::removeSimilarChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
 {
     auto& choicesForCard = choicesForCards[card->getCardId()];
     auto oldChoiceForCardIt = ranges::find_if(choicesForCard,
@@ -78,7 +78,7 @@ void TokenizationChoiceDB::removeSimilarChoiceForCard(const TokenizationChoice& 
     }
 }
 
-void TokenizationChoiceDB::addChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card)
+void TokenizationChoiceDB::addChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
 {
     auto choiceIt = ranges::find(choices, choice, &TokenizationChoicePosition::tokenizationChoice);
     if (choiceIt == choices.end()) {

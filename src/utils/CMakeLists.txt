@@ -11,6 +11,7 @@ target_sources(zikhron_utils
         include/utils/Memoizer.h
         include/utils/Memory.h
         include/utils/StringU8.h
+        include/utils/Time.h
         include/utils/counting_iterator.h
         include/utils/format.h
         include/utils/index_map.h
@@ -18,6 +19,7 @@ target_sources(zikhron_utils
         include/utils/string_split.h
         include/utils/variant_cast.h
         src/StringU8.cpp
+        src/Time.cpp
         src/string_split.cpp
 )
 pkg_search_module(ICU_UC REQUIRED icu-uc)

@@ -8,7 +8,7 @@ target_sources(sr_treewalker
 target_link_libraries(sr_treewalker
     PRIVATE
         spdlog::spdlog
-        zikhron::card_data_base
+        zikhron::database
         zikhron::annotation
         zikhron::dictionary
         zikhron::miscellaneous

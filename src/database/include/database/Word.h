@@ -1,6 +1,5 @@
 #pragma once
-#include "ZH_Dictionary.h"
-
+#include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 
 #include <memory>
@@ -9,7 +8,7 @@
 #include <vector>
 class VocableProgress;
 
-namespace annotation {
+namespace database {
 
 struct Definition;
 
@@ -54,4 +53,4 @@ struct Definition
     std::vector<std::string> meanings;
 };
 
-} // namespace annotation
+} // namespace database

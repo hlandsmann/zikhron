@@ -1,4 +1,4 @@
-add_library(zikhron_annotation STATIC)
+add_library(zikhron_annotation)
 add_library(zikhron::annotation ALIAS zikhron_annotation)
 target_include_directories(zikhron_annotation
 PRIVATE
@@ -10,14 +10,12 @@ PUBLIC
 target_sources(zikhron_annotation
     PRIVATE
         include/annotation/AdaptJiebaDict.h
-        include/annotation/AnnotationFwd.h
         include/annotation/Ease.h
         include/annotation/FreqDictionary.h
         include/annotation/JieBa.h
         include/annotation/Rules.h
         include/annotation/Token.h
         include/annotation/TokenText.h
-        include/annotation/TokenizationChoiceDB.h
         include/annotation/Tokenizer.h
         src/AdaptJiebaDict.cpp
         src/Ease.cpp
@@ -26,12 +24,11 @@ target_sources(zikhron_annotation
         src/Rules.cpp
         src/Token.cpp
         src/TokenText.cpp
-        src/TokenizationChoiceDB.cpp
         src/Tokenizer.cpp
 )
 target_link_libraries(zikhron_annotation
     PUBLIC
-        zikhron::card_data_base
+        # zikhron::database
         zikhron::dictionary
         zikhron::miscellaneous
     PRIVATE

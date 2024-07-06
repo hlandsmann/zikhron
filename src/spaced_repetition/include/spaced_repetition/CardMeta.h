@@ -4,7 +4,7 @@
 
 #include <annotation/Ease.h>
 #include <annotation/TokenText.h>
-#include <card_data_base/Card.h>
+#include <database/Card.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -21,7 +21,7 @@ namespace sr {
 
 class CardMeta
 {
-    using Card = annotation::Card;
+    using Card = database::Card;
 
 public:
     CardMeta() = default;

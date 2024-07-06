@@ -1,9 +1,9 @@
 #pragma once
-#include "AnnotationFwd.h"
-
-#include <card_data_base/Card.h>
+#include <database/Card.h>
+#include <database/CbdFwd.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/TokenizationChoice.h>
 #include <utils/StringU8.h>
 
 #include <cstddef>
@@ -16,9 +16,7 @@
 #include <utility>
 #include <vector>
 
-namespace annotation {
-
-class CardPackDB;
+namespace database {
 
 class TokenizationChoiceDB
 {
@@ -58,4 +56,4 @@ private:
     std::vector<TokenizationChoicePosition> choices;
     std::map<CardId, TokenizationChoiceVec> choicesForCards;
 };
-} // namespace annotation
+} // namespace database

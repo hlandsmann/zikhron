@@ -1,7 +1,8 @@
 #pragma once
 #include "CbdFwd.h"
+
 #include <annotation/Tokenizer.h>
-#include <dictionary/WordDB.h>
+#include "WordDB.h"
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
@@ -12,7 +13,7 @@
 #include <string>
 #include <vector>
 
-namespace annotation {
+namespace database {
 
 struct CardAudio
 {
@@ -33,7 +34,7 @@ public:
     CardPack(std::filesystem::path filename,
              PackId packid,
              std::shared_ptr<WordDB> wordDB,
-             std::shared_ptr<Tokenizer> tokenizer);
+             std::shared_ptr<annotation::Tokenizer> tokenizer);
     [[nodiscard]] auto getCards() const -> const std::vector<CardAudio>&;
 
     [[nodiscard]] auto getCardByIndex(std::size_t index) const -> const CardAudio&;
@@ -49,7 +50,7 @@ private:
     std::filesystem::path filename;
     PackId packId;
     std::shared_ptr<WordDB> wordDB;
-    std::shared_ptr<Tokenizer> tokenizer;
+    std::shared_ptr<annotation::Tokenizer> tokenizer;
 
     std::vector<CardAudio> cards;
 
@@ -59,4 +60,4 @@ private:
 
 using CardPackPtr = std::shared_ptr<CardPack>;
 
-} // namespace annotation
+} // namespace cbd

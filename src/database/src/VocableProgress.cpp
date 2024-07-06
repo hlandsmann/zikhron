@@ -2,6 +2,7 @@
 #include <annotation/Ease.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
+#include <utils/Time.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
 
@@ -15,9 +16,6 @@
 #include <string>
 #include <string_view>
 #include <vector>
-
-#include "Time.h"
-using namespace spaced_repetition;
 namespace ranges = std::ranges;
 
 namespace {
@@ -42,7 +40,7 @@ auto deserialize_vector(nlohmann::json json) -> std::vector<T>
 
 VocableProgress::VocableProgress(std::string_view sv)
 {
-    lastSeen = deserialize_time_t(std::string{utl::split_front(sv, ',')});
+    lastSeen = utl::deserialize_time_t(std::string{utl::split_front(sv, ',')});
     easeFactor = std::stof(std::string{utl::split_front(sv, ',')});
     intervalDay = std::stof(std::string{utl::split_front(sv, ',')});
     while (true) {
@@ -57,7 +55,7 @@ VocableProgress::VocableProgress(std::string_view sv)
 auto VocableProgress::serialize() const -> std::string
 {
     return fmt::format("{},{:.2F},{:.1F},{},",
-                       serialize_time_t(lastSeen),
+                       utl::serialize_time_t(lastSeen),
                        easeFactor,
                        intervalDay,
                        fmt::join(triggerCardIndices, ","));
@@ -143,7 +141,7 @@ auto VocableProgress::getNextTriggerCard(const std::vector<CardId>& availableCar
 
 auto VocableProgress::recency() const -> float
 {
-    return (easeFactor * intervalDay) - static_cast<float>(daysFromToday(lastSeen, 0));
+    return (easeFactor * intervalDay) - static_cast<float>(utl::daysFromToday(lastSeen, 0));
 }
 
 auto VocableProgress::pauseTimeOver() const -> bool
@@ -158,8 +156,8 @@ auto VocableProgress::pauseTimeOver() const -> bool
 
 auto VocableProgress::isToBeRepeatedToday() const -> bool
 {
-    std::time_t todayMidnight = todayMidnightTime();
-    std::time_t vocActiveTime = advanceTimeByDays(lastSeen, intervalDay);
+    std::time_t todayMidnight = utl::todayMidnightTime();
+    std::time_t vocActiveTime = utl::advanceTimeByDays(lastSeen, intervalDay);
 
     return todayMidnight > vocActiveTime;
 }
@@ -175,13 +173,13 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
     float minFactor = std::pow(Ease::changeFactorHard, square);
     float maxFactor = easeFactor * Ease::changeFactorHard;
     float daysMinAtleast = (intervalDay >= 1.F) ? 1.F : 0.F;
-    return {.daysMin = daysFromToday(lastSeen,
+    return {.daysMin = utl::daysFromToday(lastSeen,
                                      std::max(daysMinAtleast, intervalDay * minFactor)),
             .daysNormal = dueDays(),
-            .daysMax = daysFromToday(lastSeen, intervalDay * maxFactor)};
+            .daysMax = utl::daysFromToday(lastSeen, intervalDay * maxFactor)};
 }
 
 auto VocableProgress::dueDays() const -> int
 {
-    return daysFromToday(lastSeen, intervalDay);
+    return utl::daysFromToday(lastSeen, intervalDay);
 }

@@ -1,11 +1,11 @@
 #include <CardMeta.h>
 #include <DataBase.h>
 #include <VocableMeta.h>
-#include <VocableProgress.h>
-#include <card_data_base/CbdFwd.h>
 #include <annotation/Ease.h>
-#include <annotation/TokenizationChoiceDB.h>
-#include <dictionary/WordDB.h>
+#include <database/CbdFwd.h>
+#include <database/TokenizationChoiceDB.h>
+#include <database/VocableProgress.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <fmt/format.h>
 #include <misc/Config.h>
@@ -34,10 +34,10 @@ namespace views = std::views;
 namespace sr {
 DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     : config{std::move(_config)}
-    , wordDB{std::make_shared<annotation::WordDB>(config)}
+    , wordDB{std::make_shared<WordDB>(config)}
     , cardPackDB{std::make_shared<CardPackDB>(config,
                                               wordDB)}
-    , tokenizationChoiceDB{std::make_shared<annotation::TokenizationChoiceDB>(config, *cardPackDB)}
+    , tokenizationChoiceDB{std::make_shared<database::TokenizationChoiceDB>(config, *cardPackDB)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
     , cards{std::make_shared<utl::index_map<CardId, CardMeta>>()}
 {
@@ -70,7 +70,7 @@ auto DataBase::getCardPackDB() const -> std::shared_ptr<CardPackDB>
     return cardPackDB;
 }
 
-auto DataBase::getTokenizationChoiceDB() const -> std::shared_ptr<annotation::TokenizationChoiceDB>
+auto DataBase::getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>
 {
     return tokenizationChoiceDB;
 }
@@ -80,7 +80,7 @@ auto DataBase::getWordDB() const -> std::shared_ptr<WordDB>
     return wordDB;
 }
 
-void DataBase::reloadCard(const annotation::CardPtr& card)
+void DataBase::reloadCard(const database::CardPtr& card)
 {
     const auto& [cardIndex, cardMeta] = cards->at_id(card->getCardId());
     for (auto vocableIndex : cardMeta.VocableIndices()) {

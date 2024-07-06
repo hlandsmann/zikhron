@@ -6,7 +6,7 @@
 #include <sstream>
 #include <string>
 namespace chrono = std::chrono;
-namespace spaced_repetition {
+namespace utl {
 
 auto serialize_time_t(const std::time_t& time) -> std::string
 {

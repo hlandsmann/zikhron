@@ -1,7 +1,7 @@
 #pragma once
 #include <ctime>
 #include <string>
-namespace spaced_repetition {
+namespace utl {
 
 auto serialize_time_t(const std::time_t& time) -> std::string;
 auto deserialize_time_t(const std::string& s) -> std::time_t;

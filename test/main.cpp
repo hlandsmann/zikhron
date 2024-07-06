@@ -1,9 +1,9 @@
 #include <annotation/AdaptJiebaDict.h>
 #include <annotation/FreqDictionary.h>
 #include <annotation/JieBa.h>
-#include <card_data_base/CardPack.h>
-#include <card_data_base/CardPackDB.h>
-#include <dictionary/WordDB.h>
+#include <database/CardPack.h>
+#include <database/CardPackDB.h>
+#include <database/WordDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spaced_repetition/DataBase.h>
@@ -25,7 +25,7 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
 }
 
-void adaptJiebaDictionaries(const std::shared_ptr<annotation::WordDB>& wordDB)
+void adaptJiebaDictionaries(const std::shared_ptr<database::WordDB>& wordDB)
 {
     auto adaptDictionary = annotation::AdaptJiebaDict{wordDB->getDictionary()};
     adaptDictionary.load(annotation::AdaptJiebaDict::dict_in_path);

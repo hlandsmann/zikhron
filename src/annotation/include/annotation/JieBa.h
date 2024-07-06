@@ -1,7 +1,7 @@
 #pragma once
 #include "Rules.h"
 
-#include <dictionary/WordDB.h>
+#include <database/WordDB.h>
 #include <utils/StringU8.h>
 
 #include <memory>
@@ -36,14 +36,14 @@ class JieBa
     static constexpr auto user_dict_path = "/home/harmen/src/zikhron/build/user.dict.utf8";
 
 public:
-    JieBa(std::shared_ptr<WordDB> wordDB);
+    JieBa(std::shared_ptr<database::WordDB> wordDB);
 
     [[nodiscard]] auto cut(const std::string& text) -> std::vector<std::string>;
     [[nodiscard]] auto cutAll(const std::string& text) -> std::vector<std::string>;
     void debug();
 
 private:
-    std::shared_ptr<WordDB> wordDB;
+    std::shared_ptr<database::WordDB> wordDB;
     std::shared_ptr<cppjieba::Jieba> jieba;
     // std::set<std::string> rules;
     // std::set<std::string> no_rule;

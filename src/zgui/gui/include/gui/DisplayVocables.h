@@ -3,8 +3,8 @@
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
-#include <dictionary/Word.h>
-#include <dictionary/WordDB.h>
+#include <database/Word.h>
+#include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <widgets/Grid.h>
@@ -21,14 +21,14 @@ class DisplayVocables
 {
     using Align = widget::layout::Align;
     using ActiveVocable = annotation::ActiveVocable;
-    using Word = annotation::Word;
+    using Word = database::Word;
 
     using VocableId_Ease = std::map<VocableId, Ease>;
 
 public:
     using pair_vocId_Ease = std::pair<VocableId, Ease>;
     DisplayVocables(std::shared_ptr<widget::Layer> layer,
-                    std::shared_ptr<annotation::WordDB> wordDB,
+                    std::shared_ptr<database::WordDB> wordDB,
                     std::vector<ActiveVocable>&& orderedVocId_ease);
 
     void draw();
@@ -51,7 +51,7 @@ private:
     context::FontType fontType = context::FontType::chineseSmall;
 
     std::shared_ptr<widget::Layer> layer;
-    std::shared_ptr<annotation::WordDB> wordDB;
+    std::shared_ptr<database::WordDB> wordDB;
     std::vector<ActiveVocable> activeVocables;
 };
 

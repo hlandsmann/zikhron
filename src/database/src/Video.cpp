@@ -1,6 +1,6 @@
 #include "Video.h"
 
-namespace annotation {
+namespace database {
 
 Video::Video(std::string_view sv)
 {}
