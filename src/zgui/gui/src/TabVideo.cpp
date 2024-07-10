@@ -3,12 +3,24 @@
 #include <GroupAdd.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <imgui.h>
+#include <spaced_repetition/AsyncTreeWalker.h>
+#include <spdlog/spdlog.h>
 #include <widgets/Layer.h>
 #include <widgets/Window.h>
 
+#include <kocoro/kocoro.hpp>
 #include <memory>
+#include <string>
+#include <utility>
 
 namespace gui {
+TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor,
+                   std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker)
+    : executor{std::move(synchronousExecutor)}
+{
+    executor->startCoro(manageVideosTask(std::move(asyncTreeWalker)));
+}
+
 void TabVideo::setUp(std::shared_ptr<widget::Layer> layer)
 {
     using namespace widget::layout;
@@ -39,6 +51,10 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
             std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
             std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
             spdlog::warn("open: {}, {}", filePath, filePathName);
+            if (dataBase) {
+                dataBase->getVideoPackDB()->addVideoPack({filePathName});
+            }
+
             // action
         }
 
@@ -62,4 +78,11 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
     // ImGui::EndChild();
     // ImGui::PopStyleColor();
 }
+
+auto TabVideo::manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
+{
+    dataBase = co_await asyncTreeWalker->getDataBase();
+    co_return;
+}
+
 } // namespace gui

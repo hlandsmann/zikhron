@@ -2,15 +2,19 @@
 #include "GroupAdd.h"
 
 #include <context/WidgetId.h>
+#include <spaced_repetition/AsyncTreeWalker.h>
+#include <spaced_repetition/DataBase.h>
 #include <widgets/Layer.h>
 
+#include <kocoro/kocoro.hpp>
 #include <memory>
 
 namespace gui {
 class TabVideo
 {
 public:
-    TabVideo() = default;
+    TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor,
+             std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker);
     TabVideo(const TabVideo&) = delete;
     TabVideo(TabVideo&&) = delete;
     auto operator=(const TabVideo&) -> TabVideo& = delete;
@@ -21,6 +25,10 @@ public:
     void displayOnLayer(widget::Layer& layer);
 
 private:
+    auto manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>;
+    std::shared_ptr<sr::DataBase> dataBase;
+    std::shared_ptr<kocoro::SynchronousExecutor> executor;
+
     constexpr static widget::BoxCfg gridCfg = {.padding = {},
                                                .paddingHorizontal = {},
                                                .paddingVertical = {},

@@ -33,15 +33,12 @@ private:
     [[nodiscard]] static auto loadCardPacks(const std::filesystem::path& directory,
                                             const std::shared_ptr<WordDB>& wordDB,
                                             const std::shared_ptr<annotation::Tokenizer>& tokenizer)
-            -> std::vector<CardPackPtr>;
-    [[nodiscard]] static auto setupNameCardPack(const std::vector<CardPackPtr>& cardPacks)
             -> std::map<std::string, CardPackPtr>;
     [[nodiscard]] auto traverseCards() const -> std::generator<CardAudio>;
     void setupCards();
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<annotation::Tokenizer> tokenizer;
-    std::vector<CardPackPtr> cardPacks;
-    std::map<std::string, CardPackPtr> name_cardPack;
+    std::map<std::string /* name */, CardPackPtr> cardPacks;
 
     std::map<CardId, CardAudio> cards;
 };

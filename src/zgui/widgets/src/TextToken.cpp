@@ -71,13 +71,6 @@ void TextToken::renderText(float x, float y) const
     ImGui::Text("%s", token.string().data());
 }
 
-auto TextToken::testHovered() const -> bool
-{
-    const auto& rect = getRect();
-    renderText(rect.x, rect.y);
-    return ImGui::IsItemHovered();
-}
-
 auto TextToken::clicked() -> bool
 {
     bool clicked{false};
@@ -88,10 +81,6 @@ auto TextToken::clicked() -> bool
     const auto& colorSet = getTheme().getColorSet();
     const auto& shadowColor = colorSet.getColor(ColorId::shadowFontColor, {});
 
-    isHovered = testHovered();
-    if (token.getWord()) {
-        isActive |= isHovered;
-    }
     {
         auto colorDrop = isActive ? context::FontColorDrop{color}
                                   : context::FontColorDrop{shadowColor};
@@ -102,12 +91,18 @@ auto TextToken::clicked() -> bool
         auto colorDrop = isActive ? context::FontColorDrop{shadowColor}
                                   : context::FontColorDrop{color};
         renderText(rect.x, rect.y);
+
+        isHovered = ImGui::IsItemHovered();
+        if (token.getWord()) {
+            isActive |= isHovered;
+        }
+
         if (isActive) {
             clicked = ImGui::IsItemClicked();
         }
+        isActive &= isHovered;
     }
 
-    isActive = false;
     return clicked;
 }
 

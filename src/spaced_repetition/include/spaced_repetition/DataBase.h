@@ -8,6 +8,7 @@
 #include <database/CardPackDB.h>
 #include <database/CbdFwd.h>
 #include <database/TokenizationChoiceDB.h>
+#include <database/VideoPackDB.h>
 #include <database/VocableProgress.h>
 #include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
@@ -27,8 +28,10 @@
 namespace sr {
 class DataBase
 {
-    using CardPackDB = database::CardPackDB;
     using WordDB = database::WordDB;
+    using CardPackDB = database::CardPackDB;
+    using VideoPackDB = database::VideoPackDB;
+    using TokenizationChoiceDB = database::TokenizationChoiceDB;
 
 public:
     using CharacterSequence = database::Card::CharacterSequence;
@@ -45,6 +48,7 @@ public:
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
     [[nodiscard]] auto Cards() -> utl::index_map<CardId, CardMeta>&;
     [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
+    [[nodiscard]] auto getVideoPackDB() const -> std::shared_ptr<VideoPackDB>;
     [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
     void reloadCard(const database::CardPtr& card);
@@ -61,9 +65,10 @@ private:
 
     std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
-    std::shared_ptr<database::WordDB> wordDB;
-    std::shared_ptr<database::CardPackDB> cardPackDB;
-    std::shared_ptr<database::TokenizationChoiceDB> tokenizationChoiceDB;
+    std::shared_ptr<WordDB> wordDB;
+    std::shared_ptr<CardPackDB> cardPackDB;
+    std::shared_ptr<VideoPackDB> videoPackDB;
+    std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB;
     std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;

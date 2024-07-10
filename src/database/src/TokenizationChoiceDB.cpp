@@ -116,17 +116,17 @@ void TokenizationChoiceDB::save()
 
 auto TokenizationChoiceDB::serialize() const -> std::string
 {
-    std::string result;
-    result += fmt::format("{};version:1.0\n", s_type);
+    std::string content;
+    content += fmt::format("{};version:1.0\n", s_type);
     for (const auto& choice : choices) {
-        result += fmt::format("{}\n", serializeChoice(choice.tokenizationChoice));
+        content += fmt::format("{}\n", serializeChoice(choice.tokenizationChoice));
         for (const auto& position : choice.packPositions) {
-            result += fmt::format("{}\n", serializePackPosition(position));
+            content += fmt::format("{}\n", serializePackPosition(position));
         }
-        result += "\n";
+        content += "\n";
     }
 
-    return result;
+    return content;
 }
 
 auto TokenizationChoiceDB::serializeChoice(const TokenizationChoice& choice) -> std::string

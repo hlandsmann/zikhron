@@ -33,13 +33,18 @@ auto splitOnce(std::string_view str, char delim)
 
 auto split_front(std::string_view& sv, char delim) -> std::string_view
 {
+    return split_front(sv, std::string{delim});
+}
+
+auto split_front(std::string_view& sv, const std::string& delim) -> std::string_view
+{
     std::size_t found = sv.find(delim);
     if (found == std::string_view::npos) {
         sv = std::string_view{};
         return sv;
     }
     auto result = sv.substr(0, found);
-    sv = sv.substr(found + 1);
+    sv = sv.substr(found + delim.length());
     return result;
 }
 

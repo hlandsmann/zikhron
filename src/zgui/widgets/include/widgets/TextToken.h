@@ -38,7 +38,6 @@ private:
 
     void renderShadow(float x, float y);
     void renderText(float x, float y) const;
-    auto testHovered() const -> bool;
 
     annotation::Token token;
 

@@ -37,6 +37,7 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
     , wordDB{std::make_shared<WordDB>(config)}
     , cardPackDB{std::make_shared<CardPackDB>(config,
                                               wordDB)}
+    , videoPackDB{std::make_shared<VideoPackDB>(config)}
     , tokenizationChoiceDB{std::make_shared<database::TokenizationChoiceDB>(config, *cardPackDB)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
     , cards{std::make_shared<utl::index_map<CardId, CardMeta>>()}
@@ -53,6 +54,7 @@ void DataBase::save()
 {
     wordDB->save();
     tokenizationChoiceDB->save();
+    videoPackDB->save();
 }
 
 auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
@@ -68,6 +70,11 @@ auto DataBase::Cards() -> utl::index_map<CardId, CardMeta>&
 auto DataBase::getCardPackDB() const -> std::shared_ptr<CardPackDB>
 {
     return cardPackDB;
+}
+
+auto DataBase::getVideoPackDB() const -> std::shared_ptr<VideoPackDB>
+{
+    return videoPackDB;
 }
 
 auto DataBase::getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>

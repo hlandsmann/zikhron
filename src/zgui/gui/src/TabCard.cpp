@@ -5,9 +5,10 @@
 #include <DisplayVocables.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
-#include <database/CardPackDB.h>
 #include <context/imglog.h>
+#include <database/CardPackDB.h>
 #include <misc/Identifier.h>
+#include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/CardMeta.h>
