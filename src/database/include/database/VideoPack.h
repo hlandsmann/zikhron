@@ -1,4 +1,5 @@
 #pragma once
+#include <string_view>
 #include "Video.h"
 
 #include <filesystem>
@@ -10,7 +11,7 @@ namespace database {
 
 class VideoPack
 {
-    static constexpr auto s_type = "videoPack";
+    static constexpr std::string_view s_type = "videoPack";
 
 public:
     VideoPack(std::filesystem::path videoPackFile);
@@ -21,6 +22,7 @@ public:
     void save();
 
 private:
+    void deserialize();
     [[nodiscard]] auto serialize() const -> std::string;
     static auto genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles) -> std::vector<VideoPtr>;
     std::filesystem::path videoPackFile;

@@ -22,6 +22,8 @@ target_sources(zikhron_database
         src/Card.cpp
         src/CardPack.cpp
         src/CardPackDB.cpp
+        src/ParsingHelpers.cpp
+        src/ParsingHelpers.h
         src/TokenizationChoiceDB.cpp
         src/Video.cpp
         src/VideoPack.cpp

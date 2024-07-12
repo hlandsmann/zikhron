@@ -20,9 +20,10 @@ public:
     void save();
 
 private:
-    std::vector<VideoPackPtr> videoPacks;
+    [[nodiscard]] static auto loadVideoPacks(const std::filesystem::path& directory) -> std::vector<VideoPackPtr>;
 
     std::filesystem::path videoPackDir;
+    std::vector<VideoPackPtr> videoPacks;
 };
 
 } // namespace database

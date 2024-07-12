@@ -14,6 +14,7 @@ public:
     [[nodiscard]] auto serialize() const -> std::string;
 
 private:
+    void deserialize(std::string_view content);
     std::filesystem::path videoFile;
 };
 

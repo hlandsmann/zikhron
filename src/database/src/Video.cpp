@@ -1,5 +1,7 @@
 #include "Video.h"
 
+#include "ParsingHelpers.h"
+
 #include <utils/format.h>
 
 #include <filesystem>
@@ -10,11 +12,19 @@
 namespace database {
 
 Video::Video(std::string_view sv)
-{}
+{
+    deserialize(sv);
+}
 
 Video::Video(std::filesystem::path _videoFile)
     : videoFile{std::move(_videoFile)}
 {}
+
+void Video::deserialize(std::string_view content)
+{
+    auto rest = std::string_view{content};
+    videoFile = getValue(rest, "vid");
+}
 
 auto Video::serialize() const -> std::string
 {
