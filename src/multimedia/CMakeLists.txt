@@ -6,10 +6,10 @@ add_library(zikhron_multimedia)
 add_library(zikhron::multimedia ALIAS zikhron_multimedia)
 target_sources(zikhron_multimedia
     PRIVATE
+        include/multimedia/ExtractSubtitles.h
         include/multimedia/MpvWrapper.h
-        include/multimedia/Subtitles.h
+        src/ExtractSubtitles.cpp
         src/MpvWrapper.cpp
-        src/Subtitles.cpp
 )
 target_include_directories(zikhron_multimedia
     INTERFACE
@@ -29,6 +29,7 @@ target_link_libraries(zikhron_multimedia
     PRIVATE
         ${OPENGL_LIBRARIES}
         ${GTKMM_LIBRARIES}
+        magic_enum::magic_enum
         Microsoft.GSL::GSL
         ctre::ctre
         epoxy

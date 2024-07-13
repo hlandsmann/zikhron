@@ -33,14 +33,15 @@ target_sources(zikhron_database
         src/WordDB.cpp
 )
 
-set_property(TARGET zikhron_database PROPERTY CXX_STANDARD 23)
 target_link_libraries(zikhron_database
     PUBLIC
         zikhron::annotation
         zikhron::dictionary
+        zikhron::multimedia
     PRIVATE
         magic_enum::magic_enum
         spdlog::spdlog
         zikhron::miscellaneous
         zikhron::warnings
 )
+set_property(TARGET zikhron_database PROPERTY CXX_STANDARD 23)
