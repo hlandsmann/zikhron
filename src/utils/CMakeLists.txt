@@ -8,6 +8,7 @@ target_include_directories(zikhron_utils
 )
 target_sources(zikhron_utils
     PRIVATE
+        include/utils/Crc32.h
         include/utils/Memoizer.h
         include/utils/Memory.h
         include/utils/StringU8.h
@@ -18,6 +19,7 @@ target_sources(zikhron_utils
         include/utils/min_element_val.h
         include/utils/string_split.h
         include/utils/variant_cast.h
+        src/Crc32.cpp
         src/StringU8.cpp
         src/Time.cpp
         src/string_split.cpp

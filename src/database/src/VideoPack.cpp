@@ -40,7 +40,7 @@ VideoPack::VideoPack(std::filesystem::path _videoPackFile,
                      const std::vector<std::filesystem::path>& videoFiles)
     : videoPackFile{std::move(_videoPackFile)}
     , name{std::move(_name)}
-    , videos{genVideosFromPaths(videoFiles)}
+    , videos{genVideosFromPaths(videoFiles, videoPackFile)}
 {}
 
 auto VideoPack::getName() const -> const std::string&
@@ -71,7 +71,7 @@ void VideoPack::deserialize()
 
     while (!rest.empty()) {
         auto videoSV = utl::split_front(rest, "\n;\n");
-        auto video = std::make_shared<Video>(videoSV);
+        auto video = std::make_shared<Video>(videoSV, videoPackFile);
         videos.push_back(video);
     }
 }
@@ -87,12 +87,12 @@ auto VideoPack::serialize() const -> std::string
     return content;
 }
 
-auto VideoPack::genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles) -> std::vector<VideoPtr>
+auto VideoPack::genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles, const std::filesystem::path& videoPackFile) -> std::vector<VideoPtr>
 {
     std::vector<VideoPtr> videos;
     ranges::transform(videoFiles, std::back_inserter(videos),
-                      [](const std::filesystem::path& videoFile) -> VideoPtr {
-                          return std::make_shared<Video>(videoFile);
+                      [&](const std::filesystem::path& videoFile) -> VideoPtr {
+                          return std::make_shared<Video>(videoFile, videoPackFile);
                       });
     return videos;
 }

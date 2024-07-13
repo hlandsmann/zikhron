@@ -1,10 +1,10 @@
 #pragma once
-#include <string_view>
 #include "Video.h"
 
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace database {
@@ -24,7 +24,8 @@ public:
 private:
     void deserialize();
     [[nodiscard]] auto serialize() const -> std::string;
-    static auto genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles) -> std::vector<VideoPtr>;
+    static auto genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles,
+                                   const std::filesystem::path& videoPackFile) -> std::vector<VideoPtr>;
     std::filesystem::path videoPackFile;
     std::string name;
 

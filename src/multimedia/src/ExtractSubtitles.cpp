@@ -130,10 +130,10 @@ auto findSubtitles(AVFormatContext* pFormatCtx) -> std::map<int, InternalSub>
                 sub->metadata, "title", nullptr, AV_DICT_IGNORE_SUFFIX);
         std::string language = sub_language != nullptr
                                        ? sub_language->value
-                                       : "-";
+                                       : "";
         std::string title = sub_title != nullptr
                                     ? sub_title->value
-                                    : "-";
+                                    : "";
 
         const auto* const dec_desc = avcodec_descriptor_get(sub->codecpar->codec_id);
         if (dec_desc != nullptr && (0 == (dec_desc->props & AV_CODEC_PROP_TEXT_SUB))) {
