@@ -1,11 +1,18 @@
 #include "Subtitle.h"
 
+#include "ParsingHelpers.h"
+
 #include <multimedia/ExtractSubtitles.h>
+#include <multimedia/Subtitle.h>
 #include <utils/Crc32.h>
 #include <utils/format.h>
+#include <utils/string_split.h>
 
 #include <filesystem>
+#include <fstream>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 
 namespace database {
 Subtitle::Subtitle(const multimedia::Subtitle& sub,
@@ -13,7 +20,15 @@ Subtitle::Subtitle(const multimedia::Subtitle& sub,
                    const std::filesystem::path& videoPackDir)
     : name{nameFromSub(sub)}
     , filename{fileNameFromSubVideo(sub, videoFile, videoPackDir)}
+    , subTexts{sub.subs}
 {
+}
+
+Subtitle::Subtitle(const std::filesystem::path& subtitleFile,
+                   const std::filesystem::path& videoPackDir)
+    : filename{videoPackDir / s_subtitleSubDirectory / subtitleFile}
+{
+    deserialize();
 }
 
 auto Subtitle::getName() const -> std::string
@@ -52,6 +67,48 @@ auto Subtitle::fileNameFromSubVideo(const multimedia::Subtitle& sub,
         }
     }
     auto fileName = fmt::format("{}.{}.{:08x}{}", videoFile.stem().string(), subName, nameCRC, s_subtitleExtension);
-    return videoPackDir.parent_path() / s_subtitleSubDirectory / fileName;
+    return videoPackDir / s_subtitleSubDirectory / fileName;
+}
+
+void Subtitle::save()
+{
+    std::filesystem::create_directories(filename.parent_path());
+    auto out = std::ofstream{filename};
+    out << serialize();
+}
+
+void Subtitle::deserialize()
+{
+    auto content = utl::load_string_file(filename);
+    auto rest = std::string_view{content};
+    verifyFileType(rest, s_type);
+    auto version = getValue(rest, "version");
+    if (version != "1.0") {
+        throw std::runtime_error(fmt::format("Only version 1.0 is supported, got: {}", version));
+    }
+    name = getValue(rest, "name");
+    while (!rest.empty()) {
+        auto subtextSV = utl::split_front(rest, ";\n");
+        auto metaSV = getValue(subtextSV, "meta");
+        subTexts.push_back({
+                .startTime = std::stol(std::string{utl::split_front(metaSV, ',')}),
+                .duration = std::stol(std::string{utl::split_front(metaSV, ',')}),
+                .style = std::string{metaSV},
+                .text = std::string{getValue(subtextSV, "text")}});
+    }
+}
+
+auto Subtitle::serialize() const -> std::string
+{
+    std::string content;
+    content += fmt::format("{};version:1.0\n", s_type);
+    content += fmt::format("name:{}\n", name);
+
+    for (const auto& subText : subTexts) {
+        content += fmt::format("meta:{},{},{}\n", subText.startTime, subText.duration, subText.style);
+        content += fmt::format("text:{}\n;\n", subText.text);
+    }
+
+    return content;
 }
 } // namespace database

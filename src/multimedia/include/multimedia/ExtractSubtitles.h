@@ -1,27 +1,13 @@
 #pragma once
+#include "Subtitle.h"
+
 #include <atomic>
-#include <cstdint>
 #include <filesystem>
 #include <stop_token>
 #include <string>
 #include <vector>
 
 namespace multimedia {
-struct SubText
-{
-    std::string style;
-    std::string text;
-    int64_t startTime;
-    int64_t duration;
-};
-
-struct Subtitle
-{
-    std::string language;
-    std::string title;
-    int indexInVideo;
-    std::vector<SubText> subs;
-};
 
 class ExtractSubtitles
 {

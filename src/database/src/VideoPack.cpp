@@ -51,9 +51,9 @@ auto VideoPack::getName() const -> const std::string&
 void VideoPack::save()
 {
     fmt::print("{}", serialize());
-    // std::filesystem::create_directories(videoPackFile.parent_path());
-    // auto out = std::ofstream{videoPackFile};
-    // out << serialize();
+    std::filesystem::create_directories(videoPackFile.parent_path());
+    auto out = std::ofstream{videoPackFile};
+    out << serialize();
 }
 
 void VideoPack::deserialize()

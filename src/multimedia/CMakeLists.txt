@@ -8,6 +8,7 @@ target_sources(zikhron_multimedia
     PRIVATE
         include/multimedia/ExtractSubtitles.h
         include/multimedia/MpvWrapper.h
+        include/multimedia/Subtitle.h
         src/ExtractSubtitles.cpp
         src/MpvWrapper.cpp
 )

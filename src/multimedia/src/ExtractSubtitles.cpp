@@ -107,10 +107,10 @@ auto decodeSubtext(const AVSubtitle& av_subtitle, int64_t startTime, int64_t dur
         spdlog::error("decodeSubtext: empty text segment");
     }
     // fmt::print(" {},  {}\n", style, text);
-    return {.style = std::string{style},
-            .text = std::string{text},
-            .startTime = startTime,
-            .duration = duration};
+    return {.startTime = startTime,
+            .duration = duration,
+            .style = std::string{style},
+            .text = std::string{text}};
 }
 
 auto findSubtitles(AVFormatContext* pFormatCtx) -> std::map<int, InternalSub>

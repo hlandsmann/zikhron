@@ -49,6 +49,9 @@ void VideoPackDB::save()
 
 auto VideoPackDB::loadVideoPacks(const std::filesystem::path& directory) -> std::vector<VideoPackPtr>
 {
+    if (!std::filesystem::exists(directory)) {
+        return {};
+    }
     std::set<std::filesystem::path> videoPackFiles;
     ranges::copy_if(std::filesystem::directory_iterator(directory), std::inserter(videoPackFiles, videoPackFiles.begin()),
                     [](const std::filesystem::path& file) -> bool { return file.extension() == s_videoPackExtension; });

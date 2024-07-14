@@ -1,17 +1,13 @@
 #pragma once
 #include "Subtitle.h"
 
-#include <multimedia/ExtractSubtitles.h>
+#include <multimedia/Subtitle.h>
 
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
-
-namespace multimedia {
-class ExtractSubtitles;
-}
 
 namespace database {
 
@@ -28,7 +24,6 @@ private:
     std::filesystem::path videoPackFile;
     std::filesystem::path videoFile;
 
-    std::unique_ptr<multimedia::ExtractSubtitles> subtitleDecoder;
     std::vector<SubtitlePtr> subtitles;
 };
 

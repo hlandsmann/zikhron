@@ -8,6 +8,7 @@ target_sources(zgui_gui
         include/gui/DisplayText.h
         include/gui/DisplayVideo.h
         include/gui/DisplayVocables.h
+        include/gui/FileDialog.h
         include/gui/GlWindow.h
         include/gui/GroupAdd.h
         include/gui/MainWindow.h
@@ -19,6 +20,7 @@ target_sources(zgui_gui
         src/DisplayText.cpp
         src/DisplayVideo.cpp
         src/DisplayVocables.cpp
+        src/FileDialog.cpp
         src/GlWindow.cpp
         src/GroupAdd.cpp
         src/MainWindow.cpp
