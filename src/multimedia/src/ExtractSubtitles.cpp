@@ -1,4 +1,5 @@
 #include <ExtractSubtitles.h>
+#include <Subtitle.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
@@ -79,7 +80,8 @@ auto get_AVCodecContext(AVCodecID codecID, std::map<AVCodecID, AVCodecContextPtr
     return id_avContext.at(codecID);
 }
 
-auto decodeSubtext(const AVSubtitle& av_subtitle, int64_t startTime, int64_t duration) -> multimedia::SubText
+auto decodeSubtext(const AVSubtitle& av_subtitle,
+                   int64_t startTime, int64_t duration) -> multimedia::SubText
 {
     auto rects = std::span(av_subtitle.rects, std::next(av_subtitle.rects, av_subtitle.num_rects));
     std::string ass;
@@ -103,10 +105,6 @@ auto decodeSubtext(const AVSubtitle& av_subtitle, int64_t startTime, int64_t dur
     /*   unkown   */ utl::split_front(rest, ",");
     /*   unkown   */ utl::split_front(rest, ",");
     auto text = rest;
-    if (text.empty()) {
-        spdlog::error("decodeSubtext: empty text segment");
-    }
-    // fmt::print(" {},  {}\n", style, text);
     return {.startTime = startTime,
             .duration = duration,
             .style = std::string{style},
@@ -174,6 +172,7 @@ void insertSubtitleFrame(std::map<int, InternalSub>& subtitles,
     auto subText = decodeSubtext(av_subtitle, pkt.pts, pkt.duration);
     if (!subText.text.empty()) {
         subtitle.subText.push_back(subText);
+        // fmt::print("{},{},{},{} - {}\n",pkt.time_base.den, pkt.time_base.num, pkt.pts, pkt.duration, subText.text);
     }
     avsubtitle_free(&av_subtitle);
 }
@@ -238,8 +237,23 @@ auto ExtractSubtitles::decode(std::stop_token token) -> std::vector<Subtitle>
     for (const auto& [_, sub] : internalSubs) {
         spdlog::info("sub {}:, lang: {}, title: {}, size: {}", sub.index, sub.language, sub.title, sub.subText.size());
     }
+    auto subtitles = convertInternalSubs(std::move(internalSubs));
+
+    // for some reason, mp4 files have times in microseconds, and mkv in milliseconds.
+    // -> try to detect microseconds, and conver to milliseconds
+    for (auto& subtitle : subtitles) {
+        if (!subtitle.subs.empty() && subtitle.subs.back().startTime > pFormatCtx->duration / 10) {
+            ranges::transform(subtitle.subs, subtitle.subs.begin(),
+                              [](SubText sub) {
+                                  sub.startTime = sub.startTime / 1000;
+                                  sub.duration = sub.duration / 1000;
+                                  return sub;
+                              });
+        }
+    }
+
     progress = 1.0;
-    return convertInternalSubs(std::move(internalSubs));
+    return subtitles;
 }
 
 auto ExtractSubtitles::getProgress() const -> double
