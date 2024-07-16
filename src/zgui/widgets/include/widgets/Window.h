@@ -63,6 +63,7 @@ public:
 protected:
     auto calculateSize() const -> WidgetSize override;
     auto calculateMinSize() const -> WidgetSize override;
+    [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
 
 private:
     std::shared_ptr<widget::Layer> layer;

@@ -1,7 +1,9 @@
 #include "TabVideo.h"
+#include <theme/Sizes.h>
 
 #include <FileDialog.h>
 #include <GroupAdd.h>
+#include <GroupVideo.h>
 #include <imgui.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
@@ -17,6 +19,7 @@ namespace gui {
 TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor,
                    std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker)
     : executor{std::move(synchronousExecutor)}
+    , signalGroupGrid{executor->makePersistentSignal<GridPtr>()}
     , signalVideoFileOpen{executor->makeVolatileSignal<std::filesystem::path>()}
 {
     executor->startCoro(manageVideosTask(std::move(asyncTreeWalker)));
@@ -27,8 +30,10 @@ void TabVideo::setUp(std::shared_ptr<widget::Layer> layer)
     using namespace widget::layout;
     auto& cardWindow = *layer->add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
     windowId = cardWindow.getWidgetId();
-    auto grid = cardWindow.add<widget::Grid>(Align::start, gridCfg, 4, widget::Grid::Priorities{0.25F, 0.25F, 0.25F, 0.25F});
-    groupAdd = std::make_unique<GroupAdd>(grid);
+    auto grid = cardWindow.add<widget::Grid>(Align::start, gridCfg, 1, widget::Grid::Priorities{1.0F});
+    grid->setExpandType(width_expand, height_expand);
+    grid->setVerticalPadding(20.F);
+    signalGroupGrid->set(grid);
 }
 
 void TabVideo::displayOnLayer(widget::Layer& layer)
@@ -36,26 +41,41 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
     auto window = layer.getWidget<widget::Window>(windowId);
     auto size = layer.getWidgetSize();
     auto droppedWindow = window.dropWindow();
-    ;
 
     // open Dialog Simple
-    if (groupAdd->draw()) {
+    if (groupAdd && groupAdd->draw()) {
         fileDialog = std::make_unique<FileDialog>(size,
                                                   "/home/harmen/Videos/chinesisch",
                                                   signalVideoFileOpen);
     }
+    for (const auto& groupVideo : groupVideos) {
+        groupVideo->draw();
+    }
     if (fileDialog) {
         fileDialog->draw();
     }
+
+    window.start();
+    auto& grid = window.next<widget::Grid>();
+    grid.autoSetColumnsPaddingRearrange(Sizes::groupMinPadding, Sizes::groupMaxPadding);
 }
 
 auto TabVideo::manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     dataBase = co_await asyncTreeWalker->getDataBase();
+    auto groupGrid = co_await *signalGroupGrid;
+    auto videoPackDB = dataBase->getVideoPackDB();
     while (true) {
+        groupGrid->clear();
+        groupVideos.clear();
+        for (const auto& videoPack : videoPackDB->getVideoPacks()) {
+            groupVideos.push_back(std::make_unique<GroupVideo>(groupGrid));
+        }
+        groupAdd = std::make_unique<GroupAdd>(groupGrid);
+
         auto videoFile = co_await *signalVideoFileOpen;
         if (!videoFile.empty()) {
-            dataBase->getVideoPackDB()->addVideoPack({videoFile});
+            videoPackDB->addVideoPack({videoFile});
         }
         fileDialog.reset();
     }

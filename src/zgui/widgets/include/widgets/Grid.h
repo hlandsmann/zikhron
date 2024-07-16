@@ -33,6 +33,7 @@ public:
     // Merges current active cell with next one. Throws if current active cell is last in row.
     // Use only when filling the grid with widgets.
     void mergeCell();
+    void autoSetColumnsPaddingRearrange(float minPadding, float maxPadding);
 
 private:
     [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;
@@ -76,6 +77,7 @@ private:
     std::size_t columns{};
     std::vector<std::size_t> mergedCells;
     std::vector<float> priorities;
+    WidgetSize arrangedSize{};
     WidgetSize gridWidgetSize{};
 };
 

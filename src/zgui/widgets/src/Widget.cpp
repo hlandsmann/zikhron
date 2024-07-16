@@ -137,6 +137,14 @@ auto Widget::getName() const -> const std::string&
     return name;
 }
 
+auto Widget::getWidgetIdName() const -> const std::string&
+{
+    if (widgetIdName.empty()) {
+        widgetIdName = getName() + "##" + std::to_string(widgetId);
+    }
+    return widgetIdName;
+}
+
 auto Widget::calculateMinSize() const -> WidgetSize
 {
     return calculateSize();

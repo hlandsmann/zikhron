@@ -29,6 +29,7 @@ void Grid::setup(std::size_t _columns, Priorities _priorities)
     if (ranges::any_of(_priorities, [](float priority) { return priority > 1.F || priority < 0.F; })) {
         throw std::invalid_argument("bad priority");
     }
+    priorities.clear();
     ranges::copy(_priorities, std::back_inserter(priorities));
     auto sum = std::accumulate(priorities.begin(), priorities.end(), 0.F);
     ranges::transform(priorities, priorities.begin(), [sum](float priority) { return priority / sum; });
@@ -56,6 +57,35 @@ void Grid::mergeCell()
     mergedCells.push_back(mergedCell);
 }
 
+void Grid::autoSetColumnsPaddingRearrange(float minPadding, float maxPadding)
+{
+    float width = getBorder() * 2;
+    float padding = 0.F;
+
+    std::size_t newColumns = 0;
+    for (const auto& widget : widgets) {
+        width += padding + widget->getWidgetSize().width;
+        padding = minPadding;
+        if (width <= arrangedSize.width) {
+            newColumns++;
+        } else {
+            width -= padding + widget->getWidgetSize().width;
+            break;
+        }
+    }
+    newColumns = std::max(newColumns, std::size_t{1});
+    if (newColumns != 1) {
+        width -= padding * static_cast<float>(newColumns - 1);
+        float availableWidth = arrangedSize.width - width;
+        padding = availableWidth / static_cast<float>(newColumns - 1);
+    }
+    padding = std::clamp(padding, minPadding, maxPadding);
+    setHorizontalPadding(padding);
+    auto newPriorities = Priorities(newColumns, 1.F / static_cast<float>(newColumns));
+
+    setup(newColumns, newPriorities);
+}
+
 auto Grid::arrange(const layout::Rect& rect) -> bool
 {
     bool needArrange = false;
@@ -63,6 +93,7 @@ auto Grid::arrange(const layout::Rect& rect) -> bool
         gridWidgetSize = {};
         return needArrange;
     }
+    arrangedSize = {.width = rect.width, .height = rect.height};
 
     auto sizesX = std::vector<float>(columns, 0.F);
     auto sizesY = std::vector<float>{};

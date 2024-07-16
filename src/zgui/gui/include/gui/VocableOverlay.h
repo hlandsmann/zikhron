@@ -44,7 +44,7 @@ private:
     bool setupPendingDefinition{true};
     bool setupPendingOptions{false};
 
-    constexpr static float maxWidth = 650;
+    // constexpr static float maxWidth = 650;
     constexpr static float s_border = 8.F;
     constexpr static float s_horizontalPadding = 32.F;
     constexpr static float s_padding = 32.F;

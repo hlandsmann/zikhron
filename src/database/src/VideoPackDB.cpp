@@ -10,6 +10,7 @@
 #include <iterator>
 #include <memory>
 #include <set>
+#include <string>
 #include <vector>
 
 namespace ranges = std::ranges;
@@ -30,14 +31,26 @@ auto VideoPackDB::addVideoPack(const std::vector<std::filesystem::path>& videoFi
     }
     const auto& firstVideoFile = videoFiles.front();
     const auto& parentPath = firstVideoFile.parent_path();
-    const auto& packName = parentPath.empty()
-                                   ? firstVideoFile.stem()
-                                   : *std::prev(parentPath.end());
-    auto packFilename = videoPackDir / std::filesystem::path{packName.string() + s_videoPackExtension};
+
+    std::string packName;
+    if (videoFiles.size() == 1) {
+        packName = videoFiles.front().stem();
+    } else {
+        packName = parentPath.empty()
+                           ? firstVideoFile.stem()
+                           : *std::prev(parentPath.end());
+    }
+    auto packFilename = videoPackDir / std::filesystem::path{packName + s_videoPackExtension};
     auto videoPack = std::make_shared<VideoPack>(packFilename, packName, videoFiles);
     videoPacks.push_back(videoPack);
+    videoPack->save();
 
     return videoPack;
+}
+
+auto VideoPackDB::getVideoPacks() const -> const std::vector<VideoPackPtr>&
+{
+    return videoPacks;
 }
 
 void VideoPackDB::save()

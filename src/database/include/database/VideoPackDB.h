@@ -17,6 +17,7 @@ class VideoPackDB
 public:
     VideoPackDB(std::shared_ptr<zikhron::Config> config);
     auto addVideoPack(const std::vector<std::filesystem::path>& videoFiles) -> VideoPackPtr;
+    [[nodiscard]] auto getVideoPacks() const -> const std::vector<VideoPackPtr>&;
     void save();
 
 private:

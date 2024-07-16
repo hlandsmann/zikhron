@@ -57,6 +57,12 @@ auto Window::calculateMinSize() const -> WidgetSize
     return widgetMinSize;
 }
 
+auto Window::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
+{
+    auto getWidgetSizeFromRect = layer->getWidgetSizeFromRect(rect);
+    return getWidgetSizeFromRect;
+}
+
 auto Window::dropWindow() -> WindowDrop
 {
     start();

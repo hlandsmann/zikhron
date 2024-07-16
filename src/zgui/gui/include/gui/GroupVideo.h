@@ -6,12 +6,13 @@
 
 namespace gui {
 
-class GroupAdd
+class GroupVideo
 {
     using Align = widget::layout::Align;
+    constexpr static float s_width = 500;
 
 public:
-    GroupAdd(std::shared_ptr<widget::Grid> grid);
+    GroupVideo(std::shared_ptr<widget::Grid> grid);
     auto draw() -> bool;
 
 private:

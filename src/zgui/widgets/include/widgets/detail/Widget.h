@@ -121,6 +121,7 @@ public:
     void resetWidgetSize();
     void setName(const std::string& name);
     [[nodiscard]] auto getName() const -> const std::string&;
+    [[nodiscard]] auto getWidgetIdName() const -> const std::string&;
 
     void setExpandType(layout::ExpandType width, layout::ExpandType height);
     auto getExpandTypeWidth() const -> ExpandType;
@@ -178,6 +179,7 @@ private:
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator;
     mutable std::string name;
+    mutable std::string widgetIdName;
     std::shared_ptr<layout::Rect> rectPtr;
     layout::Rect localOffset{};
     layout::Align horizontalAlign;

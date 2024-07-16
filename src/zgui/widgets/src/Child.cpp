@@ -78,8 +78,7 @@ auto Child::dropChild() -> ChildDrop
                        {rect.x + offset.x + thickness + rect.width,
                         rect.y + offset.y + thickness + rect.height},
                        ImGui::ColorConvertFloat4ToU32(getTheme().ColorBorder()));
-    // return {getName(), rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Overlay)};
-    return {getName(), rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Child)};
+    return {getWidgetIdName(), rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Child)};
 }
 
 ChildDrop::ChildDrop(const std::string& name, const widget::layout::Rect& rect,

@@ -1,4 +1,4 @@
-#include "GroupAdd.h"
+#include "GroupVideo.h"
 
 #include <theme/Sizes.h>
 #include <widgets/Box.h>
@@ -11,16 +11,16 @@
 
 namespace gui {
 
-GroupAdd::GroupAdd(std::shared_ptr<widget::Grid> _grid)
+GroupVideo::GroupVideo(std::shared_ptr<widget::Grid> _grid)
     : grid{std::move(_grid)}
 {
-    auto& child = *grid->add<widget::Child>(Align::start, Sizes::group, "group_add");
+    auto& child = *grid->add<widget::Child>(Align::start, Sizes::group, "group_video");
     childWidgetId = child.getWidgetId();
     auto& box = *child.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
-    box.add<widget::ImageButton>(Align::start, context::Image::list_add);
+    box.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
 }
 
-auto GroupAdd::draw() -> bool
+auto GroupVideo::draw() -> bool
 {
     auto& child = grid->getWidget<widget::Child>(childWidgetId);
     auto drop = child.dropChild();
@@ -29,6 +29,7 @@ auto GroupAdd::draw() -> bool
     auto& box = child.next<widget::Box>();
     box.start();
     auto& button = box.next<widget::ImageButton>();
+    // spdlog::info("widgetId: {}", button.getWidgetId());
     return button.clicked();
 }
 

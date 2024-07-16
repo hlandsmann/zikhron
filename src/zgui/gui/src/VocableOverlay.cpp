@@ -1,5 +1,7 @@
 #include "VocableOverlay.h"
 
+#include "theme/Sizes.h"
+
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
@@ -35,7 +37,7 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::s
     , options{optionsFromWord(*word)}
 {
     using namespace widget::layout;
-    overlay->setMaxWidth(maxWidth);
+    overlay->setMaxWidth(Sizes::vocableOverlay);
     overlay->clear();
     overlay->setFirstDrop();
 

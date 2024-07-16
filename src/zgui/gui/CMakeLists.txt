@@ -1,4 +1,3 @@
-
 add_library(zgui_gui)
 add_library(zgui::gui ALIAS zgui_gui)
 
@@ -11,11 +10,13 @@ target_sources(zgui_gui
         include/gui/FileDialog.h
         include/gui/GlWindow.h
         include/gui/GroupAdd.h
+        include/gui/GroupVideo.h
         include/gui/MainWindow.h
         include/gui/TabCard.h
         include/gui/TabVideo.h
         include/gui/TokenizationOverlay.h
         include/gui/VocableOverlay.h
+        include/gui/theme/Sizes.h
         src/DisplayAnnotation.cpp
         src/DisplayText.cpp
         src/DisplayVideo.cpp
@@ -23,6 +24,7 @@ target_sources(zgui_gui
         src/FileDialog.cpp
         src/GlWindow.cpp
         src/GroupAdd.cpp
+        src/GroupVideo.cpp
         src/MainWindow.cpp
         src/TabCard.cpp
         src/TabVideo.cpp
