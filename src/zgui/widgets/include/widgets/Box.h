@@ -25,6 +25,11 @@ class Box : public MetaBox<Box>
 
 public:
     Box(const WidgetInit& init);
+    ~Box()override = default;
+    Box(const Box&) = delete;
+    Box(Box&&) = delete;
+    auto operator=(const Box&) -> Box& = delete;
+    auto operator=(Box&&) -> Box& = delete;
 
     [[nodiscard]] auto arrange(const layout::Rect& rect) -> bool override;
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;

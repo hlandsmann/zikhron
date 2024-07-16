@@ -4,10 +4,7 @@
 
 #include <cstddef>
 #include <functional>
-#include <initializer_list>
 #include <memory>
-#include <stdexcept>
-#include <utility>
 #include <vector>
 
 namespace widget {
@@ -25,10 +22,16 @@ private:
     friend class MetaBox;
     friend class Widget;
     void setup(std::size_t columns, Priorities priorities);
-    void setup(const BoxCfg &boxCfg, std::size_t columns, Priorities priorities);
+    void setup(const BoxCfg& boxCfg, std::size_t columns, Priorities priorities);
 
 public:
     Grid(const WidgetInit& init);
+    ~Grid() override = default;
+
+    Grid(const Grid&) = delete;
+    Grid(Grid&&) = delete;
+    auto operator=(const Grid&) -> Grid& = delete;
+    auto operator=(Grid&&) -> Grid& = delete;
 
     // Merges current active cell with next one. Throws if current active cell is last in row.
     // Use only when filling the grid with widgets.

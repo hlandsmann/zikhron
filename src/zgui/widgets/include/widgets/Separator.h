@@ -15,10 +15,10 @@ public:
     Separator(WidgetInit init);
     ~Separator() override = default;
 
-    Separator(const Separator&) = default;
-    Separator(Separator&&) = default;
-    auto operator=(const Separator&) -> Separator& = default;
-    auto operator=(Separator&&) -> Separator& = default;
+    Separator(const Separator&) = delete;
+    Separator(Separator&&) = delete;
+    auto operator=(const Separator&) -> Separator& = delete;
+    auto operator=(Separator&&) -> Separator& = delete;
 
 protected:
     auto calculateSize() const -> WidgetSize override;

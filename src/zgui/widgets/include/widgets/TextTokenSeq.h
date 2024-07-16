@@ -42,6 +42,11 @@ private:
 
 public:
     TextTokenSeq(WidgetInit init);
+    ~TextTokenSeq() override = default;
+    TextTokenSeq(const TextTokenSeq&) = delete;
+    TextTokenSeq(TextTokenSeq&&) = delete;
+    auto operator=(const TextTokenSeq&) -> TextTokenSeq& = delete;
+    auto operator=(TextTokenSeq&&) -> TextTokenSeq& = delete;
 
     auto draw() -> std::optional<std::shared_ptr<TextToken>>;
     void setParagraph(const Paragraph& paragraph);

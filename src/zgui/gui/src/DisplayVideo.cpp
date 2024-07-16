@@ -52,7 +52,7 @@ void DisplayVideo::setUp(std::shared_ptr<widget::Layer> layer)
 
 void DisplayVideo::displayOnLayer(widget::Layer& layer)
 {
-    auto box = layer.getWidget<widget::Box>(boxId);
+    auto& box = layer.getWidget<widget::Box>(boxId);
     box.start();
     doVideoWindow(box.next<widget::Window>());
     doCtrlWindow(box.next<widget::Window>());

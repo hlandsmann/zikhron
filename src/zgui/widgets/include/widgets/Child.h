@@ -28,10 +28,10 @@ public:
     Child(const WidgetInit& init);
     ~Child() override = default;
 
-    Child(const Child&) = default;
-    Child(Child&&) = default;
-    auto operator=(const Child&) -> Child& = default;
-    auto operator=(Child&&) -> Child& = default;
+    Child(const Child&) = delete;
+    Child(Child&&) = delete;
+    auto operator=(const Child&) -> Child& = delete;
+    auto operator=(Child&&) -> Child& = delete;
 
     auto arrange(const layout::Rect& rect) -> bool override;
 

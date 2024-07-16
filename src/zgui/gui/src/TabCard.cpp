@@ -123,7 +123,7 @@ void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
 
 void TabCard::displayOnLayer(widget::Layer& layer)
 {
-    auto box = layer.getWidget<widget::Box>(boxId);
+    auto& box = layer.getWidget<widget::Box>(boxId);
     box.start();
     doCardWindow(box.next<widget::Window>());
     doCtrlWindow(box.next<widget::Window>());

@@ -17,6 +17,11 @@ class MediaSlider : public Widget
 
 public:
     MediaSlider(const WidgetInit& init);
+    ~MediaSlider() override = default;
+    MediaSlider(const MediaSlider&) = delete;
+    MediaSlider(MediaSlider&&) = delete;
+    auto operator=(const MediaSlider&) -> MediaSlider& = delete;
+    auto operator=(MediaSlider&&) -> MediaSlider& = delete;
 
     auto slide(double start, double end, double pos) -> double;
 

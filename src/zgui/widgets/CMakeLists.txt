@@ -8,6 +8,7 @@ target_sources(zgui_widgets
         include/widgets/Child.h
         include/widgets/Grid.h
         include/widgets/ImageButton.h
+        include/widgets/Label.h
         include/widgets/Layer.h
         include/widgets/MediaSlider.h
         include/widgets/Overlay.h
@@ -24,6 +25,7 @@ target_sources(zgui_widgets
         src/Child.cpp
         src/Grid.cpp
         src/ImageButton.cpp
+        src/Label.cpp
         src/Layer.cpp
         src/MediaSlider.cpp
         src/MetaBox.cpp

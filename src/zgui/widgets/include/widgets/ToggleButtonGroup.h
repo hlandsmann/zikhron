@@ -21,12 +21,12 @@ class ToggleButtonGroup : public Widget
 
 public:
     ToggleButtonGroup(WidgetInit init);
-
     ~ToggleButtonGroup() override = default;
-    ToggleButtonGroup(const ToggleButtonGroup&) = default;
-    ToggleButtonGroup(ToggleButtonGroup&&) = default;
-    auto operator=(const ToggleButtonGroup&) -> ToggleButtonGroup& = default;
-    auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = default;
+
+    ToggleButtonGroup(const ToggleButtonGroup&) = delete;
+    ToggleButtonGroup(ToggleButtonGroup&&) = delete;
+    auto operator=(const ToggleButtonGroup&) -> ToggleButtonGroup& = delete;
+    auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = delete;
 
     auto Active(std::size_t active) -> std::size_t;
     auto getActive() -> std::size_t;

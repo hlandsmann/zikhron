@@ -21,10 +21,10 @@ public:
     ImageButton(WidgetInit init);
     ~ImageButton() override = default;
 
-    ImageButton(const ImageButton&) = default;
-    ImageButton(ImageButton&&) = default;
-    auto operator=(const ImageButton&) -> ImageButton& = default;
-    auto operator=(ImageButton&&) -> ImageButton& = default;
+    ImageButton(const ImageButton&) = delete;
+    ImageButton(ImageButton&&) = delete;
+    auto operator=(const ImageButton&) -> ImageButton& = delete;
+    auto operator=(ImageButton&&) -> ImageButton& = delete;
 
     auto clicked() -> bool;
     auto isOpen() -> bool;

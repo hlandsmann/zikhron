@@ -34,10 +34,10 @@ public:
     Window(const WidgetInit& init);
     ~Window() override = default;
 
-    Window(const Window&) = default;
-    Window(Window&&) = default;
-    auto operator=(const Window&) -> Window& = default;
-    auto operator=(Window&&) -> Window& = default;
+    Window(const Window&) = delete;
+    Window(Window&&) = delete;
+    auto operator=(const Window&) -> Window& = delete;
+    auto operator=(Window&&) -> Window& = delete;
 
     auto arrange(const layout::Rect& rect) -> bool override;
 

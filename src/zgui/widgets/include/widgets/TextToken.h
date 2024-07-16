@@ -22,6 +22,11 @@ class TextToken : public Widget
 
 public:
     TextToken(WidgetInit init);
+    ~TextToken() override = default;
+    TextToken(const TextToken&) = delete;
+    TextToken(TextToken&&) = delete;
+    auto operator=(const TextToken&) -> TextToken& = delete;
+    auto operator=(TextToken&&) -> TextToken& = delete;
 
     void setFontType(context::FontType fontType);
     auto hovered() const -> bool;

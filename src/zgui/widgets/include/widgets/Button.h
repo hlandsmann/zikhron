@@ -19,10 +19,10 @@ public:
     Button(WidgetInit init);
     ~Button() override = default;
 
-    Button(const Button&) = default;
-    Button(Button&&) = default;
-    auto operator=(const Button&) -> Button& = default;
-    auto operator=(Button&&) -> Button& = default;
+    Button(const Button&) = delete;
+    Button(Button&&) = delete;
+    auto operator=(const Button&) -> Button& = delete;
+    auto operator=(Button&&) -> Button& = delete;
 
     auto clicked() const -> bool;
     void setChecked(bool checked);

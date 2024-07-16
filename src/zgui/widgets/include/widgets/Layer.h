@@ -20,6 +20,11 @@ class Layer : public MetaBox<Layer>
 
 public:
     Layer(const WidgetInit& init);
+    ~Layer()override = default;
+    Layer(const Layer&) = delete;
+    Layer(Layer&&) = delete;
+    auto operator=(const Layer&) -> Layer& = delete;
+    auto operator=(Layer&&) -> Layer& = delete;
 
     [[nodiscard]] auto arrange(const layout::Rect& /* rect */) -> bool override;
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;

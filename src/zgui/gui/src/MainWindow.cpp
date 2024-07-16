@@ -76,7 +76,7 @@ void MainWindow::doImGui()
         tabBox.start();
         activeTab = tabBox.next<widget::ToggleButtonGroup>().Active(activeTab);
     }
-    auto layer = box->next<widget::Layer>();
+    auto& layer = box->next<widget::Layer>();
     switch (activeTab) {
     case 0:
         tabCard->displayOnLayer(layer);

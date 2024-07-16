@@ -25,10 +25,10 @@ public:
     Overlay(WidgetInit init);
     ~Overlay() override = default;
 
-    Overlay(const Overlay&) = default;
-    Overlay(Overlay&&) = default;
-    auto operator=(const Overlay&) -> Overlay& = default;
-    auto operator=(Overlay&&) -> Overlay& = default;
+    Overlay(const Overlay&) = delete;
+    Overlay(Overlay&&) = delete;
+    auto operator=(const Overlay&) -> Overlay& = delete;
+    auto operator=(Overlay&&) -> Overlay& = delete;
 
     void setMaxWidth(float maxWidth);
 

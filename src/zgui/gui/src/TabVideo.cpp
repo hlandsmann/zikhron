@@ -38,7 +38,7 @@ void TabVideo::setUp(std::shared_ptr<widget::Layer> layer)
 
 void TabVideo::displayOnLayer(widget::Layer& layer)
 {
-    auto window = layer.getWidget<widget::Window>(windowId);
+    auto& window = layer.getWidget<widget::Window>(windowId);
     auto size = layer.getWidgetSize();
     auto droppedWindow = window.dropWindow();
 
