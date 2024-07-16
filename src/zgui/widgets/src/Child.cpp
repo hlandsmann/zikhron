@@ -42,6 +42,8 @@ Child::Child(const WidgetInit& init)
 auto Child::arrange(const layout::Rect& rect) -> bool
 {
     setRect(rect);
+    auto offset = getOffsetRect();
+    setLocalOffset(rect.x+offset.x, rect.y+offset.y);
     auto layerRect = rect;
     layerRect.x = 0;
     layerRect.y = 0;
@@ -71,7 +73,8 @@ auto Child::dropChild() -> ChildDrop
     start();
     layout::Rect rect = getRect();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    auto offset = getOffset();
+    auto offset = getOffsetRect();
+    fmt::print("x: {}, y: {}, t: {}\n", offset.x, offset.y, "cyhild");
     float thickness = 1;
     draw_list->AddRect({rect.x + offset.x - thickness,
                         rect.y + offset.y - thickness},

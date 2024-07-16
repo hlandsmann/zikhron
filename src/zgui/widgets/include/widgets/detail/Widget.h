@@ -172,7 +172,7 @@ protected:
     void setRect(const layout::Rect&);
     void setLocalOffset(float x, float y);
     [[nodiscard]] auto getLocalOffset() const -> const layout::Rect&;
-    [[nodiscard]] auto getOffset() const -> const layout::Rect&;
+    [[nodiscard]] auto getOffsetRect() const -> layout::Rect;
 
 private:
     auto makeWidgetInit() -> WidgetInit;

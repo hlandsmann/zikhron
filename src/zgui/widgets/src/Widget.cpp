@@ -219,7 +219,7 @@ auto Widget::getLocalOffset() const -> const layout::Rect&
     return localOffset;
 }
 
-auto Widget::getOffset() const -> const layout::Rect&
+auto Widget::getOffsetRect() const -> layout::Rect
 {
     auto widgetParent = getParent();
     while (widgetParent) {
@@ -229,7 +229,7 @@ auto Widget::getOffset() const -> const layout::Rect&
         }
         widgetParent = widgetParent->getParent();
     }
-    return localOffset;
+    return {};
 }
 
 void Widget::setExpandType(layout::ExpandType width, layout::ExpandType height)

@@ -69,7 +69,7 @@ auto TabVideo::manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWa
         groupGrid->clear();
         groupVideos.clear();
         for (const auto& videoPack : videoPackDB->getVideoPacks()) {
-            groupVideos.push_back(std::make_unique<GroupVideo>(groupGrid));
+            groupVideos.push_back(std::make_unique<GroupVideo>(groupGrid, videoPack));
         }
         groupAdd = std::make_unique<GroupAdd>(groupGrid);
 

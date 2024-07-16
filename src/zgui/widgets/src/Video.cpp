@@ -5,7 +5,6 @@
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
-#include <imgui_internal.h>
 #include <multimedia/MpvWrapper.h>
 #include <spdlog/spdlog.h>
 
@@ -16,6 +15,7 @@
 #include <optional>
 #include <ranges>
 #include <utility>
+
 namespace ranges = std::ranges;
 namespace views = std::views;
 
