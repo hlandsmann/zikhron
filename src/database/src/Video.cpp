@@ -29,6 +29,7 @@ Video::Video(std::string_view sv, std::filesystem::path _videoPackFile)
 Video::Video(std::filesystem::path _videoFile, std::filesystem::path _videoPackFile)
     : videoPackFile{std::move(_videoPackFile)}
     , videoFile{std::move(_videoFile)}
+    , name{videoFile.stem().string()}
 {
     loadSubtitles();
 }
@@ -37,6 +38,7 @@ void Video::deserialize(std::string_view content)
 {
     auto rest = std::string_view{content};
     videoFile = getValue(rest, "vid");
+    name = getValue(rest, "name");
     subChoice = std::stoul(std::string{getValue(rest, "sub_choice")});
     while (!rest.empty()) {
         if (getValueType(rest) == "sub") {
@@ -47,7 +49,10 @@ void Video::deserialize(std::string_view content)
         break;
     }
     if (!subtitles.empty()) {
-        fmt::print("sub_choice: {}\n", subtitles.at(subChoice)->getName());
+        fmt::print("video: `{}`\n", name);
+        fmt::print("sub_choice: `{}`, nsubs: {}\n\n",
+                   subtitles.at(subChoice)->getName(),
+                   subtitles.at(subChoice)->getSubTexts().size());
     }
 }
 
@@ -55,6 +60,7 @@ auto Video::serialize() const -> std::string
 {
     std::string content;
     content += fmt::format("vid:{}\n", videoFile.string());
+    content += fmt::format("name:{}\n", name);
     content += fmt::format("sub_choice:{}\n", subChoice);
 
     for (const auto& sub : subtitles) {

@@ -3,6 +3,7 @@
 
 #include <multimedia/Subtitle.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -23,6 +24,7 @@ private:
     void deserialize(std::string_view content);
     std::filesystem::path videoPackFile;
     std::filesystem::path videoFile;
+    std::string name;
 
     std::vector<SubtitlePtr> subtitles;
     std::size_t subChoice = 0;

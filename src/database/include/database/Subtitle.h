@@ -25,6 +25,7 @@ public:
     Subtitle(std::filesystem::path subtitleFile);
     [[nodiscard]] auto getName() const -> std::string;
     [[nodiscard]] auto getFileName() const -> std::filesystem::path;
+    [[nodiscard]] auto getSubTexts() const -> const std::vector<SubText>&;
     void save();
 
 private:

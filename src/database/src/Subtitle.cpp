@@ -75,6 +75,11 @@ auto Subtitle::fileNameFromSubVideo(const multimedia::Subtitle& sub,
     return videoPackDir / s_subtitleSubDirectory / fileName;
 }
 
+auto Subtitle::getSubTexts() const -> const std::vector<SubText>&
+{
+    return subTexts;
+}
+
 void Subtitle::save()
 {
     std::filesystem::create_directories(filename.parent_path());
