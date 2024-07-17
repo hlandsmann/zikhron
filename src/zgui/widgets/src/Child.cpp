@@ -74,7 +74,6 @@ auto Child::dropChild() -> ChildDrop
     layout::Rect rect = getRect();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     auto offset = getOffsetRect();
-    fmt::print("x: {}, y: {}, t: {}\n", offset.x, offset.y, "cyhild");
     float thickness = 1;
     draw_list->AddRect({rect.x + offset.x - thickness,
                         rect.y + offset.y - thickness},

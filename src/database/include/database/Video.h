@@ -25,6 +25,7 @@ private:
     std::filesystem::path videoFile;
 
     std::vector<SubtitlePtr> subtitles;
+    std::size_t subChoice = 0;
 };
 
 using VideoPtr = std::shared_ptr<Video>;

@@ -28,7 +28,12 @@ Subtitle::Subtitle(const std::filesystem::path& subtitleFile,
                    const std::filesystem::path& videoPackDir)
     : filename{videoPackDir / s_subtitleSubDirectory / subtitleFile}
 {
-    deserialize();
+    try {
+        deserialize();
+    } catch (const std::exception& e) {
+        spdlog::error("Failed to parse {}", subtitleFile.string());
+        spdlog::error("{}", e.what());
+    }
 }
 
 auto Subtitle::getName() const -> std::string
@@ -87,14 +92,22 @@ void Subtitle::deserialize()
         throw std::runtime_error(fmt::format("Only version 1.0 is supported, got: {}", version));
     }
     name = getValue(rest, "name");
+    std::string oldSubtextStr;
     while (!rest.empty()) {
-        auto subtextSV = utl::split_front(rest, ";\n");
-        auto metaSV = getValue(subtextSV, "meta");
-        subTexts.push_back({
-                .startTime = std::stol(std::string{utl::split_front(metaSV, ',')}),
-                .duration = std::stol(std::string{utl::split_front(metaSV, ',')}),
-                .style = std::string{metaSV},
-                .text = std::string{getValue(subtextSV, "text")}});
+        auto subtextSV = utl::split_front(rest, "\n;\n");
+        auto subtextStr = std::string{subtextSV};
+        try {
+            auto metaSV = getValue(subtextSV, "meta");
+            subTexts.push_back({.startTime = std::stol(std::string{utl::split_front(metaSV, ',')}),
+                                .duration = std::stol(std::string{utl::split_front(metaSV, ',')}),
+                                .style = std::string{metaSV},
+                                .text = std::string{getValue(subtextSV, "text")}});
+        } catch (const std::exception& e) {
+            fmt::print("content:`{}`\n", subtextStr);
+            fmt::print("old_content:`{}`\n", oldSubtextStr);
+            throw e;
+        }
+        oldSubtextStr = subtextStr;
     }
 }
 
@@ -106,7 +119,7 @@ auto Subtitle::serialize() const -> std::string
 
     for (const auto& subText : subTexts) {
         content += fmt::format("meta:{},{},{}\n", subText.startTime, subText.duration, subText.style);
-        content += fmt::format("text:{}\n;\n", subText.text);
+        content += fmt::format("text:{}\n\n;\n", subText.text);
     }
 
     return content;

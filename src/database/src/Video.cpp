@@ -37,6 +37,7 @@ void Video::deserialize(std::string_view content)
 {
     auto rest = std::string_view{content};
     videoFile = getValue(rest, "vid");
+    subChoice = std::stoul(std::string{getValue(rest, "sub_choice")});
     while (!rest.empty()) {
         if (getValueType(rest) == "sub") {
             auto subtitleFile = getValue(rest, "sub");
@@ -45,12 +46,17 @@ void Video::deserialize(std::string_view content)
         }
         break;
     }
+    if (!subtitles.empty()) {
+        fmt::print("sub_choice: {}\n", subtitles.at(subChoice)->getName());
+    }
 }
 
 auto Video::serialize() const -> std::string
 {
     std::string content;
     content += fmt::format("vid:{}\n", videoFile.string());
+    content += fmt::format("sub_choice:{}\n", subChoice);
+
     for (const auto& sub : subtitles) {
         content += fmt::format("sub:{}\n", sub->getFileName().filename().string());
     }
