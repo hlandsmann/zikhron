@@ -18,27 +18,21 @@
 #include <vector>
 namespace ranges = std::ranges;
 
-namespace {
-
-template<class T>
-auto serialize_vector(std::vector<T> vector) -> nlohmann::json
-{
-    auto array = nlohmann::json::array();
-    ranges::copy(vector, std::back_inserter(array));
-    return array;
-}
-
-template<class T>
-auto deserialize_vector(nlohmann::json json) -> std::vector<T>
-{
-    std::vector<T> result;
-    ranges::copy(json, std::back_inserter(result));
-    return result;
-}
-
-} // namespace
-
 VocableProgress::VocableProgress(std::string_view sv)
+{
+    deserialize(sv);
+}
+
+auto VocableProgress::serialize() const -> std::string
+{
+    return fmt::format("{},{:.2F},{:.1F},{},",
+                       utl::serialize_time_t(lastSeen),
+                       easeFactor,
+                       intervalDay,
+                       fmt::join(triggerCardIndices, ","));
+}
+
+void VocableProgress::deserialize(std::string_view sv)
 {
     lastSeen = utl::deserialize_time_t(std::string{utl::split_front(sv, ',')});
     easeFactor = std::stof(std::string{utl::split_front(sv, ',')});
@@ -50,15 +44,6 @@ VocableProgress::VocableProgress(std::string_view sv)
         }
         triggerCardIndices.push_back(static_cast<CardId>(std::stoul(cardId)));
     }
-}
-
-auto VocableProgress::serialize() const -> std::string
-{
-    return fmt::format("{},{:.2F},{:.1F},{},",
-                       utl::serialize_time_t(lastSeen),
-                       easeFactor,
-                       intervalDay,
-                       fmt::join(triggerCardIndices, ","));
 }
 
 auto VocableProgress::RepeatRange::implies(const RepeatRange& other) const -> bool
@@ -162,6 +147,11 @@ auto VocableProgress::isToBeRepeatedToday() const -> bool
     return todayMidnight > vocActiveTime;
 }
 
+auto VocableProgress::isNewVocable() const -> bool
+{
+    return lastSeen == 0;
+}
+
 auto VocableProgress::isAgainVocable() const -> bool
 {
     return intervalDay == 0;
@@ -174,7 +164,7 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
     float maxFactor = easeFactor * Ease::changeFactorHard;
     float daysMinAtleast = (intervalDay >= 1.F) ? 1.F : 0.F;
     return {.daysMin = utl::daysFromToday(lastSeen,
-                                     std::max(daysMinAtleast, intervalDay * minFactor)),
+                                          std::max(daysMinAtleast, intervalDay * minFactor)),
             .daysNormal = dueDays(),
             .daysMax = utl::daysFromToday(lastSeen, intervalDay * maxFactor)};
 }

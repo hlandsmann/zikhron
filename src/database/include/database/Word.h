@@ -31,6 +31,7 @@ public:
     void setDefinitions(const std::vector<Definition>& definitions);
     [[nodiscard]] auto isConfigureable() const -> bool;
     [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<ZH_Dictionary::Entry>&;
+    [[nodiscard]] auto isModified() const -> bool;
 
 private:
     void parseDefinitions(std::string_view description);

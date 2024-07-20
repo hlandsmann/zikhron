@@ -91,6 +91,14 @@ auto Word::getDictionaryEntries() const -> const std::vector<ZH_Dictionary::Entr
     return dictionaryEntries;
 }
 
+auto Word::isModified() const -> bool
+{
+    return !(definitions.size() == 1
+             && definitions.front().meanings.size() == 1
+             && definitions.front().pronounciation == dictionaryEntries.front().pronounciation
+             && definitions.front().meanings.front() == dictionaryEntries.front().meanings.front());
+}
+
 void Word::parseDefinitions(std::string_view description)
 {
     auto rest = std::string_view{description};
@@ -120,4 +128,4 @@ auto Definition::serialize() const -> std::string
 {
     return fmt::format("{};{}/", pronounciation, fmt::join(meanings, "/"));
 }
-} // namespace dictionary
+} // namespace database

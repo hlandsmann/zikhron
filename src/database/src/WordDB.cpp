@@ -1,5 +1,6 @@
 #include "WordDB.h"
 
+#include "VocableProgress.h" // IWYU pragma: keep (isNewVocable)
 #include "Word.h"
 
 #include <dictionary/ZH_Dictionary.h>
@@ -88,18 +89,20 @@ void WordDB::save()
 {
     auto out = std::ofstream{config->DatabaseDirectory() / s_fn_progressVocableDB};
     for (const auto& word : words) {
-        out << word->serialize();
+        if ((!word->getProgress()->isNewVocable()) || word->isModified()) {
+            out << word->serialize();
+        } else {
+            // spdlog::info("Removed word: {} - {} -  {}",
+            //              word->Key(),
+            //              word->getDefinitions().front().pronounciation,
+            //              word->getDefinitions().front().meanings.front());
+        }
     }
     spdlog::info("Saved WordDB");
 }
 
 void WordDB::parse(const std::string& str)
 {
-    // auto iss = std::istringstream{str};
-    // for (std::string line; std::getline(iss, line);) {
-    //     auto vocableId = static_cast<VocableId>(words.size());
-    //     words.push_back(std::make_shared<Word>(line, vocableId, dictionary));
-    // }
     auto rest = std::string_view{str};
     while (true) {
         auto wordDescription = utl::split_front(rest, '\n');
@@ -111,4 +114,4 @@ void WordDB::parse(const std::string& str)
     }
 }
 
-} // namespace dictionary
+} // namespace database

@@ -64,6 +64,7 @@ public:
     [[nodiscard]] auto recency() const -> float;
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
+    [[nodiscard]] auto isNewVocable() const -> bool;
     [[nodiscard]] auto isAgainVocable() const -> bool;
     [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
 
@@ -74,6 +75,7 @@ public:
     [[nodiscard]] auto dueDays() const -> int;
 
 private:
+    void deserialize(std::string_view sv);
     float easeFactor = 0.F;
     float intervalDay = 0.F;
     std::vector<std::size_t> triggerCardIndices;
