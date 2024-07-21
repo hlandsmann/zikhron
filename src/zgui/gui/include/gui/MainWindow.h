@@ -1,6 +1,7 @@
 #pragma once
-#include "TabVideo.h"
+#include <database/VideoPack.h>
 #include "TabCard.h"
+#include "TabVideo.h"
 
 #include <context/GlfwImguiContext.h>
 #include <context/Theme.h>
@@ -15,6 +16,13 @@ namespace gui {
 
 class MainWindow
 {
+    enum class ActiveTab : unsigned {
+        cards = 0,
+        video = 1,
+        audio = 2,
+        configure = 3,
+    };
+
 public:
     MainWindow(std::shared_ptr<context::Theme> theme,
                std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
@@ -31,6 +39,7 @@ public:
     void setup();
 
 private:
+    void slot_playVideoPack(database::VideoPackPtr);
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<widget::layout::Rect> boxRect;
     std::shared_ptr<widget::Box> box;
@@ -38,6 +47,6 @@ private:
     std::unique_ptr<TabVideo> tabVideo;
     bool needArrange = false;
 
-    std::size_t activeTab{0};
+    ActiveTab activeTab{};
 };
 } // namespace gui

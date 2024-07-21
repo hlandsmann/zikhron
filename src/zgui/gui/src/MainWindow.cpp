@@ -7,6 +7,7 @@
 #include <context/Theme.h>
 #include <context/WidgetId.h>
 #include <context/imglog.h>
+#include <database/VideoPack.h>
 #include <imgui.h>
 #include <utils/format.h>
 #include <widgets/Box.h>
@@ -42,6 +43,7 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
     , tabCard{std::move(_tabCard)}
     , tabVideo{std::move(_tabVideo)}
 {
+    tabVideo->connect_playVideoPack(&MainWindow::slot_playVideoPack, this);
 }
 
 void MainWindow::arrange(const widget::layout::Rect& rect)
@@ -74,19 +76,18 @@ void MainWindow::doImGui()
         tabWindow.start();
         auto& tabBox = tabWindow.next<widget::Box>();
         tabBox.start();
-        activeTab = tabBox.next<widget::ToggleButtonGroup>().Active(activeTab);
+        activeTab = static_cast<ActiveTab>(tabBox.next<widget::ToggleButtonGroup>().Active(static_cast<unsigned>(activeTab)));
     }
     auto& layer = box->next<widget::Layer>();
     switch (activeTab) {
-    case 0:
+    case ActiveTab::cards:
         tabCard->displayOnLayer(layer);
         break;
-    case 1:
+    case ActiveTab::video:
         tabVideo->displayOnLayer(layer);
         break;
-    case 2:
-    case 3:
-    default:
+    case ActiveTab::audio:
+    case ActiveTab::configure:
         break;
     }
 
@@ -124,5 +125,10 @@ void MainWindow::setup()
         tabCard->setUp(mainLayer);
         tabVideo->setUp(mainLayer);
     }
+}
+
+void MainWindow::slot_playVideoPack(database::VideoPackPtr /*videoPack*/)
+{
+    activeTab = ActiveTab::cards;
 }
 } // namespace gui

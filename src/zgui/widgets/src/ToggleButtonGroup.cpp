@@ -51,9 +51,9 @@ auto ToggleButtonGroup::getWidgetSizeFromRect(const layout::Rect& rect) -> Widge
     return box->getWidgetSizeFromRect(rect);
 }
 
-auto ToggleButtonGroup::Active(std::size_t _active) -> std::size_t
+auto ToggleButtonGroup::Active(unsigned _active) -> std::size_t
 {
-    active = std::min(box->numberOfWidgets() - 1, _active);
+    active = std::min(static_cast<unsigned>(box->numberOfWidgets()) - 1, _active);
     return getActive();
 }
 

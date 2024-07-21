@@ -28,7 +28,7 @@ public:
     auto operator=(const ToggleButtonGroup&) -> ToggleButtonGroup& = delete;
     auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = delete;
 
-    auto Active(std::size_t active) -> std::size_t;
+    auto Active(unsigned active) -> std::size_t;
     auto getActive() -> std::size_t;
     auto arrange(const layout::Rect& /* rect */) -> bool override;
     void setExpandType(layout::ExpandType expandWidth, layout::ExpandType expandHeight);
@@ -37,7 +37,7 @@ private:
     auto calculateSize() const -> WidgetSize override;
     auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
 
-    std::size_t active{0};
+    unsigned active{0};
     std::shared_ptr<Box> box;
     Orientation orientation{};
 };

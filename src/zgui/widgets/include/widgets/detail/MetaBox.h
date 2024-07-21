@@ -46,7 +46,7 @@ public:
     void setCfg(const BoxCfg& boxCfg);
 
     template<class WidgetType, class... Args>
-    auto add(Align widgetAlign, Args... args) -> std::shared_ptr<WidgetType>
+    auto add(Align widgetAlign, Args&&... args) -> std::shared_ptr<WidgetType>
     {
         auto* self = static_cast<BoxImpl*>(this);
         auto widgetRect = std::make_shared<layout::Rect>();

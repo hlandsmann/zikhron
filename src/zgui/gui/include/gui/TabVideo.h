@@ -4,6 +4,7 @@
 #include "GroupVideo.h"
 
 #include <context/WidgetId.h>
+#include <database/VideoPack.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/DataBase.h>
 #include <widgets/Layer.h>
@@ -11,6 +12,7 @@
 #include <filesystem>
 #include <kocoro/kocoro.hpp>
 #include <memory>
+#include <sigslot/signal.hpp>
 #include <vector>
 
 namespace gui {
@@ -27,6 +29,12 @@ public:
 
     void setUp(std::shared_ptr<widget::Layer> layer);
     void displayOnLayer(widget::Layer& layer);
+
+    template<class... Args>
+    void connect_playVideoPack(Args&&... args)
+    {
+        sig_playVideoPack.connect(std::forward<Args>(args)...);
+    }
 
 private:
     auto manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>;
@@ -45,6 +53,8 @@ private:
     std::vector<std::unique_ptr<GroupVideo>> groupVideos;
     std::unique_ptr<GroupAdd> groupAdd;
     context::WidgetId windowId{};
+
+    sigslot::signal<database::VideoPackPtr> sig_playVideoPack;
 };
 
 } // namespace gui

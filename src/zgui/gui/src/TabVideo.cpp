@@ -51,6 +51,7 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
     for (const auto& groupVideo : groupVideos) {
         if (groupVideo->draw()) {
             spdlog::info("Clicked: {}", groupVideo->getVideoPack()->getName());
+            sig_playVideoPack(groupVideo->getVideoPack());
         }
     }
     if (fileDialog) {

@@ -40,6 +40,8 @@ target_include_directories(zgui_gui
 )
 
 target_link_libraries(zgui_gui
+    PUBLIC
+        Pal::Sigslot
     PRIVATE
         ${OPENGL_LIBRARIES}
         # epoxy
