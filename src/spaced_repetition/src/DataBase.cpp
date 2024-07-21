@@ -21,7 +21,6 @@
 #include <iterator>
 #include <map>
 #include <memory>
-#include <nlohmann/json.hpp>
 #include <ranges>
 #include <set>
 #include <utility>

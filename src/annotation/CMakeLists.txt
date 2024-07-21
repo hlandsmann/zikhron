@@ -36,7 +36,6 @@ target_link_libraries(zikhron_annotation
         cppjieba::cppjieba
         ctre::ctre
         magic_enum::magic_enum
-        nlohmann_json::nlohmann_json
         spdlog::spdlog
         zikhron::spaced_repetition
         zikhron::utils

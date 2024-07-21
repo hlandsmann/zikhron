@@ -26,7 +26,6 @@ target_link_libraries(zikhron_multimedia
         avformat
         avutil
         mpv
-        nlohmann_json::nlohmann_json
     PRIVATE
         ${OPENGL_LIBRARIES}
         ${GTKMM_LIBRARIES}

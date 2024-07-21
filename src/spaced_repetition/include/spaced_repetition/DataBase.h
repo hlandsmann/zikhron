@@ -21,7 +21,6 @@
 
 #include <map>
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
 
 #include <sys/types.h>
 

@@ -40,6 +40,7 @@ target_link_libraries(scratch
         zikhron::warnings
         zikhron::utils
         spdlog::spdlog
+        Pal::Sigslot
 )
 set_property(TARGET scratch PROPERTY CXX_STANDARD 23)
 

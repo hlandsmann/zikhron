@@ -1,5 +1,7 @@
 #include "Card.h"
 
+#include "CbdFwd.h"
+
 #include <annotation/Token.h>
 #include <annotation/Tokenizer.h>
 #include <database/WordDB.h>
@@ -15,11 +17,8 @@
 
 #include <cstddef>
 #include <memory>
-#include <nlohmann/json.hpp>
-#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <string_view>
-#include <utility>
 #include <vector>
 
 #include <sys/types.h>

@@ -16,6 +16,8 @@ public:
     GroupVideo(std::shared_ptr<widget::Grid> grid, database::VideoPackPtr videoPack);
     auto draw() -> bool;
 
+    [[nodiscard]] auto getVideoPack() const -> database::VideoPackPtr;
+
 private:
     constexpr static widget::BoxCfg boxCfg = {.padding = 8.F,
                                               .paddingHorizontal = {},

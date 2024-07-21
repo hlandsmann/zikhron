@@ -4,8 +4,6 @@
 
 #include <compare>
 #include <ctime>
-#include <nlohmann/json_fwd.hpp> // IWYU pragma: export
-#include <set>
 #include <string>
 #include <string_view>
 #include <utility>

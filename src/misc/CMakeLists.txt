@@ -19,9 +19,9 @@ target_include_directories(zikhron_miscellaneous
 
 target_link_libraries(zikhron_miscellaneous
     PUBLIC
-        nlohmann_json::nlohmann_json
         zikhron::utils
     PRIVATE
+        nlohmann_json::nlohmann_json
         spdlog::spdlog
         zikhron::warnings
 )

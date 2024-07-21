@@ -28,8 +28,6 @@ target_sources(zikhron_spaced_repetition
 )
 target_link_libraries(zikhron_spaced_repetition
     PUBLIC
-        # folly
-        nlohmann_json::nlohmann_json
         zikhron::annotation
         zikhron::database
         zikhron::dictionary

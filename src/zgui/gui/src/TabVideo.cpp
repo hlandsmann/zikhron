@@ -1,5 +1,4 @@
 #include "TabVideo.h"
-#include <theme/Sizes.h>
 
 #include <FileDialog.h>
 #include <GroupAdd.h>
@@ -7,6 +6,7 @@
 #include <imgui.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
+#include <theme/Sizes.h>
 #include <widgets/Layer.h>
 #include <widgets/Window.h>
 
@@ -49,7 +49,9 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
                                                   signalVideoFileOpen);
     }
     for (const auto& groupVideo : groupVideos) {
-        groupVideo->draw();
+        if (groupVideo->draw()) {
+            spdlog::info("Clicked: {}", groupVideo->getVideoPack()->getName());
+        }
     }
     if (fileDialog) {
         fileDialog->draw();

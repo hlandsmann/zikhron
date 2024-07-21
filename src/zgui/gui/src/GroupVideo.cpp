@@ -39,4 +39,9 @@ auto GroupVideo::draw() -> bool
     return button.clicked();
 }
 
+auto GroupVideo::getVideoPack() const -> database::VideoPackPtr
+{
+    return videoPack;
+}
+
 } // namespace gui

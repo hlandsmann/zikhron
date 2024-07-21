@@ -16,14 +16,11 @@
 #include <iterator>
 #include <map>
 #include <memory>
-#include <nlohmann/json.hpp>
-#include <nlohmann/json_fwd.hpp>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 namespace ranges = std::ranges;
-namespace views = std::views;
 namespace fs = std::filesystem;
 
 namespace {
