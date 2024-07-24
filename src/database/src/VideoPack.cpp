@@ -48,6 +48,11 @@ auto VideoPack::getName() const -> const std::string&
     return name;
 }
 
+auto VideoPack::getVideo() const -> VideoPtr
+{
+    return videos.front();
+}
+
 void VideoPack::save()
 {
     // fmt::print("{}", serialize());

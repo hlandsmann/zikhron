@@ -47,7 +47,7 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
 {
     executor->startCoro(handleEventTask());
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
-    // mpv_set_option_string(mpv.get(), "terminal", "yes");
+    mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
     mpv_set_option_string(mpv.get(), "sid", "no");
     mpv_set_option_string(mpv.get(), "audio-display", "no");
@@ -62,15 +62,6 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     mpv_observe_property(mpv.get(), 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "pause", MPV_FORMAT_FLAG);
-
-    pause();
-
-    // observe_timePos([this](double time_pos) {
-    //     if (time_pos >= stopAtPosition) {
-    //         stopAtPosition = duration;
-    //         pause();
-    //     }
-    // });
 }
 
 auto MpvWrapper::handleEventTask() -> kocoro::Task<>
@@ -182,8 +173,10 @@ auto MpvWrapper::getTimePos() const -> double
     return timePos;
 }
 
-void MpvWrapper::initGL(/* const std::shared_ptr<Gtk::GLArea>& glArea_in */)
+void MpvWrapper::initGL()
 {
+    mpv_set_option_string(mpv.get(), "vo", "libmpv");
+
     mpv_opengl_init_params gl_init_params{get_proc_address, nullptr};
     static std::string renderType = MPV_RENDER_API_TYPE_OPENGL;
     int adv = 1;

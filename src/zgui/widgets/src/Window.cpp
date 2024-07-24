@@ -38,12 +38,17 @@ auto Window::arrange(const layout::Rect& rect) -> bool
 {
     setRect(rect);
     auto offset = getOffsetRect();
-    setLocalOffset(rect.x+offset.x, rect.y+offset.y);
+    setLocalOffset(rect.x + offset.x, rect.y + offset.y);
 
     auto layerRect = rect;
     layerRect.x = 0;
     layerRect.y = 0;
     return layer->arrange(layerRect);
+}
+
+auto Window::getLayer() const -> Layer&
+{
+    return *layer;
 }
 
 auto Window::calculateSize() const -> WidgetSize

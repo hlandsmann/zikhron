@@ -52,7 +52,6 @@ private:
     int textureWidth{};
     int textureHeight{};
     std::shared_ptr<multimedia::MpvWrapper> mpv;
-    // std::shared_ptr<ImPlay::Mpv> mpv;
     std::shared_ptr<kocoro::VolatileSignal<bool>> signalShouldRender;
 };
 } // namespace widget

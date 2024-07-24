@@ -84,4 +84,9 @@ void Video::loadSubtitles()
     }
 }
 
+auto Video::getVideoFile() const -> const std::filesystem::path&
+{
+    return videoFile;
+}
+
 } // namespace database

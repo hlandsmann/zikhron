@@ -19,6 +19,7 @@ public:
     Video(std::filesystem::path videoFile, std::filesystem::path videoPackFile);
     [[nodiscard]] auto serialize() const -> std::string;
     void loadSubtitles();
+    [[nodiscard]] auto getVideoFile() const -> const std::filesystem::path&;
 
 private:
     void deserialize(std::string_view content);

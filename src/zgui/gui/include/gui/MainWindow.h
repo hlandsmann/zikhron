@@ -2,6 +2,7 @@
 #include <database/VideoPack.h>
 #include "TabCard.h"
 #include "TabVideo.h"
+#include "DisplayVideo.h"
 
 #include <context/GlfwImguiContext.h>
 #include <context/Theme.h>
@@ -43,7 +44,7 @@ private:
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<widget::layout::Rect> boxRect;
     std::shared_ptr<widget::Box> box;
-    std::unique_ptr<TabCard> tabCard;
+    std::shared_ptr<TabCard> tabCard;
     std::unique_ptr<TabVideo> tabVideo;
     bool needArrange = false;
 

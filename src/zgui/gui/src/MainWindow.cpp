@@ -1,5 +1,6 @@
 #include "MainWindow.h"
 
+#include <DisplayVideo.h>
 #include <TabCard.h>
 #include <TabVideo.h>
 #include <context/Fonts.h>
@@ -18,7 +19,6 @@
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
-#include <cstddef>
 #include <initializer_list>
 #include <memory>
 #include <utility>
@@ -44,6 +44,7 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
     , tabVideo{std::move(_tabVideo)}
 {
     tabVideo->connect_playVideoPack(&MainWindow::slot_playVideoPack, this);
+    tabVideo->connect_playVideoPack(&TabCard::slot_playVideoPack, tabCard);
 }
 
 void MainWindow::arrange(const widget::layout::Rect& rect)
@@ -62,17 +63,9 @@ void MainWindow::doImGui()
 {
     box->start();
 
-    // auto& displayWindow = box->next<widget::Window>();
-    // displayCard->displayOnWindow(displayWindow);
-    // auto drop = displayWindow.dropWindow();
-
     {
         auto& tabWindow = box->next<widget::Window>();
         auto droppedWindow = tabWindow.dropWindow();
-        // window.getLayout().next<widget::Button>().clicked();
-        // window.getLayout().next<widget::Button>().clicked();
-        // window.getLayout().next<widget::Button>().clicked();
-        // window.getLayout().next<widget::ImageButton>().clicked();
         tabWindow.start();
         auto& tabBox = tabWindow.next<widget::Box>();
         tabBox.start();
@@ -87,6 +80,7 @@ void MainWindow::doImGui()
         tabVideo->displayOnLayer(layer);
         break;
     case ActiveTab::audio:
+        [[fallthrough]];
     case ActiveTab::configure:
         break;
     }

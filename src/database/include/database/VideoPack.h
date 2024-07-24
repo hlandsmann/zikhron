@@ -19,6 +19,7 @@ public:
               std::string name,
               const std::vector<std::filesystem::path>& videoFiles);
     [[nodiscard]] auto getName() const -> const std::string&;
+    [[nodiscard]] auto getVideo() const -> VideoPtr;
     void save();
 
 private:

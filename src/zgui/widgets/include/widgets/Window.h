@@ -60,6 +60,8 @@ public:
 
     void start() { layer->start(); }
 
+    [[nodiscard]] auto getLayer() const -> Layer&;
+
 protected:
     auto calculateSize() const -> WidgetSize override;
     auto calculateMinSize() const -> WidgetSize override;

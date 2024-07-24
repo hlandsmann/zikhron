@@ -1,15 +1,17 @@
 #pragma once
 #include "DisplayAnnotation.h"
 #include "DisplayText.h"
+#include "DisplayVideo.h"
 #include "DisplayVocables.h"
 
-#include <misc/TokenizationChoice.h>
 #include <annotation/Ease.h>
 #include <context/WidgetId.h>
 #include <database/CardPack.h>
 #include <database/CardPackDB.h>
 #include <database/TokenizationChoiceDB.h>
+#include <database/VideoPack.h>
 #include <misc/Identifier.h>
+#include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/DataBase.h>
@@ -21,6 +23,7 @@
 #include <widgets/MediaSlider.h>
 #include <widgets/Overlay.h>
 #include <widgets/ToggleButtonGroup.h>
+#include <widgets/Video.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
@@ -77,7 +80,8 @@ class TabCard
 public:
     TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
             std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker,
-            std::unique_ptr<multimedia::MpvWrapper> mpv);
+            std::unique_ptr<DisplayVideo> displayVideo,
+            std::unique_ptr<multimedia::MpvWrapper> mpvAudio);
     TabCard(const TabCard&) = delete;
     TabCard(TabCard&&) = delete;
     auto operator=(const TabCard&) -> TabCard& = delete;
@@ -86,6 +90,7 @@ public:
 
     void setUp(std::shared_ptr<widget::Layer> layer);
     void displayOnLayer(widget::Layer& layer);
+    void slot_playVideoPack(database::VideoPackPtr);
 
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;
@@ -109,23 +114,27 @@ private:
 
     std::shared_ptr<sr::DataBase> dataBase;
     std::shared_ptr<kocoro::SynchronousExecutor> executor;
+    using BoxPtr = std::shared_ptr<widget::Box>;
+    std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
+    std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
+    std::shared_ptr<kocoro::VolatileSignal<TokenizationChoice>> signalAnnotationDone;
 
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayAnnotation> displayAnnotation;
     std::unique_ptr<DisplayVocables> displayVocables;
     std::unique_ptr<CardAudioInfo> cardAudioInfo;
 
-    std::shared_ptr<widget::Overlay> overlay;
+    std::unique_ptr<DisplayVideo> displayVideo;
 
-    using BoxPtr = std::shared_ptr<widget::Box>;
-    std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
-    std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
-    std::shared_ptr<kocoro::VolatileSignal<TokenizationChoice>> signalAnnotationDone;
+    std::shared_ptr<widget::Overlay> overlay;
+    std::shared_ptr<widget::Video> video;
+
     context::WidgetId boxId{};
 
     bool revealVocables{false};
     Mode mode{Mode::shuffle};
 
-    std::unique_ptr<multimedia::MpvWrapper> mpv;
+    std::unique_ptr<multimedia::MpvWrapper> mpvAudio;
+    std::shared_ptr<multimedia::MpvWrapper> mpvVideo;
 };
 } // namespace gui

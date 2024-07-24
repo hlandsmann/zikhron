@@ -2,11 +2,13 @@
 
 #include <DisplayAnnotation.h>
 #include <DisplayText.h>
+#include <DisplayVideo.h>
 #include <DisplayVocables.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
 #include <context/imglog.h>
 #include <database/CardPackDB.h>
+#include <database/VideoPack.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
@@ -22,6 +24,7 @@
 #include <widgets/Separator.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/ToggleButtonGroup.h>
+#include <widgets/Video.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
 
@@ -39,12 +42,15 @@ namespace gui {
 
 TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
                  std::shared_ptr<sr::AsyncTreeWalker> _asyncTreeWalker,
-                 std::unique_ptr<multimedia::MpvWrapper> _mpv)
+                 std::unique_ptr<DisplayVideo> _displayVideo,
+                 std::unique_ptr<multimedia::MpvWrapper> _mpvAudio)
     : executor{std::move(_synchronousExecutor)}
     , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
     , signalProceed{executor->makeVolatileSignal<Proceed>()}
     , signalAnnotationDone{executor->makeVolatileSignal<TokenizationChoice>()}
-    , mpv{std::move(_mpv)}
+    , displayVideo{std::move(_displayVideo)}
+    , mpvAudio{std::move(_mpvAudio)}
+    , mpvVideo{displayVideo->getMpv()}
 {
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
@@ -129,6 +135,12 @@ void TabCard::displayOnLayer(widget::Layer& layer)
     doCtrlWindow(box.next<widget::Window>());
 }
 
+void TabCard::slot_playVideoPack(database::VideoPackPtr videoPack)
+{
+    mpvVideo->openFile(videoPack->getVideo()->getVideoFile());
+    mpvVideo->play();
+}
+
 auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
     using namespace widget::layout;
@@ -201,8 +213,8 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         default:
             break;
         }
-        if (mpv && !mpv->is_paused()) {
-            mpv->pause();
+        if (mpvAudio && !mpvAudio->is_paused()) {
+            mpvAudio->pause();
         }
         if (!cardIsValid) {
             proceed = co_await *signalProceed;
@@ -211,7 +223,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         spdlog::info("kocoro, loading CardID {}..", cardMeta.Id());
         cardAudioInfo = std::make_unique<CardAudioInfo>(cardMeta.Id(), *dataBase->getCardPackDB());
         if (cardAudioInfo->getAudio().has_value()) {
-            mpv->openFile(cardAudioInfo->getAudio().value());
+            mpvAudio->openFile(cardAudioInfo->getAudio().value());
         }
         auto vocId_ease = cardMeta.getRelevantEase();
         auto tokenText = cardMeta.getStudyTokenText();
@@ -232,17 +244,20 @@ void TabCard::setupCardWindow(widget::Window& cardWindow)
 {
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
     overlay = cardWindow.add<widget::Overlay>(Align::start);
+    // video = cardWindow.add<widget::Video>(Align::start, mpvVideo);
     cardBox->setName("cardBox");
 
     signalCardBox->set(cardBox);
+
+    displayVideo->setUp(cardWindow.getLayer());
 }
 
 void TabCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
+    displayVideo->displayOnLayer(cardWindow.getLayer());
 
-    // ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    // draw_list->AddRectFilled({0., 0.}, {100., 100.}, 0xFFFFFFFF, 5.);
+    // video->displayTexture();
     // first draw displayVocables to prevent flickering on configuring vocable (vocableOverlay)
     if (displayVocables && revealVocables) {
         displayVocables->draw();
@@ -339,9 +354,9 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     }
     double start = cardAudioInfo->getStartTime();
     double end = cardAudioInfo->getEndTime();
-    double timePos = std::max(mpv->getTimePos(), start);
+    double timePos = std::max(mpvAudio->getTimePos(), start);
 
-    bool playing = !mpv->is_paused();
+    bool playing = !mpvAudio->is_paused();
     btnPlay.setOpen(playing);
     bool oldPlaying = std::exchange(playing, btnPlay.isOpen());
     if (oldPlaying != playing) {
@@ -349,17 +364,17 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
             if (timePos >= end - 0.05) {
                 timePos = start;
             }
-            mpv->play_fragment(timePos, end);
+            mpvAudio->play_fragment(timePos, end);
         } else {
-            mpv->pause();
+            mpvAudio->pause();
         }
     }
     auto oldTimePos = std::exchange(timePos, sliderProgress.slide(start, end, timePos));
     if (oldTimePos != timePos) {
-        if (mpv->is_paused()) {
-            mpv->play_fragment(timePos, end);
+        if (mpvAudio->is_paused()) {
+            mpvAudio->play_fragment(timePos, end);
         } else {
-            mpv->seek(timePos);
+            mpvAudio->seek(timePos);
         }
     }
 }

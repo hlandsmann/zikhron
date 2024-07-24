@@ -26,8 +26,6 @@ void Video::setup(std::shared_ptr<multimedia::MpvWrapper> _mpv)
 
     ranges::generate(frames, genFrame);
     mpv->initGL();
-    // mpv->openFile("/home/harmen/Videos/chinesisch/Cute Programmer E01 1080p WEB-DL AAC H.264-Luvmichelle.mkv");
-    mpv->play();
 }
 
 Video::Video(const WidgetInit& init)
