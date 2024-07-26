@@ -15,6 +15,7 @@
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/CardMeta.h>
 #include <spdlog/spdlog.h>
+#include <utils/Algorithm.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
@@ -159,8 +160,8 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     Proceed proceed = Proceed::submit_walkTree;
     while (true) {
         if (displayVocables
-            && (proceed == Proceed::submit_walkTree
-                || proceed == Proceed::submit_next)) {
+            && utl::isEither(proceed, {Proceed::submit_walkTree,
+                                       Proceed::submit_next})) {
             treeWalker->setEaseLastCard(displayVocables->getVocIdEase());
         }
         displayText.reset();

@@ -1,0 +1,41 @@
+#pragma once
+#include "CardPack.h"
+#include "Video.h"
+
+#include <cstddef>
+#include <filesystem>
+#include <memory>
+#include <optional>
+#include <variant>
+
+namespace database {
+enum class TrackType {
+    audio,
+    video,
+    noMedia,
+};
+
+using TrackMedia = std::variant<CardPackPtr,
+                                VideoPtr>;
+
+class Track
+{
+public:
+    Track(TrackMedia medium);
+
+    [[nodiscard]] auto numberOfTracks() const -> std::size_t;
+    [[nodiscard]] auto trackAt(std::size_t index) const -> Track;
+    [[nodiscard]] auto nextTrack() const -> std::optional<Track>;
+    [[nodiscard]] auto previousTrack() const -> std::optional<Track>;
+
+    [[nodiscard]] auto getTrackType() const -> TrackType;
+
+
+    [[nodiscard]] auto getMediaFile() const -> std::optional<std::filesystem::path>;
+    [[nodiscard]] auto getStartTimeStamp() const -> double;
+    [[nodiscard]] auto getEndTimeStamp() const -> double;
+
+private:
+    TrackMedia medium;
+};
+} // namespace database

@@ -8,6 +8,7 @@ target_include_directories(zikhron_utils
 )
 target_sources(zikhron_utils
     PRIVATE
+        include/utils/Algorithm.h
         include/utils/Crc32.h
         include/utils/Memoizer.h
         include/utils/Memory.h
