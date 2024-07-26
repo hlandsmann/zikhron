@@ -116,8 +116,8 @@ void MainWindow::setup()
         mainLayer->setExpandType(width_expand, height_expand);
         mainLayer->setName("mainLayer");
 
-        tabCard->setUp(mainLayer);
-        tabVideo->setUp(mainLayer);
+        tabCard->setUp(*mainLayer);
+        tabVideo->setUp(*mainLayer);
     }
 }
 

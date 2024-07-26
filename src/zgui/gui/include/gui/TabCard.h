@@ -14,6 +14,7 @@
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
+#include <spaced_repetition/CardMeta.h>
 #include <spaced_repetition/DataBase.h>
 #include <utils/StringU8.h>
 #include <widgets/Box.h>
@@ -88,13 +89,16 @@ public:
     auto operator=(TabCard&&) -> TabCard& = delete;
     virtual ~TabCard() = default;
 
-    void setUp(std::shared_ptr<widget::Layer> layer);
+    void setUp(widget::Layer& layer);
     void displayOnLayer(widget::Layer& layer);
     void slot_playVideoPack(database::VideoPackPtr);
 
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;
     auto feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>;
+    auto annotationTask(sr::CardMeta& cardMeta,
+                        const std::shared_ptr<database::CardPackDB>& cardDB,
+                        std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>;
 
     void setupCardWindow(widget::Window& cardWindow);
     void doCardWindow(widget::Window& cardWindow);

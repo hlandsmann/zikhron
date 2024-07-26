@@ -25,10 +25,10 @@ TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecu
     executor->startCoro(manageVideosTask(std::move(asyncTreeWalker)));
 }
 
-void TabVideo::setUp(std::shared_ptr<widget::Layer> layer)
+void TabVideo::setUp(widget::Layer& layer)
 {
     using namespace widget::layout;
-    auto& cardWindow = *layer->add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
+    auto& cardWindow = *layer.add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
     windowId = cardWindow.getWidgetId();
     auto grid = cardWindow.add<widget::Grid>(Align::start, gridCfg, 1, widget::Grid::Priorities{1.0F});
     grid->setExpandType(width_expand, height_expand);

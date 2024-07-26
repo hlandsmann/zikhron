@@ -27,7 +27,7 @@ public:
     auto operator=(TabVideo&&) -> TabVideo& = delete;
     virtual ~TabVideo() = default;
 
-    void setUp(std::shared_ptr<widget::Layer> layer);
+    void setUp(widget::Layer& layer);
     void displayOnLayer(widget::Layer& layer);
 
     template<class... Args>

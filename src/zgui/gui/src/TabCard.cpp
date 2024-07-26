@@ -114,10 +114,10 @@ auto TabCard::CardAudioInfo::getEndTime() const -> double
     return cardAudio.end;
 }
 
-void TabCard::setUp(std::shared_ptr<widget::Layer> layer)
+void TabCard::setUp(widget::Layer& layer)
 {
     using namespace widget::layout;
-    auto box = layer->add<widget::Box>(Align::start, widget::Orientation::vertical);
+    auto box = layer.add<widget::Box>(Align::start, widget::Orientation::vertical);
     box->setName("DisplayCard_box");
     boxId = box->getWidgetId();
 
@@ -184,7 +184,6 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             if (!cardAudioInfo->nextId().has_value()) {
                 mode = Mode::shuffle;
             }
-            // cardMeta = co_await asyncTreeWalker->getNextCardChoice(static_cast<CardId>(1005));
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->nextId());
             break;
         case Proceed::last:
@@ -194,20 +193,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             cardMeta = co_await asyncTreeWalker->getNextCardChoice({cardMeta.Id()});
             break;
         case Proceed::annotate: {
-            auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
-            auto tokenText = cardMeta.getStudyTokenText();
-            displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlay, alternatives, std::move(tokenText));
-            auto tokenizationChoice = co_await *signalAnnotationDone;
-            displayAnnotation.reset();
-            if (!tokenizationChoice.empty()) {
-                auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
-                auto card = cardDB->getCardAtCardId(cardMeta.Id()).card;
-                tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
-                dataBase->reloadCard(card);
-
-                cardIsValid = false;
-                signalProceed->set(Proceed::reload);
-            }
+            cardIsValid = !co_await annotationTask(cardMeta, cardDB, cardLayer);
         } break;
 
         default:
@@ -238,6 +224,27 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     }
 
     co_return;
+}
+
+auto TabCard::annotationTask(sr::CardMeta& cardMeta,
+                             const std::shared_ptr<database::CardPackDB>& cardDB,
+                             std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>
+{
+    auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
+    auto tokenText = cardMeta.getStudyTokenText();
+    displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlay, alternatives, std::move(tokenText));
+    auto tokenizationChoice = co_await *signalAnnotationDone;
+    displayAnnotation.reset();
+    if (!tokenizationChoice.empty()) {
+        auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
+        auto card = cardDB->getCardAtCardId(cardMeta.Id()).card;
+        tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
+        dataBase->reloadCard(card);
+
+        signalProceed->set(Proceed::reload);
+        co_return true;
+    }
+    co_return false;
 }
 
 void TabCard::setupCardWindow(widget::Window& cardWindow)
@@ -413,7 +420,7 @@ void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
     if (!cardAudioInfo || !cardAudioInfo->nextId().has_value()) {
         return;
     }
-    mode = static_cast<Mode>(tbgMode.Active(static_cast<std::size_t>(mode)));
+    mode = static_cast<Mode>(tbgMode.Active(static_cast<unsigned>(mode)));
 }
 
 void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
