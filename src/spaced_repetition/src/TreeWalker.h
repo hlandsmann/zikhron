@@ -32,7 +32,7 @@ public:
 
     using Id_Ease_vt = ITreeWalker::Id_Ease_vt;
     void setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease) override;
-    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardMeta& override;
+    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> const CardMeta& override;
 
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;

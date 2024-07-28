@@ -158,7 +158,7 @@ void TreeWalker::addNextVocableToIgnoreCardIndices(size_t nextVocable, std::shar
     ranges::copy(cardIndices, std::inserter(*ignoreCardIndices, ignoreCardIndices->begin()));
 }
 
-auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> CardMeta&
+auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> const CardMeta&
 {
     size_t cardIndex{};
     if (not preferedCardId.has_value()) {
@@ -176,15 +176,8 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> Card
 void TreeWalker::setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease)
 {
     for (auto [vocId, ease] : id_ease) {
-        // spdlog::warn("begin id: {}", vocId);
         db->setEaseVocable(vocId, ease);
         db->triggerVocable(vocId, cardId);
-        // spdlog::warn("intDay: {}, daysMin {}, daysNormal: {}, daysMax: {} id: {}, ease: {}",
-        //              db->Vocables().at_id(vocId).second.Progress().IntervalDay(),
-        //              db->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,
-        //              db->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysNormal,
-        //              db->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMax,
-        //              vocId, static_cast<unsigned>(ease.easeVal));
         db->resetCardsContainingVocable(vocId);
         if (ease.easeVal == EaseVal::again) {
             size_t vocableIndex = db->Vocables().index_at_id(vocId);

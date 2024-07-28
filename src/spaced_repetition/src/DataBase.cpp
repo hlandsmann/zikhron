@@ -42,7 +42,6 @@ DataBase::DataBase(std::shared_ptr<zikhron::Config> _config,
     , videoPackDB{std::move(_videoPackDB)}
     , tokenizationChoiceDB{std::move(_tokenizationChoiceDB)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
-    , cards{std::make_shared<utl::index_map<CardId, CardMeta>>()}
 {
     fillIndexMaps();
 }
@@ -64,9 +63,9 @@ auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
     return *vocables;
 }
 
-auto DataBase::Cards() -> utl::index_map<CardId, CardMeta>&
+auto DataBase::Cards() -> const utl::index_map<CardId, CardMeta>&
 {
-    return *cards;
+    return cards;
 }
 
 auto DataBase::getCardPackDB() const -> std::shared_ptr<CardPackDB>
@@ -91,14 +90,14 @@ auto DataBase::getWordDB() const -> std::shared_ptr<WordDB>
 
 void DataBase::reloadCard(const database::CardPtr& card)
 {
-    const auto& [cardIndex, cardMeta] = cards->at_id(card->getCardId());
+    const auto& [cardIndex, cardMeta] = cards.at_id(card->getCardId());
     for (auto vocableIndex : cardMeta.VocableIndices()) {
         auto& vocableMeta = (*vocables)[vocableIndex];
         vocableMeta.cardIndices_erase(cardIndex);
     }
     auto tokenizationChoices = tokenizationChoiceDB->getChoicesForCard(card->getCardId());
     card->setTokenizationChoices(tokenizationChoices);
-    (*cards)[cardIndex].resetMetaData();
+    cards[cardIndex].resetMetaData();
     for (VocableId vocId : cardMeta.VocableIds()) {
         if (vocables->contains(vocId)) {
             continue;
@@ -121,7 +120,7 @@ void DataBase::setEaseVocable(VocableId vocId, const Ease& ease)
 void DataBase::triggerVocable(VocableId vocId, CardId cardId)
 {
     VocableMeta& vocable = vocables->at_id(vocId).second;
-    vocable.triggerByCardId(cardId, *cards);
+    vocable.triggerByCardId(cardId, cards);
 }
 
 void DataBase::resetCardsContainingVocable(VocableId vocId)
@@ -129,7 +128,7 @@ void DataBase::resetCardsContainingVocable(VocableId vocId)
     const auto& [_, vocable] = vocables->at_id(vocId);
     const auto& cardIndices = vocable.CardIndices();
     for (size_t card_index : cardIndices) {
-        auto& card = (*cards)[card_index];
+        auto& card = cards[card_index];
         card.resetTimingAndVocables();
     }
 }
@@ -154,10 +153,10 @@ void DataBase::fillIndexMaps()
         cardPtr->setTokenizationChoices(choices);
     }
     for (const auto& [id, card] : cardPackDB->getCards()) {
-        (*cards).emplace(id, id, card.card, vocables);
+        cards.emplace(id, id, card.card, vocables);
     }
 
-    for (const auto& card : *cards) {
+    for (const auto& card : cards) {
         const auto& vocableIds = card.VocableIds();
         allVocableIds.insert(vocableIds.begin(), vocableIds.end());
     }
@@ -170,13 +169,13 @@ void DataBase::fillIndexMaps()
         //     vocables->emplace(vocId, VocableProgress::new_vocable);
         // }
     }
-    for (const auto& [cardIndex, cardMeta] : views::enumerate(cards->vspan())) {
+    for (const auto& [cardIndex, cardMeta] : views::enumerate(cards.vspan())) {
         for (const auto& vocableIndex : cardMeta.VocableIndices()) {
             (*vocables)[vocableIndex].cardIndices_insert(static_cast<std::size_t>(cardIndex));
         }
     }
     spdlog::info("number of vocables: {}", allVocableIds.size());
-    spdlog::info("number of cards: {}", cards->size());
+    spdlog::info("number of cards: {}", cards.size());
 }
 
 } // namespace sr
