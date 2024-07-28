@@ -2,6 +2,8 @@
 #include "CardPack.h"
 #include "Video.h"
 
+#include <misc/Identifier.h>
+
 #include <cstddef>
 #include <filesystem>
 #include <memory>
@@ -28,8 +30,8 @@ public:
     [[nodiscard]] auto nextTrack() const -> std::optional<Track>;
     [[nodiscard]] auto previousTrack() const -> std::optional<Track>;
 
+    [[nodiscard]] auto getCardID() const -> std::optional<CardId>;
     [[nodiscard]] auto getTrackType() const -> TrackType;
-
 
     [[nodiscard]] auto getMediaFile() const -> std::optional<std::filesystem::path>;
     [[nodiscard]] auto getStartTimeStamp() const -> double;

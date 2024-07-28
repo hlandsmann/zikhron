@@ -31,9 +31,8 @@ public:
     ~TreeWalker() override = default;
 
     using Id_Ease_vt = ITreeWalker::Id_Ease_vt;
-    void setEaseLastCard(const Id_Ease_vt& id_ease) override;
+    void setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease) override;
     auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> CardMeta& override;
-    auto getLastCard() -> CardMeta& override;
 
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;
@@ -51,8 +50,6 @@ private:
     // std::optional<Tree> tree;
     std::map<size_t, std::optional<Tree>> vocableIndex_tree;
     index_set failedVocables;
-
-    size_t currentCardIndex{};
 };
 
 } // namespace sr

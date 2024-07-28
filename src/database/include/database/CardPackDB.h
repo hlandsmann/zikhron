@@ -21,7 +21,8 @@ class CardPackDB
 
 public:
     CardPackDB(std::shared_ptr<zikhron::Config> config,
-               std::shared_ptr<WordDB> wordDB);
+               std::shared_ptr<WordDB> wordDB,
+               std::shared_ptr<annotation::Tokenizer> tokenizer);
     [[nodiscard]] auto getCards() const -> const std::map<CardId, CardAudio>&;
     [[nodiscard]] auto getTokenizer() const -> std::shared_ptr<annotation::Tokenizer>;
     [[nodiscard]] auto getAnnotationAlternativesForCard(CardId) const -> std::vector<annotation::Alternative>;

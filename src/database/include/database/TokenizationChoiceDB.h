@@ -34,7 +34,8 @@ class TokenizationChoiceDB
     };
 
 public:
-    TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config, const CardPackDB& cardPackDB);
+    TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config,
+                         const std::shared_ptr<database::CardPackDB>& cardPackDB);
     void insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<Card>& card);
     auto getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>;
     [[nodiscard]] auto getChoicesForCards() const -> const std::map<CardId, TokenizationChoiceVec>&;

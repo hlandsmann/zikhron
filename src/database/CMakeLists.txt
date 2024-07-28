@@ -10,6 +10,7 @@ PUBLIC
 target_sources(zikhron_database
     PRIVATE
         include/database/Card.h
+        include/database/CardDB.h
         include/database/CardPack.h
         include/database/CardPackDB.h
         include/database/Subtitle.h
@@ -22,6 +23,7 @@ target_sources(zikhron_database
         include/database/Word.h
         include/database/WordDB.h
         src/Card.cpp
+        src/CardDB.cpp
         src/CardPack.cpp
         src/CardPackDB.cpp
         src/ParsingHelpers.cpp

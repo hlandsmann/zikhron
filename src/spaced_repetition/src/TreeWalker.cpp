@@ -160,32 +160,25 @@ void TreeWalker::addNextVocableToIgnoreCardIndices(size_t nextVocable, std::shar
 
 auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> CardMeta&
 {
-    size_t activeCardIndex{};
+    size_t cardIndex{};
     if (not preferedCardId.has_value()) {
-        activeCardIndex = getNextTargetCard().value_or(0);
+        cardIndex = getNextTargetCard().value_or(0);
     } else {
         auto optional_index = db->Cards().optional_index(preferedCardId.value());
-        activeCardIndex = optional_index.value_or(0);
+        cardIndex = optional_index.value_or(0);
         if (not optional_index.has_value()) {
             spdlog::error("prefered card Id could not be found in cards index_map!");
         }
     }
-    currentCardIndex = activeCardIndex;
-    return db->Cards()[activeCardIndex];
+    return db->Cards()[cardIndex];
 }
 
-auto TreeWalker::getLastCard() -> CardMeta&
+void TreeWalker::setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease)
 {
-    return db->Cards()[currentCardIndex];
-}
-
-void TreeWalker::setEaseLastCard(const Id_Ease_vt& id_ease)
-{
-    CardId currentCardId = db->Cards().id_from_index(currentCardIndex);
     for (auto [vocId, ease] : id_ease) {
         // spdlog::warn("begin id: {}", vocId);
         db->setEaseVocable(vocId, ease);
-        db->triggerVocable(vocId, currentCardId);
+        db->triggerVocable(vocId, cardId);
         // spdlog::warn("intDay: {}, daysMin {}, daysNormal: {}, daysMax: {} id: {}, ease: {}",
         //              db->Vocables().at_id(vocId).second.Progress().IntervalDay(),
         //              db->Vocables().at_id(vocId).second.Progress().getRepeatRange().daysMin,

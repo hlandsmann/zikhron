@@ -24,11 +24,12 @@
 namespace ranges = std::ranges;
 
 namespace database {
-TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config, const database::CardPackDB& cardPackDB)
+TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config,
+                                           const std::shared_ptr<database::CardPackDB>& cardPackDB)
     : dbFile{config->DatabaseDirectory() / s_tokenizationChoiceDBFile}
     , choices{deserialize(dbFile)}
 {
-    syncIdsWithCardPackDB(cardPackDB);
+    syncIdsWithCardPackDB(*cardPackDB);
 }
 
 void TokenizationChoiceDB::syncIdsWithCardPackDB(const database::CardPackDB& cardPackDB)
@@ -203,4 +204,4 @@ auto TokenizationChoiceDB::deserializePackPosition(std::string_view sv) -> PackP
     return {packName, indicesInPack};
 }
 
-} // namespace annotation
+} // namespace database

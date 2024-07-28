@@ -23,7 +23,6 @@ public:
     auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> kocoro::Async<CardMeta>&;
 
 private:
-    static auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>;
     static auto taskCreateDataBase() -> kocoro::Task<DataBasePtr>;
     auto taskFullfillPromises() -> kocoro::Task<>;
 

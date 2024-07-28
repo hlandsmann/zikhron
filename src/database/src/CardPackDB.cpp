@@ -25,9 +25,10 @@ namespace ranges = std::ranges;
 
 namespace database {
 CardPackDB::CardPackDB(std::shared_ptr<zikhron::Config> config,
-                       std::shared_ptr<database::WordDB> _wordDB)
+                       std::shared_ptr<database::WordDB> _wordDB,
+                       std::shared_ptr<annotation::Tokenizer> _tokenizer)
     : wordDB{std::move(_wordDB)}
-    , tokenizer{std::make_shared<annotation::Tokenizer>(config, wordDB)}
+    , tokenizer{std::move(_tokenizer)}
     , cardPacks{loadCardPacks(config->DatabaseDirectory() / s_packSubdirectory,
                               wordDB,
                               tokenizer)}

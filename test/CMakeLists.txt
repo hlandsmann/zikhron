@@ -7,6 +7,7 @@ target_sources(sr_treewalker
 )
 target_link_libraries(sr_treewalker
     PRIVATE
+        Boost.DI
         spdlog::spdlog
         zikhron::database
         zikhron::annotation

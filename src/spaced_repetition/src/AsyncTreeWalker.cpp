@@ -7,6 +7,7 @@
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 
+#include <boost/di.hpp>
 #include <filesystem>
 #include <kocoro/kocoro.hpp>
 #include <memory>
@@ -14,6 +15,16 @@
 #include <utility>
 
 namespace fs = std::filesystem;
+
+static auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
+{
+    auto path_to_exe = fs::read_symlink("/proc/self/exe");
+    auto zikhron_cfg_json = path_to_exe.parent_path() / "config.json";
+
+    auto zikhron_cfg = std::make_shared<zikhron::Config>(path_to_exe.parent_path());
+    annotation::adaptJiebaDictionaries(zikhron_cfg);
+    return zikhron_cfg;
+}
 
 namespace sr {
 AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor)
@@ -48,19 +59,13 @@ auto AsyncTreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) ->
     return *asyncNextCard;
 }
 
-auto AsyncTreeWalker::get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
-{
-    auto path_to_exe = fs::read_symlink("/proc/self/exe");
-    auto zikhron_cfg_json = path_to_exe.parent_path() / "config.json";
-    return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
-}
-
 auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
 {
     asyncDataBase->runAsync([]() -> DataBasePtr {
-        auto zikhron_cfg = get_zikhron_cfg();
-        annotation::adaptJiebaDictionaries(zikhron_cfg);
-        auto db = std::make_shared<DataBase>(zikhron_cfg);
+        auto injector = boost::di::make_injector(
+                boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()));
+
+        auto db = injector.create<std::shared_ptr<DataBase>>();
         return db;
     });
 

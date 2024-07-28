@@ -35,7 +35,11 @@ class DataBase
 public:
     using CharacterSequence = database::Card::CharacterSequence;
 
-    DataBase(std::shared_ptr<zikhron::Config> config);
+    DataBase(std::shared_ptr<zikhron::Config> config,
+             std::shared_ptr<WordDB> wordDB,
+             std::shared_ptr<CardPackDB> cardPackDB,
+             std::shared_ptr<VideoPackDB> videoPackDB,
+             std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB);
     virtual ~DataBase();
 
     DataBase(const DataBase&) = delete;
@@ -61,8 +65,6 @@ private:
     void fillIndexMaps();
 
     std::shared_ptr<zikhron::Config> config;
-
-    std::shared_ptr<const ZH_Dictionary> zhDictionary;
 
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<CardPackDB> cardPackDB;

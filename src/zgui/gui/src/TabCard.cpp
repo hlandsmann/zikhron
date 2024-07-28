@@ -162,7 +162,8 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         if (displayVocables
             && utl::isEither(proceed, {Proceed::submit_walkTree,
                                        Proceed::submit_next})) {
-            treeWalker->setEaseLastCard(displayVocables->getVocIdEase());
+            auto cardId = cardMeta.Id();
+            treeWalker->setEaseForCard(cardId, displayVocables->getVocIdEase());
         }
         displayText.reset();
         displayVocables.reset();

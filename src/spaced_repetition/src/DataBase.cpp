@@ -31,13 +31,16 @@ namespace ranges = std::ranges;
 namespace views = std::views;
 
 namespace sr {
-DataBase::DataBase(std::shared_ptr<zikhron::Config> _config)
+DataBase::DataBase(std::shared_ptr<zikhron::Config> _config,
+                   std::shared_ptr<WordDB> _wordDB,
+                   std::shared_ptr<CardPackDB> _cardPackDB,
+                   std::shared_ptr<VideoPackDB> _videoPackDB,
+                   std::shared_ptr<TokenizationChoiceDB> _tokenizationChoiceDB)
     : config{std::move(_config)}
-    , wordDB{std::make_shared<WordDB>(config)}
-    , cardPackDB{std::make_shared<CardPackDB>(config,
-                                              wordDB)}
-    , videoPackDB{std::make_shared<VideoPackDB>(config)}
-    , tokenizationChoiceDB{std::make_shared<database::TokenizationChoiceDB>(config, *cardPackDB)}
+    , wordDB{std::move(_wordDB)}
+    , cardPackDB{std::move(_cardPackDB)}
+    , videoPackDB{std::move(_videoPackDB)}
+    , tokenizationChoiceDB{std::move(_tokenizationChoiceDB)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
     , cards{std::make_shared<utl::index_map<CardId, CardMeta>>()}
 {

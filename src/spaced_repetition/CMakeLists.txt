@@ -36,6 +36,7 @@ target_link_libraries(zikhron_spaced_repetition
         zikhron::multimedia
         zikhron::utils
     PRIVATE
+        Boost.DI
         spdlog::spdlog
         zikhron::warnings
 )
