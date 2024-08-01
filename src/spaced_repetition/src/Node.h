@@ -31,7 +31,7 @@ public:
     [[nodiscard]] auto lowerOrderPulled() -> Path;
     [[nodiscard]] auto Paths() const -> const std::vector<Path>&;
 
-    [[nodiscard]] auto CardID() const -> CardId { return db->Cards().id_from_index(cardIndex); }
+    [[nodiscard]] auto CardID() const -> CardId { return db->MetaCards().id_from_index(cardIndex); }
 
 private:
     void traverseAndTighten(Path& path);

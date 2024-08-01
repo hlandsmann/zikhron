@@ -11,9 +11,9 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace database {
+
 class CardPackDB
 {
     static constexpr auto s_packSubdirectory = "pack";
@@ -23,9 +23,8 @@ public:
     CardPackDB(std::shared_ptr<zikhron::Config> config,
                std::shared_ptr<WordDB> wordDB,
                std::shared_ptr<annotation::Tokenizer> tokenizer);
-    [[nodiscard]] auto getCards() const -> const std::map<CardId, CardAudio>&;
+    [[nodiscard]] auto getCardAudio() const -> const std::map<CardId, CardAudio>&;
     [[nodiscard]] auto getTokenizer() const -> std::shared_ptr<annotation::Tokenizer>;
-    [[nodiscard]] auto getAnnotationAlternativesForCard(CardId) const -> std::vector<annotation::Alternative>;
     [[nodiscard]] auto getCardAtCardId(CardId) const -> const CardAudio&;
     [[nodiscard]] auto getCardPackForCardId(CardId) const -> CardPackPtr;
     [[nodiscard]] auto getCardPack(const std::string& packName) const -> CardPackPtr;
@@ -43,4 +42,5 @@ private:
 
     std::map<CardId, CardAudio> cards;
 };
+
 } // namespace database

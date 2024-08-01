@@ -24,6 +24,7 @@ target_sources(zikhron_database
         include/database/WordDB.h
         src/Card.cpp
         src/CardDB.cpp
+        src/CardIdGenerator.h
         src/CardPack.cpp
         src/CardPackDB.cpp
         src/ParsingHelpers.cpp

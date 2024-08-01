@@ -22,7 +22,7 @@ Tree::Tree(std::shared_ptr<DataBase> _db,
     , rootCardIndex{cardIndex}
     , ignoreCardIndices{std::move(_ignoreCardIndices)}
 {
-    nodes->resize(db->Cards().size());
+    nodes->resize(db->MetaCards().size());
     (*nodes)[rootCardIndex].emplace(db, nodes, rootCardIndex, ignoreCardIndices);
 }
 
@@ -47,7 +47,7 @@ auto Tree::getNodeCardIndex() -> std::optional<size_t>
     std::optional<size_t> result = std::nullopt;
     spdlog::info("--- getNodeCardIndex ---");
     size_t cardIndex = rootCardIndex;
-    spdlog::info("rootcardId: {}", db->Cards().id_from_index(cardIndex));
+    spdlog::info("rootcardId: {}", db->MetaCards().id_from_index(cardIndex));
     auto* optionalNode = &(*nodes)[cardIndex];
     if (not optionalNode->has_value()) {
         spdlog::info("no value");
@@ -65,7 +65,7 @@ auto Tree::getNodeCardIndex() -> std::optional<size_t>
         }
         auto& node = optionalNode->value();
         cardIndex = node.Paths().front().cardIndex;
-        spdlog::info("cardId: {}", db->Cards().id_from_index(cardIndex));
+        spdlog::info("cardId: {}", db->MetaCards().id_from_index(cardIndex));
         result.emplace(cardIndex);
         optionalNode = &(*nodes)[cardIndex];
     }

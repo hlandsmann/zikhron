@@ -36,7 +36,7 @@ CardPackDB::CardPackDB(std::shared_ptr<zikhron::Config> config,
     setupCards();
 }
 
-auto CardPackDB::getCards() const -> const std::map<CardId, CardAudio>&
+auto CardPackDB::getCardAudio() const -> const std::map<CardId, CardAudio>&
 {
     return cards;
 }
@@ -44,11 +44,6 @@ auto CardPackDB::getCards() const -> const std::map<CardId, CardAudio>&
 auto CardPackDB::getTokenizer() const -> std::shared_ptr<annotation::Tokenizer>
 {
     return tokenizer;
-}
-
-auto CardPackDB::getAnnotationAlternativesForCard(CardId cardId) const -> std::vector<annotation::Alternative>
-{
-    return cards.at(cardId).card->getAlternatives();
 }
 
 auto CardPackDB::getCardAtCardId(CardId cardId) const -> const CardAudio&

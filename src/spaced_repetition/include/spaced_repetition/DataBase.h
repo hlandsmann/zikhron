@@ -5,6 +5,7 @@
 
 #include <annotation/Ease.h>
 #include <database/Card.h>
+#include <database/CardDB.h>
 #include <database/CardPackDB.h>
 #include <database/CbdFwd.h>
 #include <database/TokenizationChoiceDB.h>
@@ -28,6 +29,7 @@ namespace sr {
 class DataBase
 {
     using WordDB = database::WordDB;
+    using CardDB = database::CardDB;
     using CardPackDB = database::CardPackDB;
     using VideoPackDB = database::VideoPackDB;
     using TokenizationChoiceDB = database::TokenizationChoiceDB;
@@ -37,8 +39,7 @@ public:
 
     DataBase(std::shared_ptr<zikhron::Config> config,
              std::shared_ptr<WordDB> wordDB,
-             std::shared_ptr<CardPackDB> cardPackDB,
-             std::shared_ptr<VideoPackDB> videoPackDB,
+             std::shared_ptr<CardDB> cardDB,
              std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB);
     virtual ~DataBase();
 
@@ -49,10 +50,9 @@ public:
     void save();
 
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
-    [[nodiscard]] auto Cards() -> const utl::index_map<CardId, CardMeta>&;
-    [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
-    [[nodiscard]] auto getVideoPackDB() const -> std::shared_ptr<VideoPackDB>;
+    [[nodiscard]] auto MetaCards() -> const utl::index_map<CardId, CardMeta>&;
     [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>;
+    [[nodiscard]] auto getCardDB() const -> std::shared_ptr<CardDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
     void reloadCard(const database::CardPtr& card);
 
@@ -67,12 +67,11 @@ private:
     std::shared_ptr<zikhron::Config> config;
 
     std::shared_ptr<WordDB> wordDB;
-    std::shared_ptr<CardPackDB> cardPackDB;
-    std::shared_ptr<VideoPackDB> videoPackDB;
+    std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB;
     std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
-    utl::index_map<CardId, CardMeta> cards;
+    utl::index_map<CardId, CardMeta> metaCards;
 };
 } // namespace sr

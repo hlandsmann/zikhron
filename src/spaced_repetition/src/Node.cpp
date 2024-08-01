@@ -56,7 +56,7 @@ auto Node::lowerOrder(size_t order) -> size_t
         return {};
     }
     size_t nextOrder = order;
-    auto& cards = db->Cards();
+    auto& cards = db->MetaCards();
     const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
     if (thisTnv.vocables.size() <= s_stopBreakDown) {
         return nextOrder;
@@ -106,7 +106,7 @@ auto Node::collectSubCards() const -> index_set
     index_set subCardsResult;
 
     // const auto& card = db->Cards()[cardIndex];
-    const auto& tnv = db->Cards()[cardIndex].getTimingAndVocables();
+    const auto& tnv = db->MetaCards()[cardIndex].getTimingAndVocables();
     const auto& vocables = db->Vocables();
     const auto& containedVocables = tnv.vocables
                                     | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
@@ -125,7 +125,7 @@ auto Node::collectSubCards() const -> index_set
 auto Node::removeInactiveCardindices(const index_set& cardIndices) -> std::vector<size_t>
 {
     std::vector<size_t> result;
-    auto& cards = db->Cards();
+    auto& cards = db->MetaCards();
     const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
     ranges::copy_if(cardIndices, std::back_inserter(result), [&cards, &thisTnv](size_t index) -> bool {
         const auto& tnv = cards[index].getTimingAndVocables();
@@ -158,7 +158,7 @@ auto Node::removeInactiveCardindices(const index_set& cardIndices) -> std::vecto
 
 void Node::sortCardIndices(std::vector<size_t>& cardIndices)
 {
-    auto& cards = db->Cards();
+    auto& cards = db->MetaCards();
     const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
     const auto preferedQuantity = [](size_t a, size_t b) -> bool {
         const std::array quantity = {4, 3, 5, 2, 6};

@@ -7,6 +7,7 @@
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
 #include <context/imglog.h>
+#include <database/CardDB.h>
 #include <database/CardPackDB.h>
 #include <database/VideoPack.h>
 #include <misc/Identifier.h>
@@ -154,7 +155,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     auto treeWalker = co_await asyncTreeWalker->getTreeWalker();
     dataBase = co_await asyncTreeWalker->getDataBase();
     auto wordDB = dataBase->getWordDB();
-    auto cardDB = dataBase->getCardPackDB();
+    auto cardDB = dataBase->getCardDB();
 
     sr::CardMeta cardMeta;
     Proceed proceed = Proceed::submit_walkTree;
@@ -209,7 +210,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             continue;
         }
         spdlog::info("kocoro, loading CardID {}..", cardMeta.Id());
-        cardAudioInfo = std::make_unique<CardAudioInfo>(cardMeta.Id(), *dataBase->getCardPackDB());
+        cardAudioInfo = std::make_unique<CardAudioInfo>(cardMeta.Id(), *cardDB->getCardPackDB());
         if (cardAudioInfo->getAudio().has_value()) {
             mpvAudio->openFile(cardAudioInfo->getAudio().value());
         }
@@ -229,7 +230,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 }
 
 auto TabCard::annotationTask(sr::CardMeta& cardMeta,
-                             const std::shared_ptr<database::CardPackDB>& cardDB,
+                             const std::shared_ptr<database::CardDB>& cardDB,
                              std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>
 {
     auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
@@ -239,7 +240,7 @@ auto TabCard::annotationTask(sr::CardMeta& cardMeta,
     displayAnnotation.reset();
     if (!tokenizationChoice.empty()) {
         auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
-        auto card = cardDB->getCardAtCardId(cardMeta.Id()).card;
+        auto card = cardDB->getCards().at(cardMeta.Id());
         tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
         dataBase->reloadCard(card);
 

@@ -6,6 +6,7 @@
 
 #include <annotation/Ease.h>
 #include <context/WidgetId.h>
+#include <database/CardDB.h>
 #include <database/CardPack.h>
 #include <database/CardPackDB.h>
 #include <database/TokenizationChoiceDB.h>
@@ -97,7 +98,7 @@ private:
     using VocableId_Ease = std::map<VocableId, Ease>;
     auto feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>;
     auto annotationTask(sr::CardMeta& cardMeta,
-                        const std::shared_ptr<database::CardPackDB>& cardDB,
+                        const std::shared_ptr<database::CardDB>& cardDB,
                         std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>;
 
     void setupCardWindow(widget::Window& cardWindow);

@@ -67,7 +67,7 @@ auto TabVideo::manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWa
 {
     dataBase = co_await asyncTreeWalker->getDataBase();
     auto groupGrid = co_await *signalGroupGrid;
-    auto videoPackDB = dataBase->getVideoPackDB();
+    auto videoPackDB = dataBase->getCardDB()->getVideoPackDB();
     while (true) {
         groupGrid->clear();
         groupVideos.clear();

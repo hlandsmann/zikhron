@@ -39,7 +39,7 @@ TreeWalker::TreeWalker(std::shared_ptr<DataBase> _db)
 
 auto TreeWalker::getTodayVocables() const -> index_set
 {
-    const auto& cards = db->Cards();
+    const auto& cards = db->MetaCards();
     sr::index_set todayVocables;
     for (const auto& card : cards) {
         auto tnv = card.getTimingAndVocables();
@@ -62,8 +62,8 @@ auto TreeWalker::getNextTargetVocable(const std::shared_ptr<index_set>& ignoreCa
         auto recency = [&vocables](size_t index) -> float { return vocables[index].Progress().recency(); };
         size_t targetVocable = *ranges::min_element(todayVocables, std::less{}, recency);
 
-        auto cardId = db->Vocables()[targetVocable].getNextTriggerCard(db->Cards());
-        auto cardIndex = db->Cards().index_at_id(cardId);
+        auto cardId = db->Vocables()[targetVocable].getNextTriggerCard(db->MetaCards());
+        auto cardIndex = db->MetaCards().index_at_id(cardId);
         if (not ignoreCards->contains(cardIndex)) {
             return {targetVocable};
         }
@@ -128,8 +128,8 @@ auto TreeWalker::removeRepeatNowCardIndex(const std::shared_ptr<index_set>& igno
         if (vocable.Progress().pauseTimeOver()) {
             spdlog::info("pause time over for: {}", failedVoc);
             failedVocables.erase(failedVoc);
-            CardId triggerCard = vocable.getNextTriggerCard(db->Cards());
-            size_t triggerCardIndex = db->Cards().index_at_id(triggerCard);
+            CardId triggerCard = vocable.getNextTriggerCard(db->MetaCards());
+            size_t triggerCardIndex = db->MetaCards().index_at_id(triggerCard);
             ignoreCards->erase(triggerCardIndex);
             cardRemoved = true;
         }
@@ -137,7 +137,7 @@ auto TreeWalker::removeRepeatNowCardIndex(const std::shared_ptr<index_set>& igno
     std::set<CardId> ignoreCardSet;
     ranges::transform(*ignoreCards,
                       std::inserter(ignoreCardSet, ignoreCardSet.begin()),
-                      [this](size_t index) { return db->Cards().id_from_index(index); });
+                      [this](size_t index) { return db->MetaCards().id_from_index(index); });
     spdlog::info("Ignore CardIds: [{}]", fmt::join(ignoreCardSet, ", "));
     return cardRemoved;
 }
@@ -164,13 +164,13 @@ auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> cons
     if (not preferedCardId.has_value()) {
         cardIndex = getNextTargetCard().value_or(0);
     } else {
-        auto optional_index = db->Cards().optional_index(preferedCardId.value());
+        auto optional_index = db->MetaCards().optional_index(preferedCardId.value());
         cardIndex = optional_index.value_or(0);
         if (not optional_index.has_value()) {
             spdlog::error("prefered card Id could not be found in cards index_map!");
         }
     }
-    return db->Cards()[cardIndex];
+    return db->MetaCards()[cardIndex];
 }
 
 void TreeWalker::setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease)
@@ -188,11 +188,11 @@ void TreeWalker::setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease)
 
 auto TreeWalker::createTree(size_t targetVocableIndex, std::shared_ptr<index_set> ignoreCardIndices) const -> Tree
 {
-    auto cardId = db->Vocables()[targetVocableIndex].getNextTriggerCard(db->Cards());
-    auto cardIndex = db->Cards().index_at_id(cardId);
+    auto cardId = db->Vocables()[targetVocableIndex].getNextTriggerCard(db->MetaCards());
+    auto cardIndex = db->MetaCards().index_at_id(cardId);
 
     spdlog::info("TargetVocable: {}, cardSize: {}", targetVocableIndex,
-                 db->Cards()[cardIndex].getTimingAndVocables().vocables.size());
+                 db->MetaCards()[cardIndex].getTimingAndVocables().vocables.size());
     auto resultTree = Tree{db, targetVocableIndex, cardIndex, std::move(ignoreCardIndices)};
     resultTree.build();
     return resultTree;
