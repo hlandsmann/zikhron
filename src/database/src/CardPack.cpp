@@ -89,6 +89,11 @@ auto CardPack::getName() const -> std::string
     return name;
 }
 
+auto CardPack::getNumberOfCards() const -> std::size_t
+{
+    return cards.size();
+}
+
 void CardPack::deserialize()
 {
     auto content = utl::load_string_file(filename);
@@ -132,7 +137,12 @@ void CardPack::deserialize()
         std::string end{utl::split_front(rest, ';')};
         auto cardText = utl::split_front(rest, '\n');
 
-        cards.push_back({.audioFile = audioFile,
+        auto optAudioFile = std::optional<std::filesystem::path>{};
+        if (!audioFile.empty()) {
+            optAudioFile = audioFile;
+        }
+
+        cards.push_back({.audioFile = optAudioFile,
                          .card = Card::deserializeCard(cardText, cardInit),
                          .start = std::stod(start),
                          .end = std::stod(end)});

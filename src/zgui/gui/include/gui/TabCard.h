@@ -10,7 +10,9 @@
 #include <database/CardPack.h>
 #include <database/CardPackDB.h>
 #include <database/TokenizationChoiceDB.h>
+#include <database/Track.h>
 #include <database/VideoSet.h>
+#include <database/WordDB.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
@@ -46,12 +48,9 @@ class TabCard
     using CardPack = database::CardPack;
     using CardAudio = database::CardAudio;
     enum class Proceed {
-        submit_walkTree,
-        submit_next,
-        first,
-        previous,
-        next,
-        last,
+        submit,
+        walkTree,
+        nextTrack,
         reload,
         annotate,
     };
@@ -59,24 +58,6 @@ class TabCard
     enum class Mode : std::size_t {
         shuffle,
         story,
-    };
-
-    class CardAudioInfo
-    {
-    public:
-        CardAudioInfo(CardId cardId, const CardPackDB& cardPackDB);
-        CardAudioInfo() = default;
-        [[nodiscard]] auto firstId() const -> std::optional<CardId>;
-        [[nodiscard]] auto previousId() const -> std::optional<CardId>;
-        [[nodiscard]] auto nextId() const -> std::optional<CardId>;
-        [[nodiscard]] auto lastId() const -> std::optional<CardId>;
-        [[nodiscard]] auto getAudio() const -> std::optional<std::filesystem::path>;
-        [[nodiscard]] auto getStartTime() const -> double;
-        [[nodiscard]] auto getEndTime() const -> double;
-
-    private:
-        CardAudio cardAudio;
-        std::shared_ptr<CardPack> cardPack;
     };
 
 public:
@@ -100,6 +81,13 @@ private:
     auto annotationTask(sr::CardMeta& cardMeta,
                         const std::shared_ptr<database::CardDB>& cardDB,
                         std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>;
+    void clearStudy(const std::shared_ptr<widget::Layer>& cardLayer,
+                    const std::shared_ptr<widget::Layer>& vocableLayer);
+    void prepareStudy(sr::CardMeta& cardMeta,
+                      std::shared_ptr<database::WordDB> wordDB,
+                      const std::shared_ptr<widget::Layer>& cardLayer,
+                      const std::shared_ptr<widget::Layer>& vocableLayer);
+    void loadTrack();
 
     void setupCardWindow(widget::Window& cardWindow);
     void doCardWindow(widget::Window& cardWindow);
@@ -127,7 +115,7 @@ private:
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayAnnotation> displayAnnotation;
     std::unique_ptr<DisplayVocables> displayVocables;
-    std::unique_ptr<CardAudioInfo> cardAudioInfo;
+    std::optional<database::Track> track;
 
     std::unique_ptr<DisplayVideo> displayVideo;
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "CardPack.h"
+#include "CbdFwd.h"
 #include "Video.h"
 
 #include <misc/Identifier.h>
@@ -23,8 +24,8 @@ using TrackMedia = std::variant<CardPackPtr,
 class Track
 {
 public:
-    Track(TrackMedia medium);
-    Track(TrackMedia medium, CardId cardId);
+    Track(TrackMedia medium, std::size_t index);
+    Track(TrackMedia medium, CardPtr card);
 
     [[nodiscard]] auto numberOfTracks() const -> std::size_t;
     [[nodiscard]] auto trackAt(std::size_t index) const -> Track;
@@ -39,6 +40,10 @@ public:
     [[nodiscard]] auto getEndTimeStamp() const -> double;
 
 private:
+    void setupTimeStamps();
     TrackMedia medium;
+    std::size_t index;
+    double startTimeStamp{};
+    double endTimeStamp{};
 };
 } // namespace database

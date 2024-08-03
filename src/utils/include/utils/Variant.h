@@ -1,6 +1,19 @@
 #include <typeinfo>
-#include <variant>
+#include <variant> // IWYU pragma: export
+
 namespace utl {
+
+/******************************************************************************/
+template<class... Ts>
+struct overloaded : Ts...
+{
+    using Ts::operator()...;
+};
+// explicit deduction guide (not needed as of C++20)
+template<class... Ts>
+overloaded(Ts...) -> overloaded<Ts...>;
+
+/* variant_cast -------------------------------------------------------------- */
 template<class... Args>
 auto variant_cast(auto* derived) -> std::variant<Args*...>
 {

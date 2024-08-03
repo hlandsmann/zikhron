@@ -31,7 +31,7 @@ public:
             -> std::vector<annotation::Alternative>;
     [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
     [[nodiscard]] auto getVideoDB() const -> std::shared_ptr<VideoDB>;
-    [[nodiscard]] auto getTrackFromCardId(CardId cardId) const -> std::shared_ptr<Track>;
+    [[nodiscard]] auto getTrackFromCardId(CardId cardId) const -> Track;
 
 private:
     std::shared_ptr<zikhron::Config> config;

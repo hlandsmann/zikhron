@@ -5,7 +5,7 @@
 #include <context/Texture.h>
 #include <context/imglog.h>
 #include <detail/Widget.h>
-#include <utils/variant_cast.h>
+#include <utils/Variant.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -51,16 +51,16 @@ auto ToggleButtonGroup::getWidgetSizeFromRect(const layout::Rect& rect) -> Widge
     return box->getWidgetSizeFromRect(rect);
 }
 
-auto ToggleButtonGroup::Active(unsigned _active) -> std::size_t
+auto ToggleButtonGroup::Active(unsigned _active) -> unsigned
 {
     active = std::min(static_cast<unsigned>(box->numberOfWidgets()) - 1, _active);
     return getActive();
 }
 
-auto ToggleButtonGroup::getActive() -> std::size_t
+auto ToggleButtonGroup::getActive() -> unsigned
 {
     box->start();
-    for (std::size_t index = 0; index < box->numberOfWidgets(); index++) {
+    for (unsigned index = 0; index < box->numberOfWidgets(); index++) {
         auto& widget = box->next<Widget>();
         auto buttonVariant = utl::variant_cast<Button, ImageButton>(&widget);
         if (std::visit([&](auto* button) {

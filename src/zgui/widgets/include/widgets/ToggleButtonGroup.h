@@ -28,8 +28,8 @@ public:
     auto operator=(const ToggleButtonGroup&) -> ToggleButtonGroup& = delete;
     auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = delete;
 
-    auto Active(unsigned active) -> std::size_t;
-    auto getActive() -> std::size_t;
+    auto Active(unsigned active) -> unsigned;
+    auto getActive() -> unsigned;
     auto arrange(const layout::Rect& /* rect */) -> bool override;
     void setExpandType(layout::ExpandType expandWidth, layout::ExpandType expandHeight);
 

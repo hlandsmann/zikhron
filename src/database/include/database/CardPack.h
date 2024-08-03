@@ -1,8 +1,8 @@
 #pragma once
 #include "CbdFwd.h"
+#include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
-#include "WordDB.h"
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
@@ -17,7 +17,7 @@ namespace database {
 
 struct CardAudio
 {
-    std::filesystem::path audioFile;
+    std::optional<std::filesystem::path> audioFile;
     std::shared_ptr<Card> card;
     double start;
     double end;
@@ -43,6 +43,7 @@ public:
     [[nodiscard]] auto getNextCard(const CardPtr& card) const -> std::optional<CardAudio>;
     [[nodiscard]] auto getPreviousCard(const CardPtr& card) const -> std::optional<CardAudio>;
     [[nodiscard]] auto getName() const -> std::string;
+    [[nodiscard]] auto getNumberOfCards() const -> std::size_t;
 
 private:
     void deserialize();
@@ -60,4 +61,4 @@ private:
 
 using CardPackPtr = std::shared_ptr<CardPack>;
 
-} // namespace cbd
+} // namespace database

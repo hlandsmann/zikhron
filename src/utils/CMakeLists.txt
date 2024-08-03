@@ -14,12 +14,12 @@ target_sources(zikhron_utils
         include/utils/Memory.h
         include/utils/StringU8.h
         include/utils/Time.h
+        include/utils/Variant.h
         include/utils/counting_iterator.h
         include/utils/format.h
         include/utils/index_map.h
         include/utils/min_element_val.h
         include/utils/string_split.h
-        include/utils/variant_cast.h
         src/Crc32.cpp
         src/StringU8.cpp
         src/Time.cpp

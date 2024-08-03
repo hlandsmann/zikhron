@@ -10,6 +10,7 @@
 #include <database/CardDB.h>
 #include <database/CardPackDB.h>
 #include <database/VideoDB.h>
+#include <database/WordDB.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
@@ -31,8 +32,6 @@
 #include <widgets/detail/Widget.h>
 
 #include <algorithm>
-#include <cstddef>
-#include <filesystem>
 #include <initializer_list>
 #include <kocoro/kocoro.hpp>
 #include <memory>
@@ -55,65 +54,6 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
     , mpvVideo{displayVideo->getMpv()}
 {
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
-}
-
-TabCard::CardAudioInfo::CardAudioInfo(CardId cardId, const database::CardPackDB& cardPackDB)
-    : cardAudio{cardPackDB.getCardAtCardId(cardId)}
-    , cardPack{cardPackDB.getCardPackForCardId(cardAudio.card->getCardId())}
-{}
-
-auto TabCard::CardAudioInfo::firstId() const -> std::optional<CardId>
-{
-    auto firstCardId = cardPack->getFirstCard().card->getCardId();
-    if (firstCardId != cardAudio.card->getCardId()) {
-        return {firstCardId};
-    }
-    return {};
-}
-
-auto TabCard::CardAudioInfo::previousId() const -> std::optional<CardId>
-{
-    auto previousCard = cardPack->getPreviousCard(cardAudio.card);
-    if (!previousCard.has_value()) {
-        return {};
-    }
-    return previousCard->card->getCardId();
-}
-
-auto TabCard::CardAudioInfo::nextId() const -> std::optional<CardId>
-{
-    auto nextCard = cardPack->getNextCard(cardAudio.card);
-    if (!nextCard.has_value()) {
-        return {};
-    }
-    return nextCard->card->getCardId();
-}
-
-auto TabCard::CardAudioInfo::lastId() const -> std::optional<CardId>
-{
-    auto lastCardId = cardPack->getLastCard().card->getCardId();
-    if (lastCardId != cardAudio.card->getCardId()) {
-        return {lastCardId};
-    }
-    return {};
-}
-
-auto TabCard::CardAudioInfo::getAudio() const -> std::optional<std::filesystem::path>
-{
-    if (cardAudio.audioFile.empty()) {
-        return {};
-    }
-    return {cardAudio.audioFile};
-}
-
-auto TabCard::CardAudioInfo::getStartTime() const -> double
-{
-    return cardAudio.start;
-}
-
-auto TabCard::CardAudioInfo::getEndTime() const -> double
-{
-    return cardAudio.end;
 }
 
 void TabCard::setUp(widget::Layer& layer)
@@ -156,74 +96,57 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     dataBase = co_await asyncTreeWalker->getDataBase();
     auto wordDB = dataBase->getWordDB();
     auto cardDB = dataBase->getCardDB();
-
     sr::CardMeta cardMeta;
-    Proceed proceed = Proceed::submit_walkTree;
+
+    signalProceed->set(Proceed::walkTree);
     while (true) {
-        if (displayVocables
-            && utl::isEither(proceed, {Proceed::submit_walkTree,
-                                       Proceed::submit_next})) {
-            auto cardId = cardMeta.Id();
-            treeWalker->setEaseForCard(cardId, displayVocables->getVocIdEase());
-        }
-        displayText.reset();
-        displayVocables.reset();
-        cardLayer->clear();
-        vocableLayer->clear();
+        Proceed proceed = co_await *signalProceed;
 
         bool cardIsValid = true;
         switch (proceed) {
-        case Proceed::submit_walkTree:
+        case Proceed::walkTree:
+            clearStudy(cardLayer, vocableLayer);
             cardMeta = co_await asyncTreeWalker->getNextCardChoice();
+            spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.Id());
+            track = cardDB->getTrackFromCardId(cardMeta.Id());
+            loadTrack();
+            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
-        case Proceed::first:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->firstId());
-            break;
-        case Proceed::previous:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->previousId());
-            break;
-        case Proceed::next:
-        case Proceed::submit_next:
-            if (!cardAudioInfo->nextId().has_value()) {
+        case Proceed::submit: {
+            treeWalker->setEaseForCard(cardMeta.Id(), displayVocables->getVocIdEase());
+            if (!track.has_value()) {
                 mode = Mode::shuffle;
+                signalProceed->set(Proceed::walkTree);
+            } else {
+                signalProceed->set(Proceed::nextTrack);
             }
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->nextId());
-            break;
-        case Proceed::last:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice(cardAudioInfo->lastId());
+        } break;
+        case Proceed::nextTrack:
+            clearStudy(cardLayer, vocableLayer);
+            cardMeta = treeWalker->getNextCardChoice(track->getCardID());
+            spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.Id());
+            loadTrack();
+            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::reload:
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice({cardMeta.Id()});
+            clearStudy(cardLayer, vocableLayer);
+            cardMeta = treeWalker->getNextCardChoice({cardMeta.Id()});
+            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::annotate: {
-            cardIsValid = !co_await annotationTask(cardMeta, cardDB, cardLayer);
+            auto cardAnnotationChanged = co_await annotationTask(cardMeta, cardDB, cardLayer);
+            if (cardAnnotationChanged) {
+                signalProceed->set(Proceed::reload);
+            }
         } break;
 
         default:
             break;
         }
-        if (mpvAudio && !mpvAudio->is_paused()) {
-            mpvAudio->pause();
-        }
         if (!cardIsValid) {
             proceed = co_await *signalProceed;
             continue;
         }
-        spdlog::info("kocoro, loading CardID {}..", cardMeta.Id());
-        cardAudioInfo = std::make_unique<CardAudioInfo>(cardMeta.Id(), *cardDB->getCardPackDB());
-        if (cardAudioInfo->getAudio().has_value()) {
-            mpvAudio->openFile(cardAudioInfo->getAudio().value());
-        }
-        auto vocId_ease = cardMeta.getRelevantEase();
-        auto tokenText = cardMeta.getStudyTokenText();
-
-        auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
-        displayText = std::make_unique<DisplayText>(cardLayer, overlay, std::move(tokenText));
-        if (!vocId_ease.empty()) {
-            displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease));
-        }
-
-        proceed = co_await *signalProceed;
     }
 
     co_return;
@@ -248,6 +171,40 @@ auto TabCard::annotationTask(sr::CardMeta& cardMeta,
         co_return true;
     }
     co_return false;
+}
+
+void TabCard::clearStudy(const std::shared_ptr<widget::Layer>& cardLayer,
+                         const std::shared_ptr<widget::Layer>& vocableLayer)
+{
+    displayText.reset();
+    displayVocables.reset();
+    cardLayer->clear();
+    vocableLayer->clear();
+}
+
+void TabCard::prepareStudy(sr::CardMeta& cardMeta,
+                           std::shared_ptr<database::WordDB> wordDB,
+                           const std::shared_ptr<widget::Layer>& cardLayer,
+                           const std::shared_ptr<widget::Layer>& vocableLayer)
+{
+    auto vocId_ease = cardMeta.getRelevantEase();
+    auto tokenText = cardMeta.getStudyTokenText();
+
+    auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
+    displayText = std::make_unique<DisplayText>(cardLayer, overlay, std::move(tokenText));
+    if (!vocId_ease.empty()) {
+        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease));
+    }
+}
+
+void TabCard::loadTrack()
+{
+    if (mpvAudio && !mpvAudio->is_paused()) {
+        mpvAudio->pause();
+    }
+    if (track->getMediaFile().has_value()) {
+        mpvAudio->openFile(track->getMediaFile().value());
+    }
 }
 
 void TabCard::setupCardWindow(widget::Window& cardWindow)
@@ -359,11 +316,11 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
 
 void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress)
 {
-    if (!cardAudioInfo || !cardAudioInfo->getAudio().has_value()) {
+    if (!track.has_value() || !track->getMediaFile().has_value()) {
         return;
     }
-    double start = cardAudioInfo->getStartTime();
-    double end = cardAudioInfo->getEndTime();
+    double start = track->getStartTimeStamp();
+    double end = track->getEndTimeStamp();
     double timePos = std::max(mpvAudio->getTimePos(), start);
 
     bool playing = !mpvAudio->is_paused();
@@ -394,35 +351,65 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
     if (displayText == nullptr) {
         return;
     }
-    bool submitOrNextClicked = false;
+
+    enum class CardSubmission {
+        reveal,
+        next,
+        submit
+    };
+    CardSubmission cardSubmission{};
+    bool btnClicked = false;
 
     if (displayVocables == nullptr) {
-        submitOrNextClicked |= btnNext.clicked();
+        btnClicked |= btnNext.clicked();
+        cardSubmission = CardSubmission::next;
     } else if (revealVocables) {
-        submitOrNextClicked |= btnSubmit.clicked();
+        btnClicked |= btnSubmit.clicked();
+        cardSubmission = CardSubmission::submit;
     } else {
-        if (btnReveal.clicked()) {
-            revealVocables = true;
-        }
+        btnClicked |= btnReveal.clicked();
+        cardSubmission = CardSubmission::reveal;
     }
-    if (submitOrNextClicked) {
-        revealVocables = false;
+    if (!btnClicked) {
+        return;
+    }
+
+    if (utl::isEither(cardSubmission, {CardSubmission::submit,
+                                       CardSubmission::next})) {
         switch (mode) {
         case Mode::shuffle:
-            signalProceed->set(Proceed::submit_walkTree);
+            track = {};
             break;
         case Mode::story:
-            signalProceed->set(Proceed::submit_next);
+            track = track->nextTrack();
             break;
         }
+    }
+    switch (cardSubmission) {
+    case CardSubmission::reveal:
+        revealVocables = true;
+        break;
+    case CardSubmission::next:
+        revealVocables = false;
+        if (track.has_value()) {
+            signalProceed->set(Proceed::nextTrack);
+        } else {
+            signalProceed->set(Proceed::walkTree);
+        }
+        break;
+    case CardSubmission::submit:
+        revealVocables = false;
+        signalProceed->set(Proceed::submit);
+        break;
     }
 }
 
 void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
 {
-    if (!cardAudioInfo || !cardAudioInfo->nextId().has_value()) {
+    if (!track.has_value() || !track->nextTrack().has_value()) {
         return;
     }
+
     mode = static_cast<Mode>(tbgMode.Active(static_cast<unsigned>(mode)));
 }
 
@@ -431,40 +418,37 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                  widget::ImageButton& btnFollowing,
                                  widget::ImageButton& btnLast)
 {
-    if (!cardAudioInfo
-        || (!cardAudioInfo->firstId().has_value()
-            && !cardAudioInfo->previousId().has_value()
-            && !cardAudioInfo->nextId().has_value()
-            && !cardAudioInfo->lastId().has_value())) {
+    if (!track.has_value()
+        || (!track->nextTrack().has_value()
+            && !track->previousTrack().has_value())) {
         return;
     }
 
-    // if (!cardAudioInfo.nextId.has_value()) {
-    //     mode = Mode::shuffle;
-    // }
-
-    btnFirst.setSensitive(cardAudioInfo->firstId().has_value());
-    btnPrevious.setSensitive(cardAudioInfo->previousId().has_value());
-    btnFollowing.setSensitive(cardAudioInfo->nextId().has_value());
-    btnLast.setSensitive(cardAudioInfo->lastId().has_value());
+    btnFirst.setSensitive(track->previousTrack().has_value());
+    btnPrevious.setSensitive(track->previousTrack().has_value());
+    btnFollowing.setSensitive(track->nextTrack().has_value());
+    btnLast.setSensitive(track->nextTrack().has_value());
+    bool nextPreviousClicked = false;
     if (btnFirst.clicked()) {
-        mode = Mode::story;
-        revealVocables = false;
-        signalProceed->set(Proceed::first);
+        nextPreviousClicked = true;
+        track = track->trackAt(0);
     }
     if (btnPrevious.clicked()) {
-        mode = Mode::story;
-        revealVocables = false;
-        signalProceed->set(Proceed::previous);
+        nextPreviousClicked = true;
+        track = track->previousTrack();
     }
     if (btnFollowing.clicked()) {
-        mode = Mode::story;
-        revealVocables = false;
-        signalProceed->set(Proceed::next);
+        nextPreviousClicked = true;
+        track = track->nextTrack();
     }
     if (btnLast.clicked()) {
+        nextPreviousClicked = true;
+        track = track->trackAt(track->numberOfTracks() - 1);
+    }
+    if (nextPreviousClicked) {
+        mode = Mode::story;
         revealVocables = false;
-        signalProceed->set(Proceed::last);
+        signalProceed->set(Proceed::nextTrack);
     }
 }
 
@@ -491,28 +475,6 @@ void TabCard::handleDataBaseSave(widget::ImageButton& btnSave)
     if (btnSave.clicked()) {
         dataBase->save();
     }
-
-    // // open Dialog Simple
-    // if (btnSave.clicked()) {
-    //     IGFD::FileDialogConfig config;
-    //     config.path = ".";
-    //     config.flags = ImGuiFileDialogFlags_Modal;
-    //     ImGuiFileDialog::Instance()->OpenDialog("ChooseFileDlgKey", "Choose File", ".cpp,.h,.hpp", config);
-    // }
-    //
-    // // display
-    // if (ImGuiFileDialog::Instance()->Display("ChooseFileDlgKey")) {
-    //     // action if OK
-    //     if (ImGuiFileDialog::Instance()->IsOk()) {
-    //         std::string filePathName = ImGuiFileDialog::Instance()->GetFilePathName();
-    //         std::string filePath = ImGuiFileDialog::Instance()->GetCurrentPath();
-    //         spdlog::warn("open: {}, {}", filePath, filePathName);
-    //         // action
-    //     }
-    //
-    //     // close
-    //     ImGuiFileDialog::Instance()->Close();
-    // }
 }
 
 } // namespace gui

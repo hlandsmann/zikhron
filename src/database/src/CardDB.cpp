@@ -66,14 +66,11 @@ auto CardDB::getVideoDB() const -> std::shared_ptr<VideoDB>
     return videoDB;
 }
 
-auto CardDB::getTrackFromCardId(CardId cardId) const -> std::shared_ptr<Track>
+auto CardDB::getTrackFromCardId(CardId cardId) const -> Track
 {
     auto cardPack = cardPackDB->getCardPackForCardId(cardId);
-    return std::make_shared<Track>(TrackMedia{cardPack}, cardId);
-    // auto cardAudio = cardPackDB->getCardAudio().at(cardId);
-    // auto card = cards.at(cardId);
-
-    // if(dynamic_cast<DialogueCard*>(card.get()) ||
+    auto card = cards.at(cardId);
+    return {TrackMedia{cardPack}, card};
 }
 
 } // namespace database

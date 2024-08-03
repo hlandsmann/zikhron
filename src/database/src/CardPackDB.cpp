@@ -54,8 +54,8 @@ auto CardPackDB::getCardAtCardId(CardId cardId) const -> const CardAudio&
 auto CardPackDB::getCardPackForCardId(CardId cardId) const -> CardPackPtr
 {
     auto card = cards.at(cardId).card;
-    auto cardPackId = card->getPackName();
-    return cardPacks.at(cardPackId);
+    auto cardPackName = card->getPackName();
+    return cardPacks.at(cardPackName);
 }
 
 auto CardPackDB::getCardPack(const std::string& packName) const -> CardPackPtr
