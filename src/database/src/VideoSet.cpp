@@ -1,4 +1,4 @@
-#include "VideoPack.h"
+#include "VideoSet.h"
 
 #include "ParsingHelpers.h"
 #include "Video.h"
@@ -24,46 +24,46 @@ namespace ranges = std::ranges;
 
 namespace database {
 
-VideoPack::VideoPack(std::filesystem::path _videoPackFile)
-    : videoPackFile{std::move(_videoPackFile)}
+VideoSet::VideoSet(std::filesystem::path _videoSetFile)
+    : videoSetFile{std::move(_videoSetFile)}
 {
     try {
         deserialize();
     } catch (const std::exception& e) {
-        spdlog::error("Failed to parse {}", videoPackFile.string());
+        spdlog::error("Failed to parse {}", videoSetFile.string());
         spdlog::error("{}", e.what());
     }
 }
 
-VideoPack::VideoPack(std::filesystem::path _videoPackFile,
+VideoSet::VideoSet(std::filesystem::path _videoSetFile,
                      std::string _name,
                      const std::vector<std::filesystem::path>& videoFiles)
-    : videoPackFile{std::move(_videoPackFile)}
+    : videoSetFile{std::move(_videoSetFile)}
     , name{std::move(_name)}
-    , videos{genVideosFromPaths(videoFiles, videoPackFile)}
+    , videos{genVideosFromPaths(videoFiles, videoSetFile)}
 {}
 
-auto VideoPack::getName() const -> const std::string&
+auto VideoSet::getName() const -> const std::string&
 {
     return name;
 }
 
-auto VideoPack::getVideo() const -> VideoPtr
+auto VideoSet::getVideo() const -> VideoPtr
 {
     return videos.front();
 }
 
-void VideoPack::save()
+void VideoSet::save()
 {
     // fmt::print("{}", serialize());
-    std::filesystem::create_directories(videoPackFile.parent_path());
-    auto out = std::ofstream{videoPackFile};
+    std::filesystem::create_directories(videoSetFile.parent_path());
+    auto out = std::ofstream{videoSetFile};
     out << serialize();
 }
 
-void VideoPack::deserialize()
+void VideoSet::deserialize()
 {
-    auto content = utl::load_string_file(videoPackFile);
+    auto content = utl::load_string_file(videoSetFile);
     auto rest = std::string_view{content};
     verifyFileType(rest, s_type);
 
@@ -76,12 +76,12 @@ void VideoPack::deserialize()
 
     while (!rest.empty()) {
         auto videoSV = utl::split_front(rest, "\n;\n");
-        auto video = std::make_shared<Video>(videoSV, videoPackFile);
+        auto video = std::make_shared<Video>(videoSV, videoSetFile);
         videos.push_back(video);
     }
 }
 
-auto VideoPack::serialize() const -> std::string
+auto VideoSet::serialize() const -> std::string
 {
     std::string content;
     content += fmt::format("{};version:1.0\n", s_type);
@@ -92,12 +92,12 @@ auto VideoPack::serialize() const -> std::string
     return content;
 }
 
-auto VideoPack::genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles, const std::filesystem::path& videoPackFile) -> std::vector<VideoPtr>
+auto VideoSet::genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles, const std::filesystem::path& videoSetFile) -> std::vector<VideoPtr>
 {
     std::vector<VideoPtr> videos;
     ranges::transform(videoFiles, std::back_inserter(videos),
                       [&](const std::filesystem::path& videoFile) -> VideoPtr {
-                          return std::make_shared<Video>(videoFile, videoPackFile);
+                          return std::make_shared<Video>(videoFile, videoSetFile);
                       });
     return videos;
 }

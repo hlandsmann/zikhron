@@ -24,6 +24,7 @@ class Track
 {
 public:
     Track(TrackMedia medium);
+    Track(TrackMedia medium, CardId cardId);
 
     [[nodiscard]] auto numberOfTracks() const -> std::size_t;
     [[nodiscard]] auto trackAt(std::size_t index) const -> Track;

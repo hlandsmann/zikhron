@@ -19,9 +19,9 @@ class Subtitle
 public:
     Subtitle(const multimedia::Subtitle& sub,
              const std::filesystem::path& videoFile,
-             const std::filesystem::path& videoPackDir);
+             const std::filesystem::path& videoSetDir);
     Subtitle(const std::filesystem::path& subtitleFile,
-             const std::filesystem::path& videoPackDir);
+             const std::filesystem::path& videoSetDir);
     Subtitle(std::filesystem::path subtitleFile);
     [[nodiscard]] auto getName() const -> std::string;
     [[nodiscard]] auto getFileName() const -> std::filesystem::path;
@@ -34,7 +34,7 @@ private:
     static auto nameFromSub(const multimedia::Subtitle& sub) -> std::string;
     static auto fileNameFromSubVideo(const multimedia::Subtitle& sub,
                                      const std::filesystem::path& videoFile,
-                                     const std::filesystem::path& videoPackDir) -> std::filesystem::path;
+                                     const std::filesystem::path& videoSetDir) -> std::filesystem::path;
     std::string name;
     std::filesystem::path filename;
     std::vector<SubText> subTexts;

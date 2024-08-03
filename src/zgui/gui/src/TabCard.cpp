@@ -9,7 +9,7 @@
 #include <context/imglog.h>
 #include <database/CardDB.h>
 #include <database/CardPackDB.h>
-#include <database/VideoPack.h>
+#include <database/VideoDB.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
@@ -137,9 +137,9 @@ void TabCard::displayOnLayer(widget::Layer& layer)
     doCtrlWindow(box.next<widget::Window>());
 }
 
-void TabCard::slot_playVideoPack(database::VideoPackPtr videoPack)
+void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
 {
-    mpvVideo->openFile(videoPack->getVideo()->getVideoFile());
+    mpvVideo->openFile(videoSet->getVideo()->getVideoFile());
     mpvVideo->play();
 }
 

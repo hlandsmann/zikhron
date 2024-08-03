@@ -1,5 +1,5 @@
 #pragma once
-#include <database/VideoPack.h>
+#include <database/VideoSet.h>
 #include "TabCard.h"
 #include "TabVideo.h"
 #include "DisplayVideo.h"
@@ -40,7 +40,7 @@ public:
     void setup();
 
 private:
-    void slot_playVideoPack(database::VideoPackPtr);
+    void slot_playVideoSet(database::VideoSetPtr);
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<widget::layout::Rect> boxRect;
     std::shared_ptr<widget::Box> box;

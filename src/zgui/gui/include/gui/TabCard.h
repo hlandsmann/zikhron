@@ -10,7 +10,7 @@
 #include <database/CardPack.h>
 #include <database/CardPackDB.h>
 #include <database/TokenizationChoiceDB.h>
-#include <database/VideoPack.h>
+#include <database/VideoSet.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
@@ -92,7 +92,7 @@ public:
 
     void setUp(widget::Layer& layer);
     void displayOnLayer(widget::Layer& layer);
-    void slot_playVideoPack(database::VideoPackPtr);
+    void slot_playVideoSet(database::VideoSetPtr);
 
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;

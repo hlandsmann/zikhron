@@ -8,7 +8,7 @@
 #include <context/Theme.h>
 #include <context/WidgetId.h>
 #include <context/imglog.h>
-#include <database/VideoPack.h>
+#include <database/VideoSet.h>
 #include <imgui.h>
 #include <utils/format.h>
 #include <widgets/Box.h>
@@ -43,8 +43,8 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
     , tabCard{std::move(_tabCard)}
     , tabVideo{std::move(_tabVideo)}
 {
-    tabVideo->connect_playVideoPack(&MainWindow::slot_playVideoPack, this);
-    tabVideo->connect_playVideoPack(&TabCard::slot_playVideoPack, tabCard);
+    tabVideo->connect_playVideoSet(&MainWindow::slot_playVideoSet, this);
+    tabVideo->connect_playVideoSet(&TabCard::slot_playVideoSet, tabCard);
 }
 
 void MainWindow::arrange(const widget::layout::Rect& rect)
@@ -121,7 +121,7 @@ void MainWindow::setup()
     }
 }
 
-void MainWindow::slot_playVideoPack(database::VideoPackPtr /*videoPack*/)
+void MainWindow::slot_playVideoSet(database::VideoSetPtr /*videoSet*/)
 {
     activeTab = ActiveTab::cards;
 }

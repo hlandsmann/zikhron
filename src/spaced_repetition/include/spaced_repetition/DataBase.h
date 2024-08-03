@@ -9,7 +9,7 @@
 #include <database/CardPackDB.h>
 #include <database/CbdFwd.h>
 #include <database/TokenizationChoiceDB.h>
-#include <database/VideoPackDB.h>
+#include <database/VideoDB.h>
 #include <database/VocableProgress.h>
 #include <database/WordDB.h>
 #include <dictionary/ZH_Dictionary.h>
@@ -31,7 +31,7 @@ class DataBase
     using WordDB = database::WordDB;
     using CardDB = database::CardDB;
     using CardPackDB = database::CardPackDB;
-    using VideoPackDB = database::VideoPackDB;
+    using VideoDB = database::VideoDB;
     using TokenizationChoiceDB = database::TokenizationChoiceDB;
 
 public:

@@ -9,13 +9,13 @@
 
 namespace database {
 
-class VideoPack
+class VideoSet
 {
-    static constexpr std::string_view s_type = "videoPack";
+    static constexpr std::string_view s_type = "videoSet";
 
 public:
-    VideoPack(std::filesystem::path videoPackFile);
-    VideoPack(std::filesystem::path videoPackFile,
+    VideoSet(std::filesystem::path videoSetFile);
+    VideoSet(std::filesystem::path videoFile,
               std::string name,
               const std::vector<std::filesystem::path>& videoFiles);
     [[nodiscard]] auto getName() const -> const std::string&;
@@ -26,13 +26,13 @@ private:
     void deserialize();
     [[nodiscard]] auto serialize() const -> std::string;
     static auto genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles,
-                                   const std::filesystem::path& videoPackFile) -> std::vector<VideoPtr>;
-    std::filesystem::path videoPackFile;
+                                   const std::filesystem::path& videoSetFile) -> std::vector<VideoPtr>;
+    std::filesystem::path videoSetFile;
     std::string name;
 
     std::vector<VideoPtr> videos;
 };
 
-using VideoPackPtr = std::shared_ptr<VideoPack>;
+using VideoSetPtr = std::shared_ptr<VideoSet>;
 
 } // namespace database

@@ -20,14 +20,14 @@ namespace ranges = std::ranges;
 
 namespace database {
 
-Video::Video(std::string_view sv, std::filesystem::path _videoPackFile)
-    : videoPackFile{std::move(_videoPackFile)}
+Video::Video(std::string_view sv, std::filesystem::path _videoSetFile)
+    : videoSetFile{std::move(_videoSetFile)}
 {
     deserialize(sv);
 }
 
-Video::Video(std::filesystem::path _videoFile, std::filesystem::path _videoPackFile)
-    : videoPackFile{std::move(_videoPackFile)}
+Video::Video(std::filesystem::path _videoFile, std::filesystem::path _videoSetFile)
+    : videoSetFile{std::move(_videoSetFile)}
     , videoFile{std::move(_videoFile)}
     , name{videoFile.stem().string()}
 {
@@ -43,7 +43,7 @@ void Video::deserialize(std::string_view content)
     while (!rest.empty()) {
         if (getValueType(rest) == "sub") {
             auto subtitleFile = getValue(rest, "sub");
-            subtitles.push_back(std::make_shared<Subtitle>(subtitleFile, videoPackFile.parent_path()));
+            subtitles.push_back(std::make_shared<Subtitle>(subtitleFile, videoSetFile.parent_path()));
             continue;
         }
         break;
@@ -76,7 +76,7 @@ void Video::loadSubtitles()
     auto subs = subtitleDecoder.decode(stopToken);
     ranges::transform(subs, std::back_inserter(subtitles),
                       [this](const multimedia::Subtitle sub) -> SubtitlePtr {
-                          return std::make_shared<Subtitle>(sub, videoFile, videoPackFile.parent_path());
+                          return std::make_shared<Subtitle>(sub, videoFile, videoSetFile.parent_path());
                       });
     for (const auto& sub : subtitles) {
         fmt::print("fn: `{}`\n", sub->getFileName().string());

@@ -4,7 +4,8 @@
 #include "CardPackDB.h"
 #include "CbdFwd.h"
 #include "TokenizationChoiceDB.h"
-#include "VideoPackDB.h"
+#include "Track.h"
+#include "VideoDB.h"
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
@@ -25,12 +26,12 @@ namespace database {
 CardDB::CardDB(std::shared_ptr<zikhron::Config> _config,
                std::shared_ptr<WordDB> _wordDB,
                std::shared_ptr<CardPackDB> _cardPackDB,
-               std::shared_ptr<VideoPackDB> _videoPackDB,
+               std::shared_ptr<VideoDB> _videoDB,
                std::shared_ptr<TokenizationChoiceDB> _tokenizationChoiceDB)
     : config{std::move(_config)}
     , wordDB{std::move(_wordDB)}
     , cardPackDB{std::move(_cardPackDB)}
-    , videoPackDB{std::move(_videoPackDB)}
+    , videoDB{std::move(_videoDB)}
     , tokenizationChoiceDB{std::move(_tokenizationChoiceDB)}
 {
     ranges::transform(cardPackDB->getCardAudio(),
@@ -42,7 +43,7 @@ CardDB::CardDB(std::shared_ptr<zikhron::Config> _config,
 
 void CardDB::save()
 {
-    videoPackDB->save();
+    videoDB->save();
 }
 
 auto CardDB::getCards() const -> const std::map<CardId, CardPtr>&
@@ -60,9 +61,19 @@ auto CardDB::getCardPackDB() const -> std::shared_ptr<CardPackDB>
     return cardPackDB;
 }
 
-auto CardDB::getVideoPackDB() const -> std::shared_ptr<VideoPackDB>
+auto CardDB::getVideoDB() const -> std::shared_ptr<VideoDB>
 {
-    return videoPackDB;
+    return videoDB;
+}
+
+auto CardDB::getTrackFromCardId(CardId cardId) const -> std::shared_ptr<Track>
+{
+    auto cardPack = cardPackDB->getCardPackForCardId(cardId);
+    return std::make_shared<Track>(TrackMedia{cardPack}, cardId);
+    // auto cardAudio = cardPackDB->getCardAudio().at(cardId);
+    // auto card = cards.at(cardId);
+
+    // if(dynamic_cast<DialogueCard*>(card.get()) ||
 }
 
 } // namespace database

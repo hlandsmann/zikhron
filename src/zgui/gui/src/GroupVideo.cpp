@@ -1,7 +1,7 @@
 #include "GroupVideo.h"
 
 #include <context/Fonts.h>
-#include <database/VideoPack.h>
+#include <database/VideoSet.h>
 #include <theme/Sizes.h>
 #include <widgets/Box.h>
 #include <widgets/Child.h>
@@ -14,14 +14,14 @@
 
 namespace gui {
 
-GroupVideo::GroupVideo(std::shared_ptr<widget::Grid> _grid, database::VideoPackPtr _videoPack)
+GroupVideo::GroupVideo(std::shared_ptr<widget::Grid> _grid, database::VideoSetPtr _videoSet)
     : grid{std::move(_grid)}
-    , videoPack{std::move(_videoPack)}
+    , videoSet{std::move(_videoSet)}
 {
     auto& child = *grid->add<widget::Child>(Align::start, Sizes::group, "group_video");
     childWidgetId = child.getWidgetId();
     auto& box = *child.add<widget::Box>(Align::start, boxCfg, widget::Orientation::vertical);
-    box.add<widget::Label>(Align::start, videoPack->getName(), context::FontType::chineseSmall);
+    box.add<widget::Label>(Align::start, videoSet->getName(), context::FontType::chineseSmall);
     box.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
 }
 
@@ -39,9 +39,9 @@ auto GroupVideo::draw() -> bool
     return button.clicked();
 }
 
-auto GroupVideo::getVideoPack() const -> database::VideoPackPtr
+auto GroupVideo::getVideoSet() const -> database::VideoSetPtr
 {
-    return videoPack;
+    return videoSet;
 }
 
 } // namespace gui

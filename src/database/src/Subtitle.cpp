@@ -8,25 +8,27 @@
 #include <utils/format.h>
 #include <utils/string_split.h>
 
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <vector>
 
 namespace database {
 Subtitle::Subtitle(const multimedia::Subtitle& sub,
                    const std::filesystem::path& videoFile,
-                   const std::filesystem::path& videoPackDir)
+                   const std::filesystem::path& videoSetDir)
     : name{nameFromSub(sub)}
-    , filename{fileNameFromSubVideo(sub, videoFile, videoPackDir)}
+    , filename{fileNameFromSubVideo(sub, videoFile, videoSetDir)}
     , subTexts{sub.subs}
 {
 }
 
 Subtitle::Subtitle(const std::filesystem::path& subtitleFile,
-                   const std::filesystem::path& videoPackDir)
-    : filename{videoPackDir / s_subtitleSubDirectory / subtitleFile}
+                   const std::filesystem::path& videoSetDir)
+    : filename{videoSetDir / s_subtitleSubDirectory / subtitleFile}
 {
     try {
         deserialize();
@@ -61,7 +63,7 @@ auto Subtitle::nameFromSub(const multimedia::Subtitle& sub) -> std::string
 
 auto Subtitle::fileNameFromSubVideo(const multimedia::Subtitle& sub,
                                     const std::filesystem::path& videoFile,
-                                    const std::filesystem::path& videoPackDir) -> std::filesystem::path
+                                    const std::filesystem::path& videoSetDir) -> std::filesystem::path
 {
     std::string allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%~#%-_+,.";
     std::string subName = nameFromSub(sub);
@@ -72,7 +74,7 @@ auto Subtitle::fileNameFromSubVideo(const multimedia::Subtitle& sub,
         }
     }
     auto fileName = fmt::format("{}.{}.{:08x}{}", videoFile.stem().string(), subName, nameCRC, s_subtitleExtension);
-    return videoPackDir / s_subtitleSubDirectory / fileName;
+    return videoSetDir / s_subtitleSubDirectory / fileName;
 }
 
 auto Subtitle::getSubTexts() const -> const std::vector<SubText>&

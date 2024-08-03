@@ -2,7 +2,8 @@
 #include "CardPackDB.h"
 #include "CbdFwd.h"
 #include "TokenizationChoiceDB.h"
-#include "VideoPackDB.h"
+#include "Track.h"
+#include "VideoDB.h"
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
@@ -21,7 +22,7 @@ public:
     CardDB(std::shared_ptr<zikhron::Config> config,
            std::shared_ptr<WordDB> wordDB,
            std::shared_ptr<CardPackDB> cardPackDB,
-           std::shared_ptr<VideoPackDB> videoPackDB,
+           std::shared_ptr<VideoDB> videoDB,
            std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB);
 
     void save();
@@ -29,13 +30,14 @@ public:
     [[nodiscard]] auto getAnnotationAlternativesForCard(CardId cardId) const
             -> std::vector<annotation::Alternative>;
     [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
-    [[nodiscard]] auto getVideoPackDB() const -> std::shared_ptr<VideoPackDB>;
+    [[nodiscard]] auto getVideoDB() const -> std::shared_ptr<VideoDB>;
+    [[nodiscard]] auto getTrackFromCardId(CardId cardId) const -> std::shared_ptr<Track>;
 
 private:
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<CardPackDB> cardPackDB;
-    std::shared_ptr<VideoPackDB> videoPackDB;
+    std::shared_ptr<VideoDB> videoDB;
     std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB;
 
     std::map<CardId, CardPtr> cards;

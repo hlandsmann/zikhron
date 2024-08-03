@@ -15,15 +15,15 @@ namespace database {
 class Video
 {
 public:
-    Video(std::string_view sv, std::filesystem::path videoPackFile);
-    Video(std::filesystem::path videoFile, std::filesystem::path videoPackFile);
+    Video(std::string_view sv, std::filesystem::path videoSetFile);
+    Video(std::filesystem::path videoFile, std::filesystem::path videoSetFile);
     [[nodiscard]] auto serialize() const -> std::string;
     void loadSubtitles();
     [[nodiscard]] auto getVideoFile() const -> const std::filesystem::path&;
 
 private:
     void deserialize(std::string_view content);
-    std::filesystem::path videoPackFile;
+    std::filesystem::path videoSetFile;
     std::filesystem::path videoFile;
     std::string name;
 

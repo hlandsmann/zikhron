@@ -4,7 +4,7 @@
 #include "GroupVideo.h"
 
 #include <context/WidgetId.h>
-#include <database/VideoPack.h>
+#include <database/VideoSet.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/DataBase.h>
 #include <widgets/Layer.h>
@@ -31,9 +31,9 @@ public:
     void displayOnLayer(widget::Layer& layer);
 
     template<class... Args>
-    void connect_playVideoPack(Args&&... args)
+    void connect_playVideoSet(Args&&... args)
     {
-        sig_playVideoPack.connect(std::forward<Args>(args)...);
+        sig_playVideoSet.connect(std::forward<Args>(args)...);
     }
 
 private:
@@ -54,7 +54,7 @@ private:
     std::unique_ptr<GroupAdd> groupAdd;
     context::WidgetId windowId{};
 
-    sigslot::signal<database::VideoPackPtr> sig_playVideoPack;
+    sigslot::signal<database::VideoSetPtr> sig_playVideoSet;
 };
 
 } // namespace gui

@@ -12,7 +12,7 @@ void verifyFileType(std::string_view& rest, std::string_view type)
 {
     auto fileType = utl::split_front(rest, ';');
     if (fileType != type) {
-        throw std::runtime_error(fmt::format("Invalid VideoPack. Failed to parse type: {}",
+        throw std::runtime_error(fmt::format("Invalid VideoSet. Failed to parse type: {}",
                                              fileType));
     }
 }

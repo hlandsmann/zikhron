@@ -50,8 +50,8 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
     }
     for (const auto& groupVideo : groupVideos) {
         if (groupVideo->draw()) {
-            spdlog::info("Clicked: {}", groupVideo->getVideoPack()->getName());
-            sig_playVideoPack(groupVideo->getVideoPack());
+            spdlog::info("Clicked: {}", groupVideo->getVideoSet()->getName());
+            sig_playVideoSet(groupVideo->getVideoSet());
         }
     }
     if (fileDialog) {
@@ -67,18 +67,18 @@ auto TabVideo::manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWa
 {
     dataBase = co_await asyncTreeWalker->getDataBase();
     auto groupGrid = co_await *signalGroupGrid;
-    auto videoPackDB = dataBase->getCardDB()->getVideoPackDB();
+    auto videoDB = dataBase->getCardDB()->getVideoDB();
     while (true) {
         groupGrid->clear();
         groupVideos.clear();
-        for (const auto& videoPack : videoPackDB->getVideoPacks()) {
-            groupVideos.push_back(std::make_unique<GroupVideo>(groupGrid, videoPack));
+        for (const auto& videoSet : videoDB->getVideoSets()) {
+            groupVideos.push_back(std::make_unique<GroupVideo>(groupGrid, videoSet));
         }
         groupAdd = std::make_unique<GroupAdd>(groupGrid);
 
         auto videoFile = co_await *signalVideoFileOpen;
         if (!videoFile.empty()) {
-            videoPackDB->addVideoPack({videoFile});
+            videoDB->addVideoSet({videoFile});
         }
         fileDialog.reset();
     }

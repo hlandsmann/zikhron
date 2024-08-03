@@ -17,8 +17,8 @@ target_sources(zikhron_database
         include/database/TokenizationChoiceDB.h
         include/database/Track.h
         include/database/Video.h
-        include/database/VideoPack.h
-        include/database/VideoPackDB.h
+        include/database/VideoDB.h
+        include/database/VideoSet.h
         include/database/VocableProgress.h
         include/database/Word.h
         include/database/WordDB.h
@@ -33,8 +33,8 @@ target_sources(zikhron_database
         src/TokenizationChoiceDB.cpp
         src/Track.cpp
         src/Video.cpp
-        src/VideoPack.cpp
-        src/VideoPackDB.cpp
+        src/VideoDB.cpp
+        src/VideoSet.cpp
         src/VocableProgress.cpp
         src/Word.cpp
         src/WordDB.cpp
