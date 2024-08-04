@@ -1,6 +1,7 @@
 #include "CardPack.h"
 
 #include "Card.h"
+#include "IdGenerator.h"
 #include "CbdFwd.h"
 
 #include <annotation/Tokenizer.h>
@@ -25,10 +26,12 @@ namespace database {
 
 CardPack::CardPack(std::filesystem::path _filename,
                    PackId _packId,
+                   std::shared_ptr<CardIdGenerator> _cardIdGenerator,
                    std::shared_ptr<WordDB> _wordDB,
                    std::shared_ptr<annotation::Tokenizer> _tokenizer)
     : filename{std::move(_filename)}
     , packId{_packId}
+    , cardIdGenerator{std::move(_cardIdGenerator)}
     , wordDB{std::move(_wordDB)}
     , tokenizer{std::move(_tokenizer)}
 {
@@ -122,7 +125,8 @@ void CardPack::deserialize()
 
     std::string_view audioFile;
 
-    auto cardInit = CardInit{.packName = name,
+    auto cardInit = CardInit{.cardId = cardIdGenerator->getNext(),
+                             .packName = name,
                              .packId = packId,
                              .indexInPack = 0,
                              .wordDB = wordDB,
@@ -146,6 +150,7 @@ void CardPack::deserialize()
                          .card = Card::deserializeCard(cardText, cardInit),
                          .start = std::stod(start),
                          .end = std::stod(end)});
+        cardInit.cardId = cardIdGenerator->getNext();
         cardInit.indexInPack++;
     }
 }

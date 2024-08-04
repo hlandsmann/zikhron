@@ -2,6 +2,7 @@
 
 #include "Card.h" // IWYU pragma: keep
 #include "CardPack.h"
+#include "IdGenerator.h"
 
 #include <annotation/Tokenizer.h>
 #include <database/WordDB.h>
@@ -25,13 +26,20 @@ namespace ranges = std::ranges;
 
 namespace database {
 CardPackDB::CardPackDB(std::shared_ptr<zikhron::Config> config,
+                       std::shared_ptr<CardIdGenerator> _cardIdGenerator,
+                       std::shared_ptr<PackIdGenerator> _packIdGenerator,
                        std::shared_ptr<database::WordDB> _wordDB,
                        std::shared_ptr<annotation::Tokenizer> _tokenizer)
-    : wordDB{std::move(_wordDB)}
+    : cardIdGenerator{std::move(_cardIdGenerator)}
+    , packIdGenerator{std::move(_packIdGenerator)}
+    , wordDB{std::move(_wordDB)}
     , tokenizer{std::move(_tokenizer)}
-    , cardPacks{loadCardPacks(config->DatabaseDirectory() / s_packSubdirectory,
-                              wordDB,
-                              tokenizer)}
+    , idToCardPacks{loadCardPacks(config->DatabaseDirectory() / s_packSubdirectory,
+                                  cardIdGenerator,
+                                  packIdGenerator,
+                                  wordDB,
+                                  tokenizer)}
+    , nameToCardPacks{setNameToCardPacks(idToCardPacks)}
 {
     setupCards();
 }
@@ -54,39 +62,58 @@ auto CardPackDB::getCardAtCardId(CardId cardId) const -> const CardAudio&
 auto CardPackDB::getCardPackForCardId(CardId cardId) const -> CardPackPtr
 {
     auto card = cards.at(cardId).card;
-    auto cardPackName = card->getPackName();
-    return cardPacks.at(cardPackName);
+    auto packId = card->getPackId();
+    return idToCardPacks.at(packId);
 }
 
 auto CardPackDB::getCardPack(const std::string& packName) const -> CardPackPtr
 {
-    return cardPacks.at(packName);
+    return nameToCardPacks.at(packName);
+}
+
+auto CardPackDB::getCardPack(PackId packId) const -> CardPackPtr
+{
+    return idToCardPacks.at(packId);
 }
 
 auto CardPackDB::loadCardPacks(const std::filesystem::path& directory,
+                               std::shared_ptr<CardIdGenerator> cardIdGenerator,
+                               std::shared_ptr<PackIdGenerator> packIdGenerator,
                                const std::shared_ptr<database::WordDB>& wordDB,
-                               const std::shared_ptr<annotation::Tokenizer>& tokenizer) -> std::map<std::string, CardPackPtr>
+                               const std::shared_ptr<annotation::Tokenizer>& tokenizer) -> std::map<PackId, CardPackPtr>
 {
     std::set<std::filesystem::path> spacks;
     ranges::copy_if(std::filesystem::directory_iterator(directory), std::inserter(spacks, spacks.begin()),
                     [](const std::filesystem::path& file) -> bool { return file.extension() == s_spackExtension; });
 
-    std::map<std::string, CardPackPtr> cardPacks;
+    std::map<PackId, CardPackPtr> cardPacks;
 
     ranges::transform(spacks, std::inserter(cardPacks, cardPacks.begin()),
-                      [&, packCounter = unsigned{}](const std::filesystem::path& spackFile) mutable
-                      -> std::pair<std::string, std::shared_ptr<CardPack>> {
-                          auto packId = static_cast<PackId>(packCounter);
-                          packCounter++;
-                          auto cardPack = std::make_shared<CardPack>(spackFile, packId, wordDB, tokenizer);
-                          return {cardPack->getName(), cardPack};
+                      [&](const std::filesystem::path& spackFile)
+                              -> std::pair<PackId, std::shared_ptr<CardPack>> {
+                          auto packId = packIdGenerator->getNext();
+                          auto cardPack = std::make_shared<CardPack>(spackFile, packId, cardIdGenerator, wordDB, tokenizer);
+                          return {packId, cardPack};
                       });
     return cardPacks;
 }
 
+auto CardPackDB::setNameToCardPacks(std::map<PackId, CardPackPtr> idToCardPacks)
+        -> std::map<std::string, CardPackPtr>
+{
+    std::map<std::string, CardPackPtr> nameToCardPacks;
+
+    ranges::transform(idToCardPacks, std::inserter(nameToCardPacks, nameToCardPacks.begin()),
+                      [&](const std::pair<PackId, CardPackPtr>& idCardPack)
+                              -> std::pair<std::string, std::shared_ptr<CardPack>> {
+                          return {idCardPack.second->getName(), idCardPack.second};
+                      });
+    return nameToCardPacks;
+}
+
 auto CardPackDB::traverseCards() const -> std::generator<CardAudio>
 {
-    for (const auto& [_, cardPack] : cardPacks) {
+    for (const auto& [_, cardPack] : nameToCardPacks) {
         for (const auto& cardAudio : cardPack->getCards()) {
             co_yield cardAudio;
         }
@@ -97,10 +124,8 @@ auto CardPackDB::traverseCards() const -> std::generator<CardAudio>
 void CardPackDB::setupCards()
 {
     ranges::transform(traverseCards(), std::inserter(cards, cards.begin()),
-                      [cardId = unsigned{}](const CardAudio& cardAudio) mutable -> std::pair<CardId, CardAudio> {
-                          cardId++;
-                          cardAudio.card->setCardId(static_cast<CardId>(cardId));
-                          return {static_cast<CardId>(cardId), cardAudio};
+                      [](const CardAudio& cardAudio) -> std::pair<CardId, CardAudio> {
+                          return {cardAudio.card->getCardId(), cardAudio};
                       });
 }
 } // namespace database

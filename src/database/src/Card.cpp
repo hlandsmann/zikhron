@@ -40,17 +40,13 @@ auto Card::deserializeCard(std::string_view content, const CardInit& cardInit) -
 }
 
 Card::Card(const CardInit& cardInit)
-    : packName{cardInit.packName}
+    : cardId{cardInit.cardId}
+    , packName{cardInit.packName}
     , packId{cardInit.packId}
     , indexInPack{cardInit.indexInPack}
     , wordDB{cardInit.wordDB}
     , tokenizer{cardInit.tokenizer}
 {
-}
-
-void Card::setCardId(CardId _cardId)
-{
-    cardId = _cardId;
 }
 
 auto Card::getCardId() const -> CardId

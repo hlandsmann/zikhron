@@ -23,6 +23,7 @@ namespace database {
 
 struct CardInit
 {
+    CardId cardId;
     std::string packName;
     PackId packId;
     std::size_t indexInPack;
@@ -37,13 +38,13 @@ public:
     static auto deserializeCard(std::string_view content, const CardInit& cardInit) -> CardPtr;
 
     Card(const CardInit& cardInit);
-    Card(const Card&) = default;
-    Card(Card&&) = default;
     virtual ~Card() = default;
+
+    Card(const Card&) = delete;
+    Card(Card&&) = delete;
     auto operator=(const Card&) = delete;
     auto operator=(Card&&) = delete;
 
-    void setCardId(CardId);
     [[nodiscard]] auto getCardId() const -> CardId;
     [[nodiscard]] auto getTokens() const -> const std::vector<annotation::Token>&;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<database::WordDB>;
@@ -60,13 +61,16 @@ protected:
 private:
     // [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
+
+    CardId cardId;
+
     std::string packName;
     PackId packId;
     std::size_t indexInPack;
+
     std::shared_ptr<database::WordDB> wordDB;
     std::shared_ptr<annotation::Tokenizer> tokenizer;
 
-    CardId cardId{};
     std::vector<annotation::Token> tokens;
 };
 
@@ -81,8 +85,8 @@ public:
 
     DialogueCard(std::string_view content,
                  const CardInit& cardInit);
-    DialogueCard(const DialogueCard&) = default;
-    DialogueCard(DialogueCard&&) = default;
+    DialogueCard(const DialogueCard&) = delete;
+    DialogueCard(DialogueCard&&) = delete;
     ~DialogueCard() override = default;
     auto operator=(const DialogueCard&) = delete;
     auto operator=(DialogueCard&&) = delete;
@@ -103,8 +107,8 @@ class TextCard : public Card
 public:
     TextCard(std::string_view content,
              const CardInit& cardInit);
-    TextCard(const TextCard&) = default;
-    TextCard(TextCard&&) = default;
+    TextCard(const TextCard&) = delete;
+    TextCard(TextCard&&) = delete;
     ~TextCard() override = default;
     auto operator=(const TextCard&) = delete;
     auto operator=(TextCard&&) = delete;

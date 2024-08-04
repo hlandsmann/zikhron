@@ -1,4 +1,5 @@
 #pragma once
+#include "IdGenerator.h"
 #include "CbdFwd.h"
 #include "WordDB.h"
 
@@ -33,6 +34,7 @@ class CardPack
 public:
     CardPack(std::filesystem::path filename,
              PackId packid,
+             std::shared_ptr<CardIdGenerator> cardIdGenerator,
              std::shared_ptr<WordDB> wordDB,
              std::shared_ptr<annotation::Tokenizer> tokenizer);
     [[nodiscard]] auto getCards() const -> const std::vector<CardAudio>&;
@@ -50,6 +52,7 @@ private:
     [[nodiscard]] auto serialize() const -> std::string;
     std::filesystem::path filename;
     PackId packId;
+    std::shared_ptr<CardIdGenerator> cardIdGenerator;
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<annotation::Tokenizer> tokenizer;
 

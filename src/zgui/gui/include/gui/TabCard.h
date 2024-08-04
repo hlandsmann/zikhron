@@ -32,7 +32,6 @@
 #include <widgets/detail/Widget.h>
 
 #include <cstddef>
-#include <filesystem>
 #include <kocoro/kocoro.hpp>
 #include <map>
 #include <memory>
