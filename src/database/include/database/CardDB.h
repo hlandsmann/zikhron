@@ -3,6 +3,7 @@
 #include "CbdFwd.h"
 #include "TokenizationChoiceDB.h"
 #include "Track.h"
+#include "Video.h"
 #include "VideoDB.h"
 #include "WordDB.h"
 
@@ -32,6 +33,7 @@ public:
     [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
     [[nodiscard]] auto getVideoDB() const -> std::shared_ptr<VideoDB>;
     [[nodiscard]] auto getTrackFromCardId(CardId cardId) const -> Track;
+    [[nodiscard]] auto getTrackFromVideo(const VideoPtr& video) const -> Track;
 
 private:
     std::shared_ptr<zikhron::Config> config;

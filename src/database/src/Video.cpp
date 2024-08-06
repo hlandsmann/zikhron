@@ -89,4 +89,12 @@ auto Video::getVideoFile() const -> const std::filesystem::path&
     return videoFile;
 }
 
+auto Video::getActiveSubtitle() const -> SubtitlePtr
+{
+    if (subChoice >= subtitles.size()) {
+        return nullptr;
+    }
+    return subtitles.at(subChoice);
+}
+
 } // namespace database

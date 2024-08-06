@@ -9,7 +9,9 @@
 #include <context/imglog.h>
 #include <database/CardDB.h>
 #include <database/CardPackDB.h>
+#include <database/Track.h>
 #include <database/VideoDB.h>
+#include <database/VideoSet.h>
 #include <database/WordDB.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
@@ -79,8 +81,12 @@ void TabCard::displayOnLayer(widget::Layer& layer)
 
 void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
 {
-    mpvVideo->openFile(videoSet->getVideo()->getVideoFile());
-    mpvVideo->play();
+    auto cardDB = dataBase->getCardDB();
+    track = cardDB->getTrackFromVideo(videoSet->getVideo());
+
+    signalProceed->set(Proceed::nextTrack);
+    // mpvVideo->openFile(videoSet->getVideo()->getVideoFile());
+    // mpvVideo->play();
 }
 
 auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
@@ -202,8 +208,17 @@ void TabCard::loadTrack()
     if (mpvAudio && !mpvAudio->is_paused()) {
         mpvAudio->pause();
     }
-    if (track->getMediaFile().has_value()) {
+    if (mpvVideo && !mpvVideo->is_paused()) {
+        mpvVideo->pause();
+    }
+    if (!track->getMediaFile().has_value()) {
+        return;
+    }
+    if (track->getTrackType() == database::TrackType::audio) {
         mpvAudio->openFile(track->getMediaFile().value());
+    }
+    if (track->getTrackType() == database::TrackType::video) {
+        mpvVideo->openFile(track->getMediaFile().value());
     }
 }
 
@@ -319,11 +334,14 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     if (!track.has_value() || !track->getMediaFile().has_value()) {
         return;
     }
+    const auto& mpvCurrent = track->getTrackType() == database::TrackType::audio
+                                     ? mpvAudio
+                                     : mpvVideo;
     double start = track->getStartTimeStamp();
     double end = track->getEndTimeStamp();
-    double timePos = std::max(mpvAudio->getTimePos(), start);
+    double timePos = std::max(mpvCurrent->getTimePos(), start);
 
-    bool playing = !mpvAudio->is_paused();
+    bool playing = !mpvCurrent->is_paused();
     btnPlay.setOpen(playing);
     bool oldPlaying = std::exchange(playing, btnPlay.isOpen());
     if (oldPlaying != playing) {
@@ -331,17 +349,17 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
             if (timePos >= end - 0.05) {
                 timePos = start;
             }
-            mpvAudio->play_fragment(timePos, end);
+            mpvCurrent->play_fragment(timePos, end);
         } else {
-            mpvAudio->pause();
+            mpvCurrent->pause();
         }
     }
     auto oldTimePos = std::exchange(timePos, sliderProgress.slide(start, end, timePos));
     if (oldTimePos != timePos) {
-        if (mpvAudio->is_paused()) {
-            mpvAudio->play_fragment(timePos, end);
+        if (mpvCurrent->is_paused()) {
+            mpvCurrent->play_fragment(timePos, end);
         } else {
-            mpvAudio->seek(timePos);
+            mpvCurrent->seek(timePos);
         }
     }
 }

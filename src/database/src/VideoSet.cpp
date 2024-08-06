@@ -1,8 +1,10 @@
 #include "VideoSet.h"
 
+#include "IdGenerator.h"
 #include "ParsingHelpers.h"
 #include "Video.h"
 
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/Memory.h>
 #include <utils/format.h>
@@ -13,6 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -24,8 +27,10 @@ namespace ranges = std::ranges;
 
 namespace database {
 
-VideoSet::VideoSet(std::filesystem::path _videoSetFile)
+VideoSet::VideoSet(std::filesystem::path _videoSetFile,
+                   std::shared_ptr<PackIdGenerator> _packIdGenerator)
     : videoSetFile{std::move(_videoSetFile)}
+    , packIdGenerator{std::move(_packIdGenerator)}
 {
     try {
         deserialize();
@@ -36,11 +41,13 @@ VideoSet::VideoSet(std::filesystem::path _videoSetFile)
 }
 
 VideoSet::VideoSet(std::filesystem::path _videoSetFile,
-                     std::string _name,
-                     const std::vector<std::filesystem::path>& videoFiles)
+                   std::string _name,
+                   const std::vector<std::filesystem::path>& videoFiles,
+                   std::shared_ptr<PackIdGenerator> _packIdGenerator)
     : videoSetFile{std::move(_videoSetFile)}
     , name{std::move(_name)}
-    , videos{genVideosFromPaths(videoFiles, videoSetFile)}
+    , packIdGenerator{std::move(_packIdGenerator)}
+    , videos{genVideosFromPaths(videoFiles, videoSetFile, packIdGenerator)}
 {}
 
 auto VideoSet::getName() const -> const std::string&
@@ -50,7 +57,7 @@ auto VideoSet::getName() const -> const std::string&
 
 auto VideoSet::getVideo() const -> VideoPtr
 {
-    return videos.front();
+    return videos.begin()->second;
 }
 
 void VideoSet::save()
@@ -75,9 +82,9 @@ void VideoSet::deserialize()
     name = getValue(rest, "name");
 
     while (!rest.empty()) {
+        auto packId = packIdGenerator->getNext();
         auto videoSV = utl::split_front(rest, "\n;\n");
-        auto video = std::make_shared<Video>(videoSV, videoSetFile);
-        videos.push_back(video);
+        videos[packId] = std::make_shared<Video>(videoSV, videoSetFile);
     }
 }
 
@@ -86,18 +93,21 @@ auto VideoSet::serialize() const -> std::string
     std::string content;
     content += fmt::format("{};version:1.0\n", s_type);
     content += fmt::format("name:{}\n", name);
-    for (const auto& video : videos) {
+    for (const auto& [videoId, video] : videos) {
         content += fmt::format("{}\n;\n", video->serialize());
     }
     return content;
 }
 
-auto VideoSet::genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles, const std::filesystem::path& videoSetFile) -> std::vector<VideoPtr>
+auto VideoSet::genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles,
+                                  const std::filesystem::path& videoSetFile,
+                                  std::shared_ptr<PackIdGenerator> packIdGenerator)
+        -> std::map<PackId, VideoPtr>
 {
-    std::vector<VideoPtr> videos;
-    ranges::transform(videoFiles, std::back_inserter(videos),
-                      [&](const std::filesystem::path& videoFile) -> VideoPtr {
-                          return std::make_shared<Video>(videoFile, videoSetFile);
+    std::map<PackId, VideoPtr> videos;
+    ranges::transform(videoFiles, std::inserter(videos, videos.begin()),
+                      [&](const std::filesystem::path& videoFile) -> std::pair<PackId, VideoPtr> {
+                          return {packIdGenerator->getNext(), std::make_shared<Video>(videoFile, videoSetFile)};
                       });
     return videos;
 }

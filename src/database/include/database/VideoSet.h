@@ -1,7 +1,11 @@
 #pragma once
+#include "IdGenerator.h"
 #include "Video.h"
 
+#include <misc/Identifier.h>
+
 #include <filesystem>
+#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -14,10 +18,12 @@ class VideoSet
     static constexpr std::string_view s_type = "videoSet";
 
 public:
-    VideoSet(std::filesystem::path videoSetFile);
-    VideoSet(std::filesystem::path videoFile,
-              std::string name,
-              const std::vector<std::filesystem::path>& videoFiles);
+    VideoSet(std::filesystem::path videoSetFile,
+             std::shared_ptr<PackIdGenerator> packIdGenerator);
+    VideoSet(std::filesystem::path videoSetFile,
+             std::string name,
+             const std::vector<std::filesystem::path>& videoFiles,
+             std::shared_ptr<PackIdGenerator> packIdGenerator);
     [[nodiscard]] auto getName() const -> const std::string&;
     [[nodiscard]] auto getVideo() const -> VideoPtr;
     void save();
@@ -26,11 +32,13 @@ private:
     void deserialize();
     [[nodiscard]] auto serialize() const -> std::string;
     static auto genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles,
-                                   const std::filesystem::path& videoSetFile) -> std::vector<VideoPtr>;
+                                   const std::filesystem::path& videoSetFile,
+                                   std::shared_ptr<PackIdGenerator> packIdGenerator) -> std::map<PackId, VideoPtr>;
     std::filesystem::path videoSetFile;
     std::string name;
+    std::shared_ptr<PackIdGenerator> packIdGenerator;
 
-    std::vector<VideoPtr> videos;
+    std::map<PackId, VideoPtr> videos;
 };
 
 using VideoSetPtr = std::shared_ptr<VideoSet>;

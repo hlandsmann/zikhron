@@ -1,6 +1,7 @@
 #pragma once
 #include "Subtitle.h"
 
+#include <misc/Identifier.h>
 #include <multimedia/Subtitle.h>
 
 #include <cstddef>
@@ -20,12 +21,14 @@ public:
     [[nodiscard]] auto serialize() const -> std::string;
     void loadSubtitles();
     [[nodiscard]] auto getVideoFile() const -> const std::filesystem::path&;
+    [[nodiscard]] auto getActiveSubtitle() const -> SubtitlePtr;
 
 private:
     void deserialize(std::string_view content);
     std::filesystem::path videoSetFile;
     std::filesystem::path videoFile;
     std::string name;
+    PackId videoId;
 
     std::vector<SubtitlePtr> subtitles;
     std::size_t subChoice = 0;

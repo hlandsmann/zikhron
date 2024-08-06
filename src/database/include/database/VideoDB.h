@@ -1,4 +1,5 @@
 #pragma once
+#include "IdGenerator.h"
 #include "VideoSet.h"
 
 #include <misc/Config.h>
@@ -15,14 +16,18 @@ class VideoDB
     static constexpr auto s_videoSetExtension = ".vpkg";
 
 public:
-    VideoDB(std::shared_ptr<zikhron::Config> config);
+    VideoDB(std::shared_ptr<zikhron::Config> config,
+            std::shared_ptr<PackIdGenerator> packIdGenerator);
     auto addVideoSet(const std::vector<std::filesystem::path>& videoFiles) -> VideoSetPtr;
     [[nodiscard]] auto getVideoSets() const -> const std::vector<VideoSetPtr>&;
     void save();
 
 private:
-    [[nodiscard]] static auto loadVideoSets(const std::filesystem::path& directory) -> std::vector<VideoSetPtr>;
+    [[nodiscard]] static auto loadVideoSets(const std::filesystem::path& directory,
+                                            const std::shared_ptr<PackIdGenerator>& packIdGenerator)
+            -> std::vector<VideoSetPtr>;
 
+    std::shared_ptr<PackIdGenerator> packIdGenerator;
     std::filesystem::path videoSetDir;
     std::vector<VideoSetPtr> videoSets;
 };

@@ -126,7 +126,7 @@ private:
     bool revealVocables{false};
     Mode mode{Mode::shuffle};
 
-    std::unique_ptr<multimedia::MpvWrapper> mpvAudio;
+    std::shared_ptr<multimedia::MpvWrapper> mpvAudio;
     std::shared_ptr<multimedia::MpvWrapper> mpvVideo;
 };
 } // namespace gui

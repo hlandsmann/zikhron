@@ -5,6 +5,7 @@
 #include "CbdFwd.h"
 #include "TokenizationChoiceDB.h"
 #include "Track.h"
+#include "Video.h"
 #include "VideoDB.h"
 #include "WordDB.h"
 
@@ -71,6 +72,11 @@ auto CardDB::getTrackFromCardId(CardId cardId) const -> Track
     auto cardPack = cardPackDB->getCardPackForCardId(cardId);
     auto card = cards.at(cardId);
     return {TrackMedia{cardPack}, card};
+}
+
+auto CardDB::getTrackFromVideo(const VideoPtr& video) const -> Track
+{
+    return {TrackMedia{video}, 0};
 }
 
 } // namespace database

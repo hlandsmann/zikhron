@@ -1,5 +1,6 @@
 #include "VideoDB.h"
 
+#include "IdGenerator.h"
 #include "VideoSet.h"
 
 #include <misc/Config.h>
@@ -12,15 +13,18 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace ranges = std::ranges;
 
 namespace database {
 
-VideoDB::VideoDB(std::shared_ptr<zikhron::Config> config)
-    : videoSetDir{config->DatabaseDirectory() / s_videoSubdirectory}
-    , videoSets{loadVideoSets(videoSetDir)}
+VideoDB::VideoDB(std::shared_ptr<zikhron::Config> config,
+                 std::shared_ptr<PackIdGenerator> _packIdGenerator)
+    : packIdGenerator{std::move(_packIdGenerator)}
+    , videoSetDir{config->DatabaseDirectory() / s_videoSubdirectory}
+    , videoSets{loadVideoSets(videoSetDir, packIdGenerator)}
 
 {
 }
@@ -42,7 +46,7 @@ auto VideoDB::addVideoSet(const std::vector<std::filesystem::path>& videoFiles) 
                            : *std::prev(parentPath.end());
     }
     auto packFilename = videoSetDir / std::filesystem::path{packName + s_videoSetExtension};
-    auto videoSet = std::make_shared<VideoSet>(packFilename, packName, videoFiles);
+    auto videoSet = std::make_shared<VideoSet>(packFilename, packName, videoFiles, packIdGenerator);
     videoSets.push_back(videoSet);
     videoSet->save();
 
@@ -59,9 +63,12 @@ void VideoDB::save()
     for (const auto& videoSet : videoSets) {
         videoSet->save();
     }
+    spdlog::info("Saved VideoDB");
 }
 
-auto VideoDB::loadVideoSets(const std::filesystem::path& directory) -> std::vector<VideoSetPtr>
+auto VideoDB::loadVideoSets(const std::filesystem::path& directory,
+                            const std::shared_ptr<PackIdGenerator>& packIdGenerator)
+        -> std::vector<VideoSetPtr>
 {
     if (!std::filesystem::exists(directory)) {
         return {};
@@ -72,8 +79,8 @@ auto VideoDB::loadVideoSets(const std::filesystem::path& directory) -> std::vect
 
     std::vector<VideoSetPtr> videoSets;
     ranges::transform(videoSetFiles, std::back_inserter(videoSets),
-                      [](const std::filesystem::path& videoSetFile) -> VideoSetPtr {
-                          return std::make_shared<VideoSet>(videoSetFile);
+                      [packIdGenerator](const std::filesystem::path& videoSetFile) -> VideoSetPtr {
+                          return std::make_shared<VideoSet>(videoSetFile, packIdGenerator);
                       });
     return videoSets;
 }
