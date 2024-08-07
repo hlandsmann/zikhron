@@ -42,10 +42,6 @@ public:
     [[nodiscard]] auto getEndTimeStamp() const -> double;
 
 private:
-    class SubTrack
-    {
-    };
-
     [[nodiscard]] static auto getTimeStampsFromSubtext(const multimedia::SubText& subText)
             -> std::pair<double, double>;
     [[nodiscard]] static auto getTimeStampsFromSubtext(std::size_t subIndex, const VideoPtr& video)

@@ -114,6 +114,9 @@ void MpvWrapper::openFile(const std::filesystem::path& mediaFile_in)
 {
     duration = 0.;
     timePos = 0.;
+    if (mediaFile == mediaFile_in.string()) {
+        return;
+    }
     mediaFile = mediaFile_in.string();
     if (mediaFile.empty()) {
         pause();

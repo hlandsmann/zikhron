@@ -94,6 +94,14 @@ private:
     static void setupCtrlWindow(widget::Window& ctrlWindow);
     void doCtrlWindow(widget::Window& ctrlWindow);
 
+    static void setupAudioCtrlBox(widget::Box& ctrlBox);
+    void doAudioCtrlBox(widget::Box& ctrlBox);
+    static void setupVideoCtrlBox(widget::Box& ctrlBox);
+    void doVideoCtrlBox(widget::Box& ctrlBox);
+
+    static void setupCtrlBoxRight(widget::Box& ctrlBox);
+    void doCtrlBoxRight(widget::Box& ctrlBox);
+
     void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
     void handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext);
     void handleMode(widget::ToggleButtonGroup& tbgMode);

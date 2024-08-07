@@ -219,6 +219,10 @@ void TabCard::loadTrack()
     }
     if (track->getTrackType() == database::TrackType::video) {
         mpvVideo->openFile(track->getMediaFile().value());
+        double start = track->getStartTimeStamp();
+        double end = track->getEndTimeStamp();
+        mpvVideo->play_fragment(start, end);
+        mpvVideo->pause();
     }
 }
 
@@ -259,10 +263,23 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
 
 void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
 {
+    using namespace widget::layout;
+    auto& audioCtrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    setupAudioCtrlBox(audioCtrlBox);
+}
+
+void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
+{
+    auto droppedWindow = ctrlWindow.dropWindow();
+    ctrlWindow.start();
+    auto& audioCtrlBox = ctrlWindow.next<widget::Box>();
+    doAudioCtrlBox(audioCtrlBox);
+}
+
+void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
+{
+    using namespace widget::layout;
     using context::Image;
-    using namespace widget::layout;
-    using namespace widget::layout;
-    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
     ctrlBox.setName("ctrlBox");
     ctrlBox.setPadding(4.F);
     ctrlBox.setExpandType(width_expand, height_fixed);
@@ -271,6 +288,34 @@ void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
     // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
     ctrlBox.add<widget::MediaSlider>(Align::start);
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+
+    setupCtrlBoxRight(ctrlBox);
+}
+
+void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
+{
+    ctrlBox.start();
+    auto& btnPlay = ctrlBox.next<widget::ImageButton>();
+    auto& sliderProgress = ctrlBox.next<widget::MediaSlider>();
+    ctrlBox.next<widget::Separator>();
+
+    handlePlayback(btnPlay, sliderProgress);
+
+    doCtrlBoxRight(ctrlBox);
+}
+
+void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
+{
+}
+
+void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
+{
+}
+
+void TabCard::setupCtrlBoxRight(widget::Box& ctrlBox)
+{
+    using namespace widget::layout;
+    using context::Image;
     auto& layer = *ctrlBox.add<widget::Layer>(Align::end);
     layer.setExpandType(width_fixed, height_adapt);
 
@@ -294,34 +339,26 @@ void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
     ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
 }
 
-void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
+void TabCard::doCtrlBoxRight(widget::Box& ctrlBox)
 {
-    auto droppedWindow = ctrlWindow.dropWindow();
-    ctrlWindow.start();
-    auto& box = ctrlWindow.next<widget::Box>();
-    box.start();
-    auto& btnPlay = box.next<widget::ImageButton>();
-    auto& sliderProgress = box.next<widget::MediaSlider>();
-    box.next<widget::Separator>();
-    auto& layer = box.next<widget::Layer>();
+    auto& layer = ctrlBox.next<widget::Layer>();
     layer.start();
     auto& btnReveal = layer.next<widget::Button>();
     auto& btnSubmit = layer.next<widget::Button>();
     auto& btnNext = layer.next<widget::Button>();
 
-    box.next<widget::Separator>();
-    auto& tbgMode = box.next<widget::ToggleButtonGroup>();
-    box.next<widget::Separator>();
-    auto& btnFirst = box.next<widget::ImageButton>();
-    auto& btnPrevious = box.next<widget::ImageButton>();
-    auto& btnFollowing = box.next<widget::ImageButton>();
-    auto& btnLast = box.next<widget::ImageButton>();
-    box.next<widget::Separator>();
-    auto& btnAnnotate = box.next<widget::ImageButton>();
-    box.next<widget::Separator>();
-    auto& btnSave = box.next<widget::ImageButton>();
+    ctrlBox.next<widget::Separator>();
+    auto& tbgMode = ctrlBox.next<widget::ToggleButtonGroup>();
+    ctrlBox.next<widget::Separator>();
+    auto& btnFirst = ctrlBox.next<widget::ImageButton>();
+    auto& btnPrevious = ctrlBox.next<widget::ImageButton>();
+    auto& btnFollowing = ctrlBox.next<widget::ImageButton>();
+    auto& btnLast = ctrlBox.next<widget::ImageButton>();
+    ctrlBox.next<widget::Separator>();
+    auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
+    ctrlBox.next<widget::Separator>();
+    auto& btnSave = ctrlBox.next<widget::ImageButton>();
 
-    handlePlayback(btnPlay, sliderProgress);
     handleCardSubmission(btnReveal, btnSubmit, btnNext);
     handleMode(tbgMode);
     handleNextPrevious(btnFirst, btnPrevious, btnFollowing, btnLast);
