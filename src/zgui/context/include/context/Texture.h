@@ -33,6 +33,14 @@ enum class Image {
     checkbox,
     checkbox_checked,
     list_add,
+    sub_add_next,
+    sub_add_prev,
+    sub_remove_next,
+    sub_remove_prev,
+    circle_fast_forward,
+    circle_forward,
+    circle_play,
+    circle_stop,
 };
 
 struct TextureData;
@@ -62,6 +70,14 @@ class Texture
     static constexpr auto checkbox_tex = "/home/harmen/src/zikhron/build/resources/icons/checkbox-symbolic_24px.png";
     static constexpr auto checkbox_checked_tex = "/home/harmen/src/zikhron/build/resources/icons/checkbox-checked-symbolic_24px.png";
     static constexpr auto list_add_tex = "/home/harmen/src/zikhron/build/resources/icons/list-add_24px.png";
+    static constexpr auto sub_add_next = "/home/harmen/src/zikhron/build/resources/icons/sub-add-next_32px.png";
+    static constexpr auto sub_add_prev = "/home/harmen/src/zikhron/build/resources/icons/sub-add-prev_32px.png";
+    static constexpr auto sub_remove_next = "/home/harmen/src/zikhron/build/resources/icons/sub-remove-next_32px.png";
+    static constexpr auto sub_remove_prev = "/home/harmen/src/zikhron/build/resources/icons/sub-remove-prev_32px.png";
+    static constexpr auto circle_fast_forward = "/home/harmen/src/zikhron/build/resources/icons/circle-fast-forward_32px.png";
+    static constexpr auto circle_forward = "/home/harmen/src/zikhron/build/resources/icons/circle-forward_32px.png";
+    static constexpr auto circle_play = "/home/harmen/src/zikhron/build/resources/icons/circle-play_32px.png";
+    static constexpr auto circle_stop = "/home/harmen/src/zikhron/build/resources/icons/circle-stop_32px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

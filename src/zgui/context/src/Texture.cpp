@@ -76,7 +76,14 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::checkbox] = loadTextureFromFile(checkbox_tex);
     textureMap[Image::checkbox_checked] = loadTextureFromFile(checkbox_checked_tex);
     textureMap[Image::list_add] = loadTextureFromFile(list_add_tex);
-
+    textureMap[Image::sub_add_next] = loadTextureFromFile(sub_add_next);
+    textureMap[Image::sub_add_prev] = loadTextureFromFile(sub_add_prev);
+    textureMap[Image::sub_remove_next] = loadTextureFromFile(sub_remove_next);
+    textureMap[Image::sub_remove_prev] = loadTextureFromFile(sub_remove_prev);
+    textureMap[Image::circle_fast_forward] = loadTextureFromFile(circle_fast_forward);
+    textureMap[Image::circle_forward] = loadTextureFromFile(circle_forward);
+    textureMap[Image::circle_play] = loadTextureFromFile(circle_play);
+    textureMap[Image::circle_stop] = loadTextureFromFile(circle_stop);
     return textureMap;
 }
 } // namespace context
