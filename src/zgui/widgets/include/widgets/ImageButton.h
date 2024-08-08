@@ -5,9 +5,12 @@
 #include <context/Theme.h>
 #include <imgui.h>
 
+#include <initializer_list>
 #include <string>
+#include <vector>
 
 namespace widget {
+using Images = std::initializer_list<context::Image>;
 
 class ImageButton : public Widget
 {
@@ -15,7 +18,7 @@ class ImageButton : public Widget
     friend class MetaBox;
     friend class Widget;
     void setup(context::Image image);
-    void setup(context::Image imageActionOpen, context::Image imageActionClose);
+    void setup(Images images);
 
 public:
     ImageButton(WidgetInit init);
@@ -27,14 +30,20 @@ public:
     auto operator=(ImageButton&&) -> ImageButton& = delete;
 
     auto clicked() -> bool;
-    auto isOpen() -> bool;
-    void setOpen(bool open);
+    auto toggled(unsigned index) -> unsigned;
+
+    template<class UnsignedEnum>
+    auto toggled(UnsignedEnum enumVal) -> UnsignedEnum
+    {
+        return static_cast<UnsignedEnum>(toggled(static_cast<unsigned>(enumVal)));
+    }
+
     void setChecked(bool checked);
     void setSensitive(bool sensitive);
-    
 
-    auto isChecked() const ->bool;
+    auto isChecked() const -> bool;
     auto isSensitive() const -> bool;
+
 protected:
     auto calculateSize() const -> WidgetSize override;
 
@@ -44,11 +53,7 @@ private:
     bool sensitive{true};
     bool checked{false};
     std::string label;
-    bool open{false};
-    context::Image image{};
-    context::Image imageActionOpen{};
-    context::Image imageActionClose{};
-
+    std::vector<context::Image> images;
 };
 
 }; // namespace widget

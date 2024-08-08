@@ -1,6 +1,6 @@
 #pragma once
-#include <database/Word.h>
 #include <context/Fonts.h>
+#include <database/Word.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
@@ -15,13 +15,23 @@ namespace gui {
 
 class VocableOverlay
 {
+    enum class Checkbox : unsigned {
+        Unchecked = 0,
+        Checked = 1,
+    };
+    enum class Openbtn : unsigned {
+        Hide = 0,
+        Show = 1,
+    };
+
     struct Option
     {
         std::string pronounciation;
         std::vector<std::string> meanings;
-        std::vector<int> checked;
-        bool open{false};
+        std::vector<Checkbox> checked;
+        Openbtn open{0};
     };
+
 
 public:
     VocableOverlay(std::shared_ptr<widget::Overlay> overlay, std::shared_ptr<widget::TextToken> token);

@@ -54,7 +54,7 @@ auto VocableOverlay::optionsFromWord(const database::Word& word) -> std::vector<
         if (optionIt == options.end()) {
             options.push_back({.pronounciation = entry.pronounciation,
                                .meanings = entry.meanings,
-                               .checked = std::vector<int>(entry.meanings.size())});
+                               .checked = std::vector<Checkbox>(entry.meanings.size())});
             ranges::sort(options.back().meanings);
             continue;
         }
@@ -68,14 +68,14 @@ auto VocableOverlay::optionsFromWord(const database::Word& word) -> std::vector<
         if (optionIt == options.end()) {
             continue;
         }
-        optionIt->open = true;
+        optionIt->open = Openbtn::Show;
         for (const auto& meaning : definition.meanings) {
             auto meaningIt = ranges::find(optionIt->meanings, meaning);
             if (meaningIt == optionIt->meanings.end()) {
                 continue;
             }
             auto checkedIt = std::next(optionIt->checked.begin(), std::distance(optionIt->meanings.begin(), meaningIt));
-            *checkedIt = 1;
+            *checkedIt = Checkbox::Checked;
         }
     }
 
@@ -177,19 +177,20 @@ void VocableOverlay::setupOptions(widget::Box& optionBox)
     for (const auto& option : options) {
         // spdlog::info("p: {}, o: {}", option.pronounciation, option.open);
         auto& prBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
-        auto& openBtn = *prBox.add<widget::ImageButton>(Align::start, Image::arrow_right, Image::arrow_down);
+        prBox.add<widget::ImageButton>(Align::start, widget::Images{Image::arrow_right,
+                                                                    Image::arrow_down});
         prBox.add<widget::TextTokenSeq>(Align::start,
                                         annotation::tokenVectorFromString(option.pronounciation),
                                         ttqConfig);
-        openBtn.setOpen(option.open);
-        if (!option.open) {
+        if (option.open == Openbtn::Hide) {
             continue;
         }
 
         for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
             auto& meaningBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
-            auto& checkBox = *meaningBox.add<widget::ImageButton>(Align::start, Image::checkbox, Image::checkbox_checked);
-            checkBox.setOpen(checked != 0);
+
+            meaningBox.add<widget::ImageButton>(Align::start, widget::Images{Image::checkbox,
+                                                                             Image::checkbox_checked});
             meaningBox.add<widget::TextTokenSeq>(Align::start,
                                                  annotation::tokenVectorFromString(meaning),
                                                  ttqConfig);
@@ -204,11 +205,13 @@ void VocableOverlay::drawOptions(widget::Box& optionBox)
     for (auto& option : options) {
         // spdlog::info("p: {}, o: {}", option.pronounciation, option.open);
         auto& prBox = optionBox.next<widget::Box>();
-        if (option.open) {
+        if (option.open == Openbtn::Show) {
             for (auto& checked : option.checked) {
                 auto& meaningBox = optionBox.next<widget::Box>();
                 meaningBox.start();
-                auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().isOpen());
+                // auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().isOpen());
+                auto oldState = checked;
+                checked = meaningBox.next<widget::ImageButton>().toggled(checked);
                 meaningBox.next<widget::TextTokenSeq>().draw();
                 if (oldState != checked) {
                     setupPendingDefinition = true;
@@ -217,7 +220,8 @@ void VocableOverlay::drawOptions(widget::Box& optionBox)
             }
         }
         prBox.start();
-        bool oldState = std::exchange(option.open, prBox.next<widget::ImageButton>().isOpen());
+        auto oldState = option.open;
+        option.open = prBox.next<widget::ImageButton>().toggled(option.open);
         prBox.next<widget::TextTokenSeq>().draw();
 
         if (oldState != option.open) {
@@ -230,13 +234,13 @@ void VocableOverlay::generateDefinitions()
 {
     definitions.clear();
     for (const auto& option : options) {
-        if (ranges::none_of(option.checked, [](int checked) { return checked != 0; })) {
+        if (ranges::none_of(option.checked, [](Checkbox checked) { return checked == Checkbox::Checked; })) {
             continue;
         }
         auto definition = database::Definition();
         definition.pronounciation = option.pronounciation;
         for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
-            if (checked != 0) {
+            if (checked == Checkbox::Checked) {
                 definition.meanings.push_back(meaning);
             }
         }

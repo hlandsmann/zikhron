@@ -85,6 +85,7 @@ void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
     track = cardDB->getTrackFromVideo(videoSet->getVideo());
 
     signalProceed->set(Proceed::nextTrack);
+    mode = Mode::story;
     // mpvVideo->openFile(videoSet->getVideo()->getVideoFile());
     // mpvVideo->play();
 }
@@ -265,7 +266,9 @@ void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
 {
     using namespace widget::layout;
     auto& audioCtrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    auto& videoCtrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
     setupAudioCtrlBox(audioCtrlBox);
+    setupVideoCtrlBox(videoCtrlBox);
 }
 
 void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
@@ -273,18 +276,25 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
     auto droppedWindow = ctrlWindow.dropWindow();
     ctrlWindow.start();
     auto& audioCtrlBox = ctrlWindow.next<widget::Box>();
-    doAudioCtrlBox(audioCtrlBox);
+    auto& videoCtrlBox = ctrlWindow.next<widget::Box>();
+
+    if (mode == Mode::story && track.has_value() && track->getTrackType() == database::TrackType::video) {
+        doVideoCtrlBox(videoCtrlBox);
+    } else {
+        doAudioCtrlBox(audioCtrlBox);
+    }
 }
 
 void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
 {
     using namespace widget::layout;
     using context::Image;
-    ctrlBox.setName("ctrlBox");
+    ctrlBox.setName("ctrlBoxAudio");
     ctrlBox.setPadding(4.F);
     ctrlBox.setExpandType(width_expand, height_fixed);
 
-    ctrlBox.add<widget::ImageButton>(Align::start, Image::media_playback_start, Image::media_playback_pause);
+    ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{Image::media_playback_start,
+                                                                  Image::media_playback_pause});
     // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
     ctrlBox.add<widget::MediaSlider>(Align::start);
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
@@ -306,10 +316,39 @@ void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
 
 void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
 {
+    using namespace widget::layout;
+    using context::Image;
+    ctrlBox.setName("ctrlBoxVideo");
+    ctrlBox.setPadding(4.F);
+    ctrlBox.setExpandType(width_expand, height_fixed);
+
+    ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{Image::media_playback_start,
+                                                                  Image::media_playback_pause});
+    // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
+    ctrlBox.add<widget::MediaSlider>(Align::start);
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+
+    ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{Image::circle_stop,
+                                                                  Image::circle_play,
+                                                                  Image::circle_fast_forward,
+                                                                  Image::circle_forward});
+    setupCtrlBoxRight(ctrlBox);
 }
 
 void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
 {
+    ctrlBox.start();
+    auto& btnPlay = ctrlBox.next<widget::ImageButton>();
+    auto& sliderProgress = ctrlBox.next<widget::MediaSlider>();
+    ctrlBox.next<widget::Separator>();
+    auto& subAddDel = ctrlBox.next<widget::ImageButton>();
+
+    static unsigned test = 0;
+    test = subAddDel.toggled(test);
+
+    handlePlayback(btnPlay, sliderProgress);
+
+    doCtrlBoxRight(ctrlBox);
 }
 
 void TabCard::setupCtrlBoxRight(widget::Box& ctrlBox)
@@ -378,11 +417,11 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     double end = track->getEndTimeStamp();
     double timePos = std::max(mpvCurrent->getTimePos(), start);
 
-    bool playing = !mpvCurrent->is_paused();
-    btnPlay.setOpen(playing);
-    bool oldPlaying = std::exchange(playing, btnPlay.isOpen());
+    unsigned playing = mpvCurrent->is_paused() ? 0 : 1;
+    auto oldPlaying = playing;
+    playing = btnPlay.toggled(oldPlaying);
     if (oldPlaying != playing) {
-        if (playing) {
+        if (playing != 0) {
             if (timePos >= end - 0.05) {
                 timePos = start;
             }

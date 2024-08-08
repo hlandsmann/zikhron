@@ -10,23 +10,20 @@
 #include <magic_enum.hpp>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace widget {
 
-void ImageButton::setup(context::Image _image)
+void ImageButton::setup(context::Image image)
 {
-    image = _image;
-    imageActionOpen = image;
-    imageActionClose = image;
+    images.push_back(image);
     label = magic_enum::enum_name(image);
 }
 
-void ImageButton::setup(context::Image _imageActionOpen, context::Image _imageActionClose)
+void ImageButton::setup(Images _images)
 {
-    imageActionOpen = _imageActionOpen;
-    imageActionClose = _imageActionClose;
-    image = imageActionOpen;
-    label = magic_enum::enum_name(image);
+    images.insert(images.begin(), std::move(_images));
+    label = magic_enum::enum_name(images.front());
 }
 
 ImageButton::ImageButton(WidgetInit init)
@@ -35,12 +32,11 @@ ImageButton::ImageButton(WidgetInit init)
 
 auto ImageButton::clicked() -> bool
 {
-    // auto padding = ImGui::GetStyle().FramePadding;
     auto widgetIdDrop = dropWidgetId();
     const auto& btnRect = getRect();
     ImGui::SetCursorPos({btnRect.x, btnRect.y});
 
-    image = open ? imageActionClose : imageActionOpen;
+    auto image = images.front();
     auto tex = getTheme().getTexture().get(image);
 
     auto clicked = ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), {tex.width, tex.height},
@@ -57,18 +53,27 @@ auto ImageButton::clicked() -> bool
     return clicked;
 }
 
-auto ImageButton::isOpen() -> bool
+auto ImageButton::toggled(unsigned index) -> unsigned
 {
-    if (clicked()) {
-        open = !open;
+    auto widgetIdDrop = dropWidgetId();
+    const auto& btnRect = getRect();
+    ImGui::SetCursorPos({btnRect.x, btnRect.y});
+
+    auto image = images.at(index);
+    auto tex = getTheme().getTexture().get(image);
+
+    auto clicked = ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), {tex.width, tex.height},
+                                      ImVec2(0.0F, 0.0F),
+                                      ImVec2(1.0F, 1.0F),
+                                      backGroundColor,
+                                      iconColor);
+    context::WidgetState widgetState = context::getWidgetState(sensitive, checked);
+    backGroundColor = getTheme().ColorButton(widgetState);
+    iconColor = getTheme().ColorImage(widgetState);
+    if (!sensitive) {
+        return index;
     }
-
-    return open;
-}
-
-void ImageButton::setOpen(bool _open)
-{
-    open = _open;
+    return clicked ? ((index + 1) % static_cast<unsigned>(images.size())) : index;
 }
 
 void ImageButton::setChecked(bool _checked)
@@ -93,7 +98,7 @@ auto ImageButton::isSensitive() const -> bool
 
 auto ImageButton::calculateSize() const -> WidgetSize
 {
-    auto tex = getTheme().getTexture().get(image);
+    auto tex = getTheme().getTexture().get(images.front());
     ImGui::ImageButton(label.c_str(), reinterpret_cast<void*>(tex.data), ImVec2(tex.width, tex.height));
     auto size = ImGui::GetItemRectSize();
     return {.width = size.x,
