@@ -332,6 +332,11 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
                                                                   Image::circle_play,
                                                                   Image::circle_fast_forward,
                                                                   Image::circle_forward});
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_cut_prev);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_add_prev);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_add_next);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_cut_next);
     setupCtrlBoxRight(ctrlBox);
 }
 
@@ -341,10 +346,20 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     auto& btnPlay = ctrlBox.next<widget::ImageButton>();
     auto& sliderProgress = ctrlBox.next<widget::MediaSlider>();
     ctrlBox.next<widget::Separator>();
-    auto& subAddDel = ctrlBox.next<widget::ImageButton>();
+    auto& circleStopForward = ctrlBox.next<widget::ImageButton>();
+
+    ctrlBox.next<widget::Separator>();
+    auto& btnCutPrev = ctrlBox.next<widget::ImageButton>();
+    auto& btnAddPrev = ctrlBox.next<widget::ImageButton>();
+    auto& btnAddNext = ctrlBox.next<widget::ImageButton>();
+    auto& btnCutNext = ctrlBox.next<widget::ImageButton>();
+    btnCutPrev.clicked();
+    btnAddPrev.clicked();
+    btnAddNext.clicked();
+    btnCutNext.clicked();
 
     static unsigned test = 0;
-    test = subAddDel.toggled(test);
+    test = circleStopForward.toggled(test);
 
     handlePlayback(btnPlay, sliderProgress);
 

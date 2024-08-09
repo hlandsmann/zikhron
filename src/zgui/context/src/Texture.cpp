@@ -78,8 +78,8 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::list_add] = loadTextureFromFile(list_add_tex);
     textureMap[Image::sub_add_next] = loadTextureFromFile(sub_add_next);
     textureMap[Image::sub_add_prev] = loadTextureFromFile(sub_add_prev);
-    textureMap[Image::sub_remove_next] = loadTextureFromFile(sub_remove_next);
-    textureMap[Image::sub_remove_prev] = loadTextureFromFile(sub_remove_prev);
+    textureMap[Image::sub_cut_next] = loadTextureFromFile(sub_cut_next);
+    textureMap[Image::sub_cut_prev] = loadTextureFromFile(sub_cut_prev);
     textureMap[Image::circle_fast_forward] = loadTextureFromFile(circle_fast_forward);
     textureMap[Image::circle_forward] = loadTextureFromFile(circle_forward);
     textureMap[Image::circle_play] = loadTextureFromFile(circle_play);

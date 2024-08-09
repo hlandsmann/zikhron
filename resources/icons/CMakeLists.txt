@@ -34,8 +34,8 @@ svg_to_png(media-skip-forward.svg 32)
 
 svg_to_png(sub-add-next.svg 32)
 svg_to_png(sub-add-prev.svg 32)
-svg_to_png(sub-remove-next.svg 32)
-svg_to_png(sub-remove-prev.svg 32)
+svg_to_png(sub-cut-next.svg 32)
+svg_to_png(sub-cut-prev.svg 32)
 
 svg_to_png(new-audio-alarm.svg 32)
 svg_to_png(configure.svg 32)
