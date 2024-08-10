@@ -4,7 +4,9 @@
 #include "ParsingHelpers.h"
 #include "Subtitle.h"
 #include "SubtitlePicker.h"
+#include "WordDB.h"
 
+#include <annotation/Tokenizer.h>
 #include <misc/Identifier.h>
 #include <multimedia/ExtractSubtitles.h>
 #include <multimedia/Subtitle.h>
@@ -26,10 +28,14 @@ namespace database {
 Video::Video(std::string_view sv,
              std::filesystem::path _videoSetFile,
              PackId _videoId,
-             std::shared_ptr<CardIdGenerator> _cardIdGenerator)
+             std::shared_ptr<CardIdGenerator> _cardIdGenerator,
+             std::shared_ptr<annotation::Tokenizer> _tokenizer,
+             std::shared_ptr<WordDB> _wordDB)
     : videoSetFile{std::move(_videoSetFile)}
     , videoId{_videoId}
     , cardIdGenerator{std::move(_cardIdGenerator)}
+    , tokenizer{std::move(_tokenizer)}
+    , wordDB{std::move(_wordDB)}
 {
     deserialize(sv);
 }
@@ -37,12 +43,16 @@ Video::Video(std::string_view sv,
 Video::Video(std::filesystem::path _videoFile,
              std::filesystem::path _videoSetFile,
              PackId _videoId,
-             std::shared_ptr<CardIdGenerator> _cardIdGenerator)
+             std::shared_ptr<CardIdGenerator> _cardIdGenerator,
+             std::shared_ptr<annotation::Tokenizer> _tokenizer,
+             std::shared_ptr<WordDB> _wordDB)
     : videoSetFile{std::move(_videoSetFile)}
     , videoFile{std::move(_videoFile)}
     , name{videoFile.stem().string()}
     , videoId{_videoId}
     , cardIdGenerator{std::move(_cardIdGenerator)}
+    , tokenizer{std::move(_tokenizer)}
+    , wordDB{std::move(_wordDB)}
 {
     loadSubtitles();
 }
@@ -95,10 +105,6 @@ void Video::loadSubtitles()
         fmt::print("fn: `{}`\n", sub->getFileName().string());
         sub->save();
     }
-
-    auto chosenSubtitle = subtitles.empty() ? std::shared_ptr<Subtitle>{nullptr}
-                                            : subtitles.at(subChoice);
-    subtitlePicker = std::make_shared<SubtitlePicker>(chosenSubtitle, videoId, cardIdGenerator);
 }
 
 auto Video::getVideoFile() const -> const std::filesystem::path&
@@ -106,12 +112,20 @@ auto Video::getVideoFile() const -> const std::filesystem::path&
     return videoFile;
 }
 
-auto Video::getActiveSubtitle() const -> SubtitlePtr
+auto Video::getActiveSubtitle() -> SubtitlePickerPtr
 {
-    if (subChoice >= subtitles.size()) {
-        return nullptr;
+    if (subtitlePicker != nullptr) {
+        return subtitlePicker;
     }
-    return subtitles.at(subChoice);
+    auto chosenSubtitle = subtitles.empty() ? std::shared_ptr<Subtitle>{nullptr}
+                                            : subtitles.at(subChoice);
+    subtitlePicker = std::make_shared<SubtitlePicker>(chosenSubtitle,
+                                                      videoId,
+                                                      name,
+                                                      cardIdGenerator,
+                                                      tokenizer,
+                                                      wordDB);
+    return subtitlePicker;
 }
 
 } // namespace database

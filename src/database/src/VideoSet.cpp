@@ -3,7 +3,9 @@
 #include "IdGenerator.h"
 #include "ParsingHelpers.h"
 #include "Video.h"
+#include "WordDB.h"
 
+#include <annotation/Tokenizer.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/Memory.h>
@@ -29,10 +31,14 @@ namespace database {
 
 VideoSet::VideoSet(std::filesystem::path _videoSetFile,
                    std::shared_ptr<PackIdGenerator> _packIdGenerator,
-                   std::shared_ptr<CardIdGenerator> _cardIdGenerator)
+                   std::shared_ptr<CardIdGenerator> _cardIdGenerator,
+                   std::shared_ptr<annotation::Tokenizer> _tokenizer,
+                   std::shared_ptr<WordDB> _wordDB)
     : videoSetFile{std::move(_videoSetFile)}
     , packIdGenerator{std::move(_packIdGenerator)}
     , cardIdGenerator{std::move(_cardIdGenerator)}
+    , tokenizer{std::move(_tokenizer)}
+    , wordDB{std::move(_wordDB)}
 {
     try {
         deserialize();
@@ -46,12 +52,21 @@ VideoSet::VideoSet(std::filesystem::path _videoSetFile,
                    std::string _name,
                    const std::vector<std::filesystem::path>& videoFiles,
                    std::shared_ptr<PackIdGenerator> _packIdGenerator,
-                   std::shared_ptr<CardIdGenerator> _cardIdGenerator)
+                   std::shared_ptr<CardIdGenerator> _cardIdGenerator,
+                   std::shared_ptr<annotation::Tokenizer> _tokenizer,
+                   std::shared_ptr<WordDB> _wordDB)
     : videoSetFile{std::move(_videoSetFile)}
     , name{std::move(_name)}
     , packIdGenerator{std::move(_packIdGenerator)}
     , cardIdGenerator{std::move(_cardIdGenerator)}
-    , videos{genVideosFromPaths(videoFiles, videoSetFile, packIdGenerator, cardIdGenerator)}
+    , tokenizer{std::move(_tokenizer)}
+    , wordDB{std::move(_wordDB)}
+    , videos{genVideosFromPaths(videoFiles,
+                                videoSetFile,
+                                packIdGenerator,
+                                cardIdGenerator,
+                                tokenizer,
+                                wordDB)}
 {}
 
 auto VideoSet::getName() const -> const std::string&
@@ -88,7 +103,12 @@ void VideoSet::deserialize()
     while (!rest.empty()) {
         auto videoId = packIdGenerator->getNext();
         auto videoSV = utl::split_front(rest, "\n;\n");
-        videos[videoId] = std::make_shared<Video>(videoSV, videoSetFile, videoId, cardIdGenerator);
+        videos[videoId] = std::make_shared<Video>(videoSV,
+                                                  videoSetFile,
+                                                  videoId,
+                                                  cardIdGenerator,
+                                                  tokenizer,
+                                                  wordDB);
     }
 }
 
@@ -106,14 +126,21 @@ auto VideoSet::serialize() const -> std::string
 auto VideoSet::genVideosFromPaths(const std::vector<std::filesystem::path>& videoFiles,
                                   const std::filesystem::path& videoSetFile,
                                   std::shared_ptr<PackIdGenerator> packIdGenerator,
-                                  std::shared_ptr<CardIdGenerator> cardIdGenerator)
+                                  std::shared_ptr<CardIdGenerator> cardIdGenerator,
+                                  std::shared_ptr<annotation::Tokenizer> tokenizer,
+                                  std::shared_ptr<WordDB> wordDB)
         -> std::map<PackId, VideoPtr>
 {
     std::map<PackId, VideoPtr> videos;
     ranges::transform(videoFiles, std::inserter(videos, videos.begin()),
                       [&](const std::filesystem::path& videoFile) -> std::pair<PackId, VideoPtr> {
                           auto videoId = packIdGenerator->getNext();
-                          return {videoId, std::make_shared<Video>(videoFile, videoSetFile, videoId, cardIdGenerator)};
+                          return {videoId, std::make_shared<Video>(videoFile,
+                                                                   videoSetFile,
+                                                                   videoId,
+                                                                   cardIdGenerator,
+                                                                   tokenizer,
+                                                                   wordDB)};
                       });
     return videos;
 }

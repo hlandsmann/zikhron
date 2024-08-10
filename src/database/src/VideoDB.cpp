@@ -2,7 +2,9 @@
 
 #include "IdGenerator.h"
 #include "VideoSet.h"
+#include "WordDB.h"
 
+#include <annotation/Tokenizer.h>
 #include <misc/Config.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
@@ -22,12 +24,15 @@ namespace database {
 
 VideoDB::VideoDB(std::shared_ptr<zikhron::Config> config,
                  std::shared_ptr<PackIdGenerator> _packIdGenerator,
-                 std::shared_ptr<CardIdGenerator> _cardIdGenerator)
+                 std::shared_ptr<CardIdGenerator> _cardIdGenerator,
+                 std::shared_ptr<annotation::Tokenizer> _tokenizer,
+                 std::shared_ptr<WordDB> _wordDB)
     : packIdGenerator{std::move(_packIdGenerator)}
     , cardIdGenerator{std::move(_cardIdGenerator)}
+    , tokenizer{std::move(_tokenizer)}
+    , wordDB{std::move(_wordDB)}
     , videoSetDir{config->DatabaseDirectory() / s_videoSubdirectory}
-    , videoSets{loadVideoSets(videoSetDir, packIdGenerator, cardIdGenerator)}
-
+    , videoSets{loadVideoSets(videoSetDir, packIdGenerator, cardIdGenerator, tokenizer, wordDB)}
 {
 }
 
@@ -48,7 +53,13 @@ auto VideoDB::addVideoSet(const std::vector<std::filesystem::path>& videoFiles) 
                            : *std::prev(parentPath.end());
     }
     auto packFilename = videoSetDir / std::filesystem::path{packName + s_videoSetExtension};
-    auto videoSet = std::make_shared<VideoSet>(packFilename, packName, videoFiles, packIdGenerator, cardIdGenerator);
+    auto videoSet = std::make_shared<VideoSet>(packFilename,
+                                               packName,
+                                               videoFiles,
+                                               packIdGenerator,
+                                               cardIdGenerator,
+                                               tokenizer,
+                                               wordDB);
     videoSets.push_back(videoSet);
     videoSet->save();
 
@@ -70,7 +81,9 @@ void VideoDB::save()
 
 auto VideoDB::loadVideoSets(const std::filesystem::path& directory,
                             const std::shared_ptr<PackIdGenerator>& packIdGenerator,
-                            const std::shared_ptr<CardIdGenerator>& cardIdGenerator)
+                            const std::shared_ptr<CardIdGenerator>& cardIdGenerator,
+                            std::shared_ptr<annotation::Tokenizer> tokenizer,
+                            std::shared_ptr<WordDB> wordDB)
         -> std::vector<VideoSetPtr>
 {
     if (!std::filesystem::exists(directory)) {
@@ -82,8 +95,12 @@ auto VideoDB::loadVideoSets(const std::filesystem::path& directory,
 
     std::vector<VideoSetPtr> videoSets;
     ranges::transform(videoSetFiles, std::back_inserter(videoSets),
-                      [packIdGenerator, cardIdGenerator](const std::filesystem::path& videoSetFile) -> VideoSetPtr {
-                          return std::make_shared<VideoSet>(videoSetFile, packIdGenerator, cardIdGenerator);
+                      [&](const std::filesystem::path& videoSetFile) -> VideoSetPtr {
+                          return std::make_shared<VideoSet>(videoSetFile,
+                                                            packIdGenerator,
+                                                            cardIdGenerator,
+                                                            tokenizer,
+                                                            wordDB);
                       });
     return videoSets;
 }

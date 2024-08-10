@@ -41,7 +41,7 @@ auto Track::numberOfTracks() const -> std::size_t
                                           return cardPack->getNumberOfCards();
                                       },
                                       [](const VideoPtr& video) -> std::size_t {
-                                          return video->getActiveSubtitle()->getSubTexts().size();
+                                          return video->getActiveSubtitle()->numberOfCards();
                                       }},
                       medium);
 }
@@ -118,24 +118,11 @@ void Track::setupTimeStamps()
                                    endTimeStamp = cardAudio.end;
                                },
                                [this](const VideoPtr& video) {
-                                   std::tie(startTimeStamp, endTimeStamp) = getTimeStampsFromSubtext(index, video);
+                                   const auto& joinedSub = video->getActiveSubtitle()->getJoinedSubAt(index);
+                                   startTimeStamp = joinedSub.startTimeStamp;
+                                   endTimeStamp = joinedSub.endTimeStamp;
                                }},
                medium);
-}
-
-auto Track::getTimeStampsFromSubtext(const multimedia::SubText& subText)
-        -> std::pair<double, double>
-{
-    auto startTimeStamp = static_cast<double>(subText.startTime) / 1000.;
-    auto endTimeStamp = static_cast<double>(subText.startTime + subText.duration) / 1000.;
-    return {startTimeStamp, endTimeStamp};
-}
-
-auto Track::getTimeStampsFromSubtext(std::size_t subIndex, const VideoPtr& video)
-        -> std::pair<double, double>
-{
-    const auto& subtext = video->getActiveSubtitle()->getSubTexts().at(subIndex);
-    return getTimeStampsFromSubtext(subtext);
 }
 
 } // namespace database

@@ -112,6 +112,7 @@ private:
 };
 
 auto concanateStringsU8(const std::vector<StringU8>& strings) -> StringU8;
+auto stringU8VectorFromStrings(const std::vector<std::string>& strings) -> std::vector<StringU8>;
 } // namespace utl
 
 template<>

@@ -113,4 +113,12 @@ auto concanateStringsU8(const std::vector<StringU8>& strings) -> StringU8
 {
     return std::accumulate(strings.begin(), strings.end(), std::string{}, stringPlusT<StringU8>);
 }
+
+auto stringU8VectorFromStrings(const std::vector<std::string>& strings) -> std::vector<StringU8>
+{
+    auto stringU8Vector = std::vector<StringU8>{};
+    ranges::copy(strings, std::back_inserter(stringU8Vector));
+    return stringU8Vector;
+}
+
 } // namespace utl

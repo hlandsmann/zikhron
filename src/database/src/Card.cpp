@@ -64,6 +64,11 @@ auto Card::getWordDB() const -> std::shared_ptr<database::WordDB>
     return wordDB;
 }
 
+auto Card::getTokenizer() const -> std::shared_ptr<annotation::Tokenizer>
+{
+    return tokenizer;
+}
+
 auto Card::getAlternatives() const -> std::vector<annotation::Alternative>
 {
     return tokenizer->getAlternatives(getText(), tokens);
@@ -164,6 +169,18 @@ auto TextCard::getText() const -> utl::StringU8
 auto TextCard::serialize() const -> std::string
 {
     return fmt::format("{}:{}/", s_prefix, text);
+}
+
+SubtitleCard::SubtitleCard(std::vector<std::string> content,
+                           const CardInit& cardInit)
+    : Card{cardInit}
+    , joinedSubs{utl::stringU8VectorFromStrings(content)}
+{
+}
+
+auto SubtitleCard::getText() const -> utl::StringU8
+{
+    return utl::concanateStringsU8(joinedSubs);
 }
 
 } // namespace database

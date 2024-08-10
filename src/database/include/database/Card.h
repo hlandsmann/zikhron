@@ -48,6 +48,7 @@ public:
     [[nodiscard]] auto getCardId() const -> CardId;
     [[nodiscard]] auto getTokens() const -> const std::vector<annotation::Token>&;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<database::WordDB>;
+    [[nodiscard]] auto getTokenizer() const -> std::shared_ptr<annotation::Tokenizer>;
     [[nodiscard]] auto getAlternatives() const -> std::vector<annotation::Alternative>;
     [[nodiscard]] virtual auto serialize() const -> std::string = 0;
     [[nodiscard]] auto getPackId() const -> PackId;
@@ -132,7 +133,10 @@ public:
     auto operator=(const SubtitleCard&) = delete;
     auto operator=(SubtitleCard&&) = delete;
 
+    [[nodiscard]] auto serialize() const -> std::string override { return {}; };
+
 private:
+    [[nodiscard]]  auto getText() const -> utl::StringU8 override;
     std::vector<utl::StringU8> joinedSubs;
 };
 
