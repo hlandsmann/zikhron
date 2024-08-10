@@ -59,7 +59,6 @@ protected:
     void executeTokenizer();
 
 private:
-    // [[nodiscard]] virtual auto getTextVector() const -> std::vector<icu::UnicodeString> = 0;
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
 
     CardId cardId;
@@ -120,6 +119,21 @@ private:
     constexpr static auto s_prefix = "txt";
     [[nodiscard]] auto getText() const -> utl::StringU8 override;
     utl::StringU8 text;
+};
+
+class SubtitleCard : public Card
+{
+public:
+    SubtitleCard(std::vector<std::string> content,
+                 const CardInit& cardInit);
+    SubtitleCard(const SubtitleCard&) = delete;
+    SubtitleCard(SubtitleCard&&) = delete;
+    ~SubtitleCard() override = default;
+    auto operator=(const SubtitleCard&) = delete;
+    auto operator=(SubtitleCard&&) = delete;
+
+private:
+    std::vector<utl::StringU8> joinedSubs;
 };
 
 } // namespace database

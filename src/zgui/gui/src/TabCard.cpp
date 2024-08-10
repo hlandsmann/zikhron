@@ -345,21 +345,20 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.start();
     auto& btnPlay = ctrlBox.next<widget::ImageButton>();
     auto& sliderProgress = ctrlBox.next<widget::MediaSlider>();
+
     ctrlBox.next<widget::Separator>();
-    auto& circleStopForward = ctrlBox.next<widget::ImageButton>();
+    auto& btnPlayMode = ctrlBox.next<widget::ImageButton>();
+    handlePlayMode(btnPlayMode);
 
     ctrlBox.next<widget::Separator>();
     auto& btnCutPrev = ctrlBox.next<widget::ImageButton>();
     auto& btnAddPrev = ctrlBox.next<widget::ImageButton>();
     auto& btnAddNext = ctrlBox.next<widget::ImageButton>();
     auto& btnCutNext = ctrlBox.next<widget::ImageButton>();
-    btnCutPrev.clicked();
-    btnAddPrev.clicked();
-    btnAddNext.clicked();
-    btnCutNext.clicked();
-
-    static unsigned test = 0;
-    test = circleStopForward.toggled(test);
+    handleSubAddCut(btnCutPrev,
+                    btnAddPrev,
+                    btnAddNext,
+                    btnCutNext);
 
     handlePlayback(btnPlay, sliderProgress);
 
@@ -397,26 +396,29 @@ void TabCard::doCtrlBoxRight(widget::Box& ctrlBox)
 {
     auto& layer = ctrlBox.next<widget::Layer>();
     layer.start();
+
     auto& btnReveal = layer.next<widget::Button>();
     auto& btnSubmit = layer.next<widget::Button>();
     auto& btnNext = layer.next<widget::Button>();
+    handleCardSubmission(btnReveal, btnSubmit, btnNext);
 
     ctrlBox.next<widget::Separator>();
     auto& tbgMode = ctrlBox.next<widget::ToggleButtonGroup>();
+    handleMode(tbgMode);
+
     ctrlBox.next<widget::Separator>();
     auto& btnFirst = ctrlBox.next<widget::ImageButton>();
     auto& btnPrevious = ctrlBox.next<widget::ImageButton>();
     auto& btnFollowing = ctrlBox.next<widget::ImageButton>();
     auto& btnLast = ctrlBox.next<widget::ImageButton>();
+    handleNextPrevious(btnFirst, btnPrevious, btnFollowing, btnLast);
+
     ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
+    handleAnnotate(btnAnnotate);
+
     ctrlBox.next<widget::Separator>();
     auto& btnSave = ctrlBox.next<widget::ImageButton>();
-
-    handleCardSubmission(btnReveal, btnSubmit, btnNext);
-    handleMode(tbgMode);
-    handleNextPrevious(btnFirst, btnPrevious, btnFollowing, btnLast);
-    handleAnnotate(btnAnnotate);
     handleDataBaseSave(btnSave);
 }
 
@@ -520,6 +522,22 @@ void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
     }
 
     mode = static_cast<Mode>(tbgMode.Active(static_cast<unsigned>(mode)));
+}
+
+void TabCard::handlePlayMode(widget::ImageButton& btnPlayMode)
+{
+    playMode = btnPlayMode.toggled(playMode);
+}
+
+void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
+                              widget::ImageButton& btnAddPrev,
+                              widget::ImageButton& btnAddNext,
+                              widget::ImageButton& btnCutNext)
+{
+    btnCutPrev.clicked();
+    btnAddPrev.clicked();
+    btnAddNext.clicked();
+    btnCutNext.clicked();
 }
 
 void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,

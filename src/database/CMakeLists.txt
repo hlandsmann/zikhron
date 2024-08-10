@@ -15,6 +15,7 @@ target_sources(zikhron_database
         include/database/CardPack.h
         include/database/CardPackDB.h
         include/database/Subtitle.h
+        include/database/SubtitlePicker.h
         include/database/TokenizationChoiceDB.h
         include/database/Track.h
         include/database/Video.h
@@ -30,6 +31,7 @@ target_sources(zikhron_database
         src/ParsingHelpers.cpp
         src/ParsingHelpers.h
         src/Subtitle.cpp
+        src/SubtitlePicker.cpp
         src/TokenizationChoiceDB.cpp
         src/Track.cpp
         src/Video.cpp

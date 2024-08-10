@@ -1,8 +1,11 @@
 #include "Video.h"
 
+#include "IdGenerator.h"
 #include "ParsingHelpers.h"
+#include "Subtitle.h"
+#include "SubtitlePicker.h"
 
-#include <Subtitle.h>
+#include <misc/Identifier.h>
 #include <multimedia/ExtractSubtitles.h>
 #include <multimedia/Subtitle.h>
 #include <utils/format.h>
@@ -20,16 +23,26 @@ namespace ranges = std::ranges;
 
 namespace database {
 
-Video::Video(std::string_view sv, std::filesystem::path _videoSetFile)
+Video::Video(std::string_view sv,
+             std::filesystem::path _videoSetFile,
+             PackId _videoId,
+             std::shared_ptr<CardIdGenerator> _cardIdGenerator)
     : videoSetFile{std::move(_videoSetFile)}
+    , videoId{_videoId}
+    , cardIdGenerator{std::move(_cardIdGenerator)}
 {
     deserialize(sv);
 }
 
-Video::Video(std::filesystem::path _videoFile, std::filesystem::path _videoSetFile)
+Video::Video(std::filesystem::path _videoFile,
+             std::filesystem::path _videoSetFile,
+             PackId _videoId,
+             std::shared_ptr<CardIdGenerator> _cardIdGenerator)
     : videoSetFile{std::move(_videoSetFile)}
     , videoFile{std::move(_videoFile)}
     , name{videoFile.stem().string()}
+    , videoId{_videoId}
+    , cardIdGenerator{std::move(_cardIdGenerator)}
 {
     loadSubtitles();
 }
@@ -82,6 +95,10 @@ void Video::loadSubtitles()
         fmt::print("fn: `{}`\n", sub->getFileName().string());
         sub->save();
     }
+
+    auto chosenSubtitle = subtitles.empty() ? std::shared_ptr<Subtitle>{nullptr}
+                                            : subtitles.at(subChoice);
+    subtitlePicker = std::make_shared<SubtitlePicker>(chosenSubtitle, videoId, cardIdGenerator);
 }
 
 auto Video::getVideoFile() const -> const std::filesystem::path&

@@ -92,11 +92,7 @@ void Card::setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoic
 void Card::executeTokenizer()
 {
     const auto& cardText = getText();
-    // spdlog::info("{}: {}", Id(), cardText);
     tokens = tokenizer->split(cardText);
-    // for (const auto& token : tokenVector) {
-    //     wordDB->lookup(token);
-    // }
 }
 
 DialogueCard::DialogueCard(std::string_view content,
@@ -133,17 +129,6 @@ auto DialogueCard::serialize() const -> std::string
     return result;
 }
 
-// auto DialogueCard::getTextVector() const -> std::vector<icu::UnicodeString>
-// {
-//     std::vector<icu::UnicodeString> textVector;
-//     textVector.reserve(dialogue.size());
-//     std::transform(
-//             dialogue.begin(), dialogue.end(), std::back_inserter(textVector), [](const auto& item) {
-//                 return item.text;
-//             });
-//     return textVector;
-// }
-
 auto DialogueCard::getText() const -> utl::StringU8
 {
     utl::StringU8 result;
@@ -171,11 +156,6 @@ auto TextCard::deserialize(std::string_view content) -> utl::StringU8
     return text;
 }
 
-// auto TextCard::getTextVector() const -> std::vector<icu::UnicodeString>
-// {
-//     return {text};
-// }
-
 auto TextCard::getText() const -> utl::StringU8
 {
     return {text};
@@ -183,7 +163,6 @@ auto TextCard::getText() const -> utl::StringU8
 
 auto TextCard::serialize() const -> std::string
 {
-    // std::string serText = text.findAndReplace("/", "／");
     return fmt::format("{}:{}/", s_prefix, text);
 }
 

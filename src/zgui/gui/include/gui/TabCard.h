@@ -54,16 +54,20 @@ class TabCard
         annotate,
     };
 
-    enum class Mode : std::size_t {
+    enum class Mode : unsigned {
         shuffle,
         story,
     };
 
+    enum class PlayMode : unsigned {
+        stop,
+        playNext,
+        playUntilUnknown,
+        playThrough,
+    };
+
 public:
-    TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
-            std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker,
-            std::unique_ptr<DisplayVideo> displayVideo,
-            std::unique_ptr<multimedia::MpvWrapper> mpvAudio);
+    TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor, std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker, std::unique_ptr<DisplayVideo> displayVideo, std::unique_ptr<multimedia::MpvWrapper> mpvAudio);
     TabCard(const TabCard&) = delete;
     TabCard(TabCard&&) = delete;
     auto operator=(const TabCard&) -> TabCard& = delete;
@@ -105,6 +109,11 @@ private:
     void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
     void handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext);
     void handleMode(widget::ToggleButtonGroup& tbgMode);
+    void handlePlayMode(widget::ImageButton& btnPlayMode);
+    void handleSubAddCut(widget::ImageButton& btnCutPrev,
+                         widget::ImageButton& btnAddPrev,
+                         widget::ImageButton& btnAddNext,
+                         widget::ImageButton& btnCutNext);
     void handleNextPrevious(widget::ImageButton& btnFirst,
                             widget::ImageButton& btnPrevious,
                             widget::ImageButton& btnFollowing,
@@ -133,6 +142,7 @@ private:
 
     bool revealVocables{false};
     Mode mode{Mode::shuffle};
+    PlayMode playMode{PlayMode::playNext};
 
     std::shared_ptr<multimedia::MpvWrapper> mpvAudio;
     std::shared_ptr<multimedia::MpvWrapper> mpvVideo;
