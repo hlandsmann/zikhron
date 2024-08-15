@@ -8,6 +8,7 @@
 
 #include <annotation/Tokenizer.h>
 #include <misc/Identifier.h>
+#include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <cstddef>
@@ -131,7 +132,7 @@ auto SubtitlePicker::getPrevious(const CardPtr& card) -> JoinedSubtitle
 auto SubtitlePicker::getNext(const CardPtr& card) -> JoinedSubtitle
 {
     auto index = static_cast<long>(card->getIndexInPack());
-    auto first = std::next(joinings.begin(), index);
+    auto first = std::next(joinings.begin(), index + 1);
     auto nextIt = std::find_if(first, joinings.end(), [](const std::size_t joining) { return joining != 0; });
     if (nextIt == joinings.end()) {
         return {};
@@ -139,6 +140,23 @@ auto SubtitlePicker::getNext(const CardPtr& card) -> JoinedSubtitle
     auto nextIndex = static_cast<std::size_t>(std::distance(joinings.begin(), nextIt));
     auto nextCard = cards.at(nextIndex).lock();
     return createJoinedSubtitle(nextIndex, nextCard);
+}
+
+auto SubtitlePicker::hasPrevious(const CardPtr& card)  -> bool
+{
+    auto index = card->getIndexInPack();
+    return index > 0;
+}
+
+auto SubtitlePicker::hasNext(const CardPtr& card) const -> bool
+{
+    auto index = card->getIndexInPack();
+    if (index >= joinings.size()) {
+        return false;
+    }
+    auto first = std::next(joinings.begin(), static_cast<long>(index + 1));
+    auto nextIt = std::find_if(first, joinings.end(), [](const std::size_t joining) { return joining != 0; });
+    return nextIt != joinings.end();
 }
 
 auto SubtitlePicker::numberOfCards() -> std::size_t
@@ -170,6 +188,7 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
 
     auto newCard = std::dynamic_pointer_cast<SubtitleCard>(card);
     if (newCard == nullptr) {
+        spdlog::info("ncid: {}", cardIdGenerator->getNext());
         auto cardInit = CardInit{
                 .cardId = cardIdGenerator->getNext(),
                 .packName = videoName,

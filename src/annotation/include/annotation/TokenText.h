@@ -31,6 +31,7 @@ class TokenText
     using Card = database::Card;
     using DialogueCard = database::DialogueCard;
     using TextCard = database::TextCard;
+    using SubtitleCard = database::SubtitleCard;
 
 public:
     using Paragraph = std::vector<Token>;
@@ -45,8 +46,9 @@ public:
 
 private:
     using tokenSubrange = std::ranges::subrange<std::vector<Token>::const_iterator>;
-    void setupDialogueCard(const database::DialogueCard&);
-    void setupTextCard(const database::TextCard&);
+    void setupDialogueCard(const DialogueCard&);
+    void setupTextCard(const TextCard&);
+    void setupSubtitleCard(const SubtitleCard&);
     [[nodiscard]] static auto tokenVector(tokenSubrange tokens) -> std::vector<Token>;
     [[nodiscard]] static auto findItAtThreshold(tokenSubrange tokens, std::size_t threshold)
             -> std::vector<annotation::Token>::const_iterator;

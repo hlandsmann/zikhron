@@ -48,12 +48,12 @@ auto AsyncTreeWalker::getTreeWalker() const -> kocoro::Async<TreeWalkerPtr>&
     return *asyncTreewalker;
 }
 
-auto AsyncTreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> kocoro::Async<CardMeta>&
+auto AsyncTreeWalker::getNextCardChoice() -> kocoro::Async<CardMeta>&
 {
     asyncNextCard->reset();
     if (treeWalker) {
-        asyncNextCard->runAsync([_treeWalker = treeWalker, _preferedCardId = preferedCardId]() {
-            return _treeWalker->getNextCardChoice(_preferedCardId);
+        asyncNextCard->runAsync([_treeWalker = treeWalker]() {
+            return _treeWalker->getNextCardChoice();
         });
     }
     return *asyncNextCard;

@@ -43,15 +43,17 @@ public:
 
     [[nodiscard]] auto getPrevious(const CardPtr& card) -> JoinedSubtitle;
     [[nodiscard]] auto getNext(const CardPtr& card) -> JoinedSubtitle;
+    [[nodiscard]] auto static hasPrevious(const CardPtr& card)  -> bool;
+    [[nodiscard]] auto hasNext(const CardPtr& card) const -> bool;
 
     [[nodiscard]] auto numberOfCards() -> std::size_t;
     [[nodiscard]] auto getJoinedSubAt(std::size_t pos) -> JoinedSubtitle;
+    [[nodiscard]] auto joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtitle;
 
     void save();
 
 private:
     [[nodiscard]] auto createJoinedSubtitle(std::size_t index, const CardPtr& card) -> JoinedSubtitle;
-    [[nodiscard]] auto joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtitle;
     void setIndices();
     std::shared_ptr<Subtitle> subtitle;
     PackId videoId;

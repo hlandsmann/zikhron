@@ -7,7 +7,6 @@
 
 #include <map>
 #include <memory>
-#include <optional>
 
 #include <sys/types.h>
 
@@ -24,7 +23,7 @@ public:
 
     using Id_Ease_vt = std::map<VocableId, Ease>;
     virtual void setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease) = 0;
-    virtual auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> const CardMeta& = 0;
+    virtual auto getNextCardChoice() -> const CardMeta& = 0;
 
     static auto createTreeWalker(std::shared_ptr<DataBase>) -> std::unique_ptr<ITreeWalker>;
 };

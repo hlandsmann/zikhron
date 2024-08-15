@@ -13,6 +13,7 @@
 #include <spdlog/spdlog.h>
 #include <srtypes.h>
 #include <utils/StringU8.h>
+#include <utils/format.h>
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
 
@@ -23,6 +24,7 @@
 #include <memory>
 #include <ranges>
 #include <set>
+#include <stdexcept>
 #include <utility>
 
 #include <sys/types.h>
@@ -79,6 +81,35 @@ auto DataBase::getCardDB() const -> std::shared_ptr<CardDB>
 auto DataBase::getWordDB() const -> std::shared_ptr<WordDB>
 {
     return wordDB;
+}
+
+auto DataBase::getCardMeta(const database::CardPtr& card) -> const CardMeta&
+{
+    auto cardId = card->getCardId();
+    if (metaCards.contains(cardId)) {
+        return metaCards.at_id(cardId).second;
+    }
+    temporaryCardMeta = std::make_shared<CardMeta>(cardId, card, vocables);
+    for (VocableId vocId : temporaryCardMeta->VocableIds()) {
+        if (vocables->contains(vocId)) {
+            continue;
+        }
+
+        const auto& word = wordDB->lookupId(vocId);
+        vocables->emplace(word->getId(), word->getProgress());
+    }
+    return *temporaryCardMeta;
+}
+
+auto DataBase::getCardMeta(CardId cardId) -> const CardMeta&
+{
+    if (metaCards.contains(cardId)) {
+        return metaCards.at_id(cardId).second;
+    }
+    if (temporaryCardMeta && temporaryCardMeta->Id() == cardId) {
+        return *temporaryCardMeta;
+    }
+    throw std::runtime_error(fmt::format("Bad Card Id {}", cardId));
 }
 
 void DataBase::reloadCard(const database::CardPtr& card)

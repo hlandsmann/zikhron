@@ -22,6 +22,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 
 #include <sys/types.h>
 
@@ -54,6 +55,9 @@ public:
     [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>;
     [[nodiscard]] auto getCardDB() const -> std::shared_ptr<CardDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
+
+    [[nodiscard]] auto getCardMeta(const database::CardPtr& card) -> const CardMeta&;
+    [[nodiscard]] auto getCardMeta(CardId cardId) -> const CardMeta&;
     void reloadCard(const database::CardPtr& card);
 
     void setEaseVocable(VocableId, const Ease&);
@@ -73,5 +77,7 @@ private:
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
     utl::index_map<CardId, CardMeta> metaCards;
+
+    std::shared_ptr<CardMeta> temporaryCardMeta;
 };
 } // namespace sr

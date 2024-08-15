@@ -39,7 +39,7 @@ void TokenizationChoiceDB::syncIdsWithCardPackDB(const database::CardPackDB& car
         for (const auto& [packName, indicesInPack] : tokenizationChoicePosition.packPositions) {
             const auto& pack = cardPackDB.getCardPack(packName);
             for (const auto indexInPack : indicesInPack) {
-                const auto& card = pack->getCardByIndex(indexInPack);
+                const auto& card = pack->getCardAudioByIndex(indexInPack);
                 choicesForCards[card.card->getCardId()].push_back(choice);
             }
         }

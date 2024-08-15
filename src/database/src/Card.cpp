@@ -176,6 +176,7 @@ SubtitleCard::SubtitleCard(std::vector<std::string> content,
     : Card{cardInit}
     , joinedSubs{utl::stringU8VectorFromStrings(content)}
 {
+    executeTokenizer();
 }
 
 auto SubtitleCard::getText() const -> utl::StringU8

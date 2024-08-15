@@ -20,7 +20,7 @@ public:
 
     [[nodiscard]] auto getDataBase() const -> kocoro::Async<DataBasePtr>&;
     [[nodiscard]] auto getTreeWalker() const -> kocoro::Async<TreeWalkerPtr>&;
-    auto getNextCardChoice(std::optional<CardId> preferedCardId = {}) -> kocoro::Async<CardMeta>&;
+    auto getNextCardChoice() -> kocoro::Async<CardMeta>&;
 
 private:
     static auto taskCreateDataBase() -> kocoro::Task<DataBasePtr>;

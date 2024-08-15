@@ -1,6 +1,7 @@
 #pragma once
 #include "CardPack.h"
 #include "CbdFwd.h"
+#include "SubtitlePicker.h"
 #include "Video.h"
 
 #include <misc/Identifier.h>
@@ -26,15 +27,26 @@ using TrackMedia = std::variant<CardPackPtr,
 class Track
 {
 public:
-    Track(TrackMedia medium, std::size_t index);
     Track(TrackMedia medium, CardPtr card);
+    Track(const TrackMedia& medium, std::size_t index);
 
     [[nodiscard]] auto numberOfTracks() const -> std::size_t;
     [[nodiscard]] auto trackAt(std::size_t index) const -> Track;
-    [[nodiscard]] auto nextTrack() const -> std::optional<Track>;
-    [[nodiscard]] auto previousTrack() const -> std::optional<Track>;
+    [[nodiscard]] auto nextTrack() const -> Track;
+    [[nodiscard]] auto previousTrack() const -> Track;
+    [[nodiscard]] auto hasNext() const -> bool;
+    [[nodiscard]] auto hasPrevious() const -> bool;
 
-    [[nodiscard]] auto getCardID() const -> std::optional<CardId>;
+    [[nodiscard]] auto isFrontJoinable() const -> bool;
+    [[nodiscard]] auto isBackJoinable() const -> bool;
+    [[nodiscard]] auto isSeparable() const -> bool;
+
+    [[nodiscard]] auto joinFront() -> std::optional<Track>;
+    [[nodiscard]] auto joinBack() -> std::optional<Track>;
+    [[nodiscard]] auto cutFront() -> std::optional<Track>;
+    [[nodiscard]] auto cutBack() -> std::optional<Track>;
+
+    [[nodiscard]] auto getCard() const -> CardPtr;
     [[nodiscard]] auto getTrackType() const -> TrackType;
 
     [[nodiscard]] auto getMediaFile() const -> std::optional<std::filesystem::path>;
@@ -42,9 +54,14 @@ public:
     [[nodiscard]] auto getEndTimeStamp() const -> double;
 
 private:
-    void setupTimeStamps();
+    Track(TrackMedia medium,  const JoinedSubtitle& joinedSubtitle);
+
+    static auto getCard(TrackMedia medium, std::size_t index) -> CardPtr;
+    void setupMedium();
+    void setupCardAudio(const CardAudio& cardAudio);
+    void setupJoinedSubtitle(const JoinedSubtitle& joinedSubtitle);
     TrackMedia medium;
-    std::size_t index;
+    CardPtr card;
     double startTimeStamp{};
     double endTimeStamp{};
 };

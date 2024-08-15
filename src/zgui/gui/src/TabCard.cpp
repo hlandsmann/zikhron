@@ -109,7 +109,6 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     while (true) {
         Proceed proceed = co_await *signalProceed;
 
-        bool cardIsValid = true;
         switch (proceed) {
         case Proceed::walkTree:
             clearStudy(cardLayer, vocableLayer);
@@ -130,14 +129,14 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         } break;
         case Proceed::nextTrack:
             clearStudy(cardLayer, vocableLayer);
-            cardMeta = treeWalker->getNextCardChoice(track->getCardID());
+            cardMeta = dataBase->getCardMeta(track->getCard());
             spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.Id());
             loadTrack();
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::reload:
             clearStudy(cardLayer, vocableLayer);
-            cardMeta = treeWalker->getNextCardChoice({cardMeta.Id()});
+            cardMeta = dataBase->getCardMeta(cardMeta.Id());
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::annotate: {
@@ -149,10 +148,6 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 
         default:
             break;
-        }
-        if (!cardIsValid) {
-            proceed = co_await *signalProceed;
-            continue;
         }
     }
 
@@ -517,7 +512,7 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
 
 void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
 {
-    if (!track.has_value() || !track->nextTrack().has_value()) {
+    if (!track.has_value() || !track->hasNext()) {
         return;
     }
 
@@ -534,10 +529,35 @@ void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
                               widget::ImageButton& btnAddNext,
                               widget::ImageButton& btnCutNext)
 {
-    btnCutPrev.clicked();
-    btnAddPrev.clicked();
-    btnAddNext.clicked();
-    btnCutNext.clicked();
+    if (!track.has_value()) {
+        return;
+    }
+    bool cutAddClicked = false;
+    btnCutPrev.setSensitive(track->isSeparable());
+    btnAddPrev.setSensitive(track->isFrontJoinable());
+    btnAddNext.setSensitive(track->isBackJoinable());
+    btnCutNext.setSensitive(track->isSeparable());
+
+    if (btnCutPrev.clicked()) {
+        cutAddClicked = true;
+        track = track->cutFront();
+    }
+    if (btnAddPrev.clicked()) {
+        cutAddClicked = true;
+        track = track->joinFront();
+    }
+    if (btnAddNext.clicked()) {
+        cutAddClicked = true;
+        track = track->joinBack();
+    }
+    if (btnCutNext.clicked()) {
+        cutAddClicked = true;
+        track = track->cutBack();
+    }
+    if (cutAddClicked) {
+        revealVocables = false;
+        signalProceed->set(Proceed::nextTrack);
+    }
 }
 
 void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
@@ -546,15 +566,15 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                  widget::ImageButton& btnLast)
 {
     if (!track.has_value()
-        || (!track->nextTrack().has_value()
-            && !track->previousTrack().has_value())) {
+        || (!track->hasNext()
+            && !track->hasPrevious())) {
         return;
     }
 
-    btnFirst.setSensitive(track->previousTrack().has_value());
-    btnPrevious.setSensitive(track->previousTrack().has_value());
-    btnFollowing.setSensitive(track->nextTrack().has_value());
-    btnLast.setSensitive(track->nextTrack().has_value());
+    btnFirst.setSensitive(track->hasPrevious());
+    btnPrevious.setSensitive(track->hasPrevious());
+    btnFollowing.setSensitive(track->hasNext());
+    btnLast.setSensitive(track->hasNext());
     bool nextPreviousClicked = false;
     if (btnFirst.clicked()) {
         nextPreviousClicked = true;

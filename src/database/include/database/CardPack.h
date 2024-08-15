@@ -39,7 +39,7 @@ public:
              std::shared_ptr<annotation::Tokenizer> tokenizer);
     [[nodiscard]] auto getCards() const -> const std::vector<CardAudio>&;
 
-    [[nodiscard]] auto getCardByIndex(std::size_t index) const -> const CardAudio&;
+    [[nodiscard]] auto getCardAudioByIndex(std::size_t index) const -> const CardAudio&;
     [[nodiscard]] auto getFirstCard() const -> const CardAudio&;
     [[nodiscard]] auto getLastCard() const -> const CardAudio&;
     [[nodiscard]] auto getNextCard(const CardPtr& card) const -> std::optional<CardAudio>;
@@ -56,7 +56,7 @@ private:
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<annotation::Tokenizer> tokenizer;
 
-    std::vector<CardAudio> cards;
+    std::vector<CardAudio> cardAudios;
 
     std::string name;
     CardPackType type{};

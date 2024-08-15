@@ -45,22 +45,22 @@ CardPack::CardPack(std::filesystem::path _filename,
 
 auto CardPack::getCards() const -> const std::vector<CardAudio>&
 {
-    return cards;
+    return cardAudios;
 }
 
-auto CardPack::getCardByIndex(std::size_t index) const -> const CardAudio&
+auto CardPack::getCardAudioByIndex(std::size_t index) const -> const CardAudio&
 {
-    return cards.at(index);
+    return cardAudios.at(index);
 }
 
 auto CardPack::getFirstCard() const -> const CardAudio&
 {
-    return cards.front();
+    return cardAudios.front();
 }
 
 auto CardPack::getLastCard() const -> const CardAudio&
 {
-    return cards.back();
+    return cardAudios.back();
 }
 
 auto CardPack::getNextCard(const CardPtr& card) const -> std::optional<CardAudio>
@@ -69,8 +69,8 @@ auto CardPack::getNextCard(const CardPtr& card) const -> std::optional<CardAudio
         return {};
     }
     auto indexInPack = card->getIndexInPack();
-    if (indexInPack + 1 < cards.size()) {
-        return {cards.at(indexInPack + 1)};
+    if (indexInPack + 1 < cardAudios.size()) {
+        return {cardAudios.at(indexInPack + 1)};
     }
     return {};
 }
@@ -82,7 +82,7 @@ auto CardPack::getPreviousCard(const CardPtr& card) const -> std::optional<CardA
     }
     auto indexInPack = card->getIndexInPack();
     if (indexInPack > 0) {
-        return {cards.at(indexInPack - 1)};
+        return {cardAudios.at(indexInPack - 1)};
     }
     return {};
 }
@@ -94,7 +94,7 @@ auto CardPack::getName() const -> std::string
 
 auto CardPack::getNumberOfCards() const -> std::size_t
 {
-    return cards.size();
+    return cardAudios.size();
 }
 
 void CardPack::deserialize()
@@ -146,7 +146,7 @@ void CardPack::deserialize()
             optAudioFile = audioFile;
         }
 
-        cards.push_back({.audioFile = optAudioFile,
+        cardAudios.push_back({.audioFile = optAudioFile,
                          .card = Card::deserializeCard(cardText, cardInit),
                          .start = std::stod(start),
                          .end = std::stod(end)});

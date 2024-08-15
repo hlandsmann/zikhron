@@ -158,18 +158,9 @@ void TreeWalker::addNextVocableToIgnoreCardIndices(size_t nextVocable, std::shar
     ranges::copy(cardIndices, std::inserter(*ignoreCardIndices, ignoreCardIndices->begin()));
 }
 
-auto TreeWalker::getNextCardChoice(std::optional<CardId> preferedCardId) -> const CardMeta&
+auto TreeWalker::getNextCardChoice() -> const CardMeta&
 {
-    size_t cardIndex{};
-    if (not preferedCardId.has_value()) {
-        cardIndex = getNextTargetCard().value_or(0);
-    } else {
-        auto optional_index = db->MetaCards().optional_index(preferedCardId.value());
-        cardIndex = optional_index.value_or(0);
-        if (not optional_index.has_value()) {
-            spdlog::error("prefered card Id could not be found in cards index_map!");
-        }
-    }
+    size_t cardIndex = getNextTargetCard().value_or(0);
     return db->MetaCards()[cardIndex];
 }
 

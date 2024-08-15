@@ -42,6 +42,10 @@ TokenText::TokenText(std::shared_ptr<Card> _card)
         textType = TextType::text;
         setupTextCard(*textCard);
     }
+    if (const auto* subtitleCard = dynamic_cast<const SubtitleCard*>(card.get())) {
+        textType = TextType::subtitle;
+        setupSubtitleCard(*subtitleCard);
+    }
 }
 
 auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_ease) -> std::vector<ActiveVocable>
@@ -165,6 +169,11 @@ void TokenText::setupDialogueCard(const DialogueCard& dialogueCard)
 void TokenText::setupTextCard(const TextCard& textCard)
 {
     paragraphSeq.push_back(textCard.getTokens());
+}
+
+void TokenText::setupSubtitleCard(const SubtitleCard& subtitleCard)
+{
+    paragraphSeq.push_back(subtitleCard.getTokens());
 }
 
 auto TokenText::tokenVector(tokenSubrange tokens) -> std::vector<Token>

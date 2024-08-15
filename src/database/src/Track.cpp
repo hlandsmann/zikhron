@@ -3,6 +3,7 @@
 #include "Card.h" // IWYU pragma: keep
 #include "CardPack.h"
 #include "CbdFwd.h"
+#include "SubtitlePicker.h"
 #include "Video.h"
 
 #include <misc/Identifier.h>
@@ -13,27 +14,26 @@
 #include <cstddef>
 #include <exception>
 #include <filesystem>
-#include <memory>
 #include <optional>
-#include <tuple>
 #include <utility>
 
 namespace database {
 
-Track::Track(TrackMedia _medium, std::size_t _index)
+Track::Track(TrackMedia _medium, CardPtr _card)
     : medium{std::move(_medium)}
-    , index{_index}
+    , card{std::move(_card)}
 {
     try {
-        setupTimeStamps();
+        setupMedium();
     } catch (const std::exception& e) {
         spdlog::error("track, e.what: {}", e.what());
     }
 }
 
-Track::Track(TrackMedia _medium, CardPtr card)
-    : Track{std::move(_medium), card->getIndexInPack()}
-{}
+Track::Track(const TrackMedia& _medium, std::size_t index)
+    : Track{_medium, getCard(_medium, index)}
+{
+}
 
 auto Track::numberOfTracks() const -> std::size_t
 {
@@ -51,31 +51,128 @@ auto Track::trackAt(std::size_t _index) const -> Track
     return {medium, _index};
 }
 
-auto Track::nextTrack() const -> std::optional<Track>
+auto Track::nextTrack() const -> Track
 {
-    if (index + 1 < numberOfTracks()) {
-        return {{medium, index + 1}};
-    }
-    return {};
-}
-
-auto Track::previousTrack() const -> std::optional<Track>
-{
-    if (index > 0) {
-        return {{medium, index - 1}};
-    }
-    return {};
-}
-
-auto Track::getCardID() const -> std::optional<CardId>
-{
-    return std::visit(utl::overloaded{[this](const CardPackPtr& cardPack) -> std::optional<CardId> {
-                                          return {cardPack->getCardByIndex(index).card->getCardId()};
+    return std::visit(utl::overloaded{[this](const CardPackPtr& /* cardPack */) -> Track {
+                                          auto index = card->getIndexInPack();
+                                          return {medium, index + 1};
                                       },
-                                      [](const VideoPtr& video) -> std::optional<CardId> {
-                                          return {};
+                                      [this](const VideoPtr& video) -> Track {
+                                          const auto& subtitlePicker = video->getActiveSubtitle();
+                                          auto nextJoinedSubtitle = subtitlePicker->getNext(card);
+                                          return {medium, nextJoinedSubtitle};
                                       }},
                       medium);
+}
+
+auto Track::previousTrack() const -> Track
+{
+    return std::visit(utl::overloaded{[this](const CardPackPtr& /* cardPack */) -> Track {
+                                          auto index = card->getIndexInPack();
+                                          return {medium, index - 1};
+                                      },
+                                      [this](const VideoPtr& video) -> Track {
+                                          const auto& subtitlePicker = video->getActiveSubtitle();
+                                          auto previousJoinedSubtitle = subtitlePicker->getPrevious(card);
+                                          return {medium, previousJoinedSubtitle};
+                                      }},
+                      medium);
+}
+
+auto Track::hasNext() const -> bool
+{
+    return std::visit(utl::overloaded{[this](const CardPackPtr& /* cardPack */) -> bool {
+                                          auto index = card->getIndexInPack();
+                                          return index + 1 < numberOfTracks();
+                                      },
+                                      [this](const VideoPtr& video) -> bool {
+                                          const auto& subtitlePicker = video->getActiveSubtitle();
+                                          return subtitlePicker->hasNext(card);
+                                      }},
+                      medium);
+}
+
+auto Track::hasPrevious() const -> bool
+{
+    return std::visit(utl::overloaded{[this](const CardPackPtr& /* cardPack */) -> bool {
+                                          auto index = card->getIndexInPack();
+                                          return index > 0;
+                                      },
+                                      [this](const VideoPtr& video) -> bool {
+                                          const auto& subtitlePicker = video->getActiveSubtitle();
+                                          return subtitlePicker->hasPrevious(card);
+                                      }},
+                      medium);
+}
+
+auto Track::isFrontJoinable() const -> bool
+{
+    return std::visit(utl::overloaded{[](const CardPackPtr& /* cardPack */) -> bool {
+                                          return false;
+                                      },
+                                      [this](const VideoPtr& video) -> bool {
+                                          return video->getActiveSubtitle()->isFrontJoinable(card);
+                                      }},
+                      medium);
+}
+
+auto Track::isBackJoinable() const -> bool
+{
+    return std::visit(utl::overloaded{[](const CardPackPtr& /* cardPack */) -> bool {
+                                          return false;
+                                      },
+                                      [this](const VideoPtr& video) -> bool {
+                                          return video->getActiveSubtitle()->isBackJoinable(card);
+                                      }},
+                      medium);
+}
+
+auto Track::isSeparable() const -> bool
+{
+    return std::visit(utl::overloaded{[](const CardPackPtr& /* cardPack */) -> bool {
+                                          return false;
+                                      },
+                                      [this](const VideoPtr& video) -> bool {
+                                          return video->getActiveSubtitle()->isSeparable(card);
+                                      }},
+                      medium);
+}
+
+auto Track::joinFront() -> std::optional<Track>
+{
+    const auto& video = std::get<VideoPtr>(medium);
+    auto subtitlePicker = video->getActiveSubtitle();
+    auto joinedSubtitle = subtitlePicker->joinFront(card);
+    return {{medium, joinedSubtitle}};
+}
+
+auto Track::joinBack() -> std::optional<Track>
+{
+    const auto& video = std::get<VideoPtr>(medium);
+    auto subtitlePicker = video->getActiveSubtitle();
+    auto joinedSubtitle = subtitlePicker->joinBack(card);
+    return {{medium, joinedSubtitle}};
+}
+
+auto Track::cutFront() -> std::optional<Track>
+{
+    const auto& video = std::get<VideoPtr>(medium);
+    auto subtitlePicker = video->getActiveSubtitle();
+    auto joinedSubtitle = subtitlePicker->cutFront(card);
+    return {{medium, joinedSubtitle}};
+}
+
+auto Track::cutBack() -> std::optional<Track>
+{
+    const auto& video = std::get<VideoPtr>(medium);
+    auto subtitlePicker = video->getActiveSubtitle();
+    auto joinedSubtitle = subtitlePicker->cutBack(card);
+    return {{medium, joinedSubtitle}};
+}
+
+auto Track::getCard() const -> CardPtr
+{
+    return card;
 }
 
 auto Track::getTrackType() const -> TrackType
@@ -92,7 +189,8 @@ auto Track::getTrackType() const -> TrackType
 auto Track::getMediaFile() const -> std::optional<std::filesystem::path>
 {
     return std::visit(utl::overloaded{[this](const CardPackPtr& cardPack) -> std::optional<std::filesystem::path> {
-                                          return cardPack->getCardByIndex(index).audioFile;
+                                          auto index = card->getIndexInPack();
+                                          return cardPack->getCardAudioByIndex(index).audioFile;
                                       },
                                       [](const VideoPtr& video) -> std::optional<std::filesystem::path> {
                                           return video->getVideoFile();
@@ -110,19 +208,49 @@ auto Track::getEndTimeStamp() const -> double
     return endTimeStamp;
 }
 
-void Track::setupTimeStamps()
+Track::Track(TrackMedia _medium, const JoinedSubtitle& joinedSubtitle)
+    : medium{std::move(_medium)}
+{
+    setupJoinedSubtitle(joinedSubtitle);
+}
+
+auto Track::getCard(TrackMedia medium, std::size_t index) -> CardPtr
+{
+    return std::visit(utl::overloaded{[index](const CardPackPtr& cardPack) -> CardPtr {
+                                          return cardPack->getCardAudioByIndex(index).card;
+                                      },
+                                      [index](const VideoPtr& video) -> CardPtr {
+                                          return video->getActiveSubtitle()->getJoinedSubAt(index).card;
+                                      }},
+                      medium);
+}
+
+void Track::setupMedium()
 {
     std::visit(utl::overloaded{[this](const CardPackPtr& cardPack) {
-                                   const auto& cardAudio = cardPack->getCardByIndex(index);
-                                   startTimeStamp = cardAudio.start;
-                                   endTimeStamp = cardAudio.end;
+                                   auto index = card->getIndexInPack();
+                                   const auto& cardAudio = cardPack->getCardAudioByIndex(index);
+                                   setupCardAudio(cardAudio);
                                },
                                [this](const VideoPtr& video) {
-                                   const auto& joinedSub = video->getActiveSubtitle()->getJoinedSubAt(index);
-                                   startTimeStamp = joinedSub.startTimeStamp;
-                                   endTimeStamp = joinedSub.endTimeStamp;
+                                   const auto& joinedSubtitle = video->getActiveSubtitle()->joinedSubtitleFromCard(card);
+                                   setupJoinedSubtitle(joinedSubtitle);
                                }},
                medium);
+}
+
+void Track::setupCardAudio(const CardAudio& cardAudio)
+{
+    startTimeStamp = cardAudio.start;
+    endTimeStamp = cardAudio.end;
+    card = cardAudio.card;
+}
+
+void Track::setupJoinedSubtitle(const JoinedSubtitle& joinedSubtitle)
+{
+    startTimeStamp = joinedSubtitle.startTimeStamp;
+    endTimeStamp = joinedSubtitle.endTimeStamp;
+    card = joinedSubtitle.card;
 }
 
 } // namespace database
