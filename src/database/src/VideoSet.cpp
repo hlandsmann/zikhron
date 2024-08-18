@@ -74,9 +74,9 @@ auto VideoSet::getName() const -> const std::string&
     return name;
 }
 
-auto VideoSet::getVideo() const -> VideoPtr
+auto VideoSet::getVideos() const -> const std::map<PackId, VideoPtr>&
 {
-    return videos.begin()->second;
+  return videos;
 }
 
 void VideoSet::save()

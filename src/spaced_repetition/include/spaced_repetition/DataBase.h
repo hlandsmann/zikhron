@@ -64,6 +64,10 @@ public:
     void triggerVocable(VocableId, CardId);
     void resetCardsContainingVocable(VocableId vocId);
 
+    [[nodiscard]] auto cardExists(CardId cardId) const -> bool;
+    void addCard(CardId cardId);
+    void removeCard(CardId cardId);
+
 private:
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
     void fillIndexMaps();

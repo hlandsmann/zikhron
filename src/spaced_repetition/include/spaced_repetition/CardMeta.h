@@ -5,6 +5,7 @@
 #include <annotation/Ease.h>
 #include <annotation/TokenText.h>
 #include <database/Card.h>
+#include <database/CbdFwd.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -28,7 +29,8 @@ public:
     CardMeta(CardId cardId,
              std::shared_ptr<Card> card,
              std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables);
-    [[nodiscard]] auto Id() const -> CardId;
+    [[nodiscard]] auto getCardId() const -> CardId;
+    [[nodiscard]] auto getCard() const -> database::CardPtr;
     [[nodiscard]] auto VocableIndices() const -> const index_set&;
     [[nodiscard]] auto VocableIds() const -> const vocId_set&;
     [[nodiscard]] auto NewVocableIds() const -> vocId_set;

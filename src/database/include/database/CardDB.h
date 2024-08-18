@@ -35,6 +35,9 @@ public:
     [[nodiscard]] auto getTrackFromCardId(CardId cardId) const -> Track;
     [[nodiscard]] auto getTrackFromVideo(const VideoPtr& video) const -> Track;
 
+    void addCard(const CardPtr& card);
+    void eraseCard(CardId cardId);
+
 private:
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<WordDB> wordDB;

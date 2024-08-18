@@ -33,7 +33,7 @@ public:
              std::shared_ptr<annotation::Tokenizer> tokenizer,
              std::shared_ptr<WordDB> wordDB);
     [[nodiscard]] auto getName() const -> const std::string&;
-    [[nodiscard]] auto getVideo() const -> VideoPtr;
+    [[nodiscard]] auto getVideos() const -> const std::map<PackId, VideoPtr>&;
     void save();
     void saveProgress();
 

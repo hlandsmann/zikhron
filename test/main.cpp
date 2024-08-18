@@ -47,11 +47,11 @@ auto main() -> int
     auto db = injector.create<std::shared_ptr<sr::DataBase>>();
     auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));
     auto& cardMeta = treeWalker->getNextCardChoice();
-    if (cardMeta.Id() == 0) {
+    if (cardMeta.getCardId() == 0) {
         spdlog::info("No card found!");
         return 0;
     }
-    auto cardId = cardMeta.Id();
+    auto cardId = cardMeta.getCardId();
     spdlog::info("show cardId: {}, size: {}", cardId, cardMeta.getRelevantEase().size());
 
     return 0;

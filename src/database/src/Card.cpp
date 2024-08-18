@@ -94,6 +94,16 @@ void Card::setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoic
     tokens = tokenizer->getSplitForChoices(tokenizationChoices, getText(), tokens);
 }
 
+void Card::setActive(bool _active)
+{
+    active = _active;
+}
+
+auto Card::isActive() const -> bool
+{
+    return active;
+}
+
 void Card::executeTokenizer()
 {
     const auto& cardText = getText();
@@ -181,7 +191,7 @@ SubtitleCard::SubtitleCard(std::vector<std::string> content,
 
 auto SubtitleCard::getText() const -> utl::StringU8
 {
-    return utl::concanateStringsU8(joinedSubs);
+    return fmt::format("{}", fmt::join(joinedSubs, " - "));
 }
 
 } // namespace database

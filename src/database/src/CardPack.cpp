@@ -1,8 +1,8 @@
 #include "CardPack.h"
 
 #include "Card.h"
-#include "IdGenerator.h"
 #include "CbdFwd.h"
+#include "IdGenerator.h"
 
 #include <annotation/Tokenizer.h>
 #include <database/WordDB.h>
@@ -145,11 +145,12 @@ void CardPack::deserialize()
         if (!audioFile.empty()) {
             optAudioFile = audioFile;
         }
-
+        auto card = Card::deserializeCard(cardText, cardInit);
+        card->setActive(true);
         cardAudios.push_back({.audioFile = optAudioFile,
-                         .card = Card::deserializeCard(cardText, cardInit),
-                         .start = std::stod(start),
-                         .end = std::stod(end)});
+                              .card = card,
+                              .start = std::stod(start),
+                              .end = std::stod(end)});
         cardInit.cardId = cardIdGenerator->getNext();
         cardInit.indexInPack++;
     }

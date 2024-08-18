@@ -1,17 +1,22 @@
 #include "VideoDB.h"
 
+#include "CbdFwd.h"
 #include "IdGenerator.h"
 #include "VideoSet.h"
 #include "WordDB.h"
 
+#include <Video.h>
 #include <annotation/Tokenizer.h>
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
 
 #include <algorithm>
 #include <filesystem>
+#include <generator>
 #include <iterator>
+#include <map>
 #include <memory>
 #include <set>
 #include <string>
@@ -34,6 +39,21 @@ VideoDB::VideoDB(std::shared_ptr<zikhron::Config> config,
     , videoSetDir{config->DatabaseDirectory() / s_videoSubdirectory}
     , videoSets{loadVideoSets(videoSetDir, packIdGenerator, cardIdGenerator, tokenizer, wordDB)}
 {
+    for (const auto& videoSet : videoSets) {
+        addVideosFromVideoSet(videoSet);
+    }
+}
+
+auto VideoDB::getDeserializedCards() const -> std::generator<CardPtr>
+{
+    for (const auto& videoSet : videoSets) {
+        for (const auto& [_, video] : videoSet->getVideos()) {
+            for (const auto& card : video->getActiveSubtitle()->getDeserializedActiveCards()) {
+                co_yield card;
+            }
+        }
+    }
+    co_return;
 }
 
 auto VideoDB::addVideoSet(const std::vector<std::filesystem::path>& videoFiles) -> VideoSetPtr
@@ -63,6 +83,7 @@ auto VideoDB::addVideoSet(const std::vector<std::filesystem::path>& videoFiles) 
     videoSets.push_back(videoSet);
     videoSet->save();
 
+    addVideosFromVideoSet(videoSet);
     return videoSet;
 }
 
@@ -71,12 +92,18 @@ auto VideoDB::getVideoSets() const -> const std::vector<VideoSetPtr>&
     return videoSets;
 }
 
+auto VideoDB::getVideos() const -> const std::map<PackId, VideoPtr>&
+{
+    return videos;
+}
+
 void VideoDB::save()
 {
-    for (const auto& videoSet : videoSets) {
-        videoSet->save();
-    }
-    spdlog::info("Saved VideoDB");
+    // implement saving videoSets if subtitle choice (or the like) changed
+    // for (const auto& videoSet : videoSets) {
+    //     videoSet->save();
+    // }
+    spdlog::info("Saved VideoDB - nothing to save yet");
 }
 
 void VideoDB::saveProgress()
@@ -111,5 +138,10 @@ auto VideoDB::loadVideoSets(const std::filesystem::path& directory,
                                                             wordDB);
                       });
     return videoSets;
+}
+
+void VideoDB::addVideosFromVideoSet(const VideoSetPtr& videoSet)
+{
+    ranges::copy(videoSet->getVideos(), std::inserter(videos, videos.begin()));
 }
 } // namespace database

@@ -35,7 +35,7 @@ public:
                    std::shared_ptr<CardIdGenerator> cardIdGenerator,
                    std::shared_ptr<annotation::Tokenizer> tokenizer,
                    std::shared_ptr<WordDB> wordDB);
-    auto getActiveCards() -> std::vector<CardPtr>;
+    auto getDeserializedActiveCards() -> std::vector<CardPtr>;
 
     [[nodiscard]] auto isFrontJoinable(const CardPtr& card) const -> bool;
     [[nodiscard]] auto isBackJoinable(const CardPtr& card) const -> bool;
@@ -74,7 +74,7 @@ private:
     std::vector<std::size_t> indices;
     std::vector<std::weak_ptr<SubtitleCard>> cards;
 
-    // std::vector<std::size_t> activeCardIndices;
+    std::vector<std::size_t> deserializedActiveCardIndices;
 };
 
 using SubtitlePickerPtr = std::shared_ptr<SubtitlePicker>;

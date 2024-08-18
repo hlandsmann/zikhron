@@ -50,6 +50,23 @@ SubtitlePicker::SubtitlePicker(std::shared_ptr<Subtitle> _subtitle,
     deserialize();
 }
 
+auto SubtitlePicker::getDeserializedActiveCards() -> std::vector<CardPtr>
+{
+    std::vector<CardPtr> deserializedActiveCards;
+    ranges::transform(deserializedActiveCardIndices,
+                      std::back_inserter(deserializedActiveCards),
+                      [this](std::size_t index) -> CardPtr {
+                          auto joinedSub = createJoinedSubtitle(index, nullptr);
+                          return joinedSub.card;
+                      });
+    for (const auto& [index, card] : views::zip(deserializedActiveCardIndices, deserializedActiveCards)) {
+        card->setActive(true);
+        cards.at(index) = std::dynamic_pointer_cast<SubtitleCard>(card);
+    }
+
+    return deserializedActiveCards;
+}
+
 auto SubtitlePicker::isFrontJoinable(const CardPtr& card) const -> bool
 {
     return card->getIndexInPack() > 0
@@ -177,9 +194,7 @@ auto SubtitlePicker::numberOfCards() -> std::size_t
 auto SubtitlePicker::getJoinedSubAt(std::size_t pos) -> JoinedSubtitle
 {
     setIndices();
-    spdlog::info("get---> pos: {}, size: {}", pos, indices.size());
     auto index = indices.at(pos);
-    spdlog::info("get---> index: {},", index);
     auto card = cards.at(index).lock();
     return createJoinedSubtitle(index, card);
 }
@@ -256,6 +271,13 @@ void SubtitlePicker::deserialize()
         throw std::runtime_error(fmt::format("bad sub progress format, joinings - got: {}, expected: {}, fn: {}",
                                              joinings.size(), subtitle->getSubTexts().size(), progressFile.string()));
     }
+    auto activeSv = getValue(rest, "active");
+    while (!activeSv.empty()) {
+        const auto& active = std::string{utl::split_front(activeSv, ",")};
+        if (!active.empty()) {
+            deserializedActiveCardIndices.push_back(std::stoul(active));
+        }
+    }
 }
 
 auto SubtitlePicker::serialize() const -> std::string
@@ -263,6 +285,15 @@ auto SubtitlePicker::serialize() const -> std::string
     std::string content;
     content += fmt::format("{};version:1.0\n", s_progressType);
     content += fmt::format("joinings:{},\n", fmt::join(joinings, ","));
+
+    std::vector<std::size_t> active;
+    for (const auto& [joining, card] : views::zip(joinings, cards)) {
+        if (joining == 0 || !card.lock() || !card.lock()->isActive()) {
+            continue;
+        }
+        active.push_back(card.lock()->getIndexInPack());
+    }
+    content += fmt::format("active:{},\n", fmt::join(active, ","));
 
     return content;
 }

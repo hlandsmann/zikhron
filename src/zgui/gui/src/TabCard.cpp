@@ -82,7 +82,9 @@ void TabCard::displayOnLayer(widget::Layer& layer)
 void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
 {
     auto cardDB = dataBase->getCardDB();
-    track = cardDB->getTrackFromVideo(videoSet->getVideo());
+    const auto& videos = videoSet->getVideos();
+
+    track = cardDB->getTrackFromVideo(videos.begin()->second);
 
     signalProceed->set(Proceed::nextTrack);
     mode = Mode::story;
@@ -113,13 +115,13 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         case Proceed::walkTree:
             clearStudy(cardLayer, vocableLayer);
             cardMeta = co_await asyncTreeWalker->getNextCardChoice();
-            spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.Id());
-            track = cardDB->getTrackFromCardId(cardMeta.Id());
+            spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.getCardId());
+            track = cardDB->getTrackFromCardId(cardMeta.getCardId());
             loadTrack();
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::submit: {
-            treeWalker->setEaseForCard(cardMeta.Id(), displayVocables->getVocIdEase());
+            treeWalker->setEaseForCard(cardMeta.getCardId(), displayVocables->getVocIdEase());
             if (!track.has_value()) {
                 mode = Mode::shuffle;
                 signalProceed->set(Proceed::walkTree);
@@ -130,13 +132,13 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         case Proceed::nextTrack:
             clearStudy(cardLayer, vocableLayer);
             cardMeta = dataBase->getCardMeta(track->getCard());
-            spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.Id());
+            spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.getCardId());
             loadTrack();
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::reload:
             clearStudy(cardLayer, vocableLayer);
-            cardMeta = dataBase->getCardMeta(cardMeta.Id());
+            cardMeta = dataBase->getCardMeta(cardMeta.getCardId());
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::annotate: {
@@ -158,14 +160,14 @@ auto TabCard::annotationTask(sr::CardMeta& cardMeta,
                              const std::shared_ptr<database::CardDB>& cardDB,
                              std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>
 {
-    auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.Id());
+    auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.getCardId());
     auto tokenText = cardMeta.getStudyTokenText();
     displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlay, alternatives, std::move(tokenText));
     auto tokenizationChoice = co_await *signalAnnotationDone;
     displayAnnotation.reset();
     if (!tokenizationChoice.empty()) {
         auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
-        auto card = cardDB->getCards().at(cardMeta.Id());
+        auto card = cardDB->getCards().at(cardMeta.getCardId());
         tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
         dataBase->reloadCard(card);
 
@@ -237,7 +239,9 @@ void TabCard::setupCardWindow(widget::Window& cardWindow)
 void TabCard::doCardWindow(widget::Window& cardWindow)
 {
     auto droppedWindow = cardWindow.dropWindow();
-    displayVideo->displayOnLayer(cardWindow.getLayer());
+    if (track && track->getTrackType() == database::TrackType::video) {
+        displayVideo->displayOnLayer(cardWindow.getLayer());
+    }
 
     // video->displayTexture();
     // first draw displayVocables to prevent flickering on configuring vocable (vocableOverlay)

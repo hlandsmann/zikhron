@@ -3,6 +3,7 @@
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
 #include <database/Card.h>
+#include <database/CbdFwd.h>
 #include <database/VocableProgress.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Config.h>
@@ -38,9 +39,14 @@ CardMeta::CardMeta(CardId _cardId,
     , vocables{std::move(_vocables)}
 {}
 
-auto CardMeta::Id() const -> CardId
+auto CardMeta::getCardId() const -> CardId
 {
     return cardId;
+}
+
+auto CardMeta::getCard() const -> database::CardPtr
+{
+    return card;
 }
 
 auto CardMeta::VocableIndices() const -> const index_set&

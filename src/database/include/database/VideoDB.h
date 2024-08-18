@@ -1,12 +1,17 @@
 #pragma once
+#include "CbdFwd.h"
 #include "IdGenerator.h"
+#include "Video.h"
 #include "VideoSet.h"
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
 #include <misc/Config.h>
+#include <misc/Identifier.h>
 
 #include <filesystem>
+#include <generator>
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -23,8 +28,10 @@ public:
             std::shared_ptr<CardIdGenerator> cardIdGenerator,
             std::shared_ptr<annotation::Tokenizer> tokenizer,
             std::shared_ptr<WordDB> wordDB);
+    [[nodiscard]] auto getDeserializedCards() const -> std::generator<CardPtr>;
     auto addVideoSet(const std::vector<std::filesystem::path>& videoFiles) -> VideoSetPtr;
     [[nodiscard]] auto getVideoSets() const -> const std::vector<VideoSetPtr>&;
+    [[nodiscard]] auto getVideos() const -> const std::map<PackId, VideoPtr>&;
     void save();
     void saveProgress();
 
@@ -35,6 +42,7 @@ private:
                                             std::shared_ptr<annotation::Tokenizer> tokenizer,
                                             std::shared_ptr<WordDB> wordDB)
             -> std::vector<VideoSetPtr>;
+    void addVideosFromVideoSet(const VideoSetPtr& videoSet);
 
     std::shared_ptr<PackIdGenerator> packIdGenerator;
     std::shared_ptr<CardIdGenerator> cardIdGenerator;
@@ -42,6 +50,7 @@ private:
     std::shared_ptr<WordDB> wordDB;
     std::filesystem::path videoSetDir;
     std::vector<VideoSetPtr> videoSets;
+    std::map<PackId, VideoPtr> videos;
 };
 
 } // namespace database

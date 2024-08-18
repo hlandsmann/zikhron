@@ -106,7 +106,7 @@ auto DataBase::getCardMeta(CardId cardId) -> const CardMeta&
     if (metaCards.contains(cardId)) {
         return metaCards.at_id(cardId).second;
     }
-    if (temporaryCardMeta && temporaryCardMeta->Id() == cardId) {
+    if (temporaryCardMeta && temporaryCardMeta->getCardId() == cardId) {
         return *temporaryCardMeta;
     }
     throw std::runtime_error(fmt::format("Bad Card Id {}", cardId));
@@ -155,6 +155,40 @@ void DataBase::resetCardsContainingVocable(VocableId vocId)
         auto& card = metaCards[card_index];
         card.resetTimingAndVocables();
     }
+}
+
+auto DataBase::cardExists(CardId cardId) const -> bool
+{
+    return metaCards.contains(cardId);
+}
+
+void DataBase::addCard(CardId cardId)
+{
+    if (!temporaryCardMeta || temporaryCardMeta->getCardId() != cardId) {
+        throw std::runtime_error(fmt::format("Failed to add card with cardId: {}", cardId));
+    }
+    metaCards.emplace(cardId, *temporaryCardMeta);
+    const auto& [cardIndex, cardMeta] = metaCards.at_id(cardId);
+    for (const auto& vocableIndex : cardMeta.VocableIndices()) {
+        (*vocables)[vocableIndex].cardIndices_insert(static_cast<std::size_t>(cardIndex));
+    }
+    auto card = cardMeta.getCard();
+    card->setActive(true);
+    cardDB->addCard(card);
+    spdlog::info("Added card with cardId: {}", cardId);
+}
+
+void DataBase::removeCard(CardId cardId)
+{
+    const auto& [cardIndex, cardMeta] = metaCards.at_id(cardId);
+    auto card = cardMeta.getCard();
+    for (const auto& vocableIndex : cardMeta.VocableIndices()) {
+        (*vocables)[vocableIndex].cardIndices_erase(static_cast<std::size_t>(cardIndex));
+    }
+    metaCards[cardIndex] = {};
+
+    card->setActive(false);
+    cardDB->eraseCard(cardId);
 }
 
 auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>

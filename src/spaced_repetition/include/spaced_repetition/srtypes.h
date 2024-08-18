@@ -22,6 +22,6 @@ class CardMeta;
 struct TimingAndVocables
 {
     int timing{};
-    index_set vocables{};
+    index_set vocables;
 };
 } // namespace sr

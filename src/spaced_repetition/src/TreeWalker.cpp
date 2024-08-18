@@ -166,6 +166,9 @@ auto TreeWalker::getNextCardChoice() -> const CardMeta&
 
 void TreeWalker::setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease)
 {
+    if (!db->cardExists(cardId)) {
+        db->addCard(cardId);
+    }
     for (auto [vocId, ease] : id_ease) {
         db->setEaseVocable(vocId, ease);
         db->triggerVocable(vocId, cardId);

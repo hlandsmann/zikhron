@@ -38,7 +38,7 @@ Video::Video(std::string_view sv,
     , wordDB{std::move(_wordDB)}
 {
     deserialize(sv);
-    // createSubtitlePicker();
+    createSubtitlePicker();
 }
 
 Video::Video(std::filesystem::path _videoFile,

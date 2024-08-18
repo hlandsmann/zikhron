@@ -55,6 +55,8 @@ public:
     [[nodiscard]] auto getPackName() const -> std::string;
     [[nodiscard]] auto getIndexInPack() const -> std::size_t;
     void setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoices);
+    void setActive(bool active);
+    [[nodiscard]] auto isActive() const -> bool;
 
 protected:
     void executeTokenizer();
@@ -63,6 +65,7 @@ private:
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
 
     CardId cardId;
+    bool active{false};
 
     std::string packName;
     PackId packId;
@@ -72,6 +75,7 @@ private:
     std::shared_ptr<annotation::Tokenizer> tokenizer;
 
     std::vector<annotation::Token> tokens;
+
 };
 
 class DialogueCard : public Card
@@ -136,7 +140,7 @@ public:
     [[nodiscard]] auto serialize() const -> std::string override { return {}; };
 
 private:
-    [[nodiscard]]  auto getText() const -> utl::StringU8 override;
+    [[nodiscard]] auto getText() const -> utl::StringU8 override;
     std::vector<utl::StringU8> joinedSubs;
 };
 
