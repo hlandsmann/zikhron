@@ -9,8 +9,10 @@
 #include <misc/Identifier.h>
 
 #include <cstddef>
+#include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace database {
@@ -23,6 +25,9 @@ struct JoinedSubtitle
 
 class SubtitlePicker
 {
+    static constexpr std::string_view s_progressType = "subpickprgs";
+    static constexpr std::string_view s_progressExtension = "zpgs";
+
 public:
     SubtitlePicker(std::shared_ptr<Subtitle> subtitle,
                    PackId videoId,
@@ -43,7 +48,7 @@ public:
 
     [[nodiscard]] auto getPrevious(const CardPtr& card) -> JoinedSubtitle;
     [[nodiscard]] auto getNext(const CardPtr& card) -> JoinedSubtitle;
-    [[nodiscard]] auto static hasPrevious(const CardPtr& card)  -> bool;
+    [[nodiscard]] auto static hasPrevious(const CardPtr& card) -> bool;
     [[nodiscard]] auto hasNext(const CardPtr& card) const -> bool;
 
     [[nodiscard]] auto numberOfCards() -> std::size_t;
@@ -53,9 +58,12 @@ public:
     void save();
 
 private:
+    void deserialize();
+    [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] auto createJoinedSubtitle(std::size_t index, const CardPtr& card) -> JoinedSubtitle;
     void setIndices();
     std::shared_ptr<Subtitle> subtitle;
+    std::filesystem::path progressFile;
     PackId videoId;
     std::string videoName;
     std::shared_ptr<CardIdGenerator> cardIdGenerator;

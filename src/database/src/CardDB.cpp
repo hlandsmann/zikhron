@@ -45,6 +45,7 @@ CardDB::CardDB(std::shared_ptr<zikhron::Config> _config,
 void CardDB::save()
 {
     videoDB->save();
+    videoDB->saveProgress();
 }
 
 auto CardDB::getCards() const -> const std::map<CardId, CardPtr>&

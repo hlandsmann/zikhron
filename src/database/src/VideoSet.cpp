@@ -87,6 +87,13 @@ void VideoSet::save()
     out << serialize();
 }
 
+void VideoSet::saveProgress()
+{
+    for (const auto& [_, video] : videos) {
+        video->saveProgress();
+    }
+}
+
 void VideoSet::deserialize()
 {
     auto content = utl::load_string_file(videoSetFile);
@@ -95,7 +102,7 @@ void VideoSet::deserialize()
 
     auto version = getValue(rest, "version");
     if (version != "1.0") {
-        throw std::runtime_error(fmt::format("Only version 1.0 is supported, got: {}", version));
+        throw std::runtime_error(fmt::format("Only version 1.0 is supported, got: {}, fn: {}", version, videoSetFile.string()));
     }
 
     name = getValue(rest, "name");

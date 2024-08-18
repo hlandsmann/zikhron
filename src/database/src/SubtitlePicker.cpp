@@ -3,21 +3,28 @@
 #include "Card.h"
 #include "CbdFwd.h"
 #include "IdGenerator.h"
+#include "ParsingHelpers.h"
 #include "Subtitle.h"
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
+#include <utils/format.h>
+#include <utils/string_split.h>
 
 #include <algorithm>
 #include <cstddef>
+#include <filesystem>
+#include <fstream>
 #include <functional>
 #include <iterator>
 #include <memory>
 #include <ranges>
 #include <span>
+#include <stdexcept>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 namespace ranges = std::ranges;
@@ -31,6 +38,7 @@ SubtitlePicker::SubtitlePicker(std::shared_ptr<Subtitle> _subtitle,
                                std::shared_ptr<annotation::Tokenizer> _tokenizer,
                                std::shared_ptr<WordDB> _wordDB)
     : subtitle{std::move(_subtitle)}
+    , progressFile{subtitle->getFileName().replace_extension(s_progressExtension)}
     , videoId{_videoId}
     , videoName{std::move(_videoName)}
     , cardIdGenerator{std::move(_cardIdGenerator)}
@@ -39,6 +47,7 @@ SubtitlePicker::SubtitlePicker(std::shared_ptr<Subtitle> _subtitle,
     , joinings(subtitle->getSubTexts().size(), 1)
     , cards(subtitle->getSubTexts().size(), std::weak_ptr<SubtitleCard>{})
 {
+    deserialize();
 }
 
 auto SubtitlePicker::isFrontJoinable(const CardPtr& card) const -> bool
@@ -142,7 +151,7 @@ auto SubtitlePicker::getNext(const CardPtr& card) -> JoinedSubtitle
     return createJoinedSubtitle(nextIndex, nextCard);
 }
 
-auto SubtitlePicker::hasPrevious(const CardPtr& card)  -> bool
+auto SubtitlePicker::hasPrevious(const CardPtr& card) -> bool
 {
     auto index = card->getIndexInPack();
     return index > 0;
@@ -168,7 +177,9 @@ auto SubtitlePicker::numberOfCards() -> std::size_t
 auto SubtitlePicker::getJoinedSubAt(std::size_t pos) -> JoinedSubtitle
 {
     setIndices();
+    spdlog::info("get---> pos: {}, size: {}", pos, indices.size());
     auto index = indices.at(pos);
+    spdlog::info("get---> index: {},", index);
     auto card = cards.at(index).lock();
     return createJoinedSubtitle(index, card);
 }
@@ -217,6 +228,43 @@ auto SubtitlePicker::joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtit
 
 void SubtitlePicker::save()
 {
+    spdlog::info("save subtitlePicker: {}", progressFile.string());
+    auto out = std::ofstream{progressFile};
+    out << serialize();
+}
+
+void SubtitlePicker::deserialize()
+{
+    if (!std::filesystem::exists(progressFile)) {
+        return;
+    }
+    auto content = utl::load_string_file(progressFile);
+    auto rest = std::string_view{content};
+    verifyFileType(rest, s_progressType);
+
+    auto version = getValue(rest, "version");
+    if (version != "1.0") {
+        throw std::runtime_error(fmt::format("Only version 1.0 is supported, got: {}, fn: {}", version, progressFile.string()));
+    }
+
+    joinings.clear();
+    auto joiningsSv = getValue(rest, "joinings");
+    while (!joiningsSv.empty()) {
+        joinings.push_back(std::stoul(std::string{utl::split_front(joiningsSv, ",")}));
+    }
+    if (joinings.size() != subtitle->getSubTexts().size()) {
+        throw std::runtime_error(fmt::format("bad sub progress format, joinings - got: {}, expected: {}, fn: {}",
+                                             joinings.size(), subtitle->getSubTexts().size(), progressFile.string()));
+    }
+}
+
+auto SubtitlePicker::serialize() const -> std::string
+{
+    std::string content;
+    content += fmt::format("{};version:1.0\n", s_progressType);
+    content += fmt::format("joinings:{},\n", fmt::join(joinings, ","));
+
+    return content;
 }
 
 void SubtitlePicker::setIndices()

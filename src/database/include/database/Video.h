@@ -36,9 +36,11 @@ public:
     void loadSubtitles();
     [[nodiscard]] auto getVideoFile() const -> const std::filesystem::path&;
     [[nodiscard]] auto getActiveSubtitle() -> SubtitlePickerPtr;
+    void saveProgress();
 
 private:
     void deserialize(std::string_view content);
+    void createSubtitlePicker();
     std::filesystem::path videoSetFile;
     std::filesystem::path videoFile;
     std::string name;

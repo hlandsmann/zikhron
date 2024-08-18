@@ -26,6 +26,7 @@ public:
     auto addVideoSet(const std::vector<std::filesystem::path>& videoFiles) -> VideoSetPtr;
     [[nodiscard]] auto getVideoSets() const -> const std::vector<VideoSetPtr>&;
     void save();
+    void saveProgress();
 
 private:
     [[nodiscard]] static auto loadVideoSets(const std::filesystem::path& directory,

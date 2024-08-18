@@ -38,6 +38,7 @@ Video::Video(std::string_view sv,
     , wordDB{std::move(_wordDB)}
 {
     deserialize(sv);
+    // createSubtitlePicker();
 }
 
 Video::Video(std::filesystem::path _videoFile,
@@ -107,16 +108,8 @@ void Video::loadSubtitles()
     }
 }
 
-auto Video::getVideoFile() const -> const std::filesystem::path&
+void Video::createSubtitlePicker()
 {
-    return videoFile;
-}
-
-auto Video::getActiveSubtitle() -> SubtitlePickerPtr
-{
-    if (subtitlePicker != nullptr) {
-        return subtitlePicker;
-    }
     auto chosenSubtitle = subtitles.empty() ? std::shared_ptr<Subtitle>{nullptr}
                                             : subtitles.at(subChoice);
     subtitlePicker = std::make_shared<SubtitlePicker>(chosenSubtitle,
@@ -125,6 +118,26 @@ auto Video::getActiveSubtitle() -> SubtitlePickerPtr
                                                       cardIdGenerator,
                                                       tokenizer,
                                                       wordDB);
+}
+
+auto Video::getVideoFile() const -> const std::filesystem::path&
+{
+    return videoFile;
+}
+
+void Video::saveProgress()
+{
+    if (subtitlePicker != nullptr) {
+        subtitlePicker->save();
+    }
+}
+
+auto Video::getActiveSubtitle() -> SubtitlePickerPtr
+{
+    if (subtitlePicker != nullptr) {
+        return subtitlePicker;
+    }
+    createSubtitlePicker();
     return subtitlePicker;
 }
 

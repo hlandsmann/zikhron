@@ -35,6 +35,7 @@ public:
     [[nodiscard]] auto getName() const -> const std::string&;
     [[nodiscard]] auto getVideo() const -> VideoPtr;
     void save();
+    void saveProgress();
 
 private:
     void deserialize();

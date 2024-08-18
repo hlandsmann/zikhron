@@ -79,6 +79,14 @@ void VideoDB::save()
     spdlog::info("Saved VideoDB");
 }
 
+void VideoDB::saveProgress()
+{
+    for (const auto& videoSet : videoSets) {
+        videoSet->saveProgress();
+    }
+    spdlog::info("Saved progress videoDB");
+}
+
 auto VideoDB::loadVideoSets(const std::filesystem::path& directory,
                             const std::shared_ptr<PackIdGenerator>& packIdGenerator,
                             const std::shared_ptr<CardIdGenerator>& cardIdGenerator,
