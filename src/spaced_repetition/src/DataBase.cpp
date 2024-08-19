@@ -83,33 +83,21 @@ auto DataBase::getWordDB() const -> std::shared_ptr<WordDB>
     return wordDB;
 }
 
-auto DataBase::getCardMeta(const database::CardPtr& card) -> const CardMeta&
+auto DataBase::getCardMeta(const database::CardPtr& card) -> CardMeta
 {
     auto cardId = card->getCardId();
-    if (metaCards.contains(cardId)) {
+    if (cardExists(cardId)) {
         return metaCards.at_id(cardId).second;
     }
-    temporaryCardMeta = std::make_shared<CardMeta>(cardId, card, vocables);
-    for (VocableId vocId : temporaryCardMeta->VocableIds()) {
+    auto cardMeta = CardMeta{cardId, card, vocables};
+    for (VocableId vocId : cardMeta.VocableIds()) {
         if (vocables->contains(vocId)) {
             continue;
         }
-
         const auto& word = wordDB->lookupId(vocId);
         vocables->emplace(word->getId(), word->getProgress());
     }
-    return *temporaryCardMeta;
-}
-
-auto DataBase::getCardMeta(CardId cardId) -> const CardMeta&
-{
-    if (metaCards.contains(cardId)) {
-        return metaCards.at_id(cardId).second;
-    }
-    if (temporaryCardMeta && temporaryCardMeta->getCardId() == cardId) {
-        return *temporaryCardMeta;
-    }
-    throw std::runtime_error(fmt::format("Bad Card Id {}", cardId));
+    return cardMeta;
 }
 
 void DataBase::reloadCard(const database::CardPtr& card)
@@ -159,20 +147,17 @@ void DataBase::resetCardsContainingVocable(VocableId vocId)
 
 auto DataBase::cardExists(CardId cardId) const -> bool
 {
-    return metaCards.contains(cardId);
+    return metaCards.contains(cardId) && metaCards.at_id(cardId).second.isValid();
 }
 
-void DataBase::addCard(CardId cardId)
+void DataBase::addCard(const database::CardPtr& card)
 {
-    if (!temporaryCardMeta || temporaryCardMeta->getCardId() != cardId) {
-        throw std::runtime_error(fmt::format("Failed to add card with cardId: {}", cardId));
-    }
-    metaCards.emplace(cardId, *temporaryCardMeta);
+    auto cardId = card->getCardId();
+    metaCards.emplace(cardId, cardId, card, vocables);
     const auto& [cardIndex, cardMeta] = metaCards.at_id(cardId);
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
         (*vocables)[vocableIndex].cardIndices_insert(static_cast<std::size_t>(cardIndex));
     }
-    auto card = cardMeta.getCard();
     card->setActive(true);
     cardDB->addCard(card);
     spdlog::info("Added card with cardId: {}", cardId);

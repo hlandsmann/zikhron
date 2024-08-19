@@ -121,7 +121,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::submit: {
-            treeWalker->setEaseForCard(cardMeta.getCardId(), displayVocables->getVocIdEase());
+            treeWalker->setEaseForCard(cardMeta.getCard(), displayVocables->getVocIdEase());
             if (!track.has_value()) {
                 mode = Mode::shuffle;
                 signalProceed->set(Proceed::walkTree);
@@ -138,7 +138,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             break;
         case Proceed::reload:
             clearStudy(cardLayer, vocableLayer);
-            cardMeta = dataBase->getCardMeta(cardMeta.getCardId());
+            cardMeta = dataBase->getCardMeta(cardMeta.getCard());
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::annotate: {
@@ -296,7 +296,6 @@ void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
                                                                   Image::media_playback_pause});
     // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
     ctrlBox.add<widget::MediaSlider>(Align::start);
-    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
 
     setupCtrlBoxRight(ctrlBox);
 }
@@ -306,7 +305,6 @@ void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
     ctrlBox.start();
     auto& btnPlay = ctrlBox.next<widget::ImageButton>();
     auto& sliderProgress = ctrlBox.next<widget::MediaSlider>();
-    ctrlBox.next<widget::Separator>();
 
     handlePlayback(btnPlay, sliderProgress);
 
@@ -336,6 +334,11 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_add_prev);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_add_next);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_cut_next);
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::object_select);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::object_unselect);
+
     setupCtrlBoxRight(ctrlBox);
 }
 
@@ -344,6 +347,7 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.start();
     auto& btnPlay = ctrlBox.next<widget::ImageButton>();
     auto& sliderProgress = ctrlBox.next<widget::MediaSlider>();
+    handlePlayback(btnPlay, sliderProgress);
 
     ctrlBox.next<widget::Separator>();
     auto& btnPlayMode = ctrlBox.next<widget::ImageButton>();
@@ -359,7 +363,10 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
                     btnAddNext,
                     btnCutNext);
 
-    handlePlayback(btnPlay, sliderProgress);
+    ctrlBox.next<widget::Separator>();
+    auto& btnSelect = ctrlBox.next<widget::ImageButton>();
+    auto& btnUnselect = ctrlBox.next<widget::ImageButton>();
+    handleSelection(btnSelect, btnUnselect);
 
     doCtrlBoxRight(ctrlBox);
 }
@@ -368,6 +375,9 @@ void TabCard::setupCtrlBoxRight(widget::Box& ctrlBox)
 {
     using namespace widget::layout;
     using context::Image;
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+
     auto& layer = *ctrlBox.add<widget::Layer>(Align::end);
     layer.setExpandType(width_fixed, height_adapt);
 
@@ -393,6 +403,7 @@ void TabCard::setupCtrlBoxRight(widget::Box& ctrlBox)
 
 void TabCard::doCtrlBoxRight(widget::Box& ctrlBox)
 {
+    ctrlBox.next<widget::Separator>();
     auto& layer = ctrlBox.next<widget::Layer>();
     layer.start();
 
@@ -564,12 +575,30 @@ void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
     }
 }
 
+void TabCard::handleSelection(widget::ImageButton& btnSelect,
+                              widget::ImageButton& btnUnselect)
+{
+    if (!track) {
+        return;
+    }
+    auto card = track->getCard();
+    auto cardId = card->getCardId();
+    btnSelect.setSensitive(!dataBase->cardExists(cardId));
+    btnUnselect.setSensitive(dataBase->cardExists(cardId));
+    if (btnSelect.clicked()) {
+        dataBase->addCard(card);
+    }
+    if (btnUnselect.clicked()) {
+        dataBase->removeCard(cardId);
+    }
+}
+
 void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                  widget::ImageButton& btnPrevious,
                                  widget::ImageButton& btnFollowing,
                                  widget::ImageButton& btnLast)
 {
-    if (!track.has_value()
+    if (!track
         || (!track->hasNext()
             && !track->hasPrevious())) {
         return;

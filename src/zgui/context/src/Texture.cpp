@@ -84,6 +84,8 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::circle_forward] = loadTextureFromFile(circle_forward);
     textureMap[Image::circle_play] = loadTextureFromFile(circle_play);
     textureMap[Image::circle_stop] = loadTextureFromFile(circle_stop);
+    textureMap[Image::object_select] = loadTextureFromFile(object_select);
+    textureMap[Image::object_unselect] = loadTextureFromFile(object_unselect);
     return textureMap;
 }
 } // namespace context

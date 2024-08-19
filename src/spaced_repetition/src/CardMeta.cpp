@@ -39,6 +39,11 @@ CardMeta::CardMeta(CardId _cardId,
     , vocables{std::move(_vocables)}
 {}
 
+auto CardMeta::isValid() const -> bool
+{
+    return card != nullptr;
+}
+
 auto CardMeta::getCardId() const -> CardId
 {
     return cardId;

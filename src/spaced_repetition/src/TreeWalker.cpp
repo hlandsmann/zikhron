@@ -3,6 +3,7 @@
 #include <ITreeWalker.h>
 #include <annotation/Ease.h>
 #include <bits/ranges_algo.h>
+#include <database/CbdFwd.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -164,10 +165,11 @@ auto TreeWalker::getNextCardChoice() -> const CardMeta&
     return db->MetaCards()[cardIndex];
 }
 
-void TreeWalker::setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease)
+void TreeWalker::setEaseForCard(database::CardPtr card, const Id_Ease_vt& id_ease)
 {
+    auto cardId = card->getCardId();
     if (!db->cardExists(cardId)) {
-        db->addCard(cardId);
+        db->addCard(card);
     }
     for (auto [vocId, ease] : id_ease) {
         db->setEaseVocable(vocId, ease);

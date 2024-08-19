@@ -6,6 +6,7 @@
 #include "srtypes.h"
 
 #include <annotation/Ease.h>
+#include <database/CbdFwd.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 
@@ -31,7 +32,7 @@ public:
     ~TreeWalker() override = default;
 
     using Id_Ease_vt = ITreeWalker::Id_Ease_vt;
-    void setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease) override;
+    void setEaseForCard(database::CardPtr cardId, const Id_Ease_vt& id_ease) override;
     auto getNextCardChoice() -> const CardMeta& override;
 
 private:

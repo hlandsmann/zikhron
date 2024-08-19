@@ -114,6 +114,8 @@ private:
                          widget::ImageButton& btnAddPrev,
                          widget::ImageButton& btnAddNext,
                          widget::ImageButton& btnCutNext);
+    void handleSelection(widget::ImageButton& btnSelect,
+                         widget::ImageButton& btnUnselect);
     void handleNextPrevious(widget::ImageButton& btnFirst,
                             widget::ImageButton& btnPrevious,
                             widget::ImageButton& btnFollowing,

@@ -34,6 +34,7 @@ class DataBase
     using CardPackDB = database::CardPackDB;
     using VideoDB = database::VideoDB;
     using TokenizationChoiceDB = database::TokenizationChoiceDB;
+    using CardPtr = database::CardPtr;
 
 public:
     using CharacterSequence = database::Card::CharacterSequence;
@@ -56,8 +57,7 @@ public:
     [[nodiscard]] auto getCardDB() const -> std::shared_ptr<CardDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
 
-    [[nodiscard]] auto getCardMeta(const database::CardPtr& card) -> const CardMeta&;
-    [[nodiscard]] auto getCardMeta(CardId cardId) -> const CardMeta&;
+    [[nodiscard]] auto getCardMeta(const database::CardPtr& card) -> CardMeta;
     void reloadCard(const database::CardPtr& card);
 
     void setEaseVocable(VocableId, const Ease&);
@@ -65,7 +65,7 @@ public:
     void resetCardsContainingVocable(VocableId vocId);
 
     [[nodiscard]] auto cardExists(CardId cardId) const -> bool;
-    void addCard(CardId cardId);
+    void addCard(const CardPtr& card);
     void removeCard(CardId cardId);
 
 private:
@@ -81,7 +81,5 @@ private:
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
     utl::index_map<CardId, CardMeta> metaCards;
-
-    std::shared_ptr<CardMeta> temporaryCardMeta;
 };
 } // namespace sr

@@ -3,6 +3,7 @@
 #include "DataBase.h"
 
 #include <annotation/Ease.h>
+#include <database/CbdFwd.h>
 #include <misc/Identifier.h>
 
 #include <map>
@@ -22,7 +23,7 @@ public:
     auto operator=(ITreeWalker&& other) noexcept -> ITreeWalker& = delete;
 
     using Id_Ease_vt = std::map<VocableId, Ease>;
-    virtual void setEaseForCard(CardId cardId, const Id_Ease_vt& id_ease) = 0;
+    virtual void setEaseForCard(database::CardPtr cardId, const Id_Ease_vt& id_ease) = 0;
     virtual auto getNextCardChoice() -> const CardMeta& = 0;
 
     static auto createTreeWalker(std::shared_ptr<DataBase>) -> std::unique_ptr<ITreeWalker>;

@@ -29,6 +29,7 @@ public:
     CardMeta(CardId cardId,
              std::shared_ptr<Card> card,
              std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables);
+    [[nodiscard]] auto isValid() const -> bool;
     [[nodiscard]] auto getCardId() const -> CardId;
     [[nodiscard]] auto getCard() const -> database::CardPtr;
     [[nodiscard]] auto VocableIndices() const -> const index_set&;

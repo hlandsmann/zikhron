@@ -93,7 +93,7 @@ auto SubtitlePicker::joinFront(const CardPtr& card) -> JoinedSubtitle
     auto newCount = std::exchange(joinings.at(card->getIndexInPack()), 0) + 1;
     auto newIndex = card->getIndexInPack() - 1;
     joinings.at(newIndex) = newCount;
-    cards.at(card->getIndexInPack()) = {};
+    removeCardAtIndex(card->getIndexInPack());
 
     indices.clear();
     return createJoinedSubtitle(newIndex, nullptr);
@@ -107,7 +107,7 @@ auto SubtitlePicker::joinBack(const CardPtr& card) -> JoinedSubtitle
     auto index = card->getIndexInPack();
     auto& count = joinings.at(index);
     joinings.at(index + count) = 0;
-    cards.at(index + count) = {};
+    removeCardAtIndex(index + count);
     count++;
 
     indices.clear();
@@ -122,7 +122,7 @@ auto SubtitlePicker::cutFront(const CardPtr& card) -> JoinedSubtitle
     auto newCount = std::exchange(joinings.at(card->getIndexInPack()), 1) - 1;
     auto newIndex = card->getIndexInPack() + 1;
     joinings.at(newIndex) = newCount;
-    cards.at(card->getIndexInPack()) = {};
+    removeCardAtIndex(card->getIndexInPack());
 
     indices.clear();
     return createJoinedSubtitle(newIndex, nullptr);
@@ -227,6 +227,7 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
         ranges::transform(subtitleSpan, std::back_inserter(cardContent), &SubText::text);
 
         newCard = std::make_shared<SubtitleCard>(std::move(cardContent), cardInit);
+        removeCardAtIndex(index);
         cards.at(index) = newCard;
     }
 
@@ -309,5 +310,13 @@ void SubtitlePicker::setIndices()
             indices.push_back(static_cast<std::size_t>(i));
         }
     }
+}
+
+void SubtitlePicker::removeCardAtIndex(std::size_t index)
+{
+    if (auto card = cards.at(index).lock()) {
+        card->setActive(false);
+    }
+    cards.at(index) = {};
 }
 } // namespace database

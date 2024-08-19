@@ -62,6 +62,7 @@ private:
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] auto createJoinedSubtitle(std::size_t index, const CardPtr& card) -> JoinedSubtitle;
     void setIndices();
+    void removeCardAtIndex(std::size_t index);
     std::shared_ptr<Subtitle> subtitle;
     std::filesystem::path progressFile;
     PackId videoId;
