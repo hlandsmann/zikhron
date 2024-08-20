@@ -41,10 +41,10 @@ public:
     [[nodiscard]] auto isBackJoinable() const -> bool;
     [[nodiscard]] auto isSeparable() const -> bool;
 
-    [[nodiscard]] auto joinFront() -> std::optional<Track>;
-    [[nodiscard]] auto joinBack() -> std::optional<Track>;
-    [[nodiscard]] auto cutFront() -> std::optional<Track>;
-    [[nodiscard]] auto cutBack() -> std::optional<Track>;
+    [[nodiscard]] auto joinFront()const -> Track;
+    [[nodiscard]] auto joinBack()const -> Track;
+    [[nodiscard]] auto cutFront()const -> Track;
+    [[nodiscard]] auto cutBack()const -> Track;
 
     [[nodiscard]] auto getCard() const -> CardPtr;
     [[nodiscard]] auto getTrackType() const -> TrackType;
@@ -53,8 +53,15 @@ public:
     [[nodiscard]] auto getStartTimeStamp() const -> double;
     [[nodiscard]] auto getEndTimeStamp() const -> double;
 
+    [[nodiscard]] auto getSubtitlePrefix() -> Track;
+    [[nodiscard]] auto getNonPrefixDefault() -> Track;
+    [[nodiscard]] auto isSubtitlePrefix() const -> bool;
+
 private:
-    Track(TrackMedia medium,  const JoinedSubtitle& joinedSubtitle);
+    Track(TrackMedia medium, const JoinedSubtitle& joinedSubtitle);
+
+    // Prefix ctor
+    Track(TrackMedia medium,  CardPtr card, double startTimeStamp, double endTimeStamp);
 
     static auto getCard(TrackMedia medium, std::size_t index) -> CardPtr;
     void setupMedium();
@@ -64,5 +71,7 @@ private:
     CardPtr card;
     double startTimeStamp{};
     double endTimeStamp{};
+
+    bool isPrefixToSubtitle{false};
 };
 } // namespace database

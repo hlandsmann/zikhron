@@ -138,36 +138,36 @@ auto Track::isSeparable() const -> bool
                       medium);
 }
 
-auto Track::joinFront() -> std::optional<Track>
+auto Track::joinFront() const -> Track
 {
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     auto joinedSubtitle = subtitlePicker->joinFront(card);
-    return {{medium, joinedSubtitle}};
+    return {medium, joinedSubtitle};
 }
 
-auto Track::joinBack() -> std::optional<Track>
+auto Track::joinBack() const -> Track
 {
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     auto joinedSubtitle = subtitlePicker->joinBack(card);
-    return {{medium, joinedSubtitle}};
+    return {medium, joinedSubtitle};
 }
 
-auto Track::cutFront() -> std::optional<Track>
+auto Track::cutFront() const -> Track
 {
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     auto joinedSubtitle = subtitlePicker->cutFront(card);
-    return {{medium, joinedSubtitle}};
+    return {medium, joinedSubtitle};
 }
 
-auto Track::cutBack() -> std::optional<Track>
+auto Track::cutBack() const -> Track
 {
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     auto joinedSubtitle = subtitlePicker->cutBack(card);
-    return {{medium, joinedSubtitle}};
+    return {medium, joinedSubtitle};
 }
 
 auto Track::getCard() const -> CardPtr
@@ -208,11 +208,44 @@ auto Track::getEndTimeStamp() const -> double
     return endTimeStamp;
 }
 
+auto Track::getSubtitlePrefix() -> Track
+{
+    const auto& video = std::get<VideoPtr>(medium);
+    auto subtitlePicker = video->getActiveSubtitle();
+    double newStartTime{0.0F};
+    double newEndTime{startTimeStamp};
+    if (subtitlePicker->hasPrevious(card)) {
+        auto previousJoinedSubtitle = subtitlePicker->getPrevious(card);
+        newStartTime = previousJoinedSubtitle.endTimeStamp;
+    }
+
+    return {medium, card, newStartTime, newEndTime};
+}
+
+auto Track::getNonPrefixDefault() -> Track
+{
+    return {medium, card};
+}
+
+auto Track::isSubtitlePrefix() const -> bool
+{
+    return isPrefixToSubtitle;
+}
+
 Track::Track(TrackMedia _medium, const JoinedSubtitle& joinedSubtitle)
     : medium{std::move(_medium)}
 {
     setupJoinedSubtitle(joinedSubtitle);
 }
+
+// Prefix ctor
+Track::Track(TrackMedia _medium, CardPtr _card, double _startTimeStamp, double _endTimeStamp)
+    : medium{std::move(_medium)}
+    , card{std::move(_card)}
+    , startTimeStamp{_startTimeStamp}
+    , endTimeStamp{_endTimeStamp}
+    , isPrefixToSubtitle{true}
+{}
 
 auto Track::getCard(TrackMedia medium, std::size_t index) -> CardPtr
 {
@@ -220,7 +253,7 @@ auto Track::getCard(TrackMedia medium, std::size_t index) -> CardPtr
                                           return cardPack->getCardAudioByIndex(index).card;
                                       },
                                       [index](const VideoPtr& video) -> CardPtr {
-                                          return video->getActiveSubtitle()->getJoinedSubAt(index).card;
+                                          return video->getActiveSubtitle()->getJoinedSubAtPosition(index).card;
                                       }},
                       medium);
 }

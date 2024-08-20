@@ -193,7 +193,11 @@ void DataBase::fillIndexMaps()
     vocId_set allVocableIds;
     const std::map<CardId, database::CardPtr>& cards = cardDB->getCards();
     for (const auto& [cardId, choices] : tokenizationChoiceDB->getChoicesForCards()) {
+        if (!cards.contains(cardId)) {
+            continue;
+        }
         const auto& cardPtr = cards.at(cardId);
+
         cardPtr->setTokenizationChoices(choices);
     }
     for (const auto& [id, card] : cards) {

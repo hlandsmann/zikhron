@@ -13,6 +13,7 @@
 #include <generator>
 #include <map>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace database {
@@ -32,6 +33,7 @@ public:
     auto addVideoSet(const std::vector<std::filesystem::path>& videoFiles) -> VideoSetPtr;
     [[nodiscard]] auto getVideoSets() const -> const std::vector<VideoSetPtr>&;
     [[nodiscard]] auto getVideos() const -> const std::map<PackId, VideoPtr>&;
+    [[nodiscard]] auto getVideo(const std::string& videoName) const -> VideoPtr;
     void save();
     void saveProgress();
 
@@ -51,6 +53,7 @@ private:
     std::filesystem::path videoSetDir;
     std::vector<VideoSetPtr> videoSets;
     std::map<PackId, VideoPtr> videos;
+    std::map<std::string /* name */, VideoPtr> nameToVideos;
 };
 
 } // namespace database

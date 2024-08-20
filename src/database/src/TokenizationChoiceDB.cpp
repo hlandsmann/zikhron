@@ -2,6 +2,7 @@
 
 #include <database/CardPackDB.h>
 #include <database/CbdFwd.h>
+#include <database/VideoDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
@@ -10,6 +11,7 @@
 #include <utils/string_split.h>
 
 #include <algorithm>
+#include <exception>
 #include <filesystem>
 #include <fstream>
 #include <iterator>
@@ -25,23 +27,45 @@ namespace ranges = std::ranges;
 
 namespace database {
 TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config,
-                                           const std::shared_ptr<database::CardPackDB>& cardPackDB)
+                                           const std::shared_ptr<database::CardPackDB>& cardPackDB,
+                                           const std::shared_ptr<database::VideoDB>& videoDB)
     : dbFile{config->DatabaseDirectory() / s_tokenizationChoiceDBFile}
     , choices{deserialize(dbFile)}
 {
-    syncIdsWithCardPackDB(*cardPackDB);
+    syncIdsWithCardPackDB(*cardPackDB, *videoDB);
 }
 
-void TokenizationChoiceDB::syncIdsWithCardPackDB(const database::CardPackDB& cardPackDB)
+void TokenizationChoiceDB::syncIdsWithCardPackDB(const CardPackDB& cardPackDB, const database::VideoDB& videoDB)
 {
     for (const auto& tokenizationChoicePosition : choices) {
         const auto& choice = tokenizationChoicePosition.tokenizationChoice;
         for (const auto& [packName, indicesInPack] : tokenizationChoicePosition.packPositions) {
-            const auto& pack = cardPackDB.getCardPack(packName);
-            for (const auto indexInPack : indicesInPack) {
-                const auto& card = pack->getCardAudioByIndex(indexInPack);
-                choicesForCards[card.card->getCardId()].push_back(choice);
+            std::string audioError;
+            std::string videoError;
+            try {
+                const auto& pack = cardPackDB.getCardPack(packName);
+                for (const auto indexInPack : indicesInPack) {
+                    const auto& cardAudio = pack->getCardAudioByIndex(indexInPack);
+                    choicesForCards[cardAudio.card->getCardId()].push_back(choice);
+                }
+                continue;
+            } catch (const std::exception& e) {
+                audioError = e.what();
             }
+            try {
+                const auto& video = videoDB.getVideo(packName);
+                const auto& subs = video->getActiveSubtitle();
+                for (const auto indexInPack : indicesInPack) {
+                    const auto& joinedSub = subs->getJoinedSubAtIndex(indexInPack);
+                    choicesForCards[joinedSub.card->getCardId()].push_back(choice);
+                }
+                continue;
+            } catch (const std::exception& e) {
+                videoError = e.what();
+            }
+            spdlog::error("Tokenization: pack {} not found", packName);
+            spdlog::error("AudioPack error: {}", audioError);
+            spdlog::error("Video error: {}", videoError);
         }
     }
 }

@@ -8,10 +8,13 @@
 #include <spdlog/spdlog.h>
 
 #include <boost/di.hpp>
+#include <exception>
 #include <filesystem>
+#include <iostream>
 #include <kocoro/kocoro.hpp>
 #include <memory>
 #include <optional>
+#include <stacktrace>
 #include <utility>
 
 namespace fs = std::filesystem;
@@ -65,8 +68,14 @@ auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
         auto injector = boost::di::make_injector(
                 boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()));
 
-        auto db = injector.create<std::shared_ptr<DataBase>>();
-        return db;
+        try {
+            auto db = injector.create<std::shared_ptr<DataBase>>();
+            return db;
+        } catch (const std::exception& e) {
+            std::cout << std::stacktrace::current();
+            spdlog::critical("async, exception: {}", e.what());
+            std::terminate();
+        }
     });
 
     DataBasePtr dbPtr = co_await *asyncDataBase;

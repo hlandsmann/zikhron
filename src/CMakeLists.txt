@@ -38,6 +38,7 @@ target_sources(zikhron
 target_link_libraries(zikhron
     PRIVATE
         ${OPENGL_LIBRARIES}
+        stdc++exp
         Boost.DI
         epoxy
         glfw

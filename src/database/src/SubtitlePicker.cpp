@@ -34,18 +34,18 @@ namespace database {
 SubtitlePicker::SubtitlePicker(std::shared_ptr<Subtitle> _subtitle,
                                PackId _videoId,
                                std::string _videoName,
-                               std::shared_ptr<CardIdGenerator> _cardIdGenerator,
+                               const std::shared_ptr<CardIdGenerator>& cardIdGenerator,
                                std::shared_ptr<annotation::Tokenizer> _tokenizer,
                                std::shared_ptr<WordDB> _wordDB)
     : subtitle{std::move(_subtitle)}
     , progressFile{subtitle->getFileName().replace_extension(s_progressExtension)}
     , videoId{_videoId}
     , videoName{std::move(_videoName)}
-    , cardIdGenerator{std::move(_cardIdGenerator)}
     , tokenizer{std::move(_tokenizer)}
     , wordDB{std::move(_wordDB)}
     , joinings(subtitle->getSubTexts().size(), 1)
     , cards(subtitle->getSubTexts().size(), std::weak_ptr<SubtitleCard>{})
+    , cardIds{genCardIds(cardIdGenerator, subtitle->getSubTexts().size())}
 {
     deserialize();
 }
@@ -191,7 +191,7 @@ auto SubtitlePicker::numberOfCards() -> std::size_t
     return indices.size();
 }
 
-auto SubtitlePicker::getJoinedSubAt(std::size_t pos) -> JoinedSubtitle
+auto SubtitlePicker::getJoinedSubAtPosition(std::size_t pos) -> JoinedSubtitle
 {
     setIndices();
     auto index = indices.at(pos);
@@ -214,9 +214,8 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
 
     auto newCard = std::dynamic_pointer_cast<SubtitleCard>(card);
     if (newCard == nullptr) {
-        spdlog::info("ncid: {}", cardIdGenerator->getNext());
         auto cardInit = CardInit{
-                .cardId = cardIdGenerator->getNext(),
+                .cardId = cardIds.at(index),
                 .packName = videoName,
                 .packId = videoId,
                 .indexInPack = index,
@@ -234,6 +233,18 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
     return {.card = newCard,
             .startTimeStamp = static_cast<double>(startTime) / 1000.,
             .endTimeStamp = static_cast<double>(endTime) / 1000.};
+}
+
+auto SubtitlePicker::getJoinedSubAtIndex(std::size_t index) -> JoinedSubtitle
+{
+    auto rfirst = std::reverse_iterator{std::next(joinings.begin(), static_cast<long>(index + 1))};
+    auto prevIt = std::find_if(rfirst, joinings.rend(), [](const std::size_t joining) { return joining != 0; });
+    if (prevIt == joinings.rend()) {
+        throw std::runtime_error(fmt::format("No joined sub at index: {} found for sub: {}", index, videoName));
+    }
+    auto nextIndex = joinings.size() - static_cast<std::size_t>(std::distance(joinings.rbegin(), prevIt)) - 1;
+    auto nextCard = cards.at(nextIndex).lock();
+    return createJoinedSubtitle(nextIndex, nextCard);
 }
 
 auto SubtitlePicker::joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtitle
@@ -318,5 +329,13 @@ void SubtitlePicker::removeCardAtIndex(std::size_t index)
         card->setActive(false);
     }
     cards.at(index) = {};
+}
+
+auto SubtitlePicker::genCardIds(const std::shared_ptr<CardIdGenerator>& cardIdGenerator,
+                                std::size_t size) -> std::vector<CardId>
+{
+    std::vector<CardId> cardIds;
+    std::generate_n(std::back_inserter(cardIds), size, [cardIdGenerator]() -> CardId { return cardIdGenerator->getNext(); });
+    return cardIds;
 }
 } // namespace database

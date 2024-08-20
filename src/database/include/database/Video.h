@@ -33,12 +33,13 @@ public:
           std::shared_ptr<annotation::Tokenizer> tokenizer,
           std::shared_ptr<WordDB> wordDB);
     [[nodiscard]] auto serialize() const -> std::string;
-    void loadSubtitles();
     [[nodiscard]] auto getVideoFile() const -> const std::filesystem::path&;
     [[nodiscard]] auto getActiveSubtitle() -> SubtitlePickerPtr;
+    [[nodiscard]] auto getName() const -> std::string;
     void saveProgress();
 
 private:
+    void loadSubtitles();
     void deserialize(std::string_view content);
     void createSubtitlePicker();
     std::filesystem::path videoSetFile;

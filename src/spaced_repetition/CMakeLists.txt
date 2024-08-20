@@ -38,6 +38,7 @@ target_link_libraries(zikhron_spaced_repetition
     PRIVATE
         Boost.DI
         spdlog::spdlog
+        stdc++exp
         zikhron::warnings
 )
 

@@ -32,7 +32,7 @@ public:
     SubtitlePicker(std::shared_ptr<Subtitle> subtitle,
                    PackId videoId,
                    std::string videoName,
-                   std::shared_ptr<CardIdGenerator> cardIdGenerator,
+                   const std::shared_ptr<CardIdGenerator>& cardIdGenerator,
                    std::shared_ptr<annotation::Tokenizer> tokenizer,
                    std::shared_ptr<WordDB> wordDB);
     auto getDeserializedActiveCards() -> std::vector<CardPtr>;
@@ -52,7 +52,8 @@ public:
     [[nodiscard]] auto hasNext(const CardPtr& card) const -> bool;
 
     [[nodiscard]] auto numberOfCards() -> std::size_t;
-    [[nodiscard]] auto getJoinedSubAt(std::size_t pos) -> JoinedSubtitle;
+    [[nodiscard]] auto getJoinedSubAtPosition(std::size_t pos) -> JoinedSubtitle;
+    [[nodiscard]] auto getJoinedSubAtIndex(std::size_t index) -> JoinedSubtitle;
     [[nodiscard]] auto joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtitle;
 
     void save();
@@ -63,11 +64,12 @@ private:
     [[nodiscard]] auto createJoinedSubtitle(std::size_t index, const CardPtr& card) -> JoinedSubtitle;
     void setIndices();
     void removeCardAtIndex(std::size_t index);
+    [[nodiscard]] static auto genCardIds(const std::shared_ptr<CardIdGenerator>& cardIdGenerator,
+                                         std::size_t size) -> std::vector<CardId>;
     std::shared_ptr<Subtitle> subtitle;
     std::filesystem::path progressFile;
     PackId videoId;
     std::string videoName;
-    std::shared_ptr<CardIdGenerator> cardIdGenerator;
     std::shared_ptr<annotation::Tokenizer> tokenizer;
     std::shared_ptr<WordDB> wordDB;
 
@@ -75,6 +77,7 @@ private:
     std::vector<std::size_t> indices;
     std::vector<std::weak_ptr<SubtitleCard>> cards;
 
+    std::vector<CardId> cardIds;
     std::vector<std::size_t> deserializedActiveCardIndices;
 };
 

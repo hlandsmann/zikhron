@@ -1,6 +1,7 @@
 #pragma once
 #include <database/Card.h>
 #include <database/CbdFwd.h>
+#include <database/VideoDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
@@ -35,7 +36,8 @@ class TokenizationChoiceDB
 
 public:
     TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config,
-                         const std::shared_ptr<database::CardPackDB>& cardPackDB);
+                         const std::shared_ptr<database::CardPackDB>& cardPackDB,
+                         const std::shared_ptr<database::VideoDB>& videoDB);
     void insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<Card>& card);
     auto getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>;
     [[nodiscard]] auto getChoicesForCards() const -> const std::map<CardId, TokenizationChoiceVec>&;
@@ -44,7 +46,7 @@ public:
 private:
     void removeSimilarChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card);
     void addChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<Card>& card);
-    void syncIdsWithCardPackDB(const CardPackDB& cardPackDB);
+    void syncIdsWithCardPackDB(const CardPackDB& cardPackDB, const database::VideoDB& videoDB);
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] static auto serializeChoice(const TokenizationChoice&) -> std::string;
     [[nodiscard]] static auto serializePackPosition(const PackPosition&) -> std::string;

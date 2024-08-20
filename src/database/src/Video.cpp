@@ -125,6 +125,11 @@ auto Video::getVideoFile() const -> const std::filesystem::path&
     return videoFile;
 }
 
+auto Video::getName() const -> std::string
+{
+    return name;
+}
+
 void Video::saveProgress()
 {
     if (subtitlePicker != nullptr) {
