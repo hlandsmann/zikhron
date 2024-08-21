@@ -42,3 +42,5 @@ svg_to_png(configure.svg 32)
 
 svg_to_png(object-select.svg 32)
 svg_to_png(object-unselect.svg 32)
+
+svg_to_png(continue.svg 32)
