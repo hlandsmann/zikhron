@@ -67,7 +67,10 @@ class TabCard
     };
 
 public:
-    TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor, std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker, std::unique_ptr<DisplayVideo> displayVideo, std::unique_ptr<multimedia::MpvWrapper> mpvAudio);
+    TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecutor,
+            std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker,
+            std::unique_ptr<DisplayVideo> displayVideo,
+            std::unique_ptr<multimedia::MpvWrapper> mpvAudio);
     TabCard(const TabCard&) = delete;
     TabCard(TabCard&&) = delete;
     auto operator=(const TabCard&) -> TabCard& = delete;
@@ -80,6 +83,7 @@ public:
 
 private:
     using VocableId_Ease = std::map<VocableId, Ease>;
+    auto videoPlaybackTask() -> kocoro::Task<>;
     auto feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>;
     auto annotationTask(sr::CardMeta& cardMeta,
                         const std::shared_ptr<database::CardDB>& cardDB,
@@ -103,10 +107,8 @@ private:
     static void setupVideoCtrlBox(widget::Box& ctrlBox);
     void doVideoCtrlBox(widget::Box& ctrlBox);
 
-    static void setupCtrlBoxRight(widget::Box& ctrlBox);
-    void doCtrlBoxRight(widget::Box& ctrlBox);
-
     void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
+    void handlePlaybackVideo(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
     void handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext);
     void handleMode(widget::ToggleButtonGroup& tbgMode);
     void handlePlayMode(widget::ImageButton& btnPlayMode);
@@ -116,9 +118,13 @@ private:
                          widget::ImageButton& btnCutNext);
     void handleSelection(widget::ImageButton& btnSelect,
                          widget::ImageButton& btnUnselect);
+    void handleNextPreviousVideo(widget::ImageButton& btnContinue,
+                            widget::ImageButton& btnPrevious,
+                            widget::ImageButton& btnNext,
+                            widget::ImageButton& btnOpenSegment);
     void handleNextPrevious(widget::ImageButton& btnFirst,
                             widget::ImageButton& btnPrevious,
-                            widget::ImageButton& btnFollowing,
+                            widget::ImageButton& btnNext,
                             widget::ImageButton& btnLast);
     void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);

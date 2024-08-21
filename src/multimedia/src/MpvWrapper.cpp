@@ -43,6 +43,7 @@ auto get_proc_address(void* /* fn_ctx */, const char* name) -> void*
 namespace multimedia {
 MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     : signalShouldRender{executor->makeVolatileSignal<bool>()}
+    , signalTimePos{executor->makeVolatileSignal<double>()}
     , signalEvent{executor->makeVolatileSignal<bool>()}
 {
     executor->startCoro(handleEventTask());
@@ -91,6 +92,7 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
         if (std::string{prop->name} == "time-pos") {
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 timePos = *reinterpret_cast<double*>(prop->data);
+                signalTimePos->set(timePos);
             }
         } else if (std::string{prop->name} == "duration") {
             if (prop->format == MPV_FORMAT_DOUBLE) {
@@ -129,16 +131,15 @@ void MpvWrapper::openFile(const std::filesystem::path& mediaFile_in)
     pause();
 }
 
+auto MpvWrapper::getMediaFile() const -> std::filesystem::path
+{
+    return mediaFile;
+}
+
 void MpvWrapper::closeFile()
 {
     duration = 0.;
     timePos = 0.;
-}
-
-void MpvWrapper::play_fragment(double start, double end)
-{
-    seek(start);
-    play(end);
 }
 
 void MpvWrapper::play(double until)
@@ -150,6 +151,18 @@ void MpvWrapper::play(double until)
     mpv_flag_paused = 0;
     mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
     mpv_set_property_async(mpv.get(), 0, "ao-volume", MPV_FORMAT_DOUBLE, &volume);
+}
+
+void MpvWrapper::playFrom(double start)
+{
+    seek(start);
+    play();
+}
+
+void MpvWrapper::playFragment(double start, double end)
+{
+    seek(start);
+    play(end);
 }
 
 void MpvWrapper::pause()
@@ -229,6 +242,11 @@ auto MpvWrapper::getTime() const -> int64_t
 auto MpvWrapper::SignalShouldRender() const -> kocoro::VolatileSignal<bool>&
 {
     return *signalShouldRender;
+}
+
+auto MpvWrapper::SignalTimePos() const -> kocoro::VolatileSignal<double>&
+{
+    return *signalTimePos;
 }
 
 auto MpvWrapper::getNextFrameTargetTime() const -> int64_t

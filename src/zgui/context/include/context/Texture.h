@@ -18,6 +18,7 @@ enum class Image {
     video,
     document_open,
     document_save,
+    media_continue,
     media_playback_pause,
     media_playback_start,
     media_playback_stop,
@@ -49,29 +50,30 @@ struct TextureData;
 
 class Texture
 {
-    static constexpr auto audio_tex = "/home/harmen/src/zikhron/build/resources/icons/audiobook_48px.png";
-    static constexpr auto cards_tex = "/home/harmen/src/zikhron/build/resources/icons/cards_48px.png";
-    static constexpr auto configure_app_tex = "/home/harmen/src/zikhron/build/resources/icons/configure_app_48px.png";
-    static constexpr auto configure_tex = "/home/harmen/src/zikhron/build/resources/icons/configure_24px.png";
-    static constexpr auto configure_mid_tex = "/home/harmen/src/zikhron/build/resources/icons/configure_32px.png";
-    static constexpr auto video_tex = "/home/harmen/src/zikhron/build/resources/icons/video_48px.png";
-    static constexpr auto document_open_tex = "/home/harmen/src/zikhron/build/resources/icons/document-open_32px.png";
-    static constexpr auto document_save_tex = "/home/harmen/src/zikhron/build/resources/icons/document-save_32px.png";
-    static constexpr auto media_playback_pause_tex = "/home/harmen/src/zikhron/build/resources/icons/media-playback-pause_32px.png";
-    static constexpr auto media_playback_start_tex = "/home/harmen/src/zikhron/build/resources/icons/media-playback-start_32px.png";
-    static constexpr auto media_playback_stop_tex = "/home/harmen/src/zikhron/build/resources/icons/media-playback-stop_32px.png";
-    static constexpr auto media_seek_backward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-seek-backward_32px.png";
-    static constexpr auto media_seek_forward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-seek-forward_32px.png";
-    static constexpr auto media_skip_backward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-skip-backward_32px.png";
-    static constexpr auto media_skip_forward_tex = "/home/harmen/src/zikhron/build/resources/icons/media-skip-forward_32px.png";
-    static constexpr auto new_audio_alarm_tex = "/home/harmen/src/zikhron/build/resources/icons/new-audio-alarm_32px.png";
-    static constexpr auto arrow_up_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-up_24px.png";
-    static constexpr auto arrow_down_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-down_24px.png";
-    static constexpr auto arrow_left_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-start_24px.png";
-    static constexpr auto arrow_right_tex = "/home/harmen/src/zikhron/build/resources/icons/pan-end_24px.png";
-    static constexpr auto checkbox_tex = "/home/harmen/src/zikhron/build/resources/icons/checkbox-symbolic_24px.png";
-    static constexpr auto checkbox_checked_tex = "/home/harmen/src/zikhron/build/resources/icons/checkbox-checked-symbolic_24px.png";
-    static constexpr auto list_add_tex = "/home/harmen/src/zikhron/build/resources/icons/list-add_24px.png";
+    static constexpr auto audio = "/home/harmen/src/zikhron/build/resources/icons/audiobook_48px.png";
+    static constexpr auto cards = "/home/harmen/src/zikhron/build/resources/icons/cards_48px.png";
+    static constexpr auto configure_app = "/home/harmen/src/zikhron/build/resources/icons/configure_app_48px.png";
+    static constexpr auto configure = "/home/harmen/src/zikhron/build/resources/icons/configure_24px.png";
+    static constexpr auto configure_mid = "/home/harmen/src/zikhron/build/resources/icons/configure_32px.png";
+    static constexpr auto video = "/home/harmen/src/zikhron/build/resources/icons/video_48px.png";
+    static constexpr auto document_open = "/home/harmen/src/zikhron/build/resources/icons/document-open_32px.png";
+    static constexpr auto document_save = "/home/harmen/src/zikhron/build/resources/icons/document-save_32px.png";
+    static constexpr auto media_continue = "/home/harmen/src/zikhron/build/resources/icons/continue_32px.png";
+    static constexpr auto media_playback_pause = "/home/harmen/src/zikhron/build/resources/icons/media-playback-pause_32px.png";
+    static constexpr auto media_playback_start = "/home/harmen/src/zikhron/build/resources/icons/media-playback-start_32px.png";
+    static constexpr auto media_playback_stop = "/home/harmen/src/zikhron/build/resources/icons/media-playback-stop_32px.png";
+    static constexpr auto media_seek_backward = "/home/harmen/src/zikhron/build/resources/icons/media-seek-backward_32px.png";
+    static constexpr auto media_seek_forward = "/home/harmen/src/zikhron/build/resources/icons/media-seek-forward_32px.png";
+    static constexpr auto media_skip_backward = "/home/harmen/src/zikhron/build/resources/icons/media-skip-backward_32px.png";
+    static constexpr auto media_skip_forward = "/home/harmen/src/zikhron/build/resources/icons/media-skip-forward_32px.png";
+    static constexpr auto new_audio_alarm = "/home/harmen/src/zikhron/build/resources/icons/new-audio-alarm_32px.png";
+    static constexpr auto arrow_up = "/home/harmen/src/zikhron/build/resources/icons/pan-up_24px.png";
+    static constexpr auto arrow_down = "/home/harmen/src/zikhron/build/resources/icons/pan-down_24px.png";
+    static constexpr auto arrow_left = "/home/harmen/src/zikhron/build/resources/icons/pan-start_24px.png";
+    static constexpr auto arrow_right = "/home/harmen/src/zikhron/build/resources/icons/pan-end_24px.png";
+    static constexpr auto checkbox = "/home/harmen/src/zikhron/build/resources/icons/checkbox-symbolic_24px.png";
+    static constexpr auto checkbox_checked = "/home/harmen/src/zikhron/build/resources/icons/checkbox-checked-symbolic_24px.png";
+    static constexpr auto list_add = "/home/harmen/src/zikhron/build/resources/icons/list-add_24px.png";
     static constexpr auto sub_add_next = "/home/harmen/src/zikhron/build/resources/icons/sub-add-next_32px.png";
     static constexpr auto sub_add_prev = "/home/harmen/src/zikhron/build/resources/icons/sub-add-prev_32px.png";
     static constexpr auto sub_cut_next = "/home/harmen/src/zikhron/build/resources/icons/sub-cut-next_32px.png";

@@ -55,6 +55,7 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
     , mpvAudio{std::move(_mpvAudio)}
     , mpvVideo{displayVideo->getMpv()}
 {
+    executor->startCoro(videoPlaybackTask());
     executor->startCoro(feedingTask(std::move(_asyncTreeWalker)));
 }
 
@@ -90,6 +91,21 @@ void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
     mode = Mode::story;
     // mpvVideo->openFile(videoSet->getVideo()->getVideoFile());
     // mpvVideo->play();
+}
+
+auto TabCard::videoPlaybackTask() -> kocoro::Task<>
+{
+    while (true) {
+        double timePos = co_await mpvVideo->SignalTimePos();
+        // if (mode != Mode::story) {
+        //     continue;
+        // }
+        spdlog::info("vpt,timeps: {}", timePos);
+        if (timePos < track->getStartTimeStamp()) {
+            mpvVideo->seek(track->getStartTimeStamp());
+        }
+    }
+    co_return;
 }
 
 auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
@@ -134,7 +150,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             cardMeta = dataBase->getCardMeta(track->getCard());
             spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.getCardId());
             loadTrack();
-            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
+            if (!track->isSubtitlePrefix()) {
+                prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
+            }
             break;
         case Proceed::reload:
             clearStudy(cardLayer, vocableLayer);
@@ -206,7 +224,7 @@ void TabCard::loadTrack()
     if (mpvAudio && !mpvAudio->is_paused()) {
         mpvAudio->pause();
     }
-    if (mpvVideo && !mpvVideo->is_paused()) {
+    if (mpvVideo && !mpvVideo->is_paused() && mode == Mode::shuffle) {
         mpvVideo->pause();
     }
     if (!track->getMediaFile().has_value()) {
@@ -216,11 +234,15 @@ void TabCard::loadTrack()
         mpvAudio->openFile(track->getMediaFile().value());
     }
     if (track->getTrackType() == database::TrackType::video) {
-        mpvVideo->openFile(track->getMediaFile().value());
-        double start = track->getStartTimeStamp();
-        double end = track->getEndTimeStamp();
-        mpvVideo->play_fragment(start, end);
-        mpvVideo->pause();
+        if (mpvVideo->getMediaFile() != track->getMediaFile()) {
+            mpvVideo->openFile(track->getMediaFile().value());
+        }
+        if (mode == Mode::shuffle) {
+            double start = track->getStartTimeStamp();
+            double end = track->getEndTimeStamp();
+            mpvVideo->playFragment(start, end);
+            mpvVideo->pause();
+        }
     }
 }
 
@@ -297,7 +319,28 @@ void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
     // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
     ctrlBox.add<widget::MediaSlider>(Align::start);
 
-    setupCtrlBoxRight(ctrlBox);
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_backward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_backward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_forward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_forward);
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    auto& layer = *ctrlBox.add<widget::Layer>(Align::end);
+    layer.setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " reveal vocabulary ")->setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " submit choice of ease ")->setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " next ")->setExpandType(width_fixed, height_adapt);
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ToggleButtonGroup>(Align::end, widget::Orientation::horizontal,
+                                           std::initializer_list<std::string>{" shuffle mode ", " story mode "})
+            ->setExpandType(width_fixed, height_adapt);
+
+    ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
+    ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
 }
 
 void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
@@ -305,10 +348,34 @@ void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
     ctrlBox.start();
     auto& btnPlay = ctrlBox.next<widget::ImageButton>();
     auto& sliderProgress = ctrlBox.next<widget::MediaSlider>();
-
     handlePlayback(btnPlay, sliderProgress);
 
-    doCtrlBoxRight(ctrlBox);
+    ctrlBox.next<widget::Separator>();
+    auto& btnFirst = ctrlBox.next<widget::ImageButton>();
+    auto& btnPrevious = ctrlBox.next<widget::ImageButton>();
+    auto& btnNext = ctrlBox.next<widget::ImageButton>();
+    auto& btnLast = ctrlBox.next<widget::ImageButton>();
+    handleNextPrevious(btnFirst, btnPrevious, btnNext, btnLast);
+
+    ctrlBox.next<widget::Separator>();
+    auto& layer = ctrlBox.next<widget::Layer>();
+    layer.start();
+    auto& btnRevealCard = layer.next<widget::Button>();
+    auto& btnSubmitCard = layer.next<widget::Button>();
+    auto& btnNextCard = layer.next<widget::Button>();
+    handleCardSubmission(btnRevealCard, btnSubmitCard, btnNextCard);
+
+    ctrlBox.next<widget::Separator>();
+    auto& tbgMode = ctrlBox.next<widget::ToggleButtonGroup>();
+    handleMode(tbgMode);
+
+    ctrlBox.next<widget::Separator>();
+    auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
+    handleAnnotate(btnAnnotate);
+
+    ctrlBox.next<widget::Separator>();
+    auto& btnSave = ctrlBox.next<widget::ImageButton>();
+    handleDataBaseSave(btnSave);
 }
 
 void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
@@ -339,7 +406,28 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::ImageButton>(Align::end, Image::object_select);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::object_unselect);
 
-    setupCtrlBoxRight(ctrlBox);
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_continue);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_backward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_forward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::arrow_up);
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    auto& layer = *ctrlBox.add<widget::Layer>(Align::end);
+    layer.setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " reveal vocabulary ")->setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " submit choice of ease ")->setExpandType(width_fixed, height_adapt);
+    layer.add<widget::Button>(Align::center, " next ")->setExpandType(width_fixed, height_adapt);
+
+    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
+    ctrlBox.add<widget::ToggleButtonGroup>(Align::end, widget::Orientation::horizontal,
+                                           std::initializer_list<std::string>{" shuffle mode ", " story mode "})
+            ->setExpandType(width_fixed, height_adapt);
+
+    ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
+    ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
 }
 
 void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
@@ -368,60 +456,25 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     auto& btnUnselect = ctrlBox.next<widget::ImageButton>();
     handleSelection(btnSelect, btnUnselect);
 
-    doCtrlBoxRight(ctrlBox);
-}
+    ctrlBox.next<widget::Separator>();
+    auto& btnContinue = ctrlBox.next<widget::ImageButton>();
+    auto& btnPrevious = ctrlBox.next<widget::ImageButton>();
+    auto& btnNext = ctrlBox.next<widget::ImageButton>();
+    auto& btnOpenSegment = ctrlBox.next<widget::ImageButton>();
+    handleNextPreviousVideo(btnContinue, btnPrevious, btnNext, btnOpenSegment);
 
-void TabCard::setupCtrlBoxRight(widget::Box& ctrlBox)
-{
-    using namespace widget::layout;
-    using context::Image;
-
-    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
-
-    auto& layer = *ctrlBox.add<widget::Layer>(Align::end);
-    layer.setExpandType(width_fixed, height_adapt);
-
-    layer.add<widget::Button>(Align::center, " reveal vocabulary ")->setExpandType(width_fixed, height_adapt);
-    layer.add<widget::Button>(Align::center, " submit choice of ease ")->setExpandType(width_fixed, height_adapt);
-    layer.add<widget::Button>(Align::center, " next ")->setExpandType(width_fixed, height_adapt);
-
-    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
-    ctrlBox.add<widget::ToggleButtonGroup>(Align::end, widget::Orientation::horizontal,
-                                           std::initializer_list<std::string>{" shuffle mode ", " story mode "})
-            ->setExpandType(width_fixed, height_adapt);
-
-    ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_backward);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_backward);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_forward);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_forward);
-    ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
-    ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
-}
-
-void TabCard::doCtrlBoxRight(widget::Box& ctrlBox)
-{
     ctrlBox.next<widget::Separator>();
     auto& layer = ctrlBox.next<widget::Layer>();
     layer.start();
 
-    auto& btnReveal = layer.next<widget::Button>();
-    auto& btnSubmit = layer.next<widget::Button>();
-    auto& btnNext = layer.next<widget::Button>();
-    handleCardSubmission(btnReveal, btnSubmit, btnNext);
+    auto& btnRevealCard = layer.next<widget::Button>();
+    auto& btnSubmitCard = layer.next<widget::Button>();
+    auto& btnNextCard = layer.next<widget::Button>();
+    handleCardSubmission(btnRevealCard, btnSubmitCard, btnNextCard);
 
     ctrlBox.next<widget::Separator>();
     auto& tbgMode = ctrlBox.next<widget::ToggleButtonGroup>();
     handleMode(tbgMode);
-
-    ctrlBox.next<widget::Separator>();
-    auto& btnFirst = ctrlBox.next<widget::ImageButton>();
-    auto& btnPrevious = ctrlBox.next<widget::ImageButton>();
-    auto& btnFollowing = ctrlBox.next<widget::ImageButton>();
-    auto& btnLast = ctrlBox.next<widget::ImageButton>();
-    handleNextPrevious(btnFirst, btnPrevious, btnFollowing, btnLast);
 
     ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
@@ -452,7 +505,7 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
             if (timePos >= end - 0.05) {
                 timePos = start;
             }
-            mpvCurrent->play_fragment(timePos, end);
+            mpvCurrent->playFragment(timePos, end);
         } else {
             mpvCurrent->pause();
         }
@@ -460,11 +513,19 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     auto oldTimePos = std::exchange(timePos, sliderProgress.slide(start, end, timePos));
     if (oldTimePos != timePos) {
         if (mpvCurrent->is_paused()) {
-            mpvCurrent->play_fragment(timePos, end);
+            mpvCurrent->playFragment(timePos, end);
         } else {
             mpvCurrent->seek(timePos);
         }
     }
+}
+
+void TabCard::handlePlaybackVideo(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress)
+{
+    if (!track.has_value() || !track->getMediaFile().has_value() || track->getTrackType() != database::TrackType::video) {
+        return;
+    }
+    
 }
 
 void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext)
@@ -593,9 +654,59 @@ void TabCard::handleSelection(widget::ImageButton& btnSelect,
     }
 }
 
+void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
+                                      widget::ImageButton& btnPrevious,
+                                      widget::ImageButton& btnNext,
+                                      widget::ImageButton& btnOpenSegment)
+{
+    if (!track
+        || (!track->hasNext()
+            && !track->hasPrevious())) {
+        return;
+    }
+
+    btnPrevious.setSensitive(track->hasPrevious() || !track->isSubtitlePrefix());
+    btnNext.setSensitive(track->hasNext());
+    btnOpenSegment.setSensitive(track->hasNext());
+    bool nextPreviousClicked = false;
+    if (btnContinue.clicked()) {
+        nextPreviousClicked = true;
+        track = track->trackAt(0);
+    }
+    if (btnPrevious.clicked()) {
+        nextPreviousClicked = true;
+        if (track->hasPrevious()) {
+            track = track->previousTrack();
+        } else {
+            track = track->getSubtitlePrefix();
+        }
+    }
+    if (btnNext.clicked()) {
+        nextPreviousClicked = true;
+        if (playMode == PlayMode::stop) {
+            track = track->nextTrack();
+        } else {
+            if (track->isSubtitlePrefix()) {
+                track = track->getNonPrefixDefault();
+            } else {
+                track = track->nextTrack().getSubtitlePrefix();
+            }
+        }
+    }
+    if (btnOpenSegment.clicked()) {
+        nextPreviousClicked = true;
+        track = track->trackAt(track->numberOfTracks() - 1);
+    }
+    if (nextPreviousClicked) {
+        mode = Mode::story;
+        revealVocables = false;
+        signalProceed->set(Proceed::nextTrack);
+    }
+}
+
 void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                  widget::ImageButton& btnPrevious,
-                                 widget::ImageButton& btnFollowing,
+                                 widget::ImageButton& btnNext,
                                  widget::ImageButton& btnLast)
 {
     if (!track
@@ -606,7 +717,7 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
 
     btnFirst.setSensitive(track->hasPrevious());
     btnPrevious.setSensitive(track->hasPrevious());
-    btnFollowing.setSensitive(track->hasNext());
+    btnNext.setSensitive(track->hasNext());
     btnLast.setSensitive(track->hasNext());
     bool nextPreviousClicked = false;
     if (btnFirst.clicked()) {
@@ -617,7 +728,7 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
         nextPreviousClicked = true;
         track = track->previousTrack();
     }
-    if (btnFollowing.clicked()) {
+    if (btnNext.clicked()) {
         nextPreviousClicked = true;
         track = track->nextTrack();
     }

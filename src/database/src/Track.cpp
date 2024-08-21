@@ -219,6 +219,7 @@ auto Track::getSubtitlePrefix() -> Track
         newStartTime = previousJoinedSubtitle.endTimeStamp;
     }
 
+    spdlog::info("gsp = sts: {}", newStartTime);
     return {medium, card, newStartTime, newEndTime};
 }
 
@@ -245,7 +246,12 @@ Track::Track(TrackMedia _medium, CardPtr _card, double _startTimeStamp, double _
     , startTimeStamp{_startTimeStamp}
     , endTimeStamp{_endTimeStamp}
     , isPrefixToSubtitle{true}
-{}
+{
+    const auto& video = std::get<VideoPtr>(medium);
+    auto subtitlePicker = video->getActiveSubtitle();
+
+    spdlog::info("sts: {}", startTimeStamp);
+}
 
 auto Track::getCard(TrackMedia medium, std::size_t index) -> CardPtr
 {

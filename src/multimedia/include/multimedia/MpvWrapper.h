@@ -24,8 +24,10 @@ public:
     auto operator=(MpvWrapper&&) -> MpvWrapper& = delete;
 
     void openFile(const std::filesystem::path& mediaFile);
+    [[nodiscard]] auto getMediaFile() const -> std::filesystem::path;
     void play(double until = 0.0);
-    void play_fragment(double start, double end);
+    void playFrom(double start);
+    void playFragment(double start, double end);
     void pause();
     void seek(double pos);
     [[nodiscard]] auto getDuration() const -> double;
@@ -37,8 +39,9 @@ public:
     auto render(GLuint fbo, int width, int height) -> int64_t;
     [[nodiscard]] auto getTime() const -> int64_t;
 
-    // Signals:
+    // kokoro Signals:
     [[nodiscard]] auto SignalShouldRender() const -> kocoro::VolatileSignal<bool>&;
+    [[nodiscard]] auto SignalTimePos() const -> kocoro::VolatileSignal<double>&;
 
 private:
     auto handleEventTask() -> kocoro::Task<>;
@@ -70,6 +73,7 @@ private:
 
     // Signals:
     std::shared_ptr<kocoro::VolatileSignal<bool>> signalShouldRender;
+    std::shared_ptr<kocoro::VolatileSignal<double>> signalTimePos;
     std::shared_ptr<kocoro::VolatileSignal<bool>> signalEvent;
 };
 } // namespace multimedia
