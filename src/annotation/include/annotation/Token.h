@@ -1,9 +1,9 @@
 #pragma once
-
 #include <database/Word.h>
 #include <dictionary/ZH_Dictionary.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
+#include <utils/format.h>
 
 #include <cstddef>
 #include <memory>
@@ -54,3 +54,7 @@ private:
 auto tokenVectorFromString(const std::string& str, ColorId colorId = ColorId::defaultFontColor)
         -> std::vector<Token>;
 } // namespace annotation
+
+template<>
+struct fmt::formatter<annotation::Token> : fmt::formatter<std::string>
+{};
