@@ -108,7 +108,6 @@ private:
     void doVideoCtrlBox(widget::Box& ctrlBox);
 
     void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
-    void handlePlaybackVideo(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
     void handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext);
     void handleMode(widget::ToggleButtonGroup& tbgMode);
     void handlePlayMode(widget::ImageButton& btnPlayMode);

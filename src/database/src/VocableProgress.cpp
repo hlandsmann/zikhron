@@ -36,11 +36,11 @@ void VocableProgress::deserialize(std::string_view sv)
     easeFactor = std::stof(std::string{utl::split_front(sv, ',')});
     intervalDay = std::stof(std::string{utl::split_front(sv, ',')});
     while (true) {
-        auto cardId = std::string{utl::split_front(sv, ',')};
-        if (cardId.empty()) {
+        auto cardIndex = std::string{utl::split_front(sv, ',')};
+        if (cardIndex.empty()) {
             break;
         }
-        triggerCardIndices.push_back(static_cast<CardId>(std::stoul(cardId)));
+        triggerCardIndices.push_back(static_cast<CardId>(std::stoul(cardIndex)));
     }
 }
 

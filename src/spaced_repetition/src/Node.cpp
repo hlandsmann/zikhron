@@ -3,6 +3,7 @@
 #include "Path.h"
 
 #include <DataBase.h>
+#include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <srtypes.h>
 #include <utils/counting_iterator.h>
@@ -24,19 +25,14 @@ namespace sr {
 
 Node::Node(std::shared_ptr<DataBase> _db,
            std::shared_ptr<node_vector> _nodes,
-           size_t _cardIndex,
-           std::shared_ptr<index_set> _ignoreCardIndices)
+           CardId _cardId,
+           std::shared_ptr<cardId_set> _ignoreCardIds)
     : db{std::move(_db)}
     , weakNodes{std::move(_nodes)}
-    , cardIndex{_cardIndex}
-    , ignoreCardIndices{std::move(_ignoreCardIndices)}
+    , nodeCardId{_cardId}
+    , ignoreCardIds{std::move(_ignoreCardIds)}
     , subCards{collectSubCards()}
-{
-    // spdlog::info("nVocables: {} nSubcards {}, for cardId: {}",
-    //              db->Cards()[cardIndex].getTimingAndVocables().vocables.size(),
-    //              subCards.size(),
-    //              db->Cards().id_from_index(cardIndex));
-}
+{}
 
 void Node::tighten()
 {
@@ -56,99 +52,65 @@ auto Node::lowerOrder(size_t order) -> size_t
         return {};
     }
     size_t nextOrder = order;
-    auto& cards = db->MetaCards();
-    const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
+    const auto& cards = db->MetaCards();
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables();
     if (thisTnv.vocables.size() <= s_stopBreakDown) {
         return nextOrder;
     }
 
-    cardsLessVocables = removeInactiveCardindices(subCards);
-    sortCardIndices(cardsLessVocables);
-    // spdlog::info("order: {}, lowerOrder subCards size: {}, voc size:{}, cardId: {}",
-    //              order,
-    //              cardsLessVocables.size(),
-    //              cards[cardIndex].getTimingAndVocables().vocables.size(),
-    //              db->Cards().id_from_index(cardIndex));
-    for (size_t index : cardsLessVocables) {
+    cardsLessVocables = removeInactiveCardIds(subCards);
+    sortCardIds(cardsLessVocables);
+    for (CardId index : cardsLessVocables) {
         if ((*nodes)[index].has_value()) {
             continue;
         }
-        (*nodes)[index].emplace(db, nodes, index, ignoreCardIndices);
+        (*nodes)[index].emplace(db, nodes, index, ignoreCardIds);
         Path path{};
-        path.cardIndex = index;
+        path.cardId = index;
         paths.push_back(path);
     }
     for (Path& path : paths) {
-        auto& optionalNode = (*nodes)[path.cardIndex];
+        auto& optionalNode = (*nodes)[path.cardId];
         if (not optionalNode.has_value()) {
             break;
         }
         auto& tempNode = optionalNode.value();
         nextOrder = std::max(nextOrder, tempNode.lowerOrder(order + 1));
     }
-    // spdlog::info("nextOrder: {}, cardId: {}",
-    //              nextOrder,
-    //              db->Cards().id_from_index(cardIndex));
     return nextOrder;
 }
 
 auto Node::Paths() const -> const std::vector<Path>&
 {
-    // if (paths.empty()) {
-    //     spdlog::info("empty cardId: {}",
-    //                  db->Cards().id_from_index(cardIndex));
-    // }
     return paths;
 }
 
-auto Node::collectSubCards() const -> index_set
+auto Node::collectSubCards() const -> cardId_set
 {
-    index_set subCardsResult;
+    cardId_set subCardsResult;
 
-    // const auto& card = db->Cards()[cardIndex];
-    const auto& tnv = db->MetaCards()[cardIndex].getTimingAndVocables();
+    const auto& tnv = db->MetaCards().at(nodeCardId).getTimingAndVocables();
     const auto& vocables = db->Vocables();
     const auto& containedVocables = tnv.vocables
                                     | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
                                           return vocables[index];
                                       });
     for (const auto& vocableMeta : containedVocables) {
-        // ranges::copy(vocableMeta.CardIndices(), std::inserter(subCardsResult, subCardsResult.begin()));
-        ranges::set_difference(vocableMeta.CardIndices(),
-                               *ignoreCardIndices,
+        ranges::set_difference(vocableMeta.CardIds(),
+                               *ignoreCardIds,
                                std::inserter(subCardsResult, subCardsResult.begin()));
     }
 
     return subCardsResult;
 }
 
-auto Node::removeInactiveCardindices(const index_set& cardIndices) -> std::vector<size_t>
+auto Node::removeInactiveCardIds(const cardId_set& cardIds) -> std::vector<CardId>
 {
-    std::vector<size_t> result;
-    auto& cards = db->MetaCards();
-    const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
-    ranges::copy_if(cardIndices, std::back_inserter(result), [&cards, &thisTnv](size_t index) -> bool {
-        const auto& tnv = cards[index].getTimingAndVocables();
-        // if (tnv.vocables.empty()) {
-        //     auto& card = cards[index];
-        //     card.resetTimingAndVocables();
-        //     const auto& tnvp = card.getTimingAndVocables();
-        //
-        //     spdlog::error("empty card has {} vocables!, tnvp size: {} timing: {}",
-        //                   card.VocableIndices().size(),
-        //                   tnvp.vocables.size(),
-        //                   tnvp.timing);
-        //     std::vector<size_t> tempIndices;
-        //     ranges::copy(card.VocableIndices(), std::back_inserter(tempIndices));
-        //     ranges::sort(tempIndices, std::less{}, [this](size_t tindex) { return db->Vocables()[tindex].Progress().getRepeatRange().daysMin; });
-        //     // for (size_t vocindex : cards[index].VocableIndices()) {
-        //     for (size_t vocindex : tempIndices) {
-        //         auto daysMin = db->Vocables()[vocindex].Progress().getRepeatRange().daysMin;
-        //         auto daysNormal = db->Vocables()[vocindex].Progress().getRepeatRange().daysNormal;
-        //         auto daysMax = db->Vocables()[vocindex].Progress().getRepeatRange().daysMax;
-        //         spdlog::info("   mindays {}, ndays {}, maxdays {}", daysMin, daysNormal, daysMax);
-        //     }
-        // }
+    std::vector<CardId> result;
+    const auto& cards = db->MetaCards();
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables();
+    ranges::copy_if(cardIds, std::back_inserter(result), [&cards, &thisTnv](CardId cardId) -> bool {
+        const auto& tnv = cards.at(cardId).getTimingAndVocables();
         return tnv.timing <= 0
                && not tnv.vocables.empty()
                && tnv.vocables.size() < thisTnv.vocables.size();
@@ -156,10 +118,10 @@ auto Node::removeInactiveCardindices(const index_set& cardIndices) -> std::vecto
     return result;
 }
 
-void Node::sortCardIndices(std::vector<size_t>& cardIndices)
+void Node::sortCardIds(std::vector<CardId>& cardIds)
 {
-    auto& cards = db->MetaCards();
-    const auto& thisTnv = cards[cardIndex].getTimingAndVocables();
+    const auto& cards = db->MetaCards();
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables();
     const auto preferedQuantity = [](size_t a, size_t b) -> bool {
         const std::array quantity = {4, 3, 5, 2, 6};
         const auto* a_it = ranges::find(quantity, a);
@@ -169,9 +131,9 @@ void Node::sortCardIndices(std::vector<size_t>& cardIndices)
         }
         return a < b;
     };
-    ranges::sort(cardIndices, [&, this](size_t index_a, size_t index_b) -> bool {
-        const auto& tnv_a = cards[index_a].getTimingAndVocables();
-        const auto& tnv_b = cards[index_b].getTimingAndVocables();
+    ranges::sort(cardIds, [&](CardId cardId_a, CardId cardId_b) -> bool {
+        const auto& tnv_a = cards.at(cardId_a).getTimingAndVocables();
+        const auto& tnv_b = cards.at(cardId_b).getTimingAndVocables();
         size_t countIntersect_a = ranges::set_intersection(
                                           thisTnv.vocables, tnv_a.vocables, utl::counting_iterator{})
                                           .out.count;
@@ -181,9 +143,7 @@ void Node::sortCardIndices(std::vector<size_t>& cardIndices)
         if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
             return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
         }
-        // if (countIntersect_a != countIntersect_b) {
         return countIntersect_a > countIntersect_b;
-        // }
     });
 }
 

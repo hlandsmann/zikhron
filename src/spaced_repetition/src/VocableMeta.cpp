@@ -13,7 +13,9 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
+#include <map>
 #include <memory>
+#include <set>
 #include <utility>
 #include <vector>
 
@@ -33,9 +35,9 @@ auto VocableMeta::Progress() const -> const VocableProgress&
     return *progress;
 }
 
-auto VocableMeta::CardIndices() const -> const index_set&
+auto VocableMeta::CardIds() const -> const std::set<CardId>&
 {
-    return cardIndices;
+    return cardIds;
 }
 
 void VocableMeta::advanceByEase(const Ease& ease)
@@ -43,34 +45,28 @@ void VocableMeta::advanceByEase(const Ease& ease)
     progress->advanceByEase(ease);
 }
 
-void VocableMeta::triggerByCardId(CardId cardId, const utl::index_map<CardId, CardMeta>& cards)
+void VocableMeta::triggerByCardId(CardId cardId)
 {
-    auto cardIds = getCardIds(cards);
-    progress->triggeredBy(cardId, cardIds);
+    std::vector<CardId> cardIdVec;
+    ranges::copy(cardIds, std::back_inserter(cardIdVec));
+    progress->triggeredBy(cardId, cardIdVec);
 }
 
-auto VocableMeta::getNextTriggerCard(const utl::index_map<CardId, CardMeta>& cards) const -> CardId
+auto VocableMeta::getNextTriggerCard() const -> CardId
 {
-    auto cardIds = getCardIds(cards);
-    return progress->getNextTriggerCard(cardIds);
+    std::vector<CardId> cardIdVec;
+    ranges::copy(cardIds, std::back_inserter(cardIdVec));
+    return progress->getNextTriggerCard(cardIdVec);
 }
 
-void VocableMeta::cardIndices_insert(std::size_t cardIndex)
+void VocableMeta::insertCardId(CardId cardId)
 {
-    cardIndices.insert(cardIndex);
+    cardIds.insert(cardId);
 }
 
-void VocableMeta::cardIndices_erase(std::size_t cardIndex)
+void VocableMeta::eraseCardId(CardId cardId)
 {
-    cardIndices.erase(cardIndex);
+    cardIds.erase(cardId);
 }
 
-auto VocableMeta::getCardIds(const utl::index_map<CardId, CardMeta>& cards) const -> std::vector<CardId>
-{
-    std::vector<CardId> cardIds;
-    ranges::transform(cardIndices, std::inserter(cardIds, cardIds.begin()), [&](size_t cardIndex) -> CardId {
-        return cards.id_from_index(cardIndex);
-    });
-    return cardIds;
-}
 } // namespace sr

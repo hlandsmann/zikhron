@@ -63,7 +63,7 @@ auto DataBase::Vocables() const -> const utl::index_map<VocableId, VocableMeta>&
     return *vocables;
 }
 
-auto DataBase::MetaCards() -> const utl::index_map<CardId, CardMeta>&
+auto DataBase::MetaCards() -> const std::map<CardId, CardMeta>&
 {
     return metaCards;
 }
@@ -87,7 +87,7 @@ auto DataBase::getCardMeta(const database::CardPtr& card) -> CardMeta
 {
     auto cardId = card->getCardId();
     if (cardExists(cardId)) {
-        return metaCards.at_id(cardId).second;
+        return metaCards.at(cardId);
     }
     auto cardMeta = CardMeta{cardId, card, vocables};
     for (VocableId vocId : cardMeta.VocableIds()) {
@@ -102,14 +102,15 @@ auto DataBase::getCardMeta(const database::CardPtr& card) -> CardMeta
 
 void DataBase::reloadCard(const database::CardPtr& card)
 {
-    const auto& [cardIndex, cardMeta] = metaCards.at_id(card->getCardId());
+    auto cardId = card->getCardId();
+    const auto& cardMeta = metaCards.at(card->getCardId());
     for (auto vocableIndex : cardMeta.VocableIndices()) {
         auto& vocableMeta = (*vocables)[vocableIndex];
-        vocableMeta.cardIndices_erase(cardIndex);
+        vocableMeta.eraseCardId(cardId);
     }
     auto tokenizationChoices = tokenizationChoiceDB->getChoicesForCard(card->getCardId());
     card->setTokenizationChoices(tokenizationChoices);
-    metaCards[cardIndex].resetMetaData();
+    metaCards[cardId].resetMetaData();
     for (VocableId vocId : cardMeta.VocableIds()) {
         if (vocables->contains(vocId)) {
             continue;
@@ -119,7 +120,7 @@ void DataBase::reloadCard(const database::CardPtr& card)
     }
     for (auto vocableIndex : cardMeta.VocableIndices()) {
         auto& vocableMeta = (*vocables)[vocableIndex];
-        vocableMeta.cardIndices_insert(cardIndex);
+        vocableMeta.insertCardId(cardId);
     }
 }
 
@@ -132,32 +133,32 @@ void DataBase::setEaseVocable(VocableId vocId, const Ease& ease)
 void DataBase::triggerVocable(VocableId vocId, CardId cardId)
 {
     VocableMeta& vocable = vocables->at_id(vocId).second;
-    vocable.triggerByCardId(cardId, metaCards);
+    vocable.triggerByCardId(cardId);
 }
 
 void DataBase::resetCardsContainingVocable(VocableId vocId)
 {
     const auto& [_, vocable] = vocables->at_id(vocId);
-    const auto& cardIndices = vocable.CardIndices();
-    for (size_t card_index : cardIndices) {
-        auto& card = metaCards[card_index];
+    for (CardId cardId : vocable.CardIds()) {
+        auto& card = metaCards.at(cardId);
         card.resetTimingAndVocables();
     }
 }
 
 auto DataBase::cardExists(CardId cardId) const -> bool
 {
-    return metaCards.contains(cardId) && metaCards.at_id(cardId).second.isValid();
+    return metaCards.contains(cardId);
 }
 
 void DataBase::addCard(const database::CardPtr& card)
 {
     auto cardId = card->getCardId();
-    metaCards.emplace(cardId, cardId, card, vocables);
-    const auto& [cardIndex, cardMeta] = metaCards.at_id(cardId);
+    metaCards[cardId] = CardMeta{cardId, card, vocables};
+    const auto& cardMeta = metaCards.at(cardId);
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
-        (*vocables)[vocableIndex].cardIndices_insert(static_cast<std::size_t>(cardIndex));
+        (*vocables)[vocableIndex].insertCardId(cardId);
     }
+    // spdlog::error("added!, {}", fmt::ptr(&cardMeta));
     card->setActive(true);
     cardDB->addCard(card);
     spdlog::info("Added card with cardId: {}", cardId);
@@ -165,12 +166,12 @@ void DataBase::addCard(const database::CardPtr& card)
 
 void DataBase::removeCard(CardId cardId)
 {
-    const auto& [cardIndex, cardMeta] = metaCards.at_id(cardId);
+    const auto& cardMeta = metaCards.at(cardId);
     auto card = cardMeta.getCard();
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
-        (*vocables)[vocableIndex].cardIndices_erase(static_cast<std::size_t>(cardIndex));
+        (*vocables)[vocableIndex].eraseCardId(cardId);
     }
-    metaCards[cardIndex] = {};
+    metaCards.erase(cardId);
 
     card->setActive(false);
     cardDB->eraseCard(cardId);
@@ -201,10 +202,10 @@ void DataBase::fillIndexMaps()
         cardPtr->setTokenizationChoices(choices);
     }
     for (const auto& [id, card] : cards) {
-        metaCards.emplace(id, id, card, vocables);
+        metaCards[id] = CardMeta{id, card, vocables};
     }
 
-    for (const auto& card : metaCards) {
+    for (const auto& [_,card] : metaCards) {
         const auto& vocableIds = card.VocableIds();
         allVocableIds.insert(vocableIds.begin(), vocableIds.end());
     }
@@ -217,9 +218,9 @@ void DataBase::fillIndexMaps()
         //     vocables->emplace(vocId, VocableProgress::new_vocable);
         // }
     }
-    for (const auto& [cardIndex, cardMeta] : views::enumerate(metaCards.vspan())) {
+    for (const auto& [cardId, cardMeta] : metaCards) {
         for (const auto& vocableIndex : cardMeta.VocableIndices()) {
-            (*vocables)[vocableIndex].cardIndices_insert(static_cast<std::size_t>(cardIndex));
+            (*vocables)[vocableIndex].insertCardId(cardId);
         }
     }
     spdlog::info("number of vocables: {}", allVocableIds.size());

@@ -1,5 +1,5 @@
 #pragma once
-#include "DataBase.h"
+#include <map>
 #include "srtypes.h"
 
 #include <annotation/Ease.h>
@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <set>
 #include <vector>
 
 namespace sr {
@@ -19,18 +20,18 @@ class VocableMeta
 public:
     VocableMeta(std::shared_ptr<VocableProgress> progress);
     [[nodiscard]] auto Progress() const -> const VocableProgress&;
-    [[nodiscard]] auto CardIndices() const -> const index_set&;
+    [[nodiscard]] auto CardIds() const -> const std::set<CardId>&;
+    void triggerByCardId(CardId cardId);
     void advanceByEase(const Ease&);
     void triggerByCardId(CardId cardId, const utl::index_map<CardId, CardMeta>& cards);
-    [[nodiscard]] auto getNextTriggerCard(const utl::index_map<CardId, CardMeta>& cards) const -> CardId;
+    [[nodiscard]] auto getNextTriggerCard() const -> CardId;
 
-    void cardIndices_insert(std::size_t cardIndex);
-    void cardIndices_erase(std::size_t cardIndex);
+    void insertCardId(CardId);
+    void eraseCardId(CardId);
 
 private:
-    [[nodiscard]] auto getCardIds(const utl::index_map<CardId, CardMeta>& cards) const -> std::vector<CardId>;
     std::shared_ptr<VocableProgress> progress;
-    index_set cardIndices;
+    std::set<CardId> cardIds;
 };
 
 } // namespace sr

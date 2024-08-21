@@ -52,7 +52,7 @@ public:
     void save();
 
     [[nodiscard]] auto Vocables() const -> const utl::index_map<VocableId, VocableMeta>&;
-    [[nodiscard]] auto MetaCards() -> const utl::index_map<CardId, CardMeta>&;
+    [[nodiscard]] auto MetaCards() -> const std::map<CardId, CardMeta>&;
     [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>;
     [[nodiscard]] auto getCardDB() const -> std::shared_ptr<CardDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
@@ -80,6 +80,6 @@ private:
     std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
-    utl::index_map<CardId, CardMeta> metaCards;
+    std::map<CardId, CardMeta> metaCards;
 };
 } // namespace sr

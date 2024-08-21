@@ -97,13 +97,31 @@ auto TabCard::videoPlaybackTask() -> kocoro::Task<>
 {
     while (true) {
         double timePos = co_await mpvVideo->SignalTimePos();
+        if (timePos >= track->getEndTimeStamp()) {
+            switch (playMode) {
+            case PlayMode::stop:
+                mpvVideo->pause();
+                break;
+            case PlayMode::playNext:
+                if (track->isSubtitlePrefix()) {
+                    track = track->getNonPrefixDefault();
+                    signalProceed->set(Proceed::nextTrack);
+                } else {
+                    mpvVideo->pause();
+                }
+                break;
+            case PlayMode::playUntilUnknown:
+            case PlayMode::playThrough:
+                break;
+            }
+        }
         // if (mode != Mode::story) {
         //     continue;
         // }
-        spdlog::info("vpt,timeps: {}", timePos);
-        if (timePos < track->getStartTimeStamp()) {
-            mpvVideo->seek(track->getStartTimeStamp());
-        }
+        // spdlog::info("vpt,timeps: {}", timePos);
+        // if (timePos < track->getStartTimeStamp()) {
+        //     mpvVideo->seek(track->getStartTimeStamp());
+        // }
     }
     co_return;
 }
@@ -505,7 +523,11 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
             if (timePos >= end - 0.05) {
                 timePos = start;
             }
-            mpvCurrent->playFragment(timePos, end);
+            if (mode == Mode::story && track->getTrackType() == database::TrackType::video) {
+                mpvCurrent->playFrom(timePos);
+            } else {
+                mpvCurrent->playFragment(timePos, end);
+            }
         } else {
             mpvCurrent->pause();
         }
@@ -518,14 +540,6 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
             mpvCurrent->seek(timePos);
         }
     }
-}
-
-void TabCard::handlePlaybackVideo(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress)
-{
-    if (!track.has_value() || !track->getMediaFile().has_value() || track->getTrackType() != database::TrackType::video) {
-        return;
-    }
-    
 }
 
 void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext)
@@ -633,6 +647,12 @@ void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
     if (cutAddClicked) {
         revealVocables = false;
         signalProceed->set(Proceed::nextTrack);
+        auto card = track->getCard();
+        auto cardId = card->getCardId();
+        if (dataBase->cardExists(cardId)) {
+            dataBase->removeCard(cardId);
+            dataBase->addCard(card);
+        }
     }
 }
 
@@ -698,9 +718,9 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
         track = track->trackAt(track->numberOfTracks() - 1);
     }
     if (nextPreviousClicked) {
-        mode = Mode::story;
         revealVocables = false;
         signalProceed->set(Proceed::nextTrack);
+        mpvVideo->seek(track->getStartTimeStamp());
     }
 }
 
@@ -737,9 +757,12 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
         track = track->trackAt(track->numberOfTracks() - 1);
     }
     if (nextPreviousClicked) {
-        mode = Mode::story;
         revealVocables = false;
         signalProceed->set(Proceed::nextTrack);
+        const auto& mpvCurrent = track->getTrackType() == database::TrackType::audio
+                                         ? mpvAudio
+                                         : mpvVideo;
+        mpvCurrent->seek(track->getStartTimeStamp());
     }
 }
 
