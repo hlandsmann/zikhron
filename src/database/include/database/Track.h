@@ -29,6 +29,8 @@ class Track
 public:
     Track(TrackMedia medium, CardPtr card);
     Track(const TrackMedia& medium, std::size_t index);
+    auto operator==(const Track&) const -> bool = default;
+    auto operator!=(const Track&) const -> bool = default;
 
     [[nodiscard]] auto numberOfTracks() const -> std::size_t;
     [[nodiscard]] auto trackAt(std::size_t index) const -> Track;
@@ -41,10 +43,10 @@ public:
     [[nodiscard]] auto isBackJoinable() const -> bool;
     [[nodiscard]] auto isSeparable() const -> bool;
 
-    [[nodiscard]] auto joinFront()const -> Track;
-    [[nodiscard]] auto joinBack()const -> Track;
-    [[nodiscard]] auto cutFront()const -> Track;
-    [[nodiscard]] auto cutBack()const -> Track;
+    [[nodiscard]] auto joinFront() const -> Track;
+    [[nodiscard]] auto joinBack() const -> Track;
+    [[nodiscard]] auto cutFront() const -> Track;
+    [[nodiscard]] auto cutBack() const -> Track;
 
     [[nodiscard]] auto getCard() const -> CardPtr;
     [[nodiscard]] auto getTrackType() const -> TrackType;
@@ -61,7 +63,7 @@ private:
     Track(TrackMedia medium, const JoinedSubtitle& joinedSubtitle);
 
     // Prefix ctor
-    Track(TrackMedia medium,  CardPtr card, double startTimeStamp, double endTimeStamp);
+    Track(TrackMedia medium, CardPtr card, double startTimeStamp, double endTimeStamp);
 
     static auto getCard(TrackMedia medium, std::size_t index) -> CardPtr;
     void setupMedium();

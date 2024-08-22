@@ -44,6 +44,7 @@ enum class Image {
     circle_stop,
     object_select,
     object_unselect,
+    translation,
 };
 
 struct TextureData;
@@ -84,6 +85,7 @@ class Texture
     static constexpr auto circle_stop = "/home/harmen/src/zikhron/build/resources/icons/circle-stop_32px.png";
     static constexpr auto object_select = "/home/harmen/src/zikhron/build/resources/icons/object-select_32px.png";
     static constexpr auto object_unselect = "/home/harmen/src/zikhron/build/resources/icons/object-unselect_32px.png";
+    static constexpr auto translation = "/home/harmen/src/zikhron/build/resources/icons/translation_32px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

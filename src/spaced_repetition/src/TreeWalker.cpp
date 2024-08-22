@@ -42,7 +42,7 @@ auto TreeWalker::getTodayVocables() const -> index_set
 {
     const auto& cards = db->MetaCards();
     sr::index_set todayVocables;
-    for (const auto& [_,card] : cards) {
+    for (const auto& [_, card] : cards) {
         auto tnv = card.getTimingAndVocables();
         if (tnv.timing <= 0) {
             todayVocables.insert(tnv.vocables.begin(), tnv.vocables.end());
@@ -156,6 +156,9 @@ void TreeWalker::addNextVocableToIgnoreCardIds(size_t nextVocable, std::shared_p
 auto TreeWalker::getNextCardChoice() -> const CardMeta&
 {
     CardId cardId = getNextTargetCard().value_or(CardId{});
+    if (!db->MetaCards().contains(cardId)) {
+        return db->MetaCards().begin()->second;
+    }
     return db->MetaCards().at(cardId);
 }
 

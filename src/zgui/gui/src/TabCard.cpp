@@ -95,9 +95,18 @@ void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
 
 auto TabCard::videoPlaybackTask() -> kocoro::Task<>
 {
+    auto localTrack = track;
     while (true) {
         double timePos = co_await mpvVideo->SignalTimePos();
+        if (localTrack != track) {
+            localTrack = track;
+            if (localTrack && localTrack->getStartTimeStamp() > timePos) {
+                mpvVideo->seek(track->getStartTimeStamp());
+                continue;
+            }
+        }
         if (timePos >= track->getEndTimeStamp()) {
+            // track is set here, so set localTrack at the end of switch/case
             switch (playMode) {
             case PlayMode::stop:
                 mpvVideo->pause();
@@ -114,6 +123,7 @@ auto TabCard::videoPlaybackTask() -> kocoro::Task<>
             case PlayMode::playThrough:
                 break;
             }
+            localTrack = track;
         }
         // if (mode != Mode::story) {
         //     continue;
@@ -356,6 +366,8 @@ void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
             ->setExpandType(width_fixed, height_adapt);
 
     ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::translation);
+    ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
     ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
@@ -386,6 +398,10 @@ void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
     ctrlBox.next<widget::Separator>();
     auto& tbgMode = ctrlBox.next<widget::ToggleButtonGroup>();
     handleMode(tbgMode);
+
+    ctrlBox.next<widget::Separator>();
+    auto& btnTranslation = ctrlBox.next<widget::ImageButton>();
+    handleTranslation(btnTranslation);
 
     ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
@@ -443,6 +459,8 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
             ->setExpandType(width_fixed, height_adapt);
 
     ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::translation);
+    ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
     ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
@@ -493,6 +511,10 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.next<widget::Separator>();
     auto& tbgMode = ctrlBox.next<widget::ToggleButtonGroup>();
     handleMode(tbgMode);
+
+    ctrlBox.next<widget::Separator>();
+    auto& btnTranslation = ctrlBox.next<widget::ImageButton>();
+    handleTranslation(btnTranslation);
 
     ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
@@ -705,12 +727,15 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
         nextPreviousClicked = true;
         if (playMode == PlayMode::stop) {
             track = track->nextTrack();
+            mpvVideo->pause();
         } else {
             if (track->isSubtitlePrefix()) {
                 track = track->getNonPrefixDefault();
             } else {
                 track = track->nextTrack().getSubtitlePrefix();
             }
+
+            mpvVideo->playFrom(track->getStartTimeStamp());
         }
     }
     if (btnOpenSegment.clicked()) {
@@ -764,6 +789,11 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                          : mpvVideo;
         mpvCurrent->seek(track->getStartTimeStamp());
     }
+}
+
+void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
+{
+    btnTranslation.clicked();
 }
 
 void TabCard::handleAnnotate(widget::ImageButton& btnAnnotate)

@@ -125,6 +125,7 @@ private:
                             widget::ImageButton& btnPrevious,
                             widget::ImageButton& btnNext,
                             widget::ImageButton& btnLast);
+    void handleTranslation(widget::ImageButton& btnTranslation);
     void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);
 
