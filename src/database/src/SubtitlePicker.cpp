@@ -209,8 +209,8 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
     const auto& lastSub = *ranges::max_element(subtitleSpan, ranges::less{}, [](const SubText& subText) {
         return subText.startTime + subText.duration;
     });
-    auto endTime = lastSub.startTime + lastSub.duration;
-    auto startTime = ranges::min_element(subtitleSpan, ranges::less{}, &SubText::startTime)->startTime;
+    auto endTime = lastSub.getEndTimeStamp();
+    auto startTime = ranges::min_element(subtitleSpan, ranges::less{}, &SubText::getStartTimeStamp)->getStartTimeStamp();
 
     auto newCard = std::dynamic_pointer_cast<SubtitleCard>(card);
     if (newCard == nullptr) {
@@ -231,8 +231,8 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
     }
 
     return {.card = newCard,
-            .startTimeStamp = static_cast<double>(startTime) / 1000.,
-            .endTimeStamp = static_cast<double>(endTime) / 1000.};
+            .startTimeStamp = startTime,
+            .endTimeStamp = endTime};
 }
 
 auto SubtitlePicker::getJoinedSubAtIndex(std::size_t index) -> JoinedSubtitle

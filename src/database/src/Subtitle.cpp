@@ -36,6 +36,7 @@ Subtitle::Subtitle(const std::filesystem::path& subtitleFile,
         spdlog::error("Failed to parse {}", subtitleFile.string());
         spdlog::error("{}", e.what());
     }
+    cleanSubTexts();
 }
 
 auto Subtitle::getName() const -> std::string
@@ -130,5 +131,17 @@ auto Subtitle::serialize() const -> std::string
     }
 
     return content;
+}
+
+void Subtitle::cleanSubTexts()
+{
+    for (auto& subText : subTexts) {
+        auto subStr = std::string{"\\N"};
+        auto found = subText.text.find(subStr);
+        while (found != std::string::npos) {
+            subText.text.replace(found, subStr.length(), " ");
+            found = subText.text.find(subStr);
+        }
+    }
 }
 } // namespace database

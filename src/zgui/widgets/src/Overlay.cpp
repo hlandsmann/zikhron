@@ -47,9 +47,17 @@ auto Overlay::dropOverlay(float x, float y) -> OverlayDrop
     auto rect = getRect();
     // auto layerSize = layer->getWidgetSizeFromRect(getLayerRect(rect));
     auto offset = getOffsetRect();
+    if (x < 0.F) {
+        x = rect.width + x;
+        x = std::max(0.F, x);
+    }
+    if (y < 0.F) {
+        y = rect.height + y;
+        y = std::max(0.F, y);
+    }
     // imglog::log("overlay in drop, x {}, y {}, w{}, h{}", rect.x, rect.y, rect.width, rect.height);
-    rect.x = std::min(x + offset.x, rect.width - layerSize.width);
-    rect.y = std::min(y + offset.y, rect.height - layerSize.height);
+    rect.x = std::min(x + offset.x, rect.width - layerSize.width + offset.x);
+    rect.y = std::min(y + offset.y, rect.height - layerSize.height + offset.y);
     rect.width = layerSize.width;
     rect.height = layerSize.height;
 
@@ -122,7 +130,7 @@ auto Overlay::getLayerRect(const layout::Rect& rect) const -> layout::Rect
 {
     auto layerRect = layout::Rect{.x = 0.F,
                                   .y = 0.F,
-                                  .width = std::min(rect.width, maxWidth),
+                                  .width = maxWidth != 0.F ? std::min(rect.width, maxWidth) : rect.width,
                                   .height = rect.height};
     return layerRect;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "TranslationOverlay.h"
 #include "DisplayAnnotation.h"
 #include "DisplayText.h"
 #include "DisplayVideo.h"
@@ -142,8 +143,10 @@ private:
     std::optional<database::Track> track;
 
     std::unique_ptr<DisplayVideo> displayVideo;
+    std::unique_ptr<TranslationOverlay> translationOverlay;
 
     std::shared_ptr<widget::Overlay> overlay;
+    std::shared_ptr<widget::Overlay> stableOverlay;
     std::shared_ptr<widget::Video> video;
 
     context::WidgetId boxId{};

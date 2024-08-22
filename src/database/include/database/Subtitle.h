@@ -31,6 +31,7 @@ public:
 private:
     void deserialize();
     [[nodiscard]] auto serialize() const -> std::string;
+    void cleanSubTexts();
     static auto nameFromSub(const multimedia::Subtitle& sub) -> std::string;
     static auto fileNameFromSubVideo(const multimedia::Subtitle& sub,
                                      const std::filesystem::path& videoFile,

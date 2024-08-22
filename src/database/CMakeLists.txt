@@ -11,13 +11,14 @@ target_sources(zikhron_database
     PRIVATE
         include/database/Card.h
         include/database/CardDB.h
-        include/database/IdGenerator.h
         include/database/CardPack.h
         include/database/CardPackDB.h
+        include/database/IdGenerator.h
         include/database/Subtitle.h
         include/database/SubtitlePicker.h
         include/database/TokenizationChoiceDB.h
         include/database/Track.h
+        include/database/Translation.h
         include/database/Video.h
         include/database/VideoDB.h
         include/database/VideoSet.h
@@ -34,6 +35,7 @@ target_sources(zikhron_database
         src/SubtitlePicker.cpp
         src/TokenizationChoiceDB.cpp
         src/Track.cpp
+        src/Translation.cpp
         src/Video.cpp
         src/VideoDB.cpp
         src/VideoSet.cpp

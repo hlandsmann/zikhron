@@ -175,6 +175,20 @@ void DataBase::removeCard(CardId cardId)
 
     card->setActive(false);
     cardDB->eraseCard(cardId);
+    spdlog::info("Removed card with cardId: {}", cardId);
+}
+
+void DataBase::cleanupCards()
+{
+    cardId_set deadCards;
+    for (const auto& [cardId, cardMeta] : metaCards) {
+        if (!cardMeta.getCard()->isActive()) {
+            deadCards.insert(cardId);
+        }
+    }
+    for (CardId cardId : deadCards) {
+        removeCard(cardId);
+    }
 }
 
 auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
@@ -205,7 +219,7 @@ void DataBase::fillIndexMaps()
         metaCards[id] = CardMeta{id, card, vocables};
     }
 
-    for (const auto& [_,card] : metaCards) {
+    for (const auto& [_, card] : metaCards) {
         const auto& vocableIds = card.VocableIds();
         allVocableIds.insert(vocableIds.begin(), vocableIds.end());
     }

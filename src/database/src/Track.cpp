@@ -15,6 +15,7 @@
 #include <exception>
 #include <filesystem>
 #include <optional>
+#include <string>
 #include <utility>
 
 namespace database {
@@ -231,6 +232,21 @@ auto Track::getNonPrefixDefault() -> Track
 auto Track::isSubtitlePrefix() const -> bool
 {
     return isPrefixToSubtitle;
+}
+
+auto Track::getTranslation() const -> std::optional<std::string>
+{
+    return std::visit(utl::overloaded{[](const CardPackPtr& /* cardPack */) -> std::optional<std::string> {
+                                          return {};
+                                      },
+                                      [this](const VideoPtr& video) -> std::optional<std::string> {
+                                          const auto& translation = video->getTranslation();
+                                          if (!translation.has_value()) {
+                                              return {};
+                                          }
+                                          return (*translation)->get(startTimeStamp, endTimeStamp);
+                                      }},
+                      medium);
 }
 
 Track::Track(TrackMedia _medium, const JoinedSubtitle& joinedSubtitle)

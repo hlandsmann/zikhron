@@ -4,6 +4,7 @@
 #include "ParsingHelpers.h"
 #include "Subtitle.h"
 #include "SubtitlePicker.h"
+#include "Translation.h"
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
@@ -16,6 +17,7 @@
 #include <filesystem>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <stop_token>
 #include <string>
 #include <string_view>
@@ -64,6 +66,10 @@ void Video::deserialize(std::string_view content)
     videoFile = getValue(rest, "vid");
     name = getValue(rest, "name");
     subChoice = std::stoul(std::string{getValue(rest, "sub_choice")});
+    auto translationChoiceStr = std::string{getValue(rest, "translation_choice")};
+    if (!translationChoiceStr.empty()) {
+        translationChoice = std::stoul(translationChoiceStr);
+    }
     while (!rest.empty()) {
         if (getValueType(rest) == "sub") {
             auto subtitleFile = getValue(rest, "sub");
@@ -86,6 +92,11 @@ auto Video::serialize() const -> std::string
     content += fmt::format("vid:{}\n", videoFile.string());
     content += fmt::format("name:{}\n", name);
     content += fmt::format("sub_choice:{}\n", subChoice);
+    if (translationChoice) {
+        content += fmt::format("translation_choice:{}\n", *translationChoice);
+    } else {
+        content += fmt::format("translation_choice:\n");
+    }
 
     for (const auto& sub : subtitles) {
         content += fmt::format("sub:{}\n", sub->getFileName().filename().string());
@@ -128,6 +139,14 @@ auto Video::getVideoFile() const -> const std::filesystem::path&
 auto Video::getName() const -> std::string
 {
     return name;
+}
+
+auto Video::getTranslation() -> std::optional<std::shared_ptr<Translation>>
+{
+    if (!translation && translationChoice) {
+        translation = std::make_shared<Translation>(subtitles.at(*translationChoice));
+    }
+    return translation;
 }
 
 void Video::saveProgress()

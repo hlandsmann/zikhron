@@ -11,6 +11,7 @@
 #include <filesystem>
 #include <memory>
 #include <optional>
+#include <string>
 #include <utility>
 #include <variant>
 
@@ -58,6 +59,8 @@ public:
     [[nodiscard]] auto getSubtitlePrefix() -> Track;
     [[nodiscard]] auto getNonPrefixDefault() -> Track;
     [[nodiscard]] auto isSubtitlePrefix() const -> bool;
+
+    [[nodiscard]] auto getTranslation() const -> std::optional<std::string>;
 
 private:
     Track(TrackMedia medium, const JoinedSubtitle& joinedSubtitle);

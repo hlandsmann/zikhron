@@ -1,5 +1,7 @@
 #include "TabCard.h"
 
+#include "TranslationOverlay.h"
+
 #include <DisplayAnnotation.h>
 #include <DisplayText.h>
 #include <DisplayVideo.h>
@@ -278,6 +280,7 @@ void TabCard::setupCardWindow(widget::Window& cardWindow)
 {
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
     overlay = cardWindow.add<widget::Overlay>(Align::start);
+    stableOverlay = cardWindow.add<widget::Overlay>(Align::start);
     // video = cardWindow.add<widget::Video>(Align::start, mpvVideo);
     cardBox->setName("cardBox");
 
@@ -308,6 +311,10 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
         if (displayText->draw() && displayVocables) {
             displayVocables->reload();
         }
+    }
+
+    if (translationOverlay) {
+        translationOverlay->draw();
     }
 }
 
@@ -675,6 +682,7 @@ void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
             dataBase->removeCard(cardId);
             dataBase->addCard(card);
         }
+        dataBase->cleanupCards();
     }
 }
 
@@ -793,7 +801,24 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
 
 void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
 {
-    btnTranslation.clicked();
+    auto translation = std::string{};
+    if (auto optTranslation = track->getTranslation()) {
+        translation = *optTranslation;
+    }
+    if (translation.empty()) {
+        return;
+    }
+    if (btnTranslation.clicked()) {
+        if (btnTranslation.isChecked()) {
+            translationOverlay.reset();
+        } else {
+            translationOverlay = std::make_unique<TranslationOverlay>(stableOverlay, translation);
+        }
+    }
+    if (translationOverlay && translationOverlay->getText() != translation) {
+        translationOverlay.reset();
+    }
+    btnTranslation.setChecked(translationOverlay != nullptr);
 }
 
 void TabCard::handleAnnotate(widget::ImageButton& btnAnnotate)

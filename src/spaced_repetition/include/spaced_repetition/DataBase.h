@@ -67,6 +67,7 @@ public:
     [[nodiscard]] auto cardExists(CardId cardId) const -> bool;
     void addCard(const CardPtr& card);
     void removeCard(CardId cardId);
+    void cleanupCards();
 
 private:
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
