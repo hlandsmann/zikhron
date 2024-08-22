@@ -45,3 +45,9 @@ svg_to_png(object-unselect.svg 32)
 
 svg_to_png(continue.svg 32)
 svg_to_png(translation.svg 32)
+
+svg_to_png(time-backward.svg 32)
+svg_to_png(time-delete-backward.svg 32)
+svg_to_png(time-forward.svg 32)
+svg_to_png(time-delete-forward.svg 32)
+svg_to_png(time-subtitle.svg 32)

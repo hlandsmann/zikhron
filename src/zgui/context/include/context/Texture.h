@@ -45,6 +45,11 @@ enum class Image {
     object_select,
     object_unselect,
     translation,
+    time_delete_backward,
+    time_backward,
+    time_forward,
+    time_delete_forward,
+    time_subtitle,
 };
 
 struct TextureData;
@@ -86,6 +91,11 @@ class Texture
     static constexpr auto object_select = "/home/harmen/src/zikhron/build/resources/icons/object-select_32px.png";
     static constexpr auto object_unselect = "/home/harmen/src/zikhron/build/resources/icons/object-unselect_32px.png";
     static constexpr auto translation = "/home/harmen/src/zikhron/build/resources/icons/translation_32px.png";
+    static constexpr auto time_delete_backward = "/home/harmen/src/zikhron/build/resources/icons/time-delete-backward_32px.png";
+    static constexpr auto time_delete_forward = "/home/harmen/src/zikhron/build/resources/icons/time-delete-forward_32px.png";
+    static constexpr auto time_forward = "/home/harmen/src/zikhron/build/resources/icons/time-forward_32px.png";
+    static constexpr auto time_backward = "/home/harmen/src/zikhron/build/resources/icons/time-backward_32px.png";
+    static constexpr auto time_subtitle = "/home/harmen/src/zikhron/build/resources/icons/time-subtitle_32px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

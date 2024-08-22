@@ -88,6 +88,11 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::object_select] = loadTextureFromFile(object_select);
     textureMap[Image::object_unselect] = loadTextureFromFile(object_unselect);
     textureMap[Image::translation] = loadTextureFromFile(translation);
+    textureMap[Image::time_delete_backward] = loadTextureFromFile(time_delete_backward);
+    textureMap[Image::time_delete_forward] = loadTextureFromFile(time_delete_forward);
+    textureMap[Image::time_backward] = loadTextureFromFile(time_backward);
+    textureMap[Image::time_forward] = loadTextureFromFile(time_forward);
+    textureMap[Image::time_subtitle] = loadTextureFromFile(time_subtitle);
     return textureMap;
 }
 } // namespace context
