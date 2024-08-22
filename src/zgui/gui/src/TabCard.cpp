@@ -721,7 +721,7 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
     bool nextPreviousClicked = false;
     if (btnContinue.clicked()) {
         nextPreviousClicked = true;
-        track = track->trackAt(0);
+        track = track->continueTrack();
     }
     if (btnPrevious.clicked()) {
         nextPreviousClicked = true;

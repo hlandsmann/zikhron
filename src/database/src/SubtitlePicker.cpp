@@ -253,6 +253,21 @@ auto SubtitlePicker::joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtit
     return createJoinedSubtitle(index, card);
 }
 
+auto SubtitlePicker::joinedSubtitleFromLastActiveCard() -> JoinedSubtitle
+{
+    const auto& reverseCards = std::views::reverse(cards);
+    auto cardIt = ranges::find_if(std::views::reverse(cards),
+                                  [](const std::weak_ptr<SubtitleCard>& card) {
+                                      return card.lock() != nullptr;
+                                  });
+    if (cardIt != reverseCards.end()) {
+        auto lastActiveCard = cardIt->lock();
+        return createJoinedSubtitle(lastActiveCard->getIndexInPack(), lastActiveCard);
+    }
+    spdlog::critical("NOT FOUND");
+    return createJoinedSubtitle(0, nullptr);
+}
+
 void SubtitlePicker::save()
 {
     spdlog::info("save subtitlePicker: {}", progressFile.string());

@@ -35,6 +35,7 @@ public:
 
     [[nodiscard]] auto numberOfTracks() const -> std::size_t;
     [[nodiscard]] auto trackAt(std::size_t index) const -> Track;
+    [[nodiscard]] auto continueTrack() const -> Track;
     [[nodiscard]] auto nextTrack() const -> Track;
     [[nodiscard]] auto previousTrack() const -> Track;
     [[nodiscard]] auto hasNext() const -> bool;

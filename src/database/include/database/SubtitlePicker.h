@@ -55,6 +55,7 @@ public:
     [[nodiscard]] auto getJoinedSubAtPosition(std::size_t pos) -> JoinedSubtitle;
     [[nodiscard]] auto getJoinedSubAtIndex(std::size_t index) -> JoinedSubtitle;
     [[nodiscard]] auto joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtitle;
+    [[nodiscard]] auto joinedSubtitleFromLastActiveCard() -> JoinedSubtitle;
 
     void save();
 

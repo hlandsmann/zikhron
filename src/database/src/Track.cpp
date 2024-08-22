@@ -52,6 +52,20 @@ auto Track::trackAt(std::size_t _index) const -> Track
     return {medium, _index};
 }
 
+auto Track::continueTrack() const -> Track
+{
+    return std::visit(utl::overloaded{[this](const CardPackPtr& /* cardPack */) -> Track {
+                                          auto index = card->getIndexInPack();
+                                          return {medium, index};
+                                      },
+                                      [this](const VideoPtr& video) -> Track {
+                                          const auto& subtitlePicker = video->getActiveSubtitle();
+                                          auto nextJoinedSubtitle = subtitlePicker->joinedSubtitleFromLastActiveCard();
+                                          return {medium, nextJoinedSubtitle};
+                                      }},
+                      medium);
+}
+
 auto Track::nextTrack() const -> Track
 {
     return std::visit(utl::overloaded{[this](const CardPackPtr& /* cardPack */) -> Track {
