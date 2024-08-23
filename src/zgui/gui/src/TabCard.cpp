@@ -210,7 +210,7 @@ auto TabCard::annotationTask(sr::CardMeta& cardMeta,
 {
     auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.getCardId());
     auto tokenText = cardMeta.getStudyTokenText();
-    displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlay, alternatives, std::move(tokenText));
+    displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlayForAnnotation, alternatives, std::move(tokenText));
     auto tokenizationChoice = co_await *signalAnnotationDone;
     displayAnnotation.reset();
     if (!tokenizationChoice.empty()) {
@@ -243,7 +243,7 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
     auto tokenText = cardMeta.getStudyTokenText();
 
     auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
-    displayText = std::make_unique<DisplayText>(cardLayer, overlay, std::move(tokenText));
+    displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText));
     if (!vocId_ease.empty()) {
         displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease));
     }
@@ -279,8 +279,9 @@ void TabCard::loadTrack()
 void TabCard::setupCardWindow(widget::Window& cardWindow)
 {
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
-    overlay = cardWindow.add<widget::Overlay>(Align::start);
-    stableOverlay = cardWindow.add<widget::Overlay>(Align::start);
+    overlayForVocable = cardWindow.add<widget::Overlay>(Align::start);
+    overlayForAnnotation = cardWindow.add<widget::Overlay>(Align::start);
+    overlayForTranslation = cardWindow.add<widget::Overlay>(Align::start);
     // video = cardWindow.add<widget::Video>(Align::start, mpvVideo);
     cardBox->setName("cardBox");
 
@@ -321,9 +322,15 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
 void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
 {
     using namespace widget::layout;
-    auto& audioCtrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
-    auto& videoCtrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    auto& secondaryCtrlLayer = *ctrlBox.add<widget::Layer>(Align::start);
+    setupSecondaryCtrl(secondaryCtrlLayer);
+
+    auto& primaryCtrlLayer = *ctrlBox.add<widget::Layer>(Align::start);
+
+    auto& audioCtrlBox = *primaryCtrlLayer.add<widget::Box>(Align::start, widget::Orientation::horizontal);
     setupAudioCtrlBox(audioCtrlBox);
+    auto& videoCtrlBox = *primaryCtrlLayer.add<widget::Box>(Align::start, widget::Orientation::horizontal);
     setupVideoCtrlBox(videoCtrlBox);
 }
 
@@ -331,8 +338,15 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
 {
     auto droppedWindow = ctrlWindow.dropWindow();
     ctrlWindow.start();
-    auto& audioCtrlBox = ctrlWindow.next<widget::Box>();
-    auto& videoCtrlBox = ctrlWindow.next<widget::Box>();
+    auto& ctrlBox = ctrlWindow.next<widget::Box>();
+    ctrlBox.start();
+    auto& secondaryCtrlLayer = ctrlBox.next<widget::Layer>();
+    doSecondaryCtrl(secondaryCtrlLayer);
+
+    auto& primaryCtrlLayer = ctrlBox.next<widget::Layer>();
+    primaryCtrlLayer.start();
+    auto& audioCtrlBox = primaryCtrlLayer.next<widget::Box>();
+    auto& videoCtrlBox = primaryCtrlLayer.next<widget::Box>();
 
     if (mode == Mode::story && track.has_value() && track->getTrackType() == database::TrackType::video) {
         doVideoCtrlBox(videoCtrlBox);
@@ -532,6 +546,14 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     handleDataBaseSave(btnSave);
 }
 
+void TabCard::setupSecondaryCtrl(widget::Layer& ctrlBox)
+{
+}
+
+void TabCard::doSecondaryCtrl(widget::Layer& ctrlBox)
+{
+}
+
 void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress)
 {
     if (!track.has_value() || !track->getMediaFile().has_value()) {
@@ -634,8 +656,15 @@ void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
     if (!track.has_value() || !track->hasNext()) {
         return;
     }
-
+    auto oldMode = mode;
     mode = static_cast<Mode>(tbgMode.Active(static_cast<unsigned>(mode)));
+    if (oldMode != mode && mode == Mode::shuffle) {
+        auto card = track->getCard();
+        auto cardId = card->getCardId();
+        if (!dataBase->cardExists(cardId)) {
+            signalProceed->set(Proceed::walkTree);
+        }
+    }
 }
 
 void TabCard::handlePlayMode(widget::ImageButton& btnPlayMode)
@@ -812,7 +841,7 @@ void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
         if (btnTranslation.isChecked()) {
             translationOverlay.reset();
         } else {
-            translationOverlay = std::make_unique<TranslationOverlay>(stableOverlay, translation);
+            translationOverlay = std::make_unique<TranslationOverlay>(overlayForTranslation, translation);
         }
     }
     if (translationOverlay && translationOverlay->getText() != translation) {

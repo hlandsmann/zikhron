@@ -1,9 +1,9 @@
 #pragma once
-#include "TranslationOverlay.h"
 #include "DisplayAnnotation.h"
 #include "DisplayText.h"
 #include "DisplayVideo.h"
 #include "DisplayVocables.h"
+#include "TranslationOverlay.h"
 
 #include <annotation/Ease.h>
 #include <context/WidgetId.h>
@@ -108,8 +108,13 @@ private:
     static void setupVideoCtrlBox(widget::Box& ctrlBox);
     void doVideoCtrlBox(widget::Box& ctrlBox);
 
+    static void setupSecondaryCtrl(widget::Layer& ctrlBox);
+    void doSecondaryCtrl(widget::Layer& ctrlBox);
+
     void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
-    void handleCardSubmission(widget::Button& btnReveal, widget::Button& btnSubmit, widget::Button& btnNext);
+    void handleCardSubmission(widget::Button& btnReveal,
+                              widget::Button& btnSubmit,
+                              widget::Button& btnNext);
     void handleMode(widget::ToggleButtonGroup& tbgMode);
     void handlePlayMode(widget::ImageButton& btnPlayMode);
     void handleSubAddCut(widget::ImageButton& btnCutPrev,
@@ -119,9 +124,9 @@ private:
     void handleSelection(widget::ImageButton& btnSelect,
                          widget::ImageButton& btnUnselect);
     void handleNextPreviousVideo(widget::ImageButton& btnContinue,
-                            widget::ImageButton& btnPrevious,
-                            widget::ImageButton& btnNext,
-                            widget::ImageButton& btnOpenSegment);
+                                 widget::ImageButton& btnPrevious,
+                                 widget::ImageButton& btnNext,
+                                 widget::ImageButton& btnOpenSegment);
     void handleNextPrevious(widget::ImageButton& btnFirst,
                             widget::ImageButton& btnPrevious,
                             widget::ImageButton& btnNext,
@@ -145,8 +150,9 @@ private:
     std::unique_ptr<DisplayVideo> displayVideo;
     std::unique_ptr<TranslationOverlay> translationOverlay;
 
-    std::shared_ptr<widget::Overlay> overlay;
-    std::shared_ptr<widget::Overlay> stableOverlay;
+    std::shared_ptr<widget::Overlay> overlayForVocable;
+    std::shared_ptr<widget::Overlay> overlayForAnnotation;
+    std::shared_ptr<widget::Overlay> overlayForTranslation;
     std::shared_ptr<widget::Video> video;
 
     context::WidgetId boxId{};
