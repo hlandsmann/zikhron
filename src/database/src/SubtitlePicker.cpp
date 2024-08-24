@@ -347,6 +347,18 @@ void SubtitlePicker::deserialize()
             deserializedActiveCardIndices.push_back(std::stoul(active));
         }
     }
+    auto timingsSv = getValue(rest, "timings");
+    while (!timingsSv.empty()) {
+        auto timing = utl::split_front(timingsSv, ",");
+        if (timing.empty()) {
+            break;
+        }
+        auto index = std::stoul(std::string{utl::split_front(timing, ";")});
+        auto front = std::stod(std::string{utl::split_front(timing, ";")});
+        auto back = std::stod(std::string{timing});
+        timeExtraFront.at(index) = front;
+        timeExtraBack.at(index) = back;
+    }
 }
 
 auto SubtitlePicker::serialize() const -> std::string
@@ -363,6 +375,14 @@ auto SubtitlePicker::serialize() const -> std::string
         active.push_back(card.lock()->getIndexInPack());
     }
     content += fmt::format("active:{},\n", fmt::join(active, ","));
+
+    content += "timings:";
+    for (const auto& [front, back, index] : views::zip(timeExtraFront, timeExtraBack, views::iota(0))) {
+        if (front != 0. || back != 0.) {
+            content += fmt::format("{};{:.3F};{:.3F},", index, front, back);
+        }
+    }
+    content += "\n";
 
     return content;
 }

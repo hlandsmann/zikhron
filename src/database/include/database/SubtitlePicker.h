@@ -35,6 +35,7 @@ public:
                    const std::shared_ptr<CardIdGenerator>& cardIdGenerator,
                    std::shared_ptr<annotation::Tokenizer> tokenizer,
                    std::shared_ptr<WordDB> wordDB);
+
     auto getDeserializedActiveCards() -> std::vector<CardPtr>;
 
     [[nodiscard]] auto isFrontJoinable(const CardPtr& card) const -> bool;

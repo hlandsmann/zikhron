@@ -809,7 +809,6 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
                 track = track->getNonPrefixDefault();
             } else {
                 track = track->nextTrack();
-                spdlog::info("hasSubtitlePrefix: {}", track->hasSubtitlePrefix());
                 if (track->hasSubtitlePrefix()) {
                     track = track->getSubtitlePrefix();
                 }
