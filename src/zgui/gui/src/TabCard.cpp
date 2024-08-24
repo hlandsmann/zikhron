@@ -323,8 +323,8 @@ void TabCard::setupCtrlWindow(widget::Window& ctrlWindow)
 {
     using namespace widget::layout;
     auto& ctrlBox = *ctrlWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
-    auto& secondaryCtrlLayer = *ctrlBox.add<widget::Layer>(Align::start);
-    setupSecondaryCtrl(secondaryCtrlLayer);
+    secondaryCtrlLayer = ctrlBox.add<widget::Layer>(Align::start);
+    setupSecondaryCtrl(*secondaryCtrlLayer);
 
     auto& primaryCtrlLayer = *ctrlBox.add<widget::Layer>(Align::start);
 
@@ -340,8 +340,8 @@ void TabCard::doCtrlWindow(widget::Window& ctrlWindow)
     ctrlWindow.start();
     auto& ctrlBox = ctrlWindow.next<widget::Box>();
     ctrlBox.start();
-    auto& secondaryCtrlLayer = ctrlBox.next<widget::Layer>();
-    doSecondaryCtrl(secondaryCtrlLayer);
+    /* secondaryCtrlLayer = */ ctrlBox.next<widget::Layer>();
+    doSecondaryCtrl(*secondaryCtrlLayer);
 
     auto& primaryCtrlLayer = ctrlBox.next<widget::Layer>();
     primaryCtrlLayer.start();
@@ -389,6 +389,8 @@ void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::translation);
     ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_subtitle);
+    ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
     ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
@@ -423,6 +425,10 @@ void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
     ctrlBox.next<widget::Separator>();
     auto& btnTranslation = ctrlBox.next<widget::ImageButton>();
     handleTranslation(btnTranslation);
+
+    ctrlBox.next<widget::Separator>();
+    auto& btnTimeSubtitle = ctrlBox.next<widget::ImageButton>();
+    handleToggleTimeSelection(btnTimeSubtitle);
 
     ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
@@ -482,6 +488,8 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::translation);
     ctrlBox.add<widget::Separator>(Align::end, 32.F, 0.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_subtitle);
+    ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::configure_mid);
     ctrlBox.add<widget::Separator>(Align::end, 8.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::document_save);
@@ -538,6 +546,10 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     handleTranslation(btnTranslation);
 
     ctrlBox.next<widget::Separator>();
+    auto& btnTimeSubtitle = ctrlBox.next<widget::ImageButton>();
+    handleToggleTimeSelection(btnTimeSubtitle);
+
+    ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
     handleAnnotate(btnAnnotate);
 
@@ -546,12 +558,39 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     handleDataBaseSave(btnSave);
 }
 
-void TabCard::setupSecondaryCtrl(widget::Layer& ctrlBox)
+void TabCard::setupSecondaryCtrl(widget::Layer& ctrlLayer)
 {
+    using namespace widget::layout;
+    using context::Image;
+    auto& ctrlBox = *ctrlLayer.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    ctrlBox.setExpandType(width_expand, height_fixed);
+    ctrlBox.setPadding(4.F);
+    ctrlBox.setBorder(4.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_delete_backward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_backward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_forward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_delete_forward);
+    ctrlBox.add<widget::Separator>(Align::end, 88.F, 0.F);
+
+    ctrlLayer.setHidden(true);
 }
 
-void TabCard::doSecondaryCtrl(widget::Layer& ctrlBox)
+void TabCard::doSecondaryCtrl(widget::Layer& ctrlLayer)
 {
+    if (ctrlLayer.isHidden()) {
+        return;
+    }
+    ctrlLayer.start();
+    auto& ctrlBox = ctrlLayer.next<widget::Box>();
+    ctrlBox.start();
+    auto& btnTimeDelFront = ctrlBox.next<widget::ImageButton>();
+    auto& btnTimeAddFront = ctrlBox.next<widget::ImageButton>();
+    auto& btnTimeAddBack = ctrlBox.next<widget::ImageButton>();
+    auto& btnTimeDelBack = ctrlBox.next<widget::ImageButton>();
+    handleTimeSelection(btnTimeDelFront,
+                        btnTimeAddFront,
+                        btnTimeAddBack,
+                        btnTimeDelBack);
 }
 
 void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress)
@@ -744,7 +783,7 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
         return;
     }
 
-    btnPrevious.setSensitive(track->hasPrevious() || !track->isSubtitlePrefix());
+    btnPrevious.setSensitive(track->hasPrevious() || track->hasSubtitlePrefix());
     btnNext.setSensitive(track->hasNext());
     btnOpenSegment.setSensitive(track->hasNext());
     bool nextPreviousClicked = false;
@@ -769,7 +808,11 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
             if (track->isSubtitlePrefix()) {
                 track = track->getNonPrefixDefault();
             } else {
-                track = track->nextTrack().getSubtitlePrefix();
+                track = track->nextTrack();
+                spdlog::info("hasSubtitlePrefix: {}", track->hasSubtitlePrefix());
+                if (track->hasSubtitlePrefix()) {
+                    track = track->getSubtitlePrefix();
+                }
             }
 
             mpvVideo->playFrom(track->getStartTimeStamp());
@@ -825,6 +868,60 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                          ? mpvAudio
                                          : mpvVideo;
         mpvCurrent->seek(track->getStartTimeStamp());
+    }
+}
+
+void TabCard::handleToggleTimeSelection(widget::ImageButton& btnTimeSubtitle)
+{
+    if (track && (track->getTrackType() != TrackType::video || track->isSubtitlePrefix())) {
+        if (!secondaryCtrlLayer->isHidden()) {
+            secondaryCtrlLayer->setHidden(true);
+        }
+        return;
+    }
+    btnTimeSubtitle.setChecked(!secondaryCtrlLayer->isHidden());
+    if (btnTimeSubtitle.clicked()) {
+        secondaryCtrlLayer->setHidden(!secondaryCtrlLayer->isHidden());
+    }
+}
+
+void TabCard::handleTimeSelection(widget::ImageButton& btnTimeDelFront,
+                                  widget::ImageButton& btnTimeAddFront,
+                                  widget::ImageButton& btnTimeAddBack,
+                                  widget::ImageButton& btnTimeDelBack)
+{
+    btnTimeDelFront.setSensitive(track->getTimeExtraFront() > 0.);
+    btnTimeDelBack.setSensitive(track->getTimeExtraBack() > 0.);
+
+    bool frontClicked = false;
+    bool backClicked = false;
+
+    if (btnTimeDelFront.clicked()) {
+        track = track->timeDelFront();
+        frontClicked = true;
+    }
+    if (btnTimeAddFront.clicked()) {
+        track = track->timeAddFront();
+        frontClicked = true;
+    }
+    if (btnTimeAddBack.clicked()) {
+        track = track->timeAddBack();
+        backClicked = true;
+    }
+    if (btnTimeDelBack.clicked()) {
+        track = track->timeDelBack();
+        backClicked = true;
+    }
+
+    if (frontClicked) {
+        double start = track->getStartTimeStamp();
+        double end = std::min(track->getEndTimeStamp(), start + 0.5);
+        mpvVideo->playFragment(start, end);
+    }
+    if (backClicked) {
+        double end = track->getEndTimeStamp();
+        double start = std::max(track->getStartTimeStamp(), end - 0.5);
+        mpvVideo->playFragment(start, end);
     }
 }
 

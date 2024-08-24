@@ -57,6 +57,12 @@ public:
     [[nodiscard]] auto joinedSubtitleFromCard(const CardPtr& card) -> JoinedSubtitle;
     [[nodiscard]] auto joinedSubtitleFromLastActiveCard() -> JoinedSubtitle;
 
+    void timeAddBack(const CardPtr& card);
+    void timeAddFront(const CardPtr& card);
+    void timeDelBack(const CardPtr& card);
+    void timeDelFront(const CardPtr& card);
+    [[nodiscard]] auto getTimeExtraBack(const CardPtr& card) -> double;
+    [[nodiscard]] auto getTimeExtraFront(const CardPtr& card) -> double;
     void save();
 
 private:
@@ -77,8 +83,11 @@ private:
     std::vector<std::size_t> joinings;
     std::vector<std::size_t> indices;
     std::vector<std::weak_ptr<SubtitleCard>> cards;
-
     std::vector<CardId> cardIds;
+
+    std::vector<double> timeExtraBack;
+    std::vector<double> timeExtraFront;
+
     std::vector<std::size_t> deserializedActiveCardIndices;
 };
 

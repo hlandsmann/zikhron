@@ -57,11 +57,19 @@ public:
     [[nodiscard]] auto getStartTimeStamp() const -> double;
     [[nodiscard]] auto getEndTimeStamp() const -> double;
 
-    [[nodiscard]] auto getSubtitlePrefix() -> Track;
-    [[nodiscard]] auto getNonPrefixDefault() -> Track;
+    [[nodiscard]] auto hasSubtitlePrefix() const -> bool;
+    [[nodiscard]] auto getSubtitlePrefix() const -> Track;
+    [[nodiscard]] auto getNonPrefixDefault() const -> Track;
     [[nodiscard]] auto isSubtitlePrefix() const -> bool;
 
     [[nodiscard]] auto getTranslation() const -> std::optional<std::string>;
+
+    [[nodiscard]] auto timeAddBack() const -> Track;
+    [[nodiscard]] auto timeAddFront() const -> Track;
+    [[nodiscard]] auto timeDelBack() const -> Track;
+    [[nodiscard]] auto timeDelFront() const -> Track;
+    [[nodiscard]] auto getTimeExtraBack() const -> double;
+    [[nodiscard]] auto getTimeExtraFront() const -> double;
 
 private:
     Track(TrackMedia medium, const JoinedSubtitle& joinedSubtitle);
@@ -73,6 +81,7 @@ private:
     void setupMedium();
     void setupCardAudio(const CardAudio& cardAudio);
     void setupJoinedSubtitle(const JoinedSubtitle& joinedSubtitle);
+    [[nodiscard]] auto getSubtitlePrefixTime() const -> std::pair<double, double>;
     TrackMedia medium;
     CardPtr card;
     double startTimeStamp{};

@@ -46,6 +46,8 @@ SubtitlePicker::SubtitlePicker(std::shared_ptr<Subtitle> _subtitle,
     , joinings(subtitle->getSubTexts().size(), 1)
     , cards(subtitle->getSubTexts().size(), std::weak_ptr<SubtitleCard>{})
     , cardIds{genCardIds(cardIdGenerator, subtitle->getSubTexts().size())}
+    , timeExtraBack(subtitle->getSubTexts().size(), 0.)
+    , timeExtraFront(subtitle->getSubTexts().size(), 0.)
 {
     deserialize();
 }
@@ -266,6 +268,46 @@ auto SubtitlePicker::joinedSubtitleFromLastActiveCard() -> JoinedSubtitle
     }
     spdlog::critical("NOT FOUND");
     return createJoinedSubtitle(0, nullptr);
+}
+
+void SubtitlePicker::timeAddBack(const CardPtr& card)
+{
+    auto index = card->getIndexInPack();
+    auto indexLastCard = joinings.at(index) + index - 1;
+    auto& timeExtra = timeExtraBack.at(indexLastCard);
+    timeExtra += 0.1;
+}
+
+void SubtitlePicker::timeAddFront(const CardPtr& card)
+{
+    auto& timeExtra = timeExtraFront.at(card->getIndexInPack());
+    timeExtra += 0.1;
+}
+
+void SubtitlePicker::timeDelBack(const CardPtr& card)
+{
+    auto index = card->getIndexInPack();
+    auto indexLastCard = joinings.at(index) + index - 1;
+    auto& timeExtra = timeExtraBack.at(indexLastCard);
+    timeExtra = std::max(0., timeExtra - 0.1);
+}
+
+void SubtitlePicker::timeDelFront(const CardPtr& card)
+{
+    auto& timeExtra = timeExtraFront.at(card->getIndexInPack());
+    timeExtra = std::max(0., timeExtra - 0.1);
+}
+
+auto SubtitlePicker::getTimeExtraBack(const CardPtr& card) -> double
+{
+    auto index = card->getIndexInPack();
+    auto indexLastCard = joinings.at(index) + index - 1;
+    return timeExtraBack.at(indexLastCard);
+}
+
+auto SubtitlePicker::getTimeExtraFront(const CardPtr& card) -> double
+{
+    return timeExtraFront.at(card->getIndexInPack());
 }
 
 void SubtitlePicker::save()

@@ -47,6 +47,7 @@ class TabCard
     using CardPackDB = database::CardPackDB;
     using CardPack = database::CardPack;
     using CardAudio = database::CardAudio;
+    using TrackType = database::TrackType;
     enum class Proceed {
         submit,
         walkTree,
@@ -100,7 +101,7 @@ private:
     void setupCardWindow(widget::Window& cardWindow);
     void doCardWindow(widget::Window& cardWindow);
 
-    static void setupCtrlWindow(widget::Window& ctrlWindow);
+    void setupCtrlWindow(widget::Window& ctrlWindow);
     void doCtrlWindow(widget::Window& ctrlWindow);
 
     static void setupAudioCtrlBox(widget::Box& ctrlBox);
@@ -108,8 +109,8 @@ private:
     static void setupVideoCtrlBox(widget::Box& ctrlBox);
     void doVideoCtrlBox(widget::Box& ctrlBox);
 
-    static void setupSecondaryCtrl(widget::Layer& ctrlBox);
-    void doSecondaryCtrl(widget::Layer& ctrlBox);
+    static void setupSecondaryCtrl(widget::Layer& ctrlLayer);
+    void doSecondaryCtrl(widget::Layer& ctrlLayer);
 
     void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
     void handleCardSubmission(widget::Button& btnReveal,
@@ -131,6 +132,11 @@ private:
                             widget::ImageButton& btnPrevious,
                             widget::ImageButton& btnNext,
                             widget::ImageButton& btnLast);
+    void handleToggleTimeSelection(widget::ImageButton& btnTimeSubtitle);
+    void handleTimeSelection(widget::ImageButton& btnTimeDelFront,
+                            widget::ImageButton& btnTimeAddFront,
+                            widget::ImageButton& btnTimeAddBack,
+                            widget::ImageButton& btnTimeDelBack);
     void handleTranslation(widget::ImageButton& btnTranslation);
     void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);
@@ -142,6 +148,7 @@ private:
     std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
     std::shared_ptr<kocoro::VolatileSignal<TokenizationChoice>> signalAnnotationDone;
 
+    std::shared_ptr<widget::Layer> secondaryCtrlLayer;
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayAnnotation> displayAnnotation;
     std::unique_ptr<DisplayVocables> displayVocables;

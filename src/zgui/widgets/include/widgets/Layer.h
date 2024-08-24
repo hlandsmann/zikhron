@@ -30,6 +30,9 @@ public:
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
     void setAlignNewWidgetsVertical(Align newWidgetsVertical);
 
+    void setHidden(bool hidden);
+    [[nodiscard]] auto isHidden() const -> bool;
+
 private:
     [[nodiscard]] auto calculateSize() const -> WidgetSize override;
     [[nodiscard]] auto calculateMinSize() const -> WidgetSize override;
@@ -49,6 +52,8 @@ private:
     layout::ExpandType expandHeight{ExpandType::height_expand};
 
     Align alignNewWidgetsVertical{Align::start};
+
+    bool hidden{false};
 };
 
 } // namespace widget

@@ -20,6 +20,9 @@ Layer::Layer(const WidgetInit& init)
 
 auto Layer::arrange(const layout::Rect& rect) -> bool
 {
+    if (hidden) {
+        return false;
+    }
     bool needArrange = false;
     auto borderedRect = getBorderedRect(rect);
     for (const auto& widget : widgets) {
@@ -48,6 +51,9 @@ auto Layer::arrange(const layout::Rect& rect) -> bool
 
 auto Layer::getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize
 {
+    if (hidden) {
+        return {};
+    }
     winlog("mainLayer", "{}: x: {}, y: {}, w: {}, h: {}", getName(), rect.x, rect.y, rect.width, rect.height);
     auto widgetSize = WidgetSize{};
     for (const auto& widget : widgets) {
@@ -64,8 +70,25 @@ void Layer::setAlignNewWidgetsVertical(Align newWidgetsVertical)
     alignNewWidgetsVertical = newWidgetsVertical;
 }
 
+void Layer::setHidden(bool _hidden)
+{
+    if (hidden == _hidden) {
+        return;
+    }
+    hidden = _hidden;
+    resetWidgetSize();
+}
+
+auto Layer::isHidden() const -> bool
+{
+    return hidden;
+}
+
 auto Layer::calculateSize() const -> WidgetSize
 {
+    if (hidden) {
+        return {};
+    }
     return {
             .width = maxElementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::standard),
             .height = maxElementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::standard),
@@ -74,6 +97,9 @@ auto Layer::calculateSize() const -> WidgetSize
 
 auto Layer::calculateMinSize() const -> WidgetSize
 {
+    if (hidden) {
+        return {};
+    }
     return {
             .width = maxElementMeasure(widgets.begin(), widgets.end(), Measure::horizontal, SizeType::min),
             .height = maxElementMeasure(widgets.begin(), widgets.end(), Measure::vertical, SizeType::min),
