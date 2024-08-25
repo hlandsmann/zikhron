@@ -37,6 +37,7 @@
 #include <widgets/detail/Widget.h>
 
 #include <algorithm>
+#include <exception>
 #include <initializer_list>
 #include <kocoro/kocoro.hpp>
 #include <memory>
@@ -191,7 +192,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
             break;
         case Proceed::annotate: {
+            spdlog::info("co_await annotationTask");
             auto cardAnnotationChanged = co_await annotationTask(cardMeta, cardDB, cardLayer);
+            spdlog::info("co_await annotationTask done");
             if (cardAnnotationChanged) {
                 signalProceed->set(Proceed::reload);
             }
@@ -209,21 +212,26 @@ auto TabCard::annotationTask(sr::CardMeta& cardMeta,
                              const std::shared_ptr<database::CardDB>& cardDB,
                              std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>
 {
-    auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.getCardId());
-    auto tokenText = cardMeta.getStudyTokenText();
-    displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlayForAnnotation, alternatives, std::move(tokenText));
-    auto tokenizationChoice = co_await *signalAnnotationDone;
-    displayAnnotation.reset();
-    if (!tokenizationChoice.empty()) {
-        auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
-        auto card = cardDB->getCards().at(cardMeta.getCardId());
-        tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
-        dataBase->reloadCard(card);
+    try {
+        auto alternatives = cardDB->getAnnotationAlternativesForCard(cardMeta.getCardId());
+        auto tokenText = cardMeta.getStudyTokenText();
+        displayAnnotation = std::make_unique<DisplayAnnotation>(cardLayer, overlayForAnnotation, alternatives, std::move(tokenText));
+        auto tokenizationChoice = co_await *signalAnnotationDone;
+        displayAnnotation.reset();
+        if (!tokenizationChoice.empty()) {
+            auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
+            auto card = cardDB->getCards().at(cardMeta.getCardId());
+            tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
+            dataBase->reloadCard(card);
 
-        signalProceed->set(Proceed::reload);
-        co_return true;
+            signalProceed->set(Proceed::reload);
+            co_return true;
+        }
+        co_return false;
+    } catch (const std::exception& e) {
+        spdlog::error("annotation task crash: {}", e.what());
+        co_return false;
     }
-    co_return false;
 }
 
 void TabCard::clearStudy(const std::shared_ptr<widget::Layer>& cardLayer,
@@ -1023,7 +1031,7 @@ void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
 
 void TabCard::handleAnnotate(widget::ImageButton& btnAnnotate)
 {
-    if (!dataBase /* || !displayText */) {
+    if (!dataBase || !displayText || !dataBase->cardExists(track->getCard()->getCardId())) {
         return;
     }
     if (btnAnnotate.clicked()) {
