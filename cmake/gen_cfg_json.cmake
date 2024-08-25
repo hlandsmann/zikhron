@@ -1,5 +1,5 @@
 function(gen_cfg_json)
-    set(dictionary ${CMAKE_SOURCE_DIR}/dictionaries/cedict_ts.u8)
+    set(dictionary ${CMAKE_SOURCE_DIR}/dictionaries/cedict_1_0_ts_utf-8_mdbg.u8)
     set(database_directory $ENV{HOME}/zikhron)
     configure_file(
         ${CMAKE_SOURCE_DIR}/cmake/script/zikhron_cfg_json.in
