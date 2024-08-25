@@ -29,6 +29,7 @@
 #include <widgets/MediaSlider.h>
 #include <widgets/Overlay.h>
 #include <widgets/Separator.h>
+#include <widgets/SteppedSlider.h>
 #include <widgets/TextTokenSeq.h>
 #include <widgets/ToggleButtonGroup.h>
 #include <widgets/Video.h>
@@ -372,7 +373,7 @@ void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_backward);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_backward);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::media_seek_forward);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_forward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::arrow_up);
 
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
     auto& layer = *ctrlBox.add<widget::Layer>(Align::end);
@@ -407,8 +408,9 @@ void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
     auto& btnFirst = ctrlBox.next<widget::ImageButton>();
     auto& btnPrevious = ctrlBox.next<widget::ImageButton>();
     auto& btnNext = ctrlBox.next<widget::ImageButton>();
-    auto& btnLast = ctrlBox.next<widget::ImageButton>();
-    handleNextPrevious(btnFirst, btnPrevious, btnNext, btnLast);
+    handleNextPrevious(btnFirst, btnPrevious, btnNext);
+    auto& btnToggleProgress = ctrlBox.next<widget::ImageButton>();
+    handleToggleProgress(btnToggleProgress);
 
     ctrlBox.next<widget::Separator>();
     auto& layer = ctrlBox.next<widget::Layer>();
@@ -428,7 +430,7 @@ void TabCard::doAudioCtrlBox(widget::Box& ctrlBox)
 
     ctrlBox.next<widget::Separator>();
     auto& btnTimeSubtitle = ctrlBox.next<widget::ImageButton>();
-    handleToggleTimeSelection(btnTimeSubtitle);
+    handleToggleTimeDelAdd(btnTimeSubtitle);
 
     ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
@@ -525,8 +527,9 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     auto& btnContinue = ctrlBox.next<widget::ImageButton>();
     auto& btnPrevious = ctrlBox.next<widget::ImageButton>();
     auto& btnNext = ctrlBox.next<widget::ImageButton>();
-    auto& btnOpenSegment = ctrlBox.next<widget::ImageButton>();
-    handleNextPreviousVideo(btnContinue, btnPrevious, btnNext, btnOpenSegment);
+    handleNextPreviousVideo(btnContinue, btnPrevious, btnNext);
+    auto& btnToggleProgress = ctrlBox.next<widget::ImageButton>();
+    handleToggleProgress(btnToggleProgress);
 
     ctrlBox.next<widget::Separator>();
     auto& layer = ctrlBox.next<widget::Layer>();
@@ -547,7 +550,7 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
 
     ctrlBox.next<widget::Separator>();
     auto& btnTimeSubtitle = ctrlBox.next<widget::ImageButton>();
-    handleToggleTimeSelection(btnTimeSubtitle);
+    handleToggleTimeDelAdd(btnTimeSubtitle);
 
     ctrlBox.next<widget::Separator>();
     auto& btnAnnotate = ctrlBox.next<widget::ImageButton>();
@@ -561,16 +564,12 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
 void TabCard::setupSecondaryCtrl(widget::Layer& ctrlLayer)
 {
     using namespace widget::layout;
-    using context::Image;
-    auto& ctrlBox = *ctrlLayer.add<widget::Box>(Align::start, widget::Orientation::horizontal);
-    ctrlBox.setExpandType(width_expand, height_fixed);
-    ctrlBox.setPadding(4.F);
-    ctrlBox.setBorder(4.F);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_delete_backward);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_backward);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_forward);
-    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_delete_forward);
-    ctrlBox.add<widget::Separator>(Align::end, 88.F, 0.F);
+
+    auto& ctrlBoxTimeSelection = *ctrlLayer.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    setupTimeSelectionCtrl(ctrlBoxTimeSelection);
+
+    auto& ctrlBoxProgress = *ctrlLayer.add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    setupProgressCtrl(ctrlBoxProgress);
 
     ctrlLayer.setHidden(true);
 }
@@ -581,16 +580,80 @@ void TabCard::doSecondaryCtrl(widget::Layer& ctrlLayer)
         return;
     }
     ctrlLayer.start();
-    auto& ctrlBox = ctrlLayer.next<widget::Box>();
+    auto& ctrlBoxTimeSelection = ctrlLayer.next<widget::Box>();
+    auto& ctrlBoxProgress = ctrlLayer.next<widget::Box>();
+
+    switch (secondaryCtrlMode) {
+    case SecondaryCtrlMode::progress:
+        doProgressCtrl(ctrlBoxProgress);
+        break;
+    case SecondaryCtrlMode::timeDelAdd:
+        doTimeSelectionCtrl(ctrlBoxTimeSelection);
+        break;
+    }
+}
+
+void TabCard::setupTimeSelectionCtrl(widget::Box& ctrlBox)
+{
+    using namespace widget::layout;
+    using context::Image;
+    ctrlBox.setExpandType(width_expand, height_fixed);
+    ctrlBox.setPadding(4.F);
+    ctrlBox.setBorder(4.F);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_delete_backward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_backward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_forward);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::time_delete_forward);
+    ctrlBox.add<widget::Separator>(Align::end, 88.F, 0.F);
+}
+
+void TabCard::doTimeSelectionCtrl(widget::Box& ctrlBox)
+{
     ctrlBox.start();
     auto& btnTimeDelFront = ctrlBox.next<widget::ImageButton>();
     auto& btnTimeAddFront = ctrlBox.next<widget::ImageButton>();
     auto& btnTimeAddBack = ctrlBox.next<widget::ImageButton>();
     auto& btnTimeDelBack = ctrlBox.next<widget::ImageButton>();
-    handleTimeSelection(btnTimeDelFront,
-                        btnTimeAddFront,
-                        btnTimeAddBack,
-                        btnTimeDelBack);
+    handleTimeDelAdd(btnTimeDelFront,
+                     btnTimeAddFront,
+                     btnTimeAddBack,
+                     btnTimeDelBack);
+}
+
+void TabCard::setupProgressCtrl(widget::Box& ctrlBox)
+{
+    using namespace widget::layout;
+    using context::Image;
+    ctrlBox.setExpandType(width_expand, height_fixed);
+    ctrlBox.setPadding(4.F);
+    ctrlBox.setBorder(4.F);
+    ctrlBox.add<widget::SteppedSlider>(Align::start);
+}
+
+void TabCard::doProgressCtrl(widget::Box& ctrlBox)
+{
+    if (!track
+        || (!track->hasNext()
+            && !track->hasPrevious())) {
+        return;
+    }
+    ctrlBox.start();
+    auto& steppedSlider = ctrlBox.next<widget::SteppedSlider>();
+
+    auto position = track->getPosition();
+    auto trackNumber = steppedSlider.slide(track->numberOfTracks() - 1, position);
+    if (trackNumber != position) {
+        track = track->trackAt(trackNumber);
+        revealVocables = false;
+        signalProceed->set(Proceed::nextTrack);
+        if (track->getMediaFile()) {
+            const auto& mpvCurrent = track->getTrackType() == database::TrackType::audio
+                                             ? mpvAudio
+                                             : mpvVideo;
+            mpvCurrent->pause();
+            mpvCurrent->seek(track->getStartTimeStamp());
+        }
+    }
 }
 
 void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress)
@@ -774,8 +837,7 @@ void TabCard::handleSelection(widget::ImageButton& btnSelect,
 
 void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
                                       widget::ImageButton& btnPrevious,
-                                      widget::ImageButton& btnNext,
-                                      widget::ImageButton& btnOpenSegment)
+                                      widget::ImageButton& btnNext)
 {
     if (!track
         || (!track->hasNext()
@@ -785,7 +847,6 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
 
     btnPrevious.setSensitive(track->hasPrevious() || track->hasSubtitlePrefix());
     btnNext.setSensitive(track->hasNext());
-    btnOpenSegment.setSensitive(track->hasNext());
     bool nextPreviousClicked = false;
     if (btnContinue.clicked()) {
         nextPreviousClicked = true;
@@ -817,10 +878,7 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
             mpvVideo->playFrom(track->getStartTimeStamp());
         }
     }
-    if (btnOpenSegment.clicked()) {
-        nextPreviousClicked = true;
-        track = track->trackAt(track->numberOfTracks() - 1);
-    }
+
     if (nextPreviousClicked) {
         revealVocables = false;
         signalProceed->set(Proceed::nextTrack);
@@ -830,8 +888,7 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
 
 void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                  widget::ImageButton& btnPrevious,
-                                 widget::ImageButton& btnNext,
-                                 widget::ImageButton& btnLast)
+                                 widget::ImageButton& btnNext)
 {
     if (!track
         || (!track->hasNext()
@@ -842,7 +899,6 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
     btnFirst.setSensitive(track->hasPrevious());
     btnPrevious.setSensitive(track->hasPrevious());
     btnNext.setSensitive(track->hasNext());
-    btnLast.setSensitive(track->hasNext());
     bool nextPreviousClicked = false;
     if (btnFirst.clicked()) {
         nextPreviousClicked = true;
@@ -856,10 +912,6 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
         nextPreviousClicked = true;
         track = track->nextTrack();
     }
-    if (btnLast.clicked()) {
-        nextPreviousClicked = true;
-        track = track->trackAt(track->numberOfTracks() - 1);
-    }
     if (nextPreviousClicked) {
         revealVocables = false;
         signalProceed->set(Proceed::nextTrack);
@@ -870,25 +922,48 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
     }
 }
 
-void TabCard::handleToggleTimeSelection(widget::ImageButton& btnTimeSubtitle)
+void TabCard::handleToggleProgress(widget::ImageButton& btnToggleProgress)
+{
+    if (!track
+        || (!track->hasNext()
+            && !track->hasPrevious())) {
+        return;
+    }
+
+    btnToggleProgress.setChecked(!secondaryCtrlLayer->isHidden()
+                                 && secondaryCtrlMode == SecondaryCtrlMode::progress);
+    if (btnToggleProgress.clicked()) {
+        secondaryCtrlLayer->setHidden(!secondaryCtrlLayer->isHidden()
+                                      && secondaryCtrlMode == SecondaryCtrlMode::progress);
+        secondaryCtrlMode = SecondaryCtrlMode::progress;
+    }
+}
+
+void TabCard::handleToggleTimeDelAdd(widget::ImageButton& btnTimeSubtitle)
 {
     if (track && (track->getTrackType() != TrackType::video || track->isSubtitlePrefix())) {
-        if (!secondaryCtrlLayer->isHidden()) {
+        if (secondaryCtrlMode == SecondaryCtrlMode::timeDelAdd && !secondaryCtrlLayer->isHidden()) {
             secondaryCtrlLayer->setHidden(true);
         }
         return;
     }
-    btnTimeSubtitle.setChecked(!secondaryCtrlLayer->isHidden());
+    btnTimeSubtitle.setChecked(!secondaryCtrlLayer->isHidden()
+                               && secondaryCtrlMode == SecondaryCtrlMode::timeDelAdd);
     if (btnTimeSubtitle.clicked()) {
-        secondaryCtrlLayer->setHidden(!secondaryCtrlLayer->isHidden());
+        secondaryCtrlLayer->setHidden(!secondaryCtrlLayer->isHidden()
+                                      && secondaryCtrlMode == SecondaryCtrlMode::timeDelAdd);
+        secondaryCtrlMode = SecondaryCtrlMode::timeDelAdd;
     }
 }
 
-void TabCard::handleTimeSelection(widget::ImageButton& btnTimeDelFront,
-                                  widget::ImageButton& btnTimeAddFront,
-                                  widget::ImageButton& btnTimeAddBack,
-                                  widget::ImageButton& btnTimeDelBack)
+void TabCard::handleTimeDelAdd(widget::ImageButton& btnTimeDelFront,
+                               widget::ImageButton& btnTimeAddFront,
+                               widget::ImageButton& btnTimeAddBack,
+                               widget::ImageButton& btnTimeDelBack)
 {
+    if (!track || track->getTrackType() != TrackType::video) {
+        return;
+    }
     btnTimeDelFront.setSensitive(track->getTimeExtraFront() > 0.);
     btnTimeDelBack.setSensitive(track->getTimeExtraBack() > 0.);
 

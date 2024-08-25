@@ -193,6 +193,16 @@ auto SubtitlePicker::numberOfCards() -> std::size_t
     return indices.size();
 }
 
+auto SubtitlePicker::getPosition(const CardPtr& card) -> std::size_t
+{
+    setIndices();
+    auto posIt = ranges::find(indices, card->getIndexInPack());
+    if (posIt != indices.end()) {
+        return static_cast<std::size_t>(std::distance(indices.begin(), posIt));
+    }
+    return 0;
+}
+
 auto SubtitlePicker::getJoinedSubAtPosition(std::size_t pos) -> JoinedSubtitle
 {
     setIndices();

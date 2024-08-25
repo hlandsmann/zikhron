@@ -9,6 +9,7 @@
 #include <functional>
 #include <kocoro/kocoro.hpp>
 #include <memory>
+#include <optional>
 #include <string>
 
 namespace multimedia {
@@ -70,6 +71,9 @@ private:
     double volume{100.F};
     double duration{};
     double timePos{};
+
+    bool seeking{false};
+    std::optional<double> secondarySeekPosition;
 
     // Signals:
     std::shared_ptr<kocoro::VolatileSignal<bool>> signalShouldRender;

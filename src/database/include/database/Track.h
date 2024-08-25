@@ -34,6 +34,7 @@ public:
     auto operator!=(const Track&) const -> bool = default;
 
     [[nodiscard]] auto numberOfTracks() const -> std::size_t;
+    [[nodiscard]] auto getPosition() const -> std::size_t;
     [[nodiscard]] auto trackAt(std::size_t index) const -> Track;
     [[nodiscard]] auto continueTrack() const -> Track;
     [[nodiscard]] auto nextTrack() const -> Track;

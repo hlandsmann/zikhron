@@ -27,6 +27,7 @@
 #include <widgets/Layer.h>
 #include <widgets/MediaSlider.h>
 #include <widgets/Overlay.h>
+#include <widgets/SteppedSlider.h>
 #include <widgets/ToggleButtonGroup.h>
 #include <widgets/Video.h>
 #include <widgets/Window.h>
@@ -66,6 +67,11 @@ class TabCard
         playNext,
         playUntilUnknown,
         playThrough,
+    };
+
+    enum class SecondaryCtrlMode {
+        progress,
+        timeDelAdd,
     };
 
 public:
@@ -112,6 +118,12 @@ private:
     static void setupSecondaryCtrl(widget::Layer& ctrlLayer);
     void doSecondaryCtrl(widget::Layer& ctrlLayer);
 
+    static void setupTimeSelectionCtrl(widget::Box& ctrlBox);
+    void doTimeSelectionCtrl(widget::Box& ctrlBox);
+
+    static void setupProgressCtrl(widget::Box& ctrlBox);
+    void doProgressCtrl(widget::Box& ctrlBox);
+
     void handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& sliderProgress);
     void handleCardSubmission(widget::Button& btnReveal,
                               widget::Button& btnSubmit,
@@ -126,17 +138,16 @@ private:
                          widget::ImageButton& btnUnselect);
     void handleNextPreviousVideo(widget::ImageButton& btnContinue,
                                  widget::ImageButton& btnPrevious,
-                                 widget::ImageButton& btnNext,
-                                 widget::ImageButton& btnOpenSegment);
+                                 widget::ImageButton& btnNext);
     void handleNextPrevious(widget::ImageButton& btnFirst,
                             widget::ImageButton& btnPrevious,
-                            widget::ImageButton& btnNext,
-                            widget::ImageButton& btnLast);
-    void handleToggleTimeSelection(widget::ImageButton& btnTimeSubtitle);
-    void handleTimeSelection(widget::ImageButton& btnTimeDelFront,
-                            widget::ImageButton& btnTimeAddFront,
-                            widget::ImageButton& btnTimeAddBack,
-                            widget::ImageButton& btnTimeDelBack);
+                            widget::ImageButton& btnNext);
+    void handleToggleProgress(widget::ImageButton& btnToggleProgress);
+    void handleToggleTimeDelAdd(widget::ImageButton& btnTimeSubtitle);
+    void handleTimeDelAdd(widget::ImageButton& btnTimeDelFront,
+                          widget::ImageButton& btnTimeAddFront,
+                          widget::ImageButton& btnTimeAddBack,
+                          widget::ImageButton& btnTimeDelBack);
     void handleTranslation(widget::ImageButton& btnTranslation);
     void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);
@@ -167,6 +178,7 @@ private:
     bool revealVocables{false};
     Mode mode{Mode::shuffle};
     PlayMode playMode{PlayMode::playNext};
+    SecondaryCtrlMode secondaryCtrlMode{SecondaryCtrlMode::progress};
 
     std::shared_ptr<multimedia::MpvWrapper> mpvAudio;
     std::shared_ptr<multimedia::MpvWrapper> mpvVideo;

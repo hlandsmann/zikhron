@@ -47,6 +47,17 @@ auto Track::numberOfTracks() const -> std::size_t
                       medium);
 }
 
+auto Track::getPosition() const -> std::size_t
+{
+    return std::visit(utl::overloaded{[this](const CardPackPtr& /* cardPack */) -> std::size_t {
+                                          return card->getIndexInPack();
+                                      },
+                                      [this](const VideoPtr& video) -> std::size_t {
+                                          return video->getActiveSubtitle()->getPosition(card);
+                                      }},
+                      medium);
+}
+
 auto Track::trackAt(std::size_t _index) const -> Track
 {
     return {medium, _index};
@@ -283,7 +294,7 @@ auto Track::timeAddBack() const -> Track
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     subtitlePicker->timeAddBack(card);
-    auto joinedSubtitle = subtitlePicker->joinFront(card);
+    auto joinedSubtitle = subtitlePicker->getJoinedSubAtIndex(card->getIndexInPack());
     return {medium, joinedSubtitle};
 }
 
@@ -292,7 +303,7 @@ auto Track::timeAddFront() const -> Track
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     subtitlePicker->timeAddFront(card);
-    auto joinedSubtitle = subtitlePicker->joinFront(card);
+    auto joinedSubtitle = subtitlePicker->getJoinedSubAtIndex(card->getIndexInPack());
     return {medium, joinedSubtitle};
 }
 
@@ -301,7 +312,7 @@ auto Track::timeDelBack() const -> Track
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     subtitlePicker->timeDelBack(card);
-    auto joinedSubtitle = subtitlePicker->joinFront(card);
+    auto joinedSubtitle = subtitlePicker->getJoinedSubAtIndex(card->getIndexInPack());
     return {medium, joinedSubtitle};
 }
 
@@ -310,7 +321,7 @@ auto Track::timeDelFront() const -> Track
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
     subtitlePicker->timeDelFront(card);
-    auto joinedSubtitle = subtitlePicker->joinFront(card);
+    auto joinedSubtitle = subtitlePicker->getJoinedSubAtIndex(card->getIndexInPack());
     return {medium, joinedSubtitle};
 }
 

@@ -93,6 +93,12 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 timePos = *reinterpret_cast<double*>(prop->data);
                 signalTimePos->set(timePos);
+                seeking = false;
+                if (secondarySeekPosition) {
+                    auto newPos = *secondarySeekPosition;
+                    secondarySeekPosition.reset();
+                    seek(newPos);
+                }
             }
         } else if (std::string{prop->name} == "duration") {
             if (prop->format == MPV_FORMAT_DOUBLE) {
@@ -173,6 +179,11 @@ void MpvWrapper::pause()
 
 void MpvWrapper::seek(double pos)
 {
+    if (seeking) {
+        secondarySeekPosition = pos;
+        return;
+    }
+    seeking = true;
     static std::string seek_position;
     seek_position = std::to_string(pos);
     const char* cmd[] = {"seek", seek_position.c_str(), "absolute", nullptr};

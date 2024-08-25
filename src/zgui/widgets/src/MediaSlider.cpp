@@ -4,8 +4,6 @@
 #include <utils/format.h>
 
 #include <chrono>
-#include <format>
-#include <optional>
 #include <string>
 
 namespace widget {
@@ -34,7 +32,6 @@ auto MediaSlider::slide(double start, double end, double pos) -> double
     if (value != oldValue) {
         return posFromSliderValue(start, end, value);
     }
-    lastValue = value;
     return pos;
 }
 
