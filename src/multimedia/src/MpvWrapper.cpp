@@ -48,7 +48,7 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
 {
     executor->startCoro(handleEventTask());
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
-    mpv_set_option_string(mpv.get(), "terminal", "yes");
+    // mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
     mpv_set_option_string(mpv.get(), "sid", "no");
     mpv_set_option_string(mpv.get(), "audio-display", "no");
@@ -108,7 +108,7 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
         } else if (std::string{prop->name} == "pause") {
             if (prop->format == MPV_FORMAT_FLAG) {
                 paused = static_cast<bool>(*reinterpret_cast<int*>(prop->data));
-                spdlog::info("paused: {}", paused);
+                // spdlog::info("paused: {}", paused);
             }
         }
         break;

@@ -218,11 +218,12 @@ auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) con
             [&, this](VocableId vocId) -> Ease {
                 const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
                 const auto& wordDB = card->getWordDB();
-                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}",
+                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}, --- nCards: {}",
                               wordDB->lookupId(vocId)->Key(),
                               vocSR.EaseFactor(),
                               vocSR.IntervalDay(),
-                              vocId);
+                              vocId,
+                              vocables->at_id(vocId).second.CardIds().size());
                 return {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()};
             });
     return eases;
