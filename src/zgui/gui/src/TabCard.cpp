@@ -738,7 +738,11 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
             track = {};
             break;
         case Mode::story:
-            track = track->nextTrack();
+            if (track->getTrackType() == TrackType::video) {
+                execVideoNext();
+            } else {
+                track = track->nextTrack();
+            }
             break;
         }
     }
@@ -870,21 +874,7 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
     }
     if (btnNext.clicked()) {
         nextPreviousClicked = true;
-        if (playMode == PlayMode::stop) {
-            track = track->nextTrack();
-            mpvVideo->pause();
-        } else {
-            if (track->isSubtitlePrefix()) {
-                track = track->getNonPrefixDefault();
-            } else {
-                track = track->nextTrack();
-                if (track->hasSubtitlePrefix()) {
-                    track = track->getSubtitlePrefix();
-                }
-            }
-
-            mpvVideo->playFrom(track->getStartTimeStamp());
-        }
+        execVideoNext();
     }
 
     if (nextPreviousClicked) {
@@ -1051,6 +1041,25 @@ void TabCard::handleDataBaseSave(widget::ImageButton& btnSave)
     }
     if (btnSave.clicked()) {
         dataBase->save();
+    }
+}
+
+void TabCard::execVideoNext()
+{
+    if (playMode == PlayMode::stop) {
+        track = track->nextTrack();
+        mpvVideo->pause();
+    } else {
+        if (track->isSubtitlePrefix()) {
+            track = track->getNonPrefixDefault();
+        } else {
+            track = track->nextTrack();
+            if (track->hasSubtitlePrefix()) {
+                track = track->getSubtitlePrefix();
+            }
+        }
+
+        mpvVideo->playFrom(track->getStartTimeStamp());
     }
 }
 

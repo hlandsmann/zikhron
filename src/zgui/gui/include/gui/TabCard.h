@@ -152,6 +152,8 @@ private:
     void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);
 
+    void execVideoNext();
+
     std::shared_ptr<sr::DataBase> dataBase;
     std::shared_ptr<kocoro::SynchronousExecutor> executor;
     using BoxPtr = std::shared_ptr<widget::Box>;
