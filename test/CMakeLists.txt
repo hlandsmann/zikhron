@@ -18,6 +18,18 @@ target_link_libraries(sr_treewalker
 )
 set_property(TARGET sr_treewalker PROPERTY CXX_STANDARD 23)
 
+add_executable(jumantest)
+target_sources(jumantest
+    PRIVATE
+        jumantest.cpp
+)
+target_link_libraries(jumantest
+    PRIVATE
+        Boost.DI
+        spdlog::spdlog
+        jpp::jumandic
+)
+
 add_executable(kocoro_signal)
 target_sources(kocoro_signal
     PRIVATE
