@@ -111,13 +111,7 @@ void DataBase::reloadCard(const database::CardPtr& card)
     auto tokenizationChoices = tokenizationChoiceDB->getChoicesForCard(card->getCardId());
     card->setTokenizationChoices(tokenizationChoices);
     metaCards[cardId].resetMetaData();
-    for (VocableId vocId : cardMeta.VocableIds()) {
-        if (vocables->contains(vocId)) {
-            continue;
-        }
-        const auto& word = wordDB->lookupId(vocId);
-        vocables->emplace(word->getId(), word->getProgress());
-    }
+    addVocablesOfCardMeta(cardMeta);
     for (auto vocableIndex : cardMeta.VocableIndices()) {
         auto& vocableMeta = (*vocables)[vocableIndex];
         vocableMeta.insertCardId(cardId);
@@ -155,6 +149,7 @@ void DataBase::addCard(const database::CardPtr& card)
     auto cardId = card->getCardId();
     metaCards[cardId] = CardMeta{cardId, card, vocables};
     const auto& cardMeta = metaCards.at(cardId);
+    addVocablesOfCardMeta(cardMeta);
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
         (*vocables)[vocableIndex].insertCardId(cardId);
     }
@@ -239,6 +234,17 @@ void DataBase::fillIndexMaps()
     }
     spdlog::info("number of vocables: {}", allVocableIds.size());
     spdlog::info("number of cards: {}", metaCards.size());
+}
+
+void DataBase::addVocablesOfCardMeta(const CardMeta& cardMeta)
+{
+    for (VocableId vocId : cardMeta.VocableIds()) {
+        if (vocables->contains(vocId)) {
+            continue;
+        }
+        const auto& word = wordDB->lookupId(vocId);
+        vocables->emplace(word->getId(), word->getProgress());
+    }
 }
 
 } // namespace sr

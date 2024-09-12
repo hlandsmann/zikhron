@@ -72,6 +72,7 @@ public:
 private:
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
     void fillIndexMaps();
+    void addVocablesOfCardMeta(const CardMeta& cardMeta);
 
     std::shared_ptr<zikhron::Config> config;
 
