@@ -48,12 +48,12 @@ struct Ease
     static constexpr float changeFactorGood = 1.F;
     static constexpr float changeFactorHard = 0.85F;
 
-    static constexpr float thresholdFactorGood = 2.1F;
-    static constexpr float thresholdFactorHard = 1.6F;
+    static constexpr float thresholdFactorGood = 2.2F;
+    static constexpr float thresholdFactorHard = 1.4F;
     static constexpr float thresholdFactorAgain = minEaseFactor + 0.1F;
 
-    static constexpr int thresholdIntervalHard = 5;
-    static constexpr int thresholdIntervalAgain = 2;
+    static constexpr int thresholdIntervalHard = 3;
+    static constexpr int thresholdIntervalAgain = 1;
 
     struct Progress
     {
