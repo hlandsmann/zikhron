@@ -21,6 +21,10 @@ set_property(TARGET sr_treewalker PROPERTY CXX_STANDARD 23)
 add_executable(jumantest)
 target_sources(jumantest
     PRIVATE
+        JpnTokenizer.cpp
+        JpnTokenizer.h
+        Jumanpp.cpp
+        Jumanpp.h
         jumantest.cpp
 )
 target_link_libraries(jumantest
