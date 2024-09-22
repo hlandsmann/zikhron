@@ -21,6 +21,8 @@ set_property(TARGET sr_treewalker PROPERTY CXX_STANDARD 23)
 add_executable(jumantest)
 target_sources(jumantest
     PRIVATE
+        JpnDictionary.cpp
+        JpnDictionary.h
         JpnTokenizer.cpp
         JpnTokenizer.h
         Jumanpp.cpp
@@ -31,7 +33,9 @@ target_link_libraries(jumantest
     PRIVATE
         Boost.DI
         spdlog::spdlog
+        magic_enum::magic_enum
         jpp::jumandic
+        pugixml::pugixml
 )
 
 add_executable(kocoro_signal)

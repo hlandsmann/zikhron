@@ -1,4 +1,5 @@
 
+#include "JpnDictionary.h"
 #include "Jumanpp.h"
 
 #include <core/analysis/rnn_scorer.h>
@@ -79,7 +80,7 @@ auto main() -> int
     // std::cout << text3 << "\n";
     // std::cout << "res: " << fmt->result();
     //
-    std::cout << "----------------------------------------------";
+    auto jpnDictionary = std::make_unique<japaneseDic::JpnDictionary>("/home/harmen/src/zikhron/dictionaries/JMdict_e");
     auto jumanxx = jumanpp::Jumanpp{};
     jumanxx.tokenize(text1);
 }

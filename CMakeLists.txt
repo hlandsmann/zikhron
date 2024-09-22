@@ -15,6 +15,7 @@ CPMAddPackage("gh:nlohmann/json@3.11.3")
 CPMAddPackage("gh:glfw/glfw#3.3.8")
 CPMAddPackage("gh:Neargye/magic_enum@0.9.5")
 CPMAddPackage("gh:palacaze/sigslot@1.2.2")
+CPMAddPackage("gh:zeux/pugixml@1.14")
 include(FindPkgConfig)
 
 include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
