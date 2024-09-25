@@ -2,8 +2,11 @@
 
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <filesystem>
+#include <iterator>
 #include <magic_enum.hpp>
 #include <map>
 #include <pugixml.hpp>
@@ -11,8 +14,11 @@
 #include <string_view>
 #include <vector>
 using namespace std::literals;
+namespace ranges = std::ranges;
 
 namespace japaneseDic {
+constexpr std::string dot = "・";
+
 struct POS
 {
     std::map<std::string, PartOfSpeech> data = {
@@ -117,6 +123,10 @@ struct KanjiElement
     constexpr static std::string_view s_key = "keb";
     constexpr static std::string_view s_info = "ke_inf";
     constexpr static std::string_view s_priority = "ke_pri";
+
+    std::string key;
+    std::vector<std::string> infos;
+    std::vector<std::string> priorities;
 };
 
 struct ReadingElement
@@ -127,6 +137,11 @@ struct ReadingElement
     constexpr static std::string_view s_restrict = "re_restr";
     constexpr static std::string_view s_info = "re_inf";
     constexpr static std::string_view s_priority = "re_pri";
+
+    std::string key;
+    std::vector<std::string> infos;
+    std::vector<std::string> restricts;
+    std::vector<std::string> priorities;
 };
 
 struct Sense
@@ -136,26 +151,14 @@ struct Sense
     constexpr static std::string_view s_restrictReading = "stagr";
     constexpr static std::string_view s_crossReference = "xref";
     constexpr static std::string_view s_antonym = "ant";
-    constexpr static std::string_view s_partOfSpeech = "pos"; // if not present in sense, use pos of previous sense
+    constexpr static std::string_view s_partOfSpeech = "pos";
     constexpr static std::string_view s_field = "field";
-    constexpr static std::string_view s_misc = "misc"; // if not present in sense, use misc of previous sense
+    constexpr static std::string_view s_misc = "misc";
     constexpr static std::string_view s_info = "s_inf";
     // constexpr static std::string_view loanword = "lsource";
     constexpr static std::string_view s_dialect = "dial";
     constexpr static std::string_view s_meaning = "gloss";
-};
 
-auto getSize(const pugi::xml_node& node) -> std::size_t
-{
-    std::size_t size = 0;
-    for (const auto& _ : node.children()) {
-        size++;
-    }
-    return size;
-}
-
-auto parseSense(const pugi::xml_node& node)
-{
     std::vector<std::string> meanings;
     std::vector<std::string> restrictKanji;
     std::vector<std::string> restrictReading;
@@ -166,61 +169,23 @@ auto parseSense(const pugi::xml_node& node)
     std::vector<std::string> misc; // if not present in sense, use misc of previous sense
     std::vector<std::string> dialect;
     std::string info;
-    for (const auto& snode : node.children()) {
-        if (snode.name() == Sense::s_meaning) {
-            meanings.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_restrictKanji) {
-            restrictKanji.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_restrictReading) {
-            restrictReading.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_crossReference) {
-            crossReference.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_antonym) {
-            antonym.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_partOfSpeech) {
-            partOfSpeech.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_field) {
-            field.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_misc) {
-            misc.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_dialect) {
-            dialect.emplace_back(snode.child_value());
-        }
-        if (snode.name() == Sense::s_info) {
-            info=snode.child_value();
-        }
-    }
-    // spdlog::info("key: {}", key);
-    if (dialect.size() > 1) {
-        spdlog::info("info: {}", fmt::join(dialect, " -::- "));
-    }
-}
+};
 
-auto parseKanjiElement(const pugi::xml_node& node)
+[[nodiscard]] auto parseKanjiElement(const pugi::xml_node& node) -> KanjiElement
 {
-    std::string key; // only one key per reading element
-    std::vector<std::string> infos;
-    std::vector<std::string> priorities;
+    KanjiElement kanjiElement;
     for (const auto& snode : node.children()) {
         if (snode.name() == KanjiElement::s_key) {
-            key = snode.child_value();
+            assert(kanjiElement.key.empty());
+            kanjiElement.key = snode.child_value();
             continue;
         }
         if (snode.name() == KanjiElement::s_info) {
-            // two elements have multiple info values
-            infos.emplace_back(snode.child_value());
+            kanjiElement.infos.emplace_back(snode.child_value());
             continue;
         }
         if (snode.name() == KanjiElement::s_priority) {
-            priorities.emplace_back(snode.child_value());
+            kanjiElement.priorities.emplace_back(snode.child_value());
             continue;
         }
     }
@@ -228,30 +193,28 @@ auto parseKanjiElement(const pugi::xml_node& node)
     // if (infos.size() > 1) {
     //     spdlog::info("info: {}", fmt::join(infos, ", "));
     // }
+    return kanjiElement;
 }
 
-auto parseReadingElement(const pugi::xml_node& node)
+[[nodiscard]] auto parseReadingElement(const pugi::xml_node& node) -> ReadingElement
 {
-    std::string key; // only one key per reading element
-    std::vector<std::string> infos;
-    std::vector<std::string> restricts;
-    std::vector<std::string> priorities;
+    ReadingElement readingElement;
     for (const auto& snode : node.children()) {
         if (snode.name() == ReadingElement::s_key) {
-            key = snode.child_value();
+            assert(readingElement.key.empty());
+            readingElement.key = snode.child_value();
             continue;
         }
         if (snode.name() == ReadingElement::s_restrict) {
-            restricts.emplace_back(snode.child_value());
+            readingElement.restricts.emplace_back(snode.child_value());
             continue;
         }
         if (snode.name() == ReadingElement::s_info) {
-            // two elements have multiple info values
-            infos.emplace_back(snode.child_value());
+            readingElement.infos.emplace_back(snode.child_value());
             continue;
         }
         if (snode.name() == ReadingElement::s_priority) {
-            priorities.emplace_back(snode.child_value());
+            readingElement.priorities.emplace_back(snode.child_value());
             continue;
         }
     }
@@ -259,52 +222,165 @@ auto parseReadingElement(const pugi::xml_node& node)
     // if (infos.size() > 1) {
     //     spdlog::info("info: {}", fmt::join(infos, ", "));
     // }
+    return readingElement;
 }
 
-void parseEntry(const pugi::xml_node& entry)
+[[nodiscard]] auto parseSense(const pugi::xml_node& node) -> Sense
 {
-    // spdlog::info("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
-    std::size_t r_ele = 0;
-    std::size_t sense = 0;
-    for (const auto& node : entry.children()) {
+    Sense sense;
+    for (const auto& snode : node.children()) {
+        if (snode.name() == Sense::s_meaning) {
+            sense.meanings.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_restrictKanji) {
+            sense.restrictKanji.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_restrictReading) {
+            sense.restrictReading.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_crossReference) {
+            sense.crossReference.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_antonym) {
+            sense.antonym.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_partOfSpeech) {
+            sense.partOfSpeech.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_field) {
+            sense.field.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_misc) {
+            sense.misc.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_dialect) {
+            sense.dialect.emplace_back(snode.child_value());
+            continue;
+        }
+        if (snode.name() == Sense::s_info) {
+            assert(sense.info.empty());
+            sense.info = snode.child_value();
+            continue;
+        }
+    }
+    // spdlog::info("key: {}", key);
+    // if (dialect.size() > 1) {
+    //     spdlog::info("info: {}", fmt::join(dialect, " -::- "));
+    // }
+    assert(!sense.meanings.empty());
+    return sense;
+}
+
+void spreadReadings(std::vector<Entry>& entries, const std::vector<ReadingElement>& readings)
+{
+    auto insertReading = [](Entry& entry, const ReadingElement& reading) {
+        entry.definition.emplace_back();
+        entry.definition.back().reading.push_back(reading.key);
+    };
+    for (const auto& reading : readings) {
+        if (reading.restricts.empty()) {
+            for (Entry& entry : entries) {
+                insertReading(entry, reading);
+            }
+        } else {
+            for (const std::string& restrict : reading.restricts) {
+                const auto entryIt = ranges::find_if(entries, [&restrict](const Entry& entry) {
+                    return entry.key.front() == restrict;
+                });
+                if (entryIt == entries.end()) {
+                    spdlog::critical("restrict {} not found", restrict);
+                }
+                insertReading(*entryIt, reading);
+            }
+        }
+    }
+    assert(!entries.empty());
+}
+
+void spreadSenses(std::vector<Entry>& entries, const std::vector<Sense>& sense)
+{
+}
+
+void joinEntries(std::vector<Entry>& entries)
+{
+    int distance = 0;
+    for (auto entry = entries.begin(); entry < entries.end();) {
+        if (const auto found = std::find_if(std::next(entry), entries.end(), [&entry](const Entry& forwardEntry) {
+                return entry->definition == forwardEntry.definition;
+            });
+            found != entries.end()) {
+            found->key.insert(found->key.end(), entry->key.begin(), entry->key.end());
+            assert(found != entry);
+            entry = entries.erase(entry);
+            // assert(!entries.empty());
+            // spdlog::info("joined");
+        } else {
+            entry++;
+        }
+        distance = std::distance(entry, entries.begin());
+    }
+    // assert(!entries.empty());
+}
+
+void parseEntry(const pugi::xml_node& node)
+{
+    std::vector<KanjiElement> kanjis;
+    std::vector<ReadingElement> readings;
+    std::vector<Sense> senses;
+
+    std::vector<Entry> entries;
+
+    for (const auto& node : node.children()) {
         // spdlog::info("name: {}: {} ", a.name(), a.value());
         if (node.name() == KanjiElement::s_base) {
-            parseKanjiElement(node);
+            kanjis.push_back(parseKanjiElement(node));
         }
         if (node.name() == ReadingElement::s_base) {
-            parseReadingElement(node);
+            readings.push_back(parseReadingElement(node));
         }
         if (node.name() == Sense::s_base) {
-            parseSense(node);
+            senses.push_back(parseSense(node));
         }
-
-        // if (a.name() == "sense"sv) {
-        //     sense++;
-        // }
-        // if (!a.children().empty()) {
-        //     size_t size = 0;
-        //     for (const auto& b : a.children()) {
-        //         size++;
-        //         // spdlog::info("    name: {}: {} ", b.name(), b.value());
-        //         if (b.name() == "reb"sv) {
-        //             // spdlog::info("       a: {} ", b.child_value());
-        //             if (getSize(b) != 1 || r_ele != 1) {
-        //                 spdlog::info("       a: {} ", b.child_value());
-        //                 spdlog::info("----------sreb: {} ", r_ele);
-        //             }
-        //         }
-        //         // if (b.name() == "re_inf"sv && b.child_value() != ""sv) {
-        //         //     spdlog::info("       ank: {} ", b.child_value());
-        //         // }
-        //         if (b.name() == "gloss"sv) {
-        //             spdlog::info("       a: {} ", b.child_value());
-        //             if (getSize(b) != 1 || sense != 1) {
-        //                 spdlog::info("----------sgloss: {}, s: {} ", getSize(b), size);
-        //             }
-        //         }
-        //     }
-        // }
     }
+
+    if (!kanjis.empty()) {
+        ranges::transform(kanjis, std::back_inserter(entries), [](const KanjiElement& kanji) -> Entry {
+            Entry entry;
+            entry.key.push_back(kanji.key);
+            return entry;
+        });
+    } else {
+        ranges::transform(readings, std::back_inserter(entries), [](const ReadingElement& reading) -> Entry {
+            Entry entry;
+            entry.key.push_back(reading.key);
+            return entry;
+        });
+    }
+
+    spreadReadings(entries, readings);
+    spreadSenses(entries, senses);
+    joinEntries(entries);
+
+    // if (entries.size() > 1) {
+    //     spdlog::info("multiple entries");
+    // } else if (entries.front().key.size() > 1) {
+    //     spdlog::info("multiple kanji");
+    // }
+
+    // if (senses.size() > 1) {
+    //     for (const auto& elem : senses) {
+    //         fmt::print("{} -:- ", fmt::join(elem.meanings,", "));
+    //     }
+    //     fmt::print("\n");
+    // }
 }
 
 JpnDictionary::JpnDictionary(const std::filesystem::path& xmlFile)

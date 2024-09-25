@@ -23,11 +23,12 @@ struct Definition
     std::vector<std::string> reading;
     std::vector<std::string> glossary;
     PartOfSpeech pos;
+    auto operator==(const Definition&) const -> bool = default;
 };
 
 struct Entry
 {
-    std::vector<std::string> kanji;
+    std::vector<std::string> key; // mostly kanji, but sometimes not
     std::vector<Definition> definition;
 };
 
