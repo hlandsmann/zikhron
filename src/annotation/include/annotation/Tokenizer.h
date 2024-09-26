@@ -34,14 +34,6 @@ struct Alternative
 
 class Tokenizer
 {
-    struct CandidateSplit
-    {
-        utl::StringU8 key;
-        std::vector<std::vector<AToken>> candidates;
-
-        [[nodiscard]] auto empty() const -> bool { return candidates.empty(); }
-    };
-
 public:
     Tokenizer(std::shared_ptr<zikhron::Config> config, std::shared_ptr<database::WordDB> wordDB);
 
@@ -53,6 +45,14 @@ public:
             -> std::vector<Token>;
 
 private:
+    struct CandidateSplit
+    {
+        utl::StringU8 key;
+        std::vector<std::vector<AToken>> candidates;
+
+        [[nodiscard]] auto empty() const -> bool { return candidates.empty(); }
+    };
+
     [[nodiscard]] auto getCandidates(const utl::StringU8& text,
                                      const ZH_Dictionary& dict) -> std::vector<std::vector<AToken>>;
     [[nodiscard]] static auto previousIndex(const std::vector<std::size_t>& currentVec,

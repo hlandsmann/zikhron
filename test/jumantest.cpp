@@ -1,17 +1,18 @@
 
-#include "JpnDictionary.h"
-#include "Jumanpp.h"
+#include <dictionary/JpnDictionary.h>
+#include <annotation/JpnTokenizer.h>
+// #include "Jumanpp.h"
 
-#include <core/analysis/rnn_scorer.h>
-#include <jumandic/shared/juman_format.h>
-#include <jumandic/shared/jumandic_env.h>
-#include <jumandic/shared/jumanpp_args.h>
+// #include <core/analysis/rnn_scorer.h>
+// #include <jumandic/shared/juman_format.h>
+// #include <jumandic/shared/jumandic_env.h>
+// #include <jumandic/shared/jumanpp_args.h>
 
 #include <iostream>
 #include <memory>
 #include <string>
 
-namespace jumandic = jumanpp::jumandic;
+// namespace jumandic = jumanpp::jumandic;
 
 auto main() -> int
 {
@@ -81,6 +82,8 @@ auto main() -> int
     // std::cout << "res: " << fmt->result();
     //
     auto jpnDictionary = std::make_unique<japaneseDic::JpnDictionary>("/home/harmen/src/zikhron/dictionaries/JMdict_e");
-    auto jumanxx = jumanpp::Jumanpp{};
-    jumanxx.tokenize(text1);
+    auto jpnTokenizer = std::make_unique<annotation::JpnTokenizer>();
+    jpnTokenizer->tokenize(text1);
+    // auto jumanxx = jumanpp::Jumanpp{};
+    // jumanxx.tokenize(text1);
 }

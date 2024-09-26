@@ -21,22 +21,25 @@ set_property(TARGET sr_treewalker PROPERTY CXX_STANDARD 23)
 add_executable(jumantest)
 target_sources(jumantest
     PRIVATE
-        JpnDictionary.cpp
-        JpnDictionary.h
-        JpnTokenizer.cpp
-        JpnTokenizer.h
-        Jumanpp.cpp
-        Jumanpp.h
+        # JpnDictionary.cpp
+        # JpnDictionary.h
+        # JpnTokenizer.cpp
+        # JpnTokenizer.h
+        # Jumanpp.cpp
+        # Jumanpp.h
         jumantest.cpp
 )
 target_link_libraries(jumantest
     PRIVATE
         Boost.DI
+        zikhron::dictionary
+        zikhron::annotation
         spdlog::spdlog
         magic_enum::magic_enum
         jpp::jumandic
         pugixml::pugixml
 )
+set_property(TARGET jumantest PROPERTY CXX_STANDARD 23)
 
 add_executable(kocoro_signal)
 target_sources(kocoro_signal

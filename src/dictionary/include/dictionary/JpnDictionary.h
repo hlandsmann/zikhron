@@ -1,5 +1,8 @@
 #pragma once
+#include <cstddef>
 #include <filesystem>
+#include <map>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -20,9 +23,9 @@ enum class PartOfSpeech {
 
 struct Definition
 {
-    std::vector<std::string> reading;
-    std::vector<std::string> glossary;
-    PartOfSpeech pos;
+    std::set<std::string> reading;
+    std::set<std::string> glossary;
+    std::set<PartOfSpeech> pos;
     auto operator==(const Definition&) const -> bool = default;
 };
 
@@ -39,5 +42,6 @@ public:
 
 private:
     std::vector<Entry> entries;
+    std::map<std::string, std::vector<std::size_t>> keyToIndex;
 };
 } // namespace japaneseDic

@@ -13,6 +13,7 @@ target_sources(zikhron_annotation
         include/annotation/Ease.h
         include/annotation/FreqDictionary.h
         include/annotation/JieBa.h
+        include/annotation/JpnTokenizer.h
         include/annotation/Rules.h
         include/annotation/Token.h
         include/annotation/TokenText.h
@@ -21,6 +22,9 @@ target_sources(zikhron_annotation
         src/Ease.cpp
         src/FreqDictionary.cpp
         src/JieBa.cpp
+        src/JpnTokenizer.cpp
+        src/Jumanpp.cpp
+        src/Jumanpp.h
         src/Rules.cpp
         src/Token.cpp
         src/TokenText.cpp
@@ -35,6 +39,7 @@ target_link_libraries(zikhron_annotation
         Microsoft.GSL::GSL
         cppjieba::cppjieba
         ctre::ctre
+        jpp::jumandic
         magic_enum::magic_enum
         spdlog::spdlog
         zikhron::spaced_repetition

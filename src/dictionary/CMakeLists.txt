@@ -8,12 +8,16 @@ target_include_directories(zikhron_dictionary
 )
 target_sources(zikhron_dictionary
     PRIVATE
+        include/dictionary/JpnDictionary.h
         include/dictionary/ZH_Dictionary.h
+        src/JpnDictionary.cpp
         src/ZH_Dictionary.cpp
 )
 set_property(TARGET zikhron_dictionary PROPERTY CXX_STANDARD 23)
 target_link_libraries(zikhron_dictionary
     PRIVATE
+        magic_enum::magic_enum
+        pugixml::pugixml
         zikhron::miscellaneous
         zikhron::spaced_repetition
         zikhron::utils

@@ -1,8 +1,18 @@
 #pragma once
+#include "JpnTokenizer.h"
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wshadow"
+#pragma GCC diagnostic ignored "-Wconversion"
+#pragma GCC diagnostic ignored "-Wpedantic"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wclass-memaccess"
+#pragma GCC diagnostic ignored "-Wtype-limits"
 #include <core/analysis/output.h>
 #include <jumandic/shared/jumandic_env.h>
 #include <jumandic/shared/jumandic_id_resolver.h>
 #include <jumandic/shared/jumanpp_args.h>
+#pragma GCC diagnostic pop
 
 #include <string>
 #include <util/status.hpp>

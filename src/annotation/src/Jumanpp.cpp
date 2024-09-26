@@ -1,6 +1,7 @@
 // oriented on juman_format.cc
 #include "Jumanpp.h"
 
+#pragma GCC diagnostic push
 #include <core/analysis/analysis_result.h>
 #include <core/analysis/lattice_config.h>
 #include <core/analysis/output.h>
@@ -9,6 +10,7 @@
 #include <jumandic/shared/jumandic_env.h>
 #include <jumandic/shared/jumandic_id_resolver.h>
 #include <jumandic/shared/jumanpp_args.h>
+#pragma GCC diagnostic pop
 
 #include <iostream>
 #include <memory>
@@ -89,7 +91,8 @@ void Jumanpp::tokenize(const std::string& text)
                 std::cout << fields.surface[walker]
                           << " " << fields.baseform[walker]
                           << " " << fields.canonicForm[walker]
-                          << " " << fields.pos[walker]
+                          << " pos: " << fields.pos[walker]
+                          << " spos: " << fields.subpos[walker]
                           << "\n";
             }
             next = top1.nextNode(&connection);
@@ -104,10 +107,10 @@ auto Jumanpp::getConfiguration() -> jumanpp::jumandic::JumanppConf
     conf.configFile = "/home/harmen/src/zikhron/third_party/jumanpp/model/jumandic.conf";
     conf.modelFile = "/home/harmen/src/zikhron/third_party/jumanpp/model/jumandic.jppmdl";
     rnnConfig.nceBias = 5.62844F;
-    rnnConfig.unkConstantTerm = -3.47481;
+    rnnConfig.unkConstantTerm = -3.47481F;
     rnnConfig.unkLengthPenalty = -2.92994951022F;
     rnnConfig.perceptronWeight = 1.F;
-    rnnConfig.rnnWeight = 0.0176;
+    rnnConfig.rnnWeight = 0.0176F;
     conf.rnnConfig = rnnConfig;
 
     return conf;
