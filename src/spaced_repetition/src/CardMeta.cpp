@@ -156,6 +156,28 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
             },
             &VocableProgress::getRepeatRange);
     const auto& nextActiveProgress = *nextActiveIt;
+    if (!pull) {
+        auto minNormalIt = ranges::min_element(
+                progressesNextActive,
+                [](const auto& range1, const auto& range2) -> bool {
+                    return range1.daysNormal < range2.daysNormal;
+                },
+                &VocableProgress::getRepeatRange);
+        const auto& minNormalProgress = *minNormalIt;
+        auto minMaxIt = ranges::min_element(
+                progressesNextActive,
+                [](const auto& range1, const auto& range2) -> bool {
+                    return range1.daysMax < range2.daysMax;
+                },
+                &VocableProgress::getRepeatRange);
+        const auto& minMaxProgress = *minMaxIt;
+        auto timing = minNormalProgress.getRepeatRange().daysNormal;
+        if (minMaxProgress.getRepeatRange().daysMax > 0
+            && timing > nextActiveProgress.getRepeatRange().daysMin) {
+            return {.timing = timing, .vocables = {}};
+        }
+    }
+
     auto timing = nextActiveProgress.getRepeatRange().daysMin;
     if (timing > 0) {
         return {.timing = timing, .vocables = {}};
@@ -218,10 +240,12 @@ auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) con
             [&, this](VocableId vocId) -> Ease {
                 const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
                 const auto& wordDB = card->getWordDB();
-                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f} - id: {}, --- nCards: {}",
+                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f}, seen: {}, dueDays: {} - id: {}, --- nCards: {}",
                               wordDB->lookupId(vocId)->Key(),
                               vocSR.EaseFactor(),
                               vocSR.IntervalDay(),
+                              vocSR.getLastSeenStr(),
+                              vocSR.dueDays(),
                               vocId,
                               vocables->at_id(vocId).second.CardIds().size());
                 return {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()};

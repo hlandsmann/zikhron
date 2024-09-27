@@ -58,10 +58,10 @@ public:
 
     void advanceByEase(const Ease&);
     void triggeredBy(CardId cardId, const std::vector<CardId>& availableCardIds);
+    auto triggerValue(CardId cardId, const std::vector<CardId>& availableCardIds) -> std::size_t;
     [[nodiscard]] auto getNextTriggerCard(const std::vector<CardId>& availableCardIds) const -> CardId;
     [[nodiscard]] auto recency() const -> float;
     [[nodiscard]] auto pauseTimeOver() const -> bool;
-    [[nodiscard]] auto isToBeRepeatedToday() const -> bool;
     [[nodiscard]] auto isNewVocable() const -> bool;
     [[nodiscard]] auto isAgainVocable() const -> bool;
     [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
@@ -71,6 +71,7 @@ public:
     [[nodiscard]] auto EaseFactor() const -> float { return easeFactor; }
 
     [[nodiscard]] auto dueDays() const -> int;
+    [[nodiscard]] auto getLastSeenStr() const -> std::string;
 
 private:
     void deserialize(std::string_view sv);

@@ -52,6 +52,13 @@ void VocableMeta::triggerByCardId(CardId cardId)
     progress->triggeredBy(cardId, cardIdVec);
 }
 
+auto VocableMeta::triggerValue(CardId cardId) const -> std::size_t
+{
+    std::vector<CardId> cardIdVec;
+    ranges::copy(cardIds, std::back_inserter(cardIdVec));
+    return progress->triggerValue(cardId, cardIdVec);
+}
+
 auto VocableMeta::getNextTriggerCard() const -> CardId
 {
     std::vector<CardId> cardIdVec;

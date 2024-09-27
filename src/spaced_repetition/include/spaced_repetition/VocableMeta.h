@@ -1,5 +1,4 @@
 #pragma once
-#include <map>
 #include "srtypes.h"
 
 #include <annotation/Ease.h>
@@ -11,7 +10,6 @@
 #include <cstddef>
 #include <memory>
 #include <set>
-#include <vector>
 
 namespace sr {
 
@@ -22,6 +20,7 @@ public:
     [[nodiscard]] auto Progress() const -> const VocableProgress&;
     [[nodiscard]] auto CardIds() const -> const std::set<CardId>&;
     void triggerByCardId(CardId cardId);
+    [[nodiscard]] auto triggerValue(CardId cardId) const -> std::size_t;
     void advanceByEase(const Ease&);
     void triggerByCardId(CardId cardId, const utl::index_map<CardId, CardMeta>& cards);
     [[nodiscard]] auto getNextTriggerCard() const -> CardId;

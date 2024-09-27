@@ -184,7 +184,7 @@ auto TreeWalker::createTree(size_t targetVocableIndex, std::shared_ptr<cardId_se
     auto cardId = db->Vocables()[targetVocableIndex].getNextTriggerCard();
 
     spdlog::info("TargetVocable: {}, cardSize: {}", targetVocableIndex,
-                 db->MetaCards().at(cardId).getTimingAndVocables().vocables.size());
+                 db->MetaCards().at(cardId).getTimingAndVocables(true).vocables.size());
     auto resultTree = Tree{db, targetVocableIndex, cardId, std::move(ignoreCardIds)};
     resultTree.build();
     return resultTree;

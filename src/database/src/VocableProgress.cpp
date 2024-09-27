@@ -92,6 +92,17 @@ void VocableProgress::triggeredBy(CardId cardId, const std::vector<CardId>& avai
     triggerCardIndices.push_back(cardIdindex);
 }
 
+auto VocableProgress::triggerValue(CardId cardId, const std::vector<CardId>& availableCardIds) -> std::size_t
+{
+    auto cardIdit = ranges::find(availableCardIds, cardId);
+    auto cardIdindex = static_cast<std::size_t>(std::distance(availableCardIds.begin(), cardIdit));
+    auto it = ranges::find(triggerCardIndices, cardIdindex);
+    if (it != triggerCardIndices.end()) {
+        return triggerCardIndices.size();
+    }
+    return static_cast<std::size_t>(std::distance(triggerCardIndices.begin(), it));
+}
+
 auto VocableProgress::getNextTriggerCard(const std::vector<CardId>& availableCardIds) const -> CardId
 {
     std::vector<std::size_t> triggerCardsTemp;
@@ -124,7 +135,11 @@ auto VocableProgress::getNextTriggerCard(const std::vector<CardId>& availableCar
 
 auto VocableProgress::recency() const -> float
 {
-    return (easeFactor * intervalDay) - static_cast<float>(utl::daysFromToday(lastSeen, 0));
+    auto result = (easeFactor * intervalDay) - static_cast<float>(utl::daysFromToday(lastSeen, 0));
+    if (dueDays() > 0) {
+        result += 1024; // magic number ... just use any high number to offset recency
+    }
+    return result;
 }
 
 auto VocableProgress::pauseTimeOver() const -> bool
@@ -135,14 +150,6 @@ auto VocableProgress::pauseTimeOver() const -> bool
     std::time_t now_time = std::time(nullptr);
 
     return last_time < now_time;
-}
-
-auto VocableProgress::isToBeRepeatedToday() const -> bool
-{
-    std::time_t todayMidnight = utl::todayMidnightTime();
-    std::time_t vocActiveTime = utl::advanceTimeByDays(lastSeen, intervalDay);
-
-    return todayMidnight > vocActiveTime;
 }
 
 auto VocableProgress::isNewVocable() const -> bool
@@ -160,7 +167,7 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
     constexpr auto square = 2.F;
     float minFactor = std::pow(Ease::changeFactorHard, square);
     float maxFactor = easeFactor * Ease::changeFactorHard;
-    float daysMinAtleast = (intervalDay >= 1.F) ? 1.F : 0.F;
+    float daysMinAtleast = std::clamp(intervalDay, 0.F, 1.F);
     return {.daysMin = utl::daysFromToday(lastSeen,
                                           std::max(daysMinAtleast, intervalDay * minFactor)),
             .daysNormal = dueDays(),
@@ -170,4 +177,9 @@ auto VocableProgress::getRepeatRange() const -> RepeatRange
 auto VocableProgress::dueDays() const -> int
 {
     return utl::daysFromToday(lastSeen, intervalDay);
+}
+
+auto VocableProgress::getLastSeenStr() const -> std::string
+{
+    return utl::serialize_time_t(lastSeen);
 }

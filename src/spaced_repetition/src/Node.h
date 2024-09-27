@@ -44,7 +44,6 @@ private:
     CardId nodeCardId{};
     std::shared_ptr<cardId_set> ignoreCardIds;
     cardId_set subCards; // all cards that contain vocables that are contained by this
-    std::vector<CardId> cardsLessVocables;
     std::vector<CardId> cardsLessVocablesPulled;
     std::vector<CardId> cardsMoreVocables;
 

@@ -6,6 +6,7 @@
 #include <sstream>
 #include <string>
 namespace chrono = std::chrono;
+
 namespace utl {
 
 auto serialize_time_t(const std::time_t& time) -> std::string
@@ -35,6 +36,16 @@ auto todayMidnightTime() -> std::time_t
     return std::mktime(&todayMidnight_tm);
 }
 
+auto todayMorningTime() -> std::time_t
+{
+    std::time_t now = std::time(nullptr);
+    std::tm todayMidnight_tm = *std::localtime(&now);
+    todayMidnight_tm.tm_sec = 0;
+    todayMidnight_tm.tm_min = 0;
+    todayMidnight_tm.tm_hour = 0;
+    return std::mktime(&todayMidnight_tm);
+}
+
 auto advanceTimeByDays(std::time_t inputTime, float days) -> std::time_t
 {
     std::tm vocActiveTime_tm = *std::localtime(&inputTime);
@@ -52,4 +63,4 @@ auto daysFromToday(std::time_t startTime, float intervalDays) -> int
     return static_cast<int>((chrono::sys_days{timePoint_due} - chrono::sys_days{timePoint_now}).count());
 }
 
-} // namespace spaced_repetition
+} // namespace utl

@@ -53,12 +53,12 @@ auto Node::lowerOrder(size_t order) -> size_t
     }
     size_t nextOrder = order;
     const auto& cards = db->MetaCards();
-    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables();
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(true);
     if (thisTnv.vocables.size() <= s_stopBreakDown) {
         return nextOrder;
     }
 
-    cardsLessVocables = removeInactiveCardIds(subCards);
+    auto cardsLessVocables = removeInactiveCardIds(subCards);
     sortCardIds(cardsLessVocables);
     for (CardId index : cardsLessVocables) {
         if ((*nodes)[index].has_value()) {
@@ -89,7 +89,7 @@ auto Node::collectSubCards() const -> cardId_set
 {
     cardId_set subCardsResult;
 
-    const auto& tnv = db->MetaCards().at(nodeCardId).getTimingAndVocables();
+    const auto& tnv = db->MetaCards().at(nodeCardId).getTimingAndVocables(true);
     const auto& vocables = db->Vocables();
     const auto& containedVocables = tnv.vocables
                                     | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
@@ -108,9 +108,9 @@ auto Node::removeInactiveCardIds(const cardId_set& cardIds) -> std::vector<CardI
 {
     std::vector<CardId> result;
     const auto& cards = db->MetaCards();
-    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables();
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(true);
     ranges::copy_if(cardIds, std::back_inserter(result), [&cards, &thisTnv](CardId cardId) -> bool {
-        const auto& tnv = cards.at(cardId).getTimingAndVocables();
+        const auto& tnv = cards.at(cardId).getTimingAndVocables(true);
         return tnv.timing <= 0
                && not tnv.vocables.empty()
                && tnv.vocables.size() < thisTnv.vocables.size();
@@ -121,9 +121,9 @@ auto Node::removeInactiveCardIds(const cardId_set& cardIds) -> std::vector<CardI
 void Node::sortCardIds(std::vector<CardId>& cardIds)
 {
     const auto& cards = db->MetaCards();
-    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables();
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(true);
     const auto preferedQuantity = [](size_t a, size_t b) -> bool {
-        const std::array quantity = {4, 3, 5, 2, 6};
+        const std::array quantity = {4, 3, 2, 5, 1, 6};
         const auto* a_it = ranges::find(quantity, a);
         const auto* b_it = ranges::find(quantity, b);
         if (a_it != b_it) {
@@ -131,9 +131,19 @@ void Node::sortCardIds(std::vector<CardId>& cardIds)
         }
         return a < b;
     };
+    const auto triggerValue = [&](CardId cardId) -> std::size_t {
+        const auto& tnv = cards.at(cardId).getTimingAndVocables(true);
+        index_set intersect;
+        ranges::set_intersection(thisTnv.vocables, tnv.vocables, std::inserter(intersect, intersect.begin()));
+        std::size_t value = 0;
+        for (const auto& index : intersect) {
+            value += db->Vocables()[index].triggerValue(cardId);
+        }
+        return value;
+    };
     ranges::sort(cardIds, [&](CardId cardId_a, CardId cardId_b) -> bool {
-        const auto& tnv_a = cards.at(cardId_a).getTimingAndVocables();
-        const auto& tnv_b = cards.at(cardId_b).getTimingAndVocables();
+        const auto& tnv_a = cards.at(cardId_a).getTimingAndVocables(true);
+        const auto& tnv_b = cards.at(cardId_b).getTimingAndVocables(true);
         size_t countIntersect_a = ranges::set_intersection(
                                           thisTnv.vocables, tnv_a.vocables, utl::counting_iterator{})
                                           .out.count;
@@ -142,6 +152,12 @@ void Node::sortCardIds(std::vector<CardId>& cardIds)
                                           .out.count;
         if (tnv_a.vocables.size() != tnv_b.vocables.size()) {
             return preferedQuantity(tnv_a.vocables.size(), tnv_b.vocables.size());
+        }
+        const std::size_t triggerValue_a = triggerValue(cardId_a);
+        const std::size_t triggerValue_b = triggerValue(cardId_b);
+        if (triggerValue_a != triggerValue_b) {
+            spdlog::info("TriggerValueA: {}, triggerValueB: {}", triggerValue_a, triggerValue_b);
+            return triggerValue_a > triggerValue_b;
         }
         return countIntersect_a > countIntersect_b;
     });
