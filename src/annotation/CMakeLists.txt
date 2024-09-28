@@ -18,12 +18,14 @@ target_sources(zikhron_annotation
         include/annotation/Token.h
         include/annotation/TokenText.h
         include/annotation/Tokenizer.h
+        include/annotation/detail/JumanppWrapper.h
         src/AdaptJiebaDict.cpp
         src/Ease.cpp
         src/FreqDictionary.cpp
         src/JieBa.cpp
         src/JpnTokenizer.cpp
         src/Jumanpp.cpp
+        src/JumanppWrapper.cpp
         src/Jumanpp.h
         src/Rules.cpp
         src/Token.cpp

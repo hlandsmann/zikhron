@@ -1,6 +1,8 @@
 // oriented on juman_format.cc
 #include "Jumanpp.h"
 
+#include "detail/JumanppWrapper.h"
+
 #pragma GCC diagnostic push
 #include <core/analysis/analysis_result.h>
 #include <core/analysis/lattice_config.h>
@@ -18,6 +20,7 @@
 #include <stdexcept>
 #include <string>
 #include <util/status.hpp>
+#include <vector>
 
 namespace jumanpp {
 // namespace jumandic = jumanpp::jumandic;
@@ -58,13 +61,14 @@ Jumanpp::Jumanpp()
     tryThrow([&] { return fields.initialize(outputManager); }, "fields.initialize");
 }
 
-void Jumanpp::tokenize(const std::string& text)
+auto Jumanpp::tokenize(const std::string& text) -> std::vector<annotation::JumanppToken>
 {
     // auto fmt = std::make_unique<jumandic::output::JumanFormat>();
     // auto s = fmt->initialize(exec.analyzerPtr()->output());
     // s = exec.analyzerPtr()->analyze(text);
     // s = fmt->format(*exec.analyzerPtr(), "");
     // std::cout << "res: " << fmt->result();
+    std::vector<annotation::JumanppToken> result;
     auto analysisResult = core::analysis::AnalysisResult{};
     core::analysis::AnalysisPath top1;
     core::analysis::NodeWalker walker;
@@ -88,16 +92,27 @@ void Jumanpp::tokenize(const std::string& text)
             core::analysis::LatticeNodePtr nodePtr{.boundary = connection.boundary, .position = connection.right};
             outputManager.locate(nodePtr, &walker);
             while (walker.next()) {
-                std::cout << fields.surface[walker]
-                          << " " << fields.baseform[walker]
-                          << " " << fields.canonicForm[walker]
-                          << " pos: " << fields.pos[walker]
-                          << " spos: " << fields.subpos[walker]
-                          << "\n";
+                // std::cout << fields.surface[walker]
+                //           << " " << fields.baseform[walker]
+                //           << " " << fields.canonicForm[walker]
+                //           << " pos: " << fields.pos[walker]
+                //           << " spos: " << fields.subpos[walker]
+                //           << "\n";
+                result.push_back(annotation::JumanppToken{
+                        .surface = fields.surface[walker].str(),
+                        .pos = fields.pos[walker].str(),
+                        .subpos = fields.subpos[walker].str(),
+                        .conjType = fields.conjType[walker].str(),
+                        .conjForm = fields.conjForm[walker].str(),
+                        .baseform = fields.baseform[walker].str(),
+                        .reading = fields.reading[walker].str(),
+                        .canonicForm = fields.canonicForm[walker].str(),
+                });
             }
             next = top1.nextNode(&connection);
         }
     }
+    return result;
 }
 
 auto Jumanpp::getConfiguration() -> jumanpp::jumandic::JumanppConf

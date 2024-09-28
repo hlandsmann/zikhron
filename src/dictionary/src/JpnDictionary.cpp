@@ -19,7 +19,7 @@ using namespace std::literals;
 namespace ranges = std::ranges;
 namespace views = std::views;
 
-namespace japaneseDic {
+namespace dictionary {
 constexpr std::string dot = "・";
 
 struct POS
@@ -519,9 +519,27 @@ JpnDictionary::JpnDictionary(const std::filesystem::path& xmlFile)
     }
     for (const auto& [index, entry] : views::enumerate(entries)) {
         for (const std::string& key : entry.key) {
-            keyToIndex[key].push_back(index);
+            kanjiToIndex[key].push_back(index);
         }
     }
-    spdlog::info("found {} entries, got {} singleNodeEntries, map keys: {}", count, entries.size(), keyToIndex.size());
+    spdlog::info("found {} entries, got {} singleNodeEntries, map keys: {}", count, entries.size(), kanjiToIndex.size());
+}
+
+auto JpnDictionary::getEntryByKanji(const std::string& key) const -> Entry
+{
+    try {
+        const std::vector<std::size_t> indices = kanjiToIndex.at(key);
+        Entry entry;
+        entry.key.push_back(key);
+        for (const auto index : indices) {
+            const auto& definition = entries[index].definition;
+            entry.definition.insert(entry.definition.end(), definition.begin(), definition.end());
+        }
+        return entry;
+
+    } catch (...) {
+        // spdlog::error("Failed to get dictionary entry for key: {}", key);
+        return {};
+    }
 }
 } // namespace japaneseDic

@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 
-namespace japaneseDic {
+namespace dictionary {
 enum class PartOfSpeech {
     undefined,
     adjective,
@@ -39,9 +39,11 @@ class JpnDictionary
 {
 public:
     JpnDictionary(const std::filesystem::path& xmlFile);
+    [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> Entry;
 
 private:
     std::vector<Entry> entries;
-    std::map<std::string, std::vector<std::size_t>> keyToIndex;
+    std::map<std::string, std::vector<std::size_t>> kanjiToIndex;
+    std::map<std::string, std::vector<std::size_t>> readingToIndex;
 };
 } // namespace japaneseDic

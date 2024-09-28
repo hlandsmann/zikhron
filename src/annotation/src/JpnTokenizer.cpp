@@ -1,15 +1,40 @@
 #include "JpnTokenizer.h"
-// #include <spdlog/spdlog.h>
 
-#include "Jumanpp.h"
+#include "detail/JumanppWrapper.h"
+
+#include <dictionary/JpnDictionary.h>
+#include <spdlog/spdlog.h>
+
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace annotation {
-JpnTokenizer::JpnTokenizer()
-    : jumanppPtr{std::make_shared<jumanpp::Jumanpp>()}
+JpnTokenizer::JpnTokenizer(std::shared_ptr<dictionary::JpnDictionary> _jpnDictionary)
+    : jumanppWrapper{std::make_shared<JumanppWrapper>()}
+    , jpnDictionary{std::move(_jpnDictionary)}
 {}
 
-void JpnTokenizer::tokenize(const std::string& text)
+auto JpnTokenizer::tokenize(const std::string& text) const -> std::vector<JpnToken>
 {
-    jumanppPtr->tokenize(text);
+    auto jumanppTokens = jumanppWrapper->tokenize(text);
+    spdlog::info("{}", text);
+
+    for (const auto& jumanppToken : jumanppTokens) {
+        spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm);
+
+        auto entry = jpnDictionary->getEntryByKanji(jumanppToken.baseform);
+        if (!entry.key.empty()) {
+            spdlog::info("    bf: {}", *entry.definition.front().glossary.begin());
+            continue;
+        }
+        entry = jpnDictionary->getEntryByKanji(jumanppToken.surface);
+        if (!entry.key.empty()) {
+            spdlog::info("    sf: {}", *entry.definition.front().glossary.begin());
+        }
+    }
+
+    return {};
 }
-} // namespace japanese
+} // namespace annotation

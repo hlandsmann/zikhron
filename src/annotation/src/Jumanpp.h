@@ -1,5 +1,7 @@
 #pragma once
 #include "JpnTokenizer.h"
+#include "detail/JumanppWrapper.h"
+
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wshadow"
@@ -16,6 +18,7 @@
 
 #include <string>
 #include <util/status.hpp>
+#include <vector>
 
 namespace jumanpp {
 
@@ -39,7 +42,7 @@ class Jumanpp
 public:
     Jumanpp();
 
-    void tokenize(const std::string& text);
+    auto tokenize(const std::string& text) -> std::vector<annotation::JumanppToken>;
 
 private:
     [[nodiscard]] static auto getConfiguration() -> jumanpp::jumandic::JumanppConf;

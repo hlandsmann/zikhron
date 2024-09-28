@@ -81,8 +81,8 @@ auto main() -> int
     // std::cout << text3 << "\n";
     // std::cout << "res: " << fmt->result();
     //
-    auto jpnDictionary = std::make_unique<japaneseDic::JpnDictionary>("/home/harmen/src/zikhron/dictionaries/JMdict_e");
-    auto jpnTokenizer = std::make_unique<annotation::JpnTokenizer>();
+    auto jpnDictionary = std::make_shared<dictionary::JpnDictionary>("/home/harmen/src/zikhron/dictionaries/JMdict_e");
+    auto jpnTokenizer = std::make_unique<annotation::JpnTokenizer>(jpnDictionary);
     jpnTokenizer->tokenize(text1);
     // auto jumanxx = jumanpp::Jumanpp{};
     // jumanxx.tokenize(text1);
