@@ -1,12 +1,12 @@
 #pragma once
-#include <database/VideoSet.h>
+#include "DisplayVideo.h"
 #include "TabCard.h"
 #include "TabVideo.h"
-#include "DisplayVideo.h"
 
 #include <context/GlfwImguiContext.h>
 #include <context/Theme.h>
 #include <context/WidgetId.h>
+#include <database/VideoSet.h>
 #include <widgets/Box.h>
 #include <widgets/detail/Widget.h>
 
@@ -22,6 +22,11 @@ class MainWindow
         video = 1,
         audio = 2,
         configure = 3,
+    };
+
+    enum class Language : unsigned {
+        chinese = 0,
+        japanese = 1,
     };
 
 public:
@@ -49,5 +54,6 @@ private:
     bool needArrange = false;
 
     ActiveTab activeTab{};
+    Language language{};
 };
 } // namespace gui

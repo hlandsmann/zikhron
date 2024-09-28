@@ -50,6 +50,13 @@ enum class Image {
     time_forward,
     time_delete_forward,
     time_subtitle,
+    flag_brazil,
+    flag_china,
+    flag_israel,
+    flag_japan,
+    flag_russia,
+    flag_spain,
+    flag_uk,
 };
 
 struct TextureData;
@@ -96,6 +103,13 @@ class Texture
     static constexpr auto time_forward = "/home/harmen/src/zikhron/build/resources/icons/time-forward_32px.png";
     static constexpr auto time_backward = "/home/harmen/src/zikhron/build/resources/icons/time-backward_32px.png";
     static constexpr auto time_subtitle = "/home/harmen/src/zikhron/build/resources/icons/time-subtitle_32px.png";
+    static constexpr auto flag_brazil = "/home/harmen/src/zikhron/build/resources/icons/flag-brazil_48px.png";
+    static constexpr auto flag_china = "/home/harmen/src/zikhron/build/resources/icons/flag-china_48px.png";
+    static constexpr auto flag_israel = "/home/harmen/src/zikhron/build/resources/icons/flag-israel_48px.png";
+    static constexpr auto flag_japan = "/home/harmen/src/zikhron/build/resources/icons/flag-japan_48px.png";
+    static constexpr auto flag_russia = "/home/harmen/src/zikhron/build/resources/icons/flag-russia_48px.png";
+    static constexpr auto flag_spain = "/home/harmen/src/zikhron/build/resources/icons/flag-spain_48px.png";
+    static constexpr auto flag_uk = "/home/harmen/src/zikhron/build/resources/icons/flag-uk_48px.png";
 
 public:
     // the GlfwImguiContext needs to be initialized before this class is constructed

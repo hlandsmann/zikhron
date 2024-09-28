@@ -15,6 +15,7 @@
 #include <widgets/Button.h>
 #include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
+#include <widgets/Separator.h>
 #include <widgets/ToggleButtonGroup.h>
 #include <widgets/Window.h>
 #include <widgets/detail/Widget.h>
@@ -70,6 +71,8 @@ void MainWindow::doImGui()
         auto& tabBox = tabWindow.next<widget::Box>();
         tabBox.start();
         activeTab = static_cast<ActiveTab>(tabBox.next<widget::ToggleButtonGroup>().Active(static_cast<unsigned>(activeTab)));
+        tabBox.next<widget::Separator>();
+        language = static_cast<Language>(tabBox.next<widget::ToggleButtonGroup>().Active(static_cast<unsigned>(language)));
     }
     auto& layer = box->next<widget::Layer>();
     switch (activeTab) {
@@ -110,6 +113,18 @@ void MainWindow::setup()
                                                       context::Image::video,
                                                       context::Image::audio,
                                                       context::Image::configure_app});
+        tmbBox.add<widget::Separator>(Align::end, 0.F, 48.F);
+
+        tmbBox.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::vertical,
+                                              std::initializer_list<context::Image>{
+                                                      context::Image::flag_china,
+                                                      context::Image::flag_japan,
+                                                      // context::Image::flag_brazil,
+                                                      // context::Image::flag_israel,
+                                                      // context::Image::flag_russia,
+                                                      // context::Image::flag_spain,
+                                                      // context::Image::flag_uk,
+                                                      });
     }
     {
         auto mainLayer = box->add<widget::Layer>(Align::start);

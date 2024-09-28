@@ -93,6 +93,13 @@ auto Texture::loadTextureMap() -> std::map<Image, TextureData>
     textureMap[Image::time_backward] = loadTextureFromFile(time_backward);
     textureMap[Image::time_forward] = loadTextureFromFile(time_forward);
     textureMap[Image::time_subtitle] = loadTextureFromFile(time_subtitle);
+    textureMap[Image::flag_brazil] = loadTextureFromFile(flag_brazil);
+    textureMap[Image::flag_china] = loadTextureFromFile(flag_china);
+    textureMap[Image::flag_israel] = loadTextureFromFile(flag_israel);
+    textureMap[Image::flag_japan] = loadTextureFromFile(flag_japan);
+    textureMap[Image::flag_russia] = loadTextureFromFile(flag_russia);
+    textureMap[Image::flag_spain] = loadTextureFromFile(flag_spain);
+    textureMap[Image::flag_uk] = loadTextureFromFile(flag_uk);
     return textureMap;
 }
 } // namespace context
