@@ -153,8 +153,9 @@ auto parseLine(const std::string_view& line) -> DictionaryItem_raw
 
 } // namespace
 
-ZH_Dictionary::ZH_Dictionary(const std::filesystem::path& filename)
+ZH_Dictionary::ZH_Dictionary(const std::filesystem::path& directory)
 {
+    const auto& filename = directory / s_fn_dictionary;
     std::ifstream dictFile(filename);
     if (!dictFile) {
         throw std::runtime_error("Could not open dictionary file: '" + filename.string() + "'");

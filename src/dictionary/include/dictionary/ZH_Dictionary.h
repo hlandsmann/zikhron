@@ -16,6 +16,8 @@ enum class CharacterSetType {
 
 class ZH_Dictionary
 {
+    static constexpr std::string_view s_fn_dictionary = "cedict_1_0_ts_utf-8_mdbg.u8";
+
 public:
     struct Key
     {
@@ -46,11 +48,12 @@ public:
         auto operator<=>(const Entry&) const -> std::weak_ordering;
         auto operator==(const Entry&) const -> bool = default;
     };
+
     using EntryVector = std::vector<Entry>;
 
     [[nodiscard]] auto characterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType;
     [[nodiscard]] auto keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>;
-    [[nodiscard]] auto entryFromPosition(size_t pos, CharacterSetType characterSet=CharacterSetType::Simplified) const -> Entry;
+    [[nodiscard]] auto entryFromPosition(size_t pos, CharacterSetType characterSet = CharacterSetType::Simplified) const -> Entry;
     [[nodiscard]] auto entryVectorFromKey(const std::string& key) const -> std::vector<Entry>;
     [[nodiscard]] auto contains(const std::string& key) const -> bool;
     [[nodiscard]] auto posFromKey(const std::string& key) const -> unsigned;

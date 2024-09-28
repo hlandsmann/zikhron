@@ -1,6 +1,7 @@
 #include "JpnDictionary.h"
 
 #include <spdlog/spdlog.h>
+#include <utils/format.h>
 
 #include <algorithm>
 #include <cassert>
@@ -8,6 +9,7 @@
 #include <filesystem>
 #include <generator>
 #include <iterator>
+#include <limits>
 #include <magic_enum.hpp>
 #include <map>
 #include <pugixml.hpp>
@@ -307,7 +309,7 @@ void spreadReadings(std::vector<Entry>& entries, const std::vector<ReadingElemen
         } else {
             for (const std::string& restrict : reading.restricts) {
                 const auto entryIt = ranges::find_if(entries, [&restrict](const Entry& entry) {
-                    return entry.key.front() == restrict;
+                    return entry.kanji.front() == restrict;
                 });
                 if (entryIt == entries.end()) {
                     spdlog::critical("restrict {} not found", restrict);
@@ -356,7 +358,7 @@ void spreadSenses(std::vector<Entry>& entries, const std::vector<Sense>& senses)
         } else {
             for (Entry& entry : entries) {
                 const auto& kanjiIt = ranges::find_if(sense.restrictKanji, [&entry](const std::string& restrictKanji) {
-                    return restrictKanji == entry.key.front();
+                    return restrictKanji == entry.kanji.front();
                 });
                 if (kanjiIt != sense.restrictKanji.end()) {
                     if (sense.restrictReading.empty()) {
@@ -403,7 +405,7 @@ void joinEntries(std::vector<Entry>& entries)
                 return entry->definition == forwardEntry.definition;
             });
             found != entries.end()) {
-            found->key.insert(found->key.end(), entry->key.begin(), entry->key.end());
+            found->kanji.insert(found->kanji.end(), entry->kanji.begin(), entry->kanji.end());
             assert(found != entry);
             entry = entries.erase(entry);
             joined++;
@@ -439,19 +441,14 @@ auto parseEntry(const pugi::xml_node& node) -> std::vector<Entry>
             senses.push_back(parseSense(element));
         }
     }
-
     if (!kanjis.empty()) {
         ranges::transform(kanjis, std::back_inserter(entries), [](const KanjiElement& kanji) -> Entry {
             Entry entry;
-            entry.key.push_back(kanji.key);
+            entry.kanji.push_back(kanji.key);
             return entry;
         });
     } else {
-        ranges::transform(readings, std::back_inserter(entries), [](const ReadingElement& reading) -> Entry {
-            Entry entry;
-            entry.key.push_back(reading.key);
-            return entry;
-        });
+        entries.emplace_back();
     }
 
     spreadReadings(entries, readings);
@@ -517,20 +514,27 @@ JpnDictionary::JpnDictionary(const std::filesystem::path& xmlFile)
         // }
         // count++;
     }
-    for (const auto& [index, entry] : views::enumerate(entries)) {
-        for (const std::string& key : entry.key) {
-            kanjiToIndex[key].push_back(index);
+    for (const auto& [indexEntry, entry] : views::enumerate(entries)) {
+        for (const std::string& kanji : entry.kanji) {
+            kanjiToIndex[kanji].push_back(static_cast<std::size_t>(indexEntry));
+        }
+        for (const auto& [indexDefinition, definition] : views::enumerate(entry.definition)) {
+            for (const std::string& reading : definition.reading) {
+                readingToIndex[reading].push_back({.indexEntry = static_cast<std::size_t>(indexEntry),
+                                                   .indexDefinition = static_cast<std::size_t>(indexDefinition)});
+            }
         }
     }
-    spdlog::info("found {} entries, got {} singleNodeEntries, map keys: {}", count, entries.size(), kanjiToIndex.size());
+    spdlog::info("found {} entries, got {} singleNodeEntries, map kanji: {}, map reading: {}",
+                 count, entries.size(), kanjiToIndex.size(), readingToIndex.size());
 }
 
 auto JpnDictionary::getEntryByKanji(const std::string& key) const -> Entry
 {
     try {
-        const std::vector<std::size_t> indices = kanjiToIndex.at(key);
+        const std::vector<std::size_t>& indices = kanjiToIndex.at(key);
         Entry entry;
-        entry.key.push_back(key);
+        entry.kanji.push_back(key);
         for (const auto index : indices) {
             const auto& definition = entries[index].definition;
             entry.definition.insert(entry.definition.end(), definition.begin(), definition.end());
@@ -542,4 +546,34 @@ auto JpnDictionary::getEntryByKanji(const std::string& key) const -> Entry
         return {};
     }
 }
-} // namespace japaneseDic
+
+auto JpnDictionary::getEntryByReading(const std::string& key) const -> Entry
+{
+    try {
+        const std::vector<ReadingPosition>& positions = readingToIndex.at(key);
+        Entry entry;
+        std::size_t indexEntryCount = 0;
+        std::size_t indexEntryLast = std::numeric_limits<std::size_t>::max();
+        for (const auto& [indexEntry, indexDefinition] : positions) {
+            const auto& currentEntry = entries.at(indexEntry);
+            if (indexEntry != indexEntryLast) {
+                const auto& kanjis = currentEntry.kanji;
+                if (!entries[indexEntry].kanji.empty()) {
+                    entry.kanji.insert(entry.kanji.begin(), kanjis.begin(), kanjis.end());
+                }
+                indexEntryLast = indexEntry;
+                indexEntryCount++;
+            }
+            entry.definition.push_back(currentEntry.definition.at(indexDefinition));
+        }
+        if (indexEntryCount != 1) {
+            spdlog::info("indexEntryCount: {}", indexEntryCount);
+        }
+        return entry;
+    } catch (...) {
+        spdlog::error("Failed to get dictionary entry for key: {}", key);
+        return {};
+    }
+}
+
+} // namespace dictionary

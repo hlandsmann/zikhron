@@ -25,14 +25,16 @@ auto JpnTokenizer::tokenize(const std::string& text) const -> std::vector<JpnTok
         spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm);
 
         auto entry = jpnDictionary->getEntryByKanji(jumanppToken.baseform);
-        if (!entry.key.empty()) {
+        if (!entry.kanji.empty()) {
             spdlog::info("    bf: {}", *entry.definition.front().glossary.begin());
             continue;
         }
         entry = jpnDictionary->getEntryByKanji(jumanppToken.surface);
-        if (!entry.key.empty()) {
+        if (!entry.kanji.empty()) {
             spdlog::info("    sf: {}", *entry.definition.front().glossary.begin());
         }
+        entry = jpnDictionary->getEntryByReading(jumanppToken.baseform);
+            spdlog::info("    rf: {}", *entry.definition.front().glossary.begin());
     }
 
     return {};

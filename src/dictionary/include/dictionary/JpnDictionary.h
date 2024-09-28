@@ -31,7 +31,7 @@ struct Definition
 
 struct Entry
 {
-    std::vector<std::string> key; // mostly kanji, but sometimes not
+    std::vector<std::string> kanji;
     std::vector<Definition> definition;
 };
 
@@ -40,10 +40,18 @@ class JpnDictionary
 public:
     JpnDictionary(const std::filesystem::path& xmlFile);
     [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> Entry;
+    [[nodiscard]] auto getEntryByReading(const std::string& key) const -> Entry;
 
 private:
     std::vector<Entry> entries;
     std::map<std::string, std::vector<std::size_t>> kanjiToIndex;
-    std::map<std::string, std::vector<std::size_t>> readingToIndex;
+
+    struct ReadingPosition
+    {
+        std::size_t indexEntry;
+        std::size_t indexDefinition;
+    };
+
+    std::map<std::string, std::vector<ReadingPosition>> readingToIndex;
 };
-} // namespace japaneseDic
+} // namespace dictionary
