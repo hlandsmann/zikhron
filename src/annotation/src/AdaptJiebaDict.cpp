@@ -1,6 +1,6 @@
 #include "AdaptJiebaDict.h"
 
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
@@ -18,7 +18,7 @@ namespace ranges = std::ranges;
 
 namespace annotation {
 
-AdaptJiebaDict::AdaptJiebaDict(std::shared_ptr<const ZH_Dictionary> _dictionary)
+AdaptJiebaDict::AdaptJiebaDict(std::shared_ptr<const dictionary::DictionaryChi> _dictionary)
     : dictionary{std::move(_dictionary)}
     , rules{dictionary}
 {}
@@ -96,10 +96,10 @@ void AdaptJiebaDict::merge()
 
 void adaptJiebaDictionaries(const std::shared_ptr<zikhron::Config>& config)
 {
-    std::shared_ptr<ZH_Dictionary> dictionary;
+    std::shared_ptr<dictionary::DictionaryChi> dictionary;
     if (!std::filesystem::exists(AdaptJiebaDict::dict_out_path)) {
         if (!dictionary) {
-            dictionary = std::make_shared<ZH_Dictionary>(config->Dictionary());
+            dictionary = std::make_shared<dictionary::DictionaryChi>(config);
         }
         auto adaptDictionary = annotation::AdaptJiebaDict{dictionary};
         adaptDictionary.load(annotation::AdaptJiebaDict::dict_in_path);
@@ -109,7 +109,7 @@ void adaptJiebaDictionaries(const std::shared_ptr<zikhron::Config>& config)
     }
     if (!std::filesystem::exists(AdaptJiebaDict::idf_out_path)) {
         if (!dictionary) {
-            dictionary = std::make_shared<ZH_Dictionary>(config->Dictionary());
+            dictionary = std::make_shared<dictionary::DictionaryChi>(config);
         }
         auto adaptIdf = annotation::AdaptJiebaDict{dictionary};
         adaptIdf.load(annotation::AdaptJiebaDict::idf_in_path);

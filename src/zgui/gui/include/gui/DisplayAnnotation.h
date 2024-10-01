@@ -1,8 +1,9 @@
 #pragma once
 #include "TokenizationOverlay.h"
 
-#include <annotation/Tokenizer.h>
 #include <annotation/TokenText.h>
+#include <annotation/Tokenizer.h>
+#include <annotation/TokenizerChi.h>
 #include <context/ColorSet.h>
 #include <context/Fonts.h>
 #include <context/WidgetId.h>

@@ -1,7 +1,7 @@
 #pragma once
 #include "Rules.h"
 
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 
 #include <filesystem>
@@ -20,7 +20,7 @@ public:
     static constexpr auto idf_out_path = "/home/harmen/src/zikhron/build/idf.utf8";
     static constexpr auto user_dict_path = "/home/harmen/src/zikhron/build/user.dict.utf8";
 
-    AdaptJiebaDict(std::shared_ptr<const ZH_Dictionary> dictionary);
+    AdaptJiebaDict(std::shared_ptr<const dictionary::DictionaryChi> dictionary);
     void load(const std::filesystem::path& dictionaryFileIn);
     void save(const std::filesystem::path& dictionaryFileOut);
     void saveUserDict();
@@ -37,7 +37,7 @@ private:
     std::vector<Entry> output;
     std::vector<Entry> input;
     std::vector<std::string> userDict;
-    std::shared_ptr<const ZH_Dictionary> dictionary;
+    std::shared_ptr<const dictionary::DictionaryChi> dictionary;
     Rules rules;
 };
 

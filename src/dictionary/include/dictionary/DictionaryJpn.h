@@ -1,7 +1,10 @@
 #pragma once
+#include <misc/Config.h>
+
 #include <cstddef>
 #include <filesystem>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 #include <vector>
@@ -35,10 +38,10 @@ struct Entry
     std::vector<Definition> definition;
 };
 
-class JpnDictionary
+class DictionaryJpn
 {
 public:
-    JpnDictionary(const std::filesystem::path& xmlFile);
+    DictionaryJpn(std::shared_ptr<zikhron::Config> config);
     [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> Entry;
     [[nodiscard]] auto getEntryByReading(const std::string& key) const -> Entry;
 

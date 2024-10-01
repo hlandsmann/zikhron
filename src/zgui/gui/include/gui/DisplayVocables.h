@@ -5,7 +5,7 @@
 #include <context/Fonts.h>
 #include <database/Word.h>
 #include <database/WordDB.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>

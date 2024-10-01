@@ -11,6 +11,7 @@
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
+#include <annotation/TokenizerChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
@@ -86,7 +87,7 @@ auto CardDB::getTrackFromCardId(CardId cardId) const -> Track
     return {medium, card};
 }
 
-auto CardDB::getTrackFromVideo(const VideoPtr& video) const -> Track
+auto CardDB::getTrackFromVideo(const VideoPtr& video) -> Track
 {
     return {TrackMedia{video}, 0};
 }

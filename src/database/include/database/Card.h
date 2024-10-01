@@ -5,7 +5,8 @@
 #include <annotation/JieBa.h>
 #include <annotation/Token.h>
 #include <annotation/Tokenizer.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <annotation/TokenizerChi.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
 #include <unicode/unistr.h>
@@ -75,7 +76,6 @@ private:
     std::shared_ptr<annotation::Tokenizer> tokenizer;
 
     std::vector<annotation::Token> tokens;
-
 };
 
 class DialogueCard : public Card

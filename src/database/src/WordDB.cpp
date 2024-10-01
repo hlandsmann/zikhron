@@ -3,9 +3,10 @@
 #include "VocableProgress.h" // IWYU pragma: keep (isNewVocable)
 #include "Word.h"
 
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
 
@@ -14,6 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <magic_enum.hpp>
 #include <map>
 #include <memory>
 #include <string>
@@ -31,11 +33,13 @@ using vocId_vocId_map = std::map<VocableId, VocableId>;
 
 namespace database {
 
-WordDB::WordDB(std::shared_ptr<zikhron::Config> _config)
+WordDB::WordDB(std::shared_ptr<zikhron::Config> _config,
+               Language language)
     : config{std::move(_config)}
-    , dictionary{std::make_shared<ZH_Dictionary>(config->Dictionary())}
+    , dictionary{std::make_shared<dictionary::DictionaryChi>(config)}
 
 {
+    spdlog::info("WordDB constructed with {}", magic_enum::enum_name(language));
     load();
 }
 
@@ -64,7 +68,7 @@ auto WordDB::wordIsKnown(const std::string& key) const -> bool
     return key_word.contains(key);
 }
 
-auto WordDB::getDictionary() const -> std::shared_ptr<const ZH_Dictionary>
+auto WordDB::getDictionary() const -> std::shared_ptr<const dictionary::DictionaryChi>
 {
     return dictionary;
 }

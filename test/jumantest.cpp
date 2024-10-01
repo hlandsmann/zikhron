@@ -1,6 +1,9 @@
 
+#include <annotation/TokenizerJpn.h>
 #include <dictionary/JpnDictionary.h>
-#include <annotation/JpnTokenizer.h>
+#include <misc/Config.h>
+
+#include <filesystem>
 // #include "Jumanpp.h"
 
 // #include <core/analysis/rnn_scorer.h>
@@ -13,6 +16,15 @@
 #include <string>
 
 // namespace jumandic = jumanpp::jumandic;
+
+namespace fs = std::filesystem;
+
+static auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
+{
+    auto path_to_exe = fs::read_symlink("/proc/self/exe");
+    auto zikhron_cfg = std::make_shared<zikhron::Config>(path_to_exe.parent_path());
+    return zikhron_cfg;
+}
 
 auto main() -> int
 {
@@ -81,9 +93,9 @@ auto main() -> int
     // std::cout << text3 << "\n";
     // std::cout << "res: " << fmt->result();
     //
-    auto jpnDictionary = std::make_shared<dictionary::JpnDictionary>("/home/harmen/src/zikhron/dictionaries/JMdict_e");
+    auto jpnDictionary = std::make_shared<dictionary::JpnDictionary>(get_zikhron_cfg());
     auto jpnTokenizer = std::make_unique<annotation::JpnTokenizer>(jpnDictionary);
-    jpnTokenizer->tokenize(text1);
+    jpnTokenizer->split(text1);
     // auto jumanxx = jumanpp::Jumanpp{};
     // jumanxx.tokenize(text1);
 }

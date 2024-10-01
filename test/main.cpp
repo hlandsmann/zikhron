@@ -42,7 +42,8 @@ void adaptJiebaDictionaries(const std::shared_ptr<database::WordDB>& wordDB)
 auto main() -> int
 {
     auto injector = boost::di::make_injector(
-            boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()));
+            boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+            boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>());
 
     auto db = injector.create<std::shared_ptr<sr::DataBase>>();
     auto treeWalker = sr::ITreeWalker::createTreeWalker(std::move(db));

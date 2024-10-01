@@ -1,5 +1,6 @@
-#include "JpnDictionary.h"
+#include "DictionaryJpn.h"
 
+#include <misc/Config.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
 
@@ -12,6 +13,7 @@
 #include <limits>
 #include <magic_enum.hpp>
 #include <map>
+#include <memory>
 #include <pugixml.hpp>
 #include <ranges>
 #include <string>
@@ -492,11 +494,11 @@ auto parseEntry(const pugi::xml_node& node) -> std::vector<Entry>
     return entries;
 }
 
-JpnDictionary::JpnDictionary(const std::filesystem::path& xmlFile)
+DictionaryJpn::DictionaryJpn(std::shared_ptr<zikhron::Config> config)
 {
     pugi::xml_document doc;
-
-    pugi::xml_parse_result result = doc.load_file(xmlFile.c_str());
+    const auto& filename = config->Dictionary() / "JMdict_e";
+    pugi::xml_parse_result result = doc.load_file(filename.c_str());
 
     spdlog::info("Loading japanese dictioary: {}", result.description());
     pugi::xml_node jmDict = doc.child("JMdict");
@@ -529,7 +531,7 @@ JpnDictionary::JpnDictionary(const std::filesystem::path& xmlFile)
                  count, entries.size(), kanjiToIndex.size(), readingToIndex.size());
 }
 
-auto JpnDictionary::getEntryByKanji(const std::string& key) const -> Entry
+auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> Entry
 {
     try {
         const std::vector<std::size_t>& indices = kanjiToIndex.at(key);
@@ -547,7 +549,7 @@ auto JpnDictionary::getEntryByKanji(const std::string& key) const -> Entry
     }
 }
 
-auto JpnDictionary::getEntryByReading(const std::string& key) const -> Entry
+auto DictionaryJpn::getEntryByReading(const std::string& key) const -> Entry
 {
     try {
         const std::vector<ReadingPosition>& positions = readingToIndex.at(key);

@@ -1,4 +1,5 @@
 #include "TokenizationChoiceDB.h"
+#include "TokenizationChoiceDbChi.h"
 
 #include <database/CardPackDB.h>
 #include <database/CbdFwd.h>
@@ -26,7 +27,7 @@
 namespace ranges = std::ranges;
 
 namespace database {
-TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> config,
+TokenizationChoiceDbChi::TokenizationChoiceDbChi(std::shared_ptr<zikhron::Config> config,
                                            const std::shared_ptr<database::CardPackDB>& cardPackDB,
                                            const std::shared_ptr<database::VideoDB>& videoDB)
     : dbFile{config->DatabaseDirectory() / s_tokenizationChoiceDBFile}
@@ -35,7 +36,7 @@ TokenizationChoiceDB::TokenizationChoiceDB(std::shared_ptr<zikhron::Config> conf
     syncIdsWithCardPackDB(*cardPackDB, *videoDB);
 }
 
-void TokenizationChoiceDB::syncIdsWithCardPackDB(const CardPackDB& cardPackDB, const database::VideoDB& videoDB)
+void TokenizationChoiceDbChi::syncIdsWithCardPackDB(const CardPackDB& cardPackDB, const database::VideoDB& videoDB)
 {
     for (const auto& tokenizationChoicePosition : choices) {
         const auto& choice = tokenizationChoicePosition.tokenizationChoice;
@@ -70,13 +71,13 @@ void TokenizationChoiceDB::syncIdsWithCardPackDB(const CardPackDB& cardPackDB, c
     }
 }
 
-void TokenizationChoiceDB::insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
+void TokenizationChoiceDbChi::insertTokenization(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
 {
     removeSimilarChoiceForCard(choice, card);
     addChoiceForCard(choice, card);
 }
 
-void TokenizationChoiceDB::removeSimilarChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
+void TokenizationChoiceDbChi::removeSimilarChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
 {
     auto& choicesForCard = choicesForCards[card->getCardId()];
     auto oldChoiceForCardIt = ranges::find_if(choicesForCard,
@@ -103,7 +104,7 @@ void TokenizationChoiceDB::removeSimilarChoiceForCard(const TokenizationChoice& 
     }
 }
 
-void TokenizationChoiceDB::addChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
+void TokenizationChoiceDbChi::addChoiceForCard(const TokenizationChoice& choice, const std::shared_ptr<database::Card>& card)
 {
     auto choiceIt = ranges::find(choices, choice, &TokenizationChoicePosition::tokenizationChoice);
     if (choiceIt == choices.end()) {
@@ -116,7 +117,7 @@ void TokenizationChoiceDB::addChoiceForCard(const TokenizationChoice& choice, co
     choicesForCards[card->getCardId()].push_back(choice);
 }
 
-auto TokenizationChoiceDB::getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>
+auto TokenizationChoiceDbChi::getChoicesForCard(CardId cardId) -> std::vector<TokenizationChoice>
 {
     if (choicesForCards.contains(cardId)) {
         return choicesForCards.at(cardId);
@@ -124,12 +125,12 @@ auto TokenizationChoiceDB::getChoicesForCard(CardId cardId) -> std::vector<Token
     return {};
 }
 
-auto TokenizationChoiceDB::getChoicesForCards() const -> const std::map<CardId, TokenizationChoiceVec>&
+auto TokenizationChoiceDbChi::getChoicesForCards() const -> const std::map<CardId, TokenizationChoiceVec>&
 {
     return choicesForCards;
 }
 
-void TokenizationChoiceDB::save()
+void TokenizationChoiceDbChi::save()
 {
     if (choices.empty()) {
         return;
@@ -139,7 +140,7 @@ void TokenizationChoiceDB::save()
     spdlog::info("Saved tokenization choices");
 }
 
-auto TokenizationChoiceDB::serialize() const -> std::string
+auto TokenizationChoiceDbChi::serialize() const -> std::string
 {
     std::string content;
     content += fmt::format("{};version:1.0\n", s_type);
@@ -154,18 +155,18 @@ auto TokenizationChoiceDB::serialize() const -> std::string
     return content;
 }
 
-auto TokenizationChoiceDB::serializeChoice(const TokenizationChoice& choice) -> std::string
+auto TokenizationChoiceDbChi::serializeChoice(const TokenizationChoice& choice) -> std::string
 {
     return fmt::format("{}/", fmt::join(choice, "/"));
 }
 
-auto TokenizationChoiceDB::serializePackPosition(const PackPosition& position) -> std::string
+auto TokenizationChoiceDbChi::serializePackPosition(const PackPosition& position) -> std::string
 {
     const auto& [packName, indicesInPack] = position;
     return fmt::format("{}/{}/", packName, fmt::join(indicesInPack, "/"));
 }
 
-auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> std::vector<TokenizationChoicePosition>
+auto TokenizationChoiceDbChi::deserialize(const std::filesystem::path& dbFile) -> std::vector<TokenizationChoicePosition>
 {
     std::vector<TokenizationChoicePosition> choices;
     if (!std::filesystem::exists(dbFile)) {
@@ -204,7 +205,7 @@ auto TokenizationChoiceDB::deserialize(const std::filesystem::path& dbFile) -> s
     return choices;
 }
 
-auto TokenizationChoiceDB::deserializeChoice(std::string_view sv) -> TokenizationChoice
+auto TokenizationChoiceDbChi::deserializeChoice(std::string_view sv) -> TokenizationChoice
 {
     auto rest = sv;
     TokenizationChoice choice;
@@ -215,7 +216,7 @@ auto TokenizationChoiceDB::deserializeChoice(std::string_view sv) -> Tokenizatio
     return choice;
 }
 
-auto TokenizationChoiceDB::deserializePackPosition(std::string_view sv) -> PackPosition
+auto TokenizationChoiceDbChi::deserializePackPosition(std::string_view sv) -> PackPosition
 {
     auto rest = sv;
     PackPosition packPosition;

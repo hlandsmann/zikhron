@@ -4,7 +4,7 @@
 
 #include <Token.h>
 #include <database/WordDB.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
 
@@ -134,14 +134,14 @@ JieBa::JieBa(std::shared_ptr<database::WordDB> _wordDB)
 {
 }
 
-auto JieBa::cut(const std::string& text) -> std::vector<std::string>
+auto JieBa::cut(const std::string& text) const -> std::vector<std::string>
 {
     std::vector<std::string> splitVector;
     jieba->Cut(text, splitVector, true);
     return splitVector;
 }
 
-auto JieBa::cutAll(const std::string& text) -> std::vector<std::string>
+auto JieBa::cutAll(const std::string& text) const -> std::vector<std::string>
 {
     std::vector<std::string> splitVector;
     jieba->CutAll(text, splitVector);

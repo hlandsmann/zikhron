@@ -38,8 +38,8 @@ class JieBa
 public:
     JieBa(std::shared_ptr<database::WordDB> wordDB);
 
-    [[nodiscard]] auto cut(const std::string& text) -> std::vector<std::string>;
-    [[nodiscard]] auto cutAll(const std::string& text) -> std::vector<std::string>;
+    [[nodiscard]] auto cut(const std::string& text) const -> std::vector<std::string>;
+    [[nodiscard]] auto cutAll(const std::string& text) const -> std::vector<std::string>;
     void debug();
 
 private:

@@ -6,7 +6,7 @@
 #include <annotation/TokenText.h>
 #include <database/Card.h>
 #include <database/CbdFwd.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/index_map.h>

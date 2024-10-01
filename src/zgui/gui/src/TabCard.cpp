@@ -11,6 +11,7 @@
 #include <context/imglog.h>
 #include <database/CardDB.h>
 #include <database/CardPackDB.h>
+#include <database/TokenizationChoiceDbChi.h>
 #include <database/Track.h>
 #include <database/VideoDB.h>
 #include <database/VideoSet.h>
@@ -220,8 +221,12 @@ auto TabCard::annotationTask(sr::CardMeta& cardMeta,
         displayAnnotation.reset();
         if (!tokenizationChoice.empty()) {
             auto tokenizationChoiceDB = dataBase->getTokenizationChoiceDB();
+            auto tokenizationChoiceDbChi = std::dynamic_pointer_cast<database::TokenizationChoiceDbChi>(tokenizationChoiceDB);
+            if (!tokenizationChoiceDbChi) {
+                co_return false;
+            }
             auto card = cardDB->getCards().at(cardMeta.getCardId());
-            tokenizationChoiceDB->insertTokenization(tokenizationChoice, card);
+            tokenizationChoiceDbChi->insertTokenization(tokenizationChoice, card);
             dataBase->reloadCard(card);
 
             signalProceed->set(Proceed::reload);

@@ -4,9 +4,10 @@
 #include <annotation/Ease.h>
 #include <database/CbdFwd.h>
 #include <database/TokenizationChoiceDB.h>
+#include <database/TokenizationChoiceDbChi.h>
 #include <database/VocableProgress.h>
 #include <database/WordDB.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <fmt/format.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -54,7 +55,9 @@ DataBase::~DataBase()
 void DataBase::save()
 {
     wordDB->save();
-    tokenizationChoiceDB->save();
+    if (auto tokenizationChoiceDbChi = std::dynamic_pointer_cast<TokenizationChoiceDbChi>(tokenizationChoiceDB)) {
+        tokenizationChoiceDbChi->save();
+    }
     cardDB->save();
 }
 
@@ -108,8 +111,7 @@ void DataBase::reloadCard(const database::CardPtr& card)
         auto& vocableMeta = (*vocables)[vocableIndex];
         vocableMeta.eraseCardId(cardId);
     }
-    auto tokenizationChoices = tokenizationChoiceDB->getChoicesForCard(card->getCardId());
-    card->setTokenizationChoices(tokenizationChoices);
+    setTokenizationChoiceForCard(card);
     metaCards[cardId].resetMetaData();
     addVocablesOfCardMeta(cardMeta);
     for (auto vocableIndex : cardMeta.VocableIndices()) {
@@ -202,14 +204,7 @@ void DataBase::fillIndexMaps()
 {
     vocId_set allVocableIds;
     const std::map<CardId, database::CardPtr>& cards = cardDB->getCards();
-    for (const auto& [cardId, choices] : tokenizationChoiceDB->getChoicesForCards()) {
-        if (!cards.contains(cardId)) {
-            continue;
-        }
-        const auto& cardPtr = cards.at(cardId);
-
-        cardPtr->setTokenizationChoices(choices);
-    }
+    setTokenizationChoiceForCardAllCards();
     for (const auto& [id, card] : cards) {
         metaCards[id] = CardMeta{id, card, vocables};
     }
@@ -244,6 +239,29 @@ void DataBase::addVocablesOfCardMeta(const CardMeta& cardMeta)
         }
         const auto& word = wordDB->lookupId(vocId);
         vocables->emplace(word->getId(), word->getProgress());
+    }
+}
+
+void DataBase::setTokenizationChoiceForCard(const database::CardPtr& card) const
+{
+    if (auto tokenizationChoiceDbChi = std::dynamic_pointer_cast<TokenizationChoiceDbChi>(tokenizationChoiceDB)) {
+        auto tokenizationChoices = tokenizationChoiceDbChi->getChoicesForCard(card->getCardId());
+        card->setTokenizationChoices(tokenizationChoices);
+    }
+}
+
+void DataBase::setTokenizationChoiceForCardAllCards() const
+{
+    if (auto tokenizationChoiceDbChi = std::dynamic_pointer_cast<TokenizationChoiceDbChi>(tokenizationChoiceDB)) {
+        const std::map<CardId, database::CardPtr>& cards = cardDB->getCards();
+        for (const auto& [cardId, choices] : tokenizationChoiceDbChi->getChoicesForCards()) {
+            if (!cards.contains(cardId)) {
+                continue;
+            }
+            const auto& card = cards.at(cardId);
+
+            card->setTokenizationChoices(choices);
+        }
     }
 }
 

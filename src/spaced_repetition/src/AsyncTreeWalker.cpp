@@ -3,8 +3,14 @@
 #include <DataBase.h>
 #include <ITreeWalker.h>
 #include <annotation/AdaptJiebaDict.h>
+#include <annotation/Tokenizer.h>
+#include <annotation/TokenizerChi.h>
+#include <annotation/TokenizerJpn.h>
+#include <database/TokenizationChoiceDB.h>
+#include <database/TokenizationChoiceDbChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <spdlog/spdlog.h>
 
 #include <boost/di.hpp>
@@ -65,11 +71,19 @@ auto AsyncTreeWalker::getNextCardChoice() -> kocoro::Async<CardMeta>&
 auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
 {
     asyncDataBase->runAsync([]() -> DataBasePtr {
-        auto injector = boost::di::make_injector(
-                boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()));
+        auto injectorChi = boost::di::make_injector(
+                boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+                boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
+                boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
+                boost::di::bind<Language>.to(Language::chinese)
 
+                // boost::di::bind<annotation::Tokenizer>.to([](const auto& injector) -> annotation::Tokenizer{
+                //     return injector.template create<annotation::TokenizerChi>();
+                // })
+
+        );
         try {
-            auto db = injector.create<std::shared_ptr<DataBase>>();
+            auto db = injectorChi.create<std::shared_ptr<DataBase>>();
             return db;
         } catch (const std::exception& e) {
             std::cout << std::stacktrace::current();

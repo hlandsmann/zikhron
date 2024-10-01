@@ -9,10 +9,11 @@
 #include <database/CardPackDB.h>
 #include <database/CbdFwd.h>
 #include <database/TokenizationChoiceDB.h>
+#include <database/TokenizationChoiceDbChi.h>
 #include <database/VideoDB.h>
 #include <database/VocableProgress.h>
 #include <database/WordDB.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -34,6 +35,7 @@ class DataBase
     using CardPackDB = database::CardPackDB;
     using VideoDB = database::VideoDB;
     using TokenizationChoiceDB = database::TokenizationChoiceDB;
+    using TokenizationChoiceDbChi = database::TokenizationChoiceDbChi;
     using CardPtr = database::CardPtr;
 
 public:
@@ -73,6 +75,8 @@ private:
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
     void fillIndexMaps();
     void addVocablesOfCardMeta(const CardMeta& cardMeta);
+    void setTokenizationChoiceForCard(const database::CardPtr& card) const; 
+    void setTokenizationChoiceForCardAllCards() const; 
 
     std::shared_ptr<zikhron::Config> config;
 

@@ -8,6 +8,7 @@
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
+#include <annotation/TokenizerChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
@@ -33,7 +34,7 @@ public:
     [[nodiscard]] auto getCardPackDB() const -> std::shared_ptr<CardPackDB>;
     [[nodiscard]] auto getVideoDB() const -> std::shared_ptr<VideoDB>;
     [[nodiscard]] auto getTrackFromCardId(CardId cardId) const -> Track;
-    [[nodiscard]] auto getTrackFromVideo(const VideoPtr& video) const -> Track;
+    [[nodiscard]] static auto getTrackFromVideo(const VideoPtr& video)  -> Track;
 
     void addCard(const CardPtr& card);
     void eraseCard(CardId cardId);

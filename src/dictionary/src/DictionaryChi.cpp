@@ -1,14 +1,17 @@
-#include <ZH_Dictionary.h>
+#include <DictionaryChi.h>
+#include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/string_split.h>
 
 #include <algorithm>
 #include <array>
+#include <compare>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iterator>
+#include <memory>
 #include <span>
 #include <stdexcept>
 #include <string>
@@ -153,9 +156,10 @@ auto parseLine(const std::string_view& line) -> DictionaryItem_raw
 
 } // namespace
 
-ZH_Dictionary::ZH_Dictionary(const std::filesystem::path& directory)
+namespace dictionary {
+DictionaryChi::DictionaryChi(std::shared_ptr<zikhron::Config> config)
 {
-    const auto& filename = directory / s_fn_dictionary;
+    const auto& filename = config->Dictionary() / s_fn_dictionary;
     std::ifstream dictFile(filename);
     if (!dictFile) {
         throw std::runtime_error("Could not open dictionary file: '" + filename.string() + "'");
@@ -178,11 +182,11 @@ ZH_Dictionary::ZH_Dictionary(const std::filesystem::path& directory)
         position++;
     }
 
-    if (not ranges::is_sorted(simplified, std::ranges::less{}, &ZH_Dictionary::Key::key)) {
-        ranges::sort(simplified, std::ranges::less{}, &ZH_Dictionary::Key::key);
+    if (not ranges::is_sorted(simplified, std::ranges::less{}, &DictionaryChi::Key::key)) {
+        ranges::sort(simplified, std::ranges::less{}, &DictionaryChi::Key::key);
     }
-    if (not ranges::is_sorted(traditional, std::ranges::less{}, &ZH_Dictionary::Key::key)) {
-        ranges::sort(traditional, std::ranges::less{}, &ZH_Dictionary::Key::key);
+    if (not ranges::is_sorted(traditional, std::ranges::less{}, &DictionaryChi::Key::key)) {
+        ranges::sort(traditional, std::ranges::less{}, &DictionaryChi::Key::key);
     }
 
     position_to_simplified.resize(traditional.size());
@@ -197,25 +201,25 @@ ZH_Dictionary::ZH_Dictionary(const std::filesystem::path& directory)
     }
 }
 
-auto ZH_Dictionary::Lower_bound(const std::string& key, const std::span<const Key>& characterSet)
+auto DictionaryChi::Lower_bound(const std::string& key, const std::span<const Key>& characterSet)
         -> std::span<const Key>
 {
     return Lower_bound(std::string_view(key), characterSet);
 }
 
-auto ZH_Dictionary::Lower_bound(const std::string_view& key, const std::span<const Key>& characterSet)
+auto DictionaryChi::Lower_bound(const std::string_view& key, const std::span<const Key>& characterSet)
         -> std::span<const Key>
 {
     return {ranges::lower_bound(characterSet, key, ranges::less{}, &Key::key), characterSet.end()};
 }
 
-auto ZH_Dictionary::Upper_bound(const std::string& key, const std::span<const Key>& characterSet)
+auto DictionaryChi::Upper_bound(const std::string& key, const std::span<const Key>& characterSet)
         -> std::span<const Key>
 {
     return Upper_bound(std::string_view(key), characterSet);
 }
 
-auto ZH_Dictionary::Upper_bound(const std::string_view& key, const std::span<const Key>& characterSet)
+auto DictionaryChi::Upper_bound(const std::string_view& key, const std::span<const Key>& characterSet)
         -> std::span<const Key>
 {
     return {characterSet.begin(),
@@ -224,7 +228,7 @@ auto ZH_Dictionary::Upper_bound(const std::string_view& key, const std::span<con
             })};
 }
 
-auto ZH_Dictionary::characterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType
+auto DictionaryChi::characterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType
 {
     auto sameSpan = [](const std::span<const Key>& a, const std::span<const Key>& b) -> bool {
         return (a.begin() == b.begin()) && (a.end() == b.end());
@@ -238,7 +242,7 @@ auto ZH_Dictionary::characterSetTypeFromKeySpan(const std::span<const Key>& keys
     throw std::invalid_argument("Invalid choice other than traditional / simplified!");
 }
 
-auto ZH_Dictionary::keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>
+auto DictionaryChi::keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>
 {
     switch (characterSet) {
     case CharacterSetType::Simplified:
@@ -250,7 +254,7 @@ auto ZH_Dictionary::keySpanFromCharacterSetType(CharacterSetType characterSet) c
     }
 }
 
-auto ZH_Dictionary::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry
+auto DictionaryChi::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry
 {
     const auto characterSet = characterSetTypeFromKeySpan(keys);
     const auto& pos_to_characterSet = (characterSet == CharacterSetType::Simplified)
@@ -262,7 +266,7 @@ auto ZH_Dictionary::EntryFromPosition(size_t pos, const std::span<const Key>& ke
             .id = static_cast<VocableId>(pos)};
 }
 
-auto ZH_Dictionary::entryFromPosition(size_t pos, CharacterSetType characterSet) const -> Entry
+auto DictionaryChi::entryFromPosition(size_t pos, CharacterSetType characterSet) const -> Entry
 {
     switch (characterSet) {
     case CharacterSetType::Simplified:
@@ -274,13 +278,13 @@ auto ZH_Dictionary::entryFromPosition(size_t pos, CharacterSetType characterSet)
     }
 }
 
-auto ZH_Dictionary::entryVectorFromKey(const std::string& key) const -> std::vector<Entry>
+auto DictionaryChi::entryVectorFromKey(const std::string& key) const -> std::vector<Entry>
 {
     std::vector<Entry> entries;
     // ToDo: it should be possible to support both, simplified and traditional at the same time.
     //   no need to only extract the entryVector from simplified/traditional only. No it supports simplified only
-    const auto span_lower = ZH_Dictionary::Lower_bound(key, Simplified());
-    const auto span_now = ZH_Dictionary::Upper_bound(key, span_lower);
+    const auto span_lower = DictionaryChi::Lower_bound(key, Simplified());
+    const auto span_now = DictionaryChi::Upper_bound(key, span_lower);
     for (const auto& k : span_now) {
         if (key != k.key) {
             continue;
@@ -294,10 +298,10 @@ auto ZH_Dictionary::entryVectorFromKey(const std::string& key) const -> std::vec
     return entries;
 }
 
-auto ZH_Dictionary::contains(const std::string& key) const -> bool
+auto DictionaryChi::contains(const std::string& key) const -> bool
 {
-    const auto span_lower = ZH_Dictionary::Lower_bound(key, Simplified());
-    const auto span_now = ZH_Dictionary::Upper_bound(key, span_lower);
+    const auto span_lower = DictionaryChi::Lower_bound(key, Simplified());
+    const auto span_now = DictionaryChi::Upper_bound(key, span_lower);
     if (span_now.empty()) {
         return false;
     }
@@ -305,10 +309,10 @@ auto ZH_Dictionary::contains(const std::string& key) const -> bool
     return ranges::any_of(span_now, [&](const auto& k) { return k.key == key; });
 }
 
-auto ZH_Dictionary::posFromKey(const std::string& key) const -> unsigned
+auto DictionaryChi::posFromKey(const std::string& key) const -> unsigned
 {
-    const auto span_lower = ZH_Dictionary::Lower_bound(key, Simplified());
-    const auto span_now = ZH_Dictionary::Upper_bound(key, span_lower);
+    const auto span_lower = DictionaryChi::Lower_bound(key, Simplified());
+    const auto span_now = DictionaryChi::Upper_bound(key, span_lower);
     for (const auto& k : span_now) {
         if (key == k.key) {
             return k.pos;
@@ -317,12 +321,12 @@ auto ZH_Dictionary::posFromKey(const std::string& key) const -> unsigned
     return size();
 }
 
-auto ZH_Dictionary::size() const -> unsigned
+auto DictionaryChi::size() const -> unsigned
 {
     return static_cast<unsigned>(simplified.size());
 }
 
-auto ZH_Dictionary::Entry::operator<=>(const Entry& other) const -> std::weak_ordering
+auto DictionaryChi::Entry::operator<=>(const Entry& other) const -> std::weak_ordering
 {
     if (const auto cmp = key <=> other.key; cmp != nullptr) {
         return cmp;
@@ -332,3 +336,4 @@ auto ZH_Dictionary::Entry::operator<=>(const Entry& other) const -> std::weak_or
     }
     return meanings <=> other.meanings;
 }
+} // namespace dictionary

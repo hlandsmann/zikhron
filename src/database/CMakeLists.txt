@@ -17,6 +17,7 @@ target_sources(zikhron_database
         include/database/Subtitle.h
         include/database/SubtitlePicker.h
         include/database/TokenizationChoiceDB.h
+        include/database/TokenizationChoiceDbChi.h
         include/database/Track.h
         include/database/Translation.h
         include/database/Video.h
@@ -33,7 +34,7 @@ target_sources(zikhron_database
         src/ParsingHelpers.h
         src/Subtitle.cpp
         src/SubtitlePicker.cpp
-        src/TokenizationChoiceDB.cpp
+        src/TokenizationChoiceDbChi.cpp
         src/Track.cpp
         src/Translation.cpp
         src/Video.cpp

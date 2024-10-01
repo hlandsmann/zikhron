@@ -4,8 +4,9 @@
 
 #include <annotation/Token.h>
 #include <annotation/Tokenizer.h>
+#include <annotation/TokenizerChi.h>
 #include <database/WordDB.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
@@ -71,7 +72,11 @@ auto Card::getTokenizer() const -> std::shared_ptr<annotation::Tokenizer>
 
 auto Card::getAlternatives() const -> std::vector<annotation::Alternative>
 {
-    return tokenizer->getAlternatives(getText(), tokens);
+    auto tokenizerChi = std::dynamic_pointer_cast<annotation::TokenizerChi>(tokenizer);
+    if (tokenizerChi) {
+        return tokenizerChi->getAlternatives(getText(), tokens);
+    }
+    return {};
 }
 
 auto Card::getPackId() const -> PackId
@@ -91,7 +96,10 @@ auto Card::getIndexInPack() const -> std::size_t
 
 void Card::setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoices)
 {
-    tokens = tokenizer->getSplitForChoices(tokenizationChoices, getText(), tokens);
+    auto tokenizerChi = std::dynamic_pointer_cast<annotation::TokenizerChi>(tokenizer);
+    if (tokenizerChi) {
+        tokens = tokenizerChi->getSplitForChoices(tokenizationChoices, getText(), tokens);
+    }
 }
 
 void Card::setActive(bool _active)

@@ -1,6 +1,6 @@
 #pragma once
 #include <database/Word.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
@@ -21,8 +21,8 @@ enum class NoBreak {
 class Token
 {
 public:
-    using DictionaryEntry = std::optional<std::shared_ptr<ZH_Dictionary::Entry>>;
-    using EntryVector = ZH_Dictionary::EntryVector;
+    using DictionaryEntry = std::optional<std::shared_ptr<dictionary::DictionaryChi::Entry>>;
+    using EntryVector = dictionary::DictionaryChi::EntryVector;
 
     Token() = default;
     Token(utl::StringU8 value);

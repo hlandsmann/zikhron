@@ -7,6 +7,7 @@
 #include <context/Theme.h>
 #include <context/WidgetId.h>
 #include <database/VideoSet.h>
+#include <misc/Language.h>
 #include <widgets/Box.h>
 #include <widgets/detail/Widget.h>
 
@@ -22,11 +23,6 @@ class MainWindow
         video = 1,
         audio = 2,
         configure = 3,
-    };
-
-    enum class Language : unsigned {
-        chinese = 0,
-        japanese = 1,
     };
 
 public:

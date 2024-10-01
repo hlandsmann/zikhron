@@ -4,7 +4,7 @@
 #include <annotation/Token.h>
 #include <annotation/Tokenizer.h>
 #include <database/Card.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>

@@ -1,5 +1,4 @@
 #pragma once
-#include "JpnTokenizer.h"
 #include "detail/JumanppWrapper.h"
 
 #pragma GCC diagnostic push

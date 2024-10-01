@@ -1,8 +1,8 @@
-#include "JpnTokenizer.h"
+#include "TokenizerJpn.h"
 
 #include "detail/JumanppWrapper.h"
 
-#include <dictionary/JpnDictionary.h>
+#include <dictionary/DictionaryJpn.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -11,12 +11,12 @@
 #include <vector>
 
 namespace annotation {
-JpnTokenizer::JpnTokenizer(std::shared_ptr<dictionary::JpnDictionary> _jpnDictionary)
+JpnTokenizer::JpnTokenizer(std::shared_ptr<dictionary::DictionaryJpn> _jpnDictionary)
     : jumanppWrapper{std::make_shared<JumanppWrapper>()}
     , jpnDictionary{std::move(_jpnDictionary)}
 {}
 
-auto JpnTokenizer::tokenize(const std::string& text) const -> std::vector<JpnToken>
+auto JpnTokenizer::split(const std::string& text) const -> std::vector<Token>
 {
     auto jumanppTokens = jumanppWrapper->tokenize(text);
     spdlog::info("{}", text);
@@ -34,7 +34,7 @@ auto JpnTokenizer::tokenize(const std::string& text) const -> std::vector<JpnTok
             spdlog::info("    sf: {}", *entry.definition.front().glossary.begin());
         }
         entry = jpnDictionary->getEntryByReading(jumanppToken.baseform);
-            spdlog::info("    rf: {}", *entry.definition.front().glossary.begin());
+        spdlog::info("    rf: {}", *entry.definition.front().glossary.begin());
     }
 
     return {};

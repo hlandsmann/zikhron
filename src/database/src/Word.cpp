@@ -1,7 +1,7 @@
 #include "Word.h"
 
 #include <VocableProgress.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
@@ -20,7 +20,7 @@ namespace ranges = std::ranges;
 
 namespace database {
 
-Word::Word(std::string_view description, VocableId _vocableId, const std::shared_ptr<ZH_Dictionary>& dictionary)
+Word::Word(std::string_view description, VocableId _vocableId, const std::shared_ptr<dictionary::DictionaryChi>& dictionary)
     : vocableId{_vocableId}
 {
     auto rest = std::string_view{description};
@@ -33,7 +33,7 @@ Word::Word(std::string_view description, VocableId _vocableId, const std::shared
     // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
 
-Word::Word(std::vector<ZH_Dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
+Word::Word(std::vector<dictionary::DictionaryChi::Entry>&& _dictionaryEntries, VocableId _vocableId)
     : vocableId{_vocableId}
     , vocableProgress{std::make_shared<VocableProgress>()}
     , dictionaryEntries{std::move(_dictionaryEntries)}
@@ -86,7 +86,7 @@ auto Word::isConfigureable() const -> bool
             && (dictionaryEntries.front().meanings.size() > 1 || dictionaryEntries.size() > 1));
 }
 
-auto Word::getDictionaryEntries() const -> const std::vector<ZH_Dictionary::Entry>&
+auto Word::getDictionaryEntries() const -> const std::vector<dictionary::DictionaryChi::Entry>&
 {
     return dictionaryEntries;
 }

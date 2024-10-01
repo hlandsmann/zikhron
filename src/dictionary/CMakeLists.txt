@@ -8,10 +8,10 @@ target_include_directories(zikhron_dictionary
 )
 target_sources(zikhron_dictionary
     PRIVATE
-        include/dictionary/JpnDictionary.h
-        include/dictionary/ZH_Dictionary.h
-        src/JpnDictionary.cpp
-        src/ZH_Dictionary.cpp
+        include/dictionary/DictionaryChi.h
+        include/dictionary/DictionaryJpn.h
+        src/DictionaryChi.cpp
+        src/DictionaryJpn.cpp
 )
 set_property(TARGET zikhron_dictionary PROPERTY CXX_STANDARD 23)
 target_link_libraries(zikhron_dictionary

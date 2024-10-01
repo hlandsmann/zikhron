@@ -1,6 +1,6 @@
 #include "Rules.h"
 
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
 
@@ -13,7 +13,7 @@
 namespace ranges = std::ranges;
 
 namespace annotation {
-Rules::Rules(std::shared_ptr<const ZH_Dictionary> _dictionary)
+Rules::Rules(std::shared_ptr<const dictionary::DictionaryChi> _dictionary)
     : dictionary{std::move(_dictionary)}
 {}
 
@@ -78,13 +78,13 @@ auto Rules::longerWord_rule(const utl::StringU8& u8Str) const -> std::string
         return {};
     }
     const auto& word = u8Str.string();
-    const auto span_lower = ZH_Dictionary::Lower_bound(word, dictionary->Simplified());
-    const auto span_now = ZH_Dictionary::Upper_bound(word, span_lower);
+    const auto span_lower = dictionary::DictionaryChi::Lower_bound(word, dictionary->Simplified());
+    // const auto span_now = dictionary::DictionaryChi::Upper_bound(word, span_lower);
     if (span_lower.empty()) {
         return {};
     }
     const auto it = ranges::find_if(span_lower,
-                                    [&](const ZH_Dictionary::Key& key) -> bool {
+                                    [&](const dictionary::DictionaryChi::Key& key) -> bool {
                                         return key.key.starts_with(word);
                                     });
     if (it == span_lower.end()) {

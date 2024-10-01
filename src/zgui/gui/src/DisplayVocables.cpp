@@ -5,7 +5,7 @@
 #include <annotation/TokenText.h>
 #include <database/Word.h>
 #include <database/WordDB.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
 #include <widgets/Grid.h>

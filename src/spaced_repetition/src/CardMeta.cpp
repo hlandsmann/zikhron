@@ -5,7 +5,7 @@
 #include <database/Card.h>
 #include <database/CbdFwd.h>
 #include <database/VocableProgress.h>
-#include <dictionary/ZH_Dictionary.h>
+#include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>

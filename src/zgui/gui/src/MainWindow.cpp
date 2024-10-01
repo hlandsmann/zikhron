@@ -10,6 +10,7 @@
 #include <context/imglog.h>
 #include <database/VideoSet.h>
 #include <imgui.h>
+#include <misc/Language.h>
 #include <utils/format.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
@@ -124,7 +125,7 @@ void MainWindow::setup()
                                                       // context::Image::flag_russia,
                                                       // context::Image::flag_spain,
                                                       // context::Image::flag_uk,
-                                                      });
+                                              });
     }
     {
         auto mainLayer = box->add<widget::Layer>(Align::start);

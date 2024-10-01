@@ -1,10 +1,11 @@
 #pragma once
-#include <utils/StringU8.h>
 #include <annotation/Token.h>
 #include <annotation/Tokenizer.h>
+#include <annotation/TokenizerChi.h>
 #include <context/ColorSet.h>
 #include <context/Fonts.h>
 #include <misc/Identifier.h>
+#include <utils/StringU8.h>
 #include <widgets/Box.h>
 #include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
@@ -36,8 +37,8 @@ private:
     void setupAlternatives(widget::Box& box);
     void drawAlternatives(widget::Box& box);
 
-    void addAlternateStrU8Vector(widget::Box& box, std::vector<utl::StringU8> altStrU8Vec); 
-    void alternateColorsForTokens(std::vector<annotation::Token>& tokens ) const;
+    void addAlternateStrU8Vector(widget::Box& box, std::vector<utl::StringU8> altStrU8Vec);
+    void alternateColorsForTokens(std::vector<annotation::Token>& tokens) const;
 
     context::ColorSetId colorSetId{context::ColorSetId::adjacentAlternate};
     constexpr static widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseBig};
