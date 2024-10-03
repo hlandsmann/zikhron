@@ -1,4 +1,7 @@
+
 #include "DictionaryJpn.h"
+
+#include "Entry.h"
 
 #include <misc/Config.h>
 #include <spdlog/spdlog.h>
@@ -297,20 +300,20 @@ struct Sense
     return sense;
 }
 
-void spreadReadings(std::vector<Entry>& entries, const std::vector<ReadingElement>& readings)
+void spreadReadings(std::vector<DictionaryJpn::InternalEntry>& entries, const std::vector<ReadingElement>& readings)
 {
-    auto insertReading = [](Entry& entry, const ReadingElement& reading) {
+    auto insertReading = [](DictionaryJpn::InternalEntry& entry, const ReadingElement& reading) {
         entry.definition.emplace_back();
         entry.definition.back().reading.insert(reading.key);
     };
     for (const auto& reading : readings) {
         if (reading.restricts.empty()) {
-            for (Entry& entry : entries) {
+            for (DictionaryJpn::InternalEntry& entry : entries) {
                 insertReading(entry, reading);
             }
         } else {
             for (const std::string& restrict : reading.restricts) {
-                const auto entryIt = ranges::find_if(entries, [&restrict](const Entry& entry) {
+                const auto entryIt = ranges::find_if(entries, [&restrict](const DictionaryJpn::InternalEntry& entry) {
                     return entry.kanji.front() == restrict;
                 });
                 if (entryIt == entries.end()) {
@@ -323,22 +326,22 @@ void spreadReadings(std::vector<Entry>& entries, const std::vector<ReadingElemen
     assert(!entries.empty());
 }
 
-void spreadSenses(std::vector<Entry>& entries, const std::vector<Sense>& senses)
+void spreadSenses(std::vector<DictionaryJpn::InternalEntry>& entries, const std::vector<Sense>& senses)
 {
     // auto
-    auto insertSenseToDefinition = [](Definition& def, const Sense& sense) {
+    auto insertSenseToDefinition = [](DictionaryJpn::Definition& def, const Sense& sense) {
         def.glossary.insert(sense.meanings.begin(), sense.meanings.end());
         ranges::transform(sense.partOfSpeech, std::inserter(def.pos, def.pos.begin()), parsePOS);
     };
-    auto insertSense = [&](Entry& entry, const Sense& sense) {
+    auto insertSense = [&](DictionaryJpn::InternalEntry& entry, const Sense& sense) {
         // entry.definition.emplace_back();
         // entry.definition.back().reading.push_back(reading.key);
-        for (Definition& def : entry.definition) {
+        for (DictionaryJpn::Definition& def : entry.definition) {
             insertSenseToDefinition(def, sense);
         }
     };
-    auto insertSenseRestrictedReading = [&](Entry& entry, const Sense& sense) {
-        for (Definition& def : entry.definition) {
+    auto insertSenseRestrictedReading = [&](DictionaryJpn::InternalEntry& entry, const Sense& sense) {
+        for (DictionaryJpn::Definition& def : entry.definition) {
             const auto& readingIt = ranges::find_if(sense.restrictReading, [&def](const std::string& restrictReading) {
                 return restrictReading == *def.reading.begin();
             });
@@ -349,16 +352,16 @@ void spreadSenses(std::vector<Entry>& entries, const std::vector<Sense>& senses)
     };
     for (const Sense& sense : senses) {
         if (sense.restrictKanji.empty() && sense.restrictReading.empty()) {
-            for (Entry& entry : entries) {
+            for (DictionaryJpn::InternalEntry& entry : entries) {
                 insertSense(entry, sense);
                 // spdlog::info("insert sense");
             }
         } else if (sense.restrictKanji.empty()) {
-            for (Entry& entry : entries) {
+            for (DictionaryJpn::InternalEntry& entry : entries) {
                 insertSenseRestrictedReading(entry, sense);
             }
         } else {
-            for (Entry& entry : entries) {
+            for (DictionaryJpn::InternalEntry& entry : entries) {
                 const auto& kanjiIt = ranges::find_if(sense.restrictKanji, [&entry](const std::string& restrictKanji) {
                     return restrictKanji == entry.kanji.front();
                 });
@@ -374,13 +377,13 @@ void spreadSenses(std::vector<Entry>& entries, const std::vector<Sense>& senses)
     }
 }
 
-void joinDefinitions(std::vector<Definition>& definitions)
+void joinDefinitions(std::vector<DictionaryJpn::Definition>& definitions)
 {
     static int joined = 0;
     const int tempJoined = joined;
     for (auto definition = definitions.begin(); definition < definitions.end();) {
         if (const auto found = std::find_if(std::next(definition), definitions.end(),
-                                            [&definition](const Definition& forwardDefinition) {
+                                            [&definition](const DictionaryJpn::Definition& forwardDefinition) {
                                                 return forwardDefinition.pos == definition->pos
                                                        && forwardDefinition.glossary == definition->glossary;
                                             });
@@ -398,12 +401,12 @@ void joinDefinitions(std::vector<Definition>& definitions)
     }
 }
 
-void joinEntries(std::vector<Entry>& entries)
+void joinEntries(std::vector<DictionaryJpn::InternalEntry>& entries)
 {
     static int joined = 0;
     const int tempJoined = joined;
     for (auto entry = entries.begin(); entry < entries.end();) {
-        if (const auto found = std::find_if(std::next(entry), entries.end(), [&entry](const Entry& forwardEntry) {
+        if (const auto found = std::find_if(std::next(entry), entries.end(), [&entry](const DictionaryJpn::InternalEntry& forwardEntry) {
                 return entry->definition == forwardEntry.definition;
             });
             found != entries.end()) {
@@ -423,13 +426,13 @@ void joinEntries(std::vector<Entry>& entries)
     // assert(!entries.empty());
 }
 
-auto parseEntry(const pugi::xml_node& node) -> std::vector<Entry>
+auto parseEntry(const pugi::xml_node& node) -> std::vector<DictionaryJpn::InternalEntry>
 {
     std::vector<KanjiElement> kanjis;
     std::vector<ReadingElement> readings;
     std::vector<Sense> senses;
 
-    std::vector<Entry> entries;
+    std::vector<DictionaryJpn::InternalEntry> entries;
 
     for (const auto& element : node.children()) {
         // spdlog::info("name: {}: {} ", a.name(), a.value());
@@ -444,8 +447,8 @@ auto parseEntry(const pugi::xml_node& node) -> std::vector<Entry>
         }
     }
     if (!kanjis.empty()) {
-        ranges::transform(kanjis, std::back_inserter(entries), [](const KanjiElement& kanji) -> Entry {
-            Entry entry;
+        ranges::transform(kanjis, std::back_inserter(entries), [](const KanjiElement& kanji) -> DictionaryJpn::InternalEntry {
+            DictionaryJpn::InternalEntry entry;
             entry.kanji.push_back(kanji.key);
             return entry;
         });
@@ -456,7 +459,7 @@ auto parseEntry(const pugi::xml_node& node) -> std::vector<Entry>
     spreadReadings(entries, readings);
     spreadSenses(entries, senses);
     // need to join definitions also after
-    for (Entry& entry : entries) {
+    for (DictionaryJpn::InternalEntry& entry : entries) {
         joinDefinitions(entry.definition);
     }
     joinEntries(entries);
@@ -506,7 +509,7 @@ DictionaryJpn::DictionaryJpn(std::shared_ptr<zikhron::Config> config)
     int count = 0;
     for (const pugi::xml_node& entry : jmDict.children("entry")) {
         // if (count > 1000 && count < 1010) {
-        std::vector<Entry> singleNodeEntries = parseEntry(entry);
+        std::vector<InternalEntry> singleNodeEntries = parseEntry(entry);
         entries.insert(entries.end(), singleNodeEntries.begin(), singleNodeEntries.end());
 
         // }
@@ -531,11 +534,44 @@ DictionaryJpn::DictionaryJpn(std::shared_ptr<zikhron::Config> config)
                  count, entries.size(), kanjiToIndex.size(), readingToIndex.size());
 }
 
-auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> Entry
+auto DictionaryJpn::entriesFromKey(const std::string& key) const -> std::vector<Entry>
+{
+    std::vector<Entry> result;
+    auto internalEntryByKanji = getEntryByKanji(key);
+    auto internalEntryByReading = getEntryByReading(key);
+
+    if (!internalEntryByKanji.definition.empty()) {
+        for (const auto& definition : internalEntryByKanji.definition) {
+            std::vector<std::string> glossary;
+            ranges::copy(definition.glossary, std::back_inserter(glossary));
+            result.push_back({.key = key,
+                              .pronounciation = *definition.reading.begin(),
+                              .meanings = glossary});
+        }
+
+    } else {
+        for (const auto& definition : internalEntryByReading.definition) {
+            std::vector<std::string> glossary;
+            ranges::copy(definition.glossary, std::back_inserter(glossary));
+            result.push_back({.key = key,
+                              .pronounciation = *definition.reading.begin(),
+                              .meanings = glossary});
+        }
+    }
+
+    return result;
+}
+
+auto DictionaryJpn::contains(const std::string& key) const -> bool
+{
+    return kanjiToIndex.contains(key) || readingToIndex.contains(key);
+}
+
+auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> InternalEntry
 {
     try {
         const std::vector<std::size_t>& indices = kanjiToIndex.at(key);
-        Entry entry;
+        InternalEntry entry;
         entry.kanji.push_back(key);
         for (const auto index : indices) {
             const auto& definition = entries[index].definition;
@@ -549,11 +585,11 @@ auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> Entry
     }
 }
 
-auto DictionaryJpn::getEntryByReading(const std::string& key) const -> Entry
+auto DictionaryJpn::getEntryByReading(const std::string& key) const -> InternalEntry
 {
     try {
         const std::vector<ReadingPosition>& positions = readingToIndex.at(key);
-        Entry entry;
+        InternalEntry entry;
         std::size_t indexEntryCount = 0;
         std::size_t indexEntryLast = std::numeric_limits<std::size_t>::max();
         for (const auto& [indexEntry, indexDefinition] : positions) {

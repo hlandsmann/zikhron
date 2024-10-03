@@ -1004,6 +1004,9 @@ void TabCard::handleTimeDelAdd(widget::ImageButton& btnTimeDelFront,
 
 void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
 {
+    if (!track.has_value()) {
+        return;
+    }
     auto translation = std::string{};
     if (auto optTranslation = track->getTranslation()) {
         translation = *optTranslation;

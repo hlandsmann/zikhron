@@ -1,11 +1,13 @@
-#include <DictionaryChi.h>
+#include "DictionaryChi.h"
+
+#include "Entry.h"
+
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/string_split.h>
 
 #include <algorithm>
 #include <array>
-#include <compare>
 #include <cstddef>
 #include <filesystem>
 #include <fstream>
@@ -174,8 +176,8 @@ DictionaryChi::DictionaryChi(std::shared_ptr<zikhron::Config> config)
         }
 
         auto dicItem = parseLine(line);
-        traditional.push_back({.key = std::string(dicItem.traditional), .pos = position});
-        simplified.push_back({.key = std::string(dicItem.simplified), .pos = position});
+        traditional.push_back({.key = std::string(dicItem.traditional), .position = position});
+        simplified.push_back({.key = std::string(dicItem.simplified), .position = position});
         pronounciation.push_back(std::move(dicItem.pronounciation));
         meanings.push_back(std::move(dicItem.meanings));
 
@@ -193,12 +195,34 @@ DictionaryChi::DictionaryChi(std::shared_ptr<zikhron::Config> config)
     position_to_traditional.resize(traditional.size());
 
     for (unsigned i = 0; i < simplified.size(); i++) {
-        position_to_simplified[simplified[i].pos] = i;
+        position_to_simplified[simplified[i].position] = i;
     }
 
     for (unsigned i = 0; i < traditional.size(); i++) {
-        position_to_traditional[traditional[i].pos] = i;
+        position_to_traditional[traditional[i].position] = i;
     }
+}
+
+auto DictionaryChi::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry
+{
+    const auto characterSet = characterSetTypeFromKeySpan(keys);
+    const auto& pos_to_characterSet = (characterSet == CharacterSetType::Simplified)
+                                              ? position_to_simplified
+                                              : position_to_traditional;
+    return {.key = keys[pos_to_characterSet[pos]].key,
+            .pronounciation = pronounciation.at(pos),
+            .meanings = meanings.at(pos)};
+}
+
+auto DictionaryChi::contains(const std::string& key) const -> bool
+{
+    const auto span_lower = DictionaryChi::Lower_bound(key, Simplified());
+    const auto span_now = DictionaryChi::Upper_bound(key, span_lower);
+    if (span_now.empty()) {
+        return false;
+    }
+
+    return ranges::any_of(span_now, [&](const auto& k) { return k.key == key; });
 }
 
 auto DictionaryChi::Lower_bound(const std::string& key, const std::span<const Key>& characterSet)
@@ -242,43 +266,7 @@ auto DictionaryChi::characterSetTypeFromKeySpan(const std::span<const Key>& keys
     throw std::invalid_argument("Invalid choice other than traditional / simplified!");
 }
 
-auto DictionaryChi::keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>
-{
-    switch (characterSet) {
-    case CharacterSetType::Simplified:
-        return Simplified();
-    case CharacterSetType::Traditional:
-        return Traditional();
-    default:
-        std::unreachable();
-    }
-}
-
-auto DictionaryChi::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry
-{
-    const auto characterSet = characterSetTypeFromKeySpan(keys);
-    const auto& pos_to_characterSet = (characterSet == CharacterSetType::Simplified)
-                                              ? position_to_simplified
-                                              : position_to_traditional;
-    return {.key = keys[pos_to_characterSet[pos]].key,
-            .pronounciation = pronounciation.at(pos),
-            .meanings = meanings.at(pos),
-            .id = static_cast<VocableId>(pos)};
-}
-
-auto DictionaryChi::entryFromPosition(size_t pos, CharacterSetType characterSet) const -> Entry
-{
-    switch (characterSet) {
-    case CharacterSetType::Simplified:
-        return EntryFromPosition(pos, simplified);
-    case CharacterSetType::Traditional:
-        return EntryFromPosition(pos, traditional);
-    default:
-        std::unreachable();
-    }
-}
-
-auto DictionaryChi::entryVectorFromKey(const std::string& key) const -> std::vector<Entry>
+auto DictionaryChi::entriesFromKey(const std::string& key) const -> std::vector<Entry>
 {
     std::vector<Entry> entries;
     // ToDo: it should be possible to support both, simplified and traditional at the same time.
@@ -290,35 +278,11 @@ auto DictionaryChi::entryVectorFromKey(const std::string& key) const -> std::vec
             continue;
         }
         entries.push_back({.key = key,
-                           .pronounciation = pronounciation.at(k.pos),
-                           .meanings = meanings.at(k.pos),
-                           .id = static_cast<VocableId>(k.pos)});
+                           .pronounciation = pronounciation.at(k.position),
+                           .meanings = meanings.at(k.position)});
     }
 
     return entries;
-}
-
-auto DictionaryChi::contains(const std::string& key) const -> bool
-{
-    const auto span_lower = DictionaryChi::Lower_bound(key, Simplified());
-    const auto span_now = DictionaryChi::Upper_bound(key, span_lower);
-    if (span_now.empty()) {
-        return false;
-    }
-
-    return ranges::any_of(span_now, [&](const auto& k) { return k.key == key; });
-}
-
-auto DictionaryChi::posFromKey(const std::string& key) const -> unsigned
-{
-    const auto span_lower = DictionaryChi::Lower_bound(key, Simplified());
-    const auto span_now = DictionaryChi::Upper_bound(key, span_lower);
-    for (const auto& k : span_now) {
-        if (key == k.key) {
-            return k.pos;
-        }
-    }
-    return size();
 }
 
 auto DictionaryChi::size() const -> unsigned
@@ -326,14 +290,4 @@ auto DictionaryChi::size() const -> unsigned
     return static_cast<unsigned>(simplified.size());
 }
 
-auto DictionaryChi::Entry::operator<=>(const Entry& other) const -> std::weak_ordering
-{
-    if (const auto cmp = key <=> other.key; cmp != nullptr) {
-        return cmp;
-    }
-    if (const auto cmp = pronounciation <=> other.pronounciation; cmp != nullptr) {
-        return cmp;
-    }
-    return meanings <=> other.meanings;
-}
 } // namespace dictionary

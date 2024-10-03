@@ -1,4 +1,5 @@
 #pragma once
+#include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 
@@ -21,8 +22,8 @@ public:
     auto operator=(const Word&) -> Word& = default;
     auto operator=(Word&&) -> Word& = default;
 
-    Word(std::string_view description, VocableId vocableId, const std::shared_ptr<dictionary::DictionaryChi>& dictionary);
-    Word(std::vector<dictionary::DictionaryChi::Entry>&& dictionaryEntries, VocableId vocableId);
+    Word(std::string_view description, VocableId vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary);
+    Word(std::vector<dictionary::Entry>&& dictionaryEntries, VocableId vocableId);
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] auto getId() const -> VocableId;
     [[nodiscard]] auto Key() const -> std::string;
@@ -30,7 +31,7 @@ public:
     [[nodiscard]] auto getDefinitions() const -> const std::vector<Definition>&;
     void setDefinitions(const std::vector<Definition>& definitions);
     [[nodiscard]] auto isConfigureable() const -> bool;
-    [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<dictionary::DictionaryChi::Entry>&;
+    [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<dictionary::Entry>&;
     [[nodiscard]] auto isModified() const -> bool;
 
 private:
@@ -40,7 +41,7 @@ private:
 
     std::string key;
     std::vector<Definition> definitions;
-    std::vector<dictionary::DictionaryChi::Entry> dictionaryEntries;
+    std::vector<dictionary::Entry> dictionaryEntries;
 };
 
 struct Definition

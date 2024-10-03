@@ -2,6 +2,7 @@
 #include "Token.h"
 #include "Tokenizer.h"
 
+#include <database/WordDB.h>
 #include <dictionary/DictionaryJpn.h>
 
 #include <memory>
@@ -18,15 +19,15 @@ struct JpnToken
     std::string reading;
 };
 
-class JpnTokenizer //: public Tokenizer
+class TokenizerJpn : public Tokenizer
 {
 public:
-    JpnTokenizer(std::shared_ptr<dictionary::DictionaryJpn> jpnDictionary);
-    [[nodiscard]] auto split(const std::string& text) const -> std::vector<Token> ;
+    TokenizerJpn(std::shared_ptr<database::WordDB> wordDB);
+    [[nodiscard]] auto split(const std::string& text) const -> std::vector<Token>;
 
 private:
     std::shared_ptr<JumanppWrapper> jumanppWrapper;
-    std::shared_ptr<dictionary::DictionaryJpn> jpnDictionary;
+    std::shared_ptr<const dictionary::DictionaryJpn> jpnDictionary;
 };
 
 } // namespace annotation

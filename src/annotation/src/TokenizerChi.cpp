@@ -61,8 +61,9 @@ namespace annotation {
 TokenizerChi::TokenizerChi(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<database::WordDB> _wordDB)
     : config{std::move(_config)}
     , wordDB{std::move(_wordDB)}
+    , dictionaryChi{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())}
     , jieba{wordDB}
-    , rules{wordDB->getDictionary()}
+    , rules{dictionaryChi}
     , freqDictionary{std::make_shared<FreqDictionary>()}
 {}
 
@@ -286,7 +287,7 @@ auto TokenizerChi::getAlternatives(const std::string& text, const std::vector<To
         -> std::vector<Alternative>
 {
     std::vector<Alternative> alternatives;
-    auto candidates = getCandidates({text}, *wordDB->getDictionary());
+    auto candidates = getCandidates({text}, *dictionaryChi);
     auto firstCandidate = candidates.begin();
     auto firstSplit = currentSplit.begin();
     auto span = std::span(firstCandidate, candidates.end());
@@ -354,7 +355,7 @@ auto TokenizerChi::joinMissed(const std::vector<Token>& splitVector, const std::
         -> std::vector<Token>
 {
     std::vector<Token> result;
-    auto candidates = getCandidates({text}, *wordDB->getDictionary());
+    auto candidates = getCandidates({text}, *dictionaryChi);
     auto first = candidates.begin();
     auto span = std::span(first, candidates.end());
     int fillUp = 0;
@@ -450,7 +451,7 @@ auto TokenizerChi::splitFurther(const std::string& text) const -> std::vector<AT
                        });
         return result;
     }
-    auto candidates = getCandidates(text, *wordDB->getDictionary());
+    auto candidates = getCandidates(text, *dictionaryChi);
 
     return chooseCombination(candidates);
 }

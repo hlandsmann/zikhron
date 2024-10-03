@@ -9,6 +9,7 @@
 #include <annotation/Tokenizer.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
 
@@ -28,6 +29,7 @@ namespace ranges = std::ranges;
 namespace database {
 
 VideoDB::VideoDB(std::shared_ptr<zikhron::Config> config,
+                 Language language,
                  std::shared_ptr<PackIdGenerator> _packIdGenerator,
                  std::shared_ptr<CardIdGenerator> _cardIdGenerator,
                  std::shared_ptr<annotation::Tokenizer> _tokenizer,
@@ -36,7 +38,7 @@ VideoDB::VideoDB(std::shared_ptr<zikhron::Config> config,
     , cardIdGenerator{std::move(_cardIdGenerator)}
     , tokenizer{std::move(_tokenizer)}
     , wordDB{std::move(_wordDB)}
-    , videoSetDir{config->DatabaseDirectory() / s_videoSubdirectory}
+    , videoSetDir{config->DatabaseDirectory() / languageToVideoDirectory.at(language)}
     , videoSets{loadVideoSets(videoSetDir, packIdGenerator, cardIdGenerator, tokenizer, wordDB)}
 {
     for (const auto& videoSet : videoSets) {
@@ -97,7 +99,7 @@ auto VideoDB::getVideos() const -> const std::map<PackId, VideoPtr>&
     return videos;
 }
 
-auto VideoDB::getVideo(const std::string& videoName)const -> VideoPtr
+auto VideoDB::getVideo(const std::string& videoName) const -> VideoPtr
 {
     return nameToVideos.at(videoName);
 }

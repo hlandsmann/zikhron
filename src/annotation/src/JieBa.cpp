@@ -130,7 +130,7 @@ JieBa::JieBa(std::shared_ptr<database::WordDB> _wordDB)
               user_dict_path,
               idf_path,
               stop_word_path)}
-    , rules{wordDB->getDictionary()}
+    , rules{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())}
 {
 }
 

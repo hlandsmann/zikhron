@@ -1,8 +1,12 @@
 #include <annotation/AdaptJiebaDict.h>
 #include <annotation/FreqDictionary.h>
 #include <annotation/JieBa.h>
+#include <annotation/Tokenizer.h>
+#include <annotation/TokenizerChi.h>
 #include <database/CardPack.h>
 #include <database/CardPackDB.h>
+#include <database/TokenizationChoiceDB.h>
+#include <database/TokenizationChoiceDbChi.h>
 #include <database/WordDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -28,12 +32,12 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 
 void adaptJiebaDictionaries(const std::shared_ptr<database::WordDB>& wordDB)
 {
-    auto adaptDictionary = annotation::AdaptJiebaDict{wordDB->getDictionary()};
+    auto adaptDictionary = annotation::AdaptJiebaDict{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())};
     adaptDictionary.load(annotation::AdaptJiebaDict::dict_in_path);
     adaptDictionary.merge();
     adaptDictionary.save(annotation::AdaptJiebaDict::dict_out_path);
     adaptDictionary.saveUserDict();
-    auto adaptIdf = annotation::AdaptJiebaDict{wordDB->getDictionary()};
+    auto adaptIdf = annotation::AdaptJiebaDict{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())};
     adaptIdf.load(annotation::AdaptJiebaDict::idf_in_path);
     adaptIdf.merge();
     adaptIdf.save(annotation::AdaptJiebaDict::idf_out_path);
@@ -43,6 +47,7 @@ auto main() -> int
 {
     auto injector = boost::di::make_injector(
             boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+            boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
             boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>());
 
     auto db = injector.create<std::shared_ptr<sr::DataBase>>();

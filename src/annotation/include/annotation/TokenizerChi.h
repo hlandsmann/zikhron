@@ -87,6 +87,7 @@ private:
 
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<database::WordDB> wordDB;
+    std::shared_ptr<const dictionary::DictionaryChi> dictionaryChi;
     JieBa jieba;
     Rules rules;
     std::shared_ptr<FreqDictionary> freqDictionary;

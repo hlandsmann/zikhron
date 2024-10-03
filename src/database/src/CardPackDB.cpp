@@ -8,6 +8,7 @@
 #include <database/WordDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <utils/Memory.h>
 #include <utils/format.h>
 
@@ -26,6 +27,7 @@ namespace ranges = std::ranges;
 
 namespace database {
 CardPackDB::CardPackDB(std::shared_ptr<zikhron::Config> config,
+                       Language language,
                        std::shared_ptr<CardIdGenerator> _cardIdGenerator,
                        std::shared_ptr<PackIdGenerator> _packIdGenerator,
                        std::shared_ptr<database::WordDB> _wordDB,
@@ -34,7 +36,7 @@ CardPackDB::CardPackDB(std::shared_ptr<zikhron::Config> config,
     , packIdGenerator{std::move(_packIdGenerator)}
     , wordDB{std::move(_wordDB)}
     , tokenizer{std::move(_tokenizer)}
-    , idToCardPacks{loadCardPacks(config->DatabaseDirectory() / s_packSubdirectory,
+    , idToCardPacks{loadCardPacks(config->DatabaseDirectory() / languageToPackDirectory.at(language),
                                   cardIdGenerator,
                                   packIdGenerator,
                                   wordDB,

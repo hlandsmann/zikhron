@@ -34,10 +34,14 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
     gui = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/IBM_Plex_Sans/IBMPlexSans-Regular.ttf",
                                        18, nullptr,
                                        io.Fonts->GetGlyphRangesDefault());
-    chineseBig = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 50, nullptr,
-                                              io.Fonts->GetGlyphRangesChineseFull());
-    chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
-                                                ChineseFull());
+    // chineseBig = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 50, nullptr,
+    //                                           io.Fonts->GetGlyphRangesChineseFull());
+    // chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
+    //                                             ChineseFull());
+    chineseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/fonts/NotoSansCJKjp-VF.ttf", 50, nullptr,
+                                              io.Fonts->GetGlyphRangesJapanese());
+    chineseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/fonts/NotoSansCJKjp-VF.ttf", 25, nullptr,
+                                              io.Fonts->GetGlyphRangesJapanese());
 }
 
 auto Fonts::dropFont(FontType fontType) const -> FontDrop

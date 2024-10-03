@@ -8,6 +8,7 @@
 #include <annotation/Tokenizer.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 
 #include <filesystem>
 #include <generator>
@@ -25,6 +26,7 @@ class VideoDB
 
 public:
     VideoDB(std::shared_ptr<zikhron::Config> config,
+            Language language,
             std::shared_ptr<PackIdGenerator> packIdGenerator,
             std::shared_ptr<CardIdGenerator> cardIdGenerator,
             std::shared_ptr<annotation::Tokenizer> tokenizer,
@@ -45,6 +47,8 @@ private:
                                             std::shared_ptr<WordDB> wordDB)
             -> std::vector<VideoSetPtr>;
     void addVideosFromVideoSet(const VideoSetPtr& videoSet);
+    std::map<Language, std::filesystem::path> languageToVideoDirectory = {{Language::chinese, "chi_video"},
+                                                                          {Language::japanese, "jpn_video"}};
 
     std::shared_ptr<PackIdGenerator> packIdGenerator;
     std::shared_ptr<CardIdGenerator> cardIdGenerator;

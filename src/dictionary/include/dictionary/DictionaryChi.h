@@ -1,10 +1,11 @@
 #pragma once
+#include "Dictionary.h"
+#include "Entry.h"
+
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
-#include <compare>
 #include <cstddef>
-#include <filesystem>
 #include <memory>
 #include <span>
 #include <string>
@@ -12,22 +13,25 @@
 #include <vector>
 
 namespace dictionary {
-class DictionaryChi
+class DictionaryChi : public Dictionary
 {
     static constexpr std::string_view s_fn_dictionary = "cedict_1_0_ts_utf-8_mdbg.u8";
 
 public:
+    DictionaryChi(std::shared_ptr<zikhron::Config> config);
+
+    [[nodiscard]] auto entriesFromKey(const std::string& key) const -> std::vector<Entry> override;
+    [[nodiscard]] auto contains(const std::string& key) const -> bool override;
+
     struct Key
     {
         std::string key;
-        unsigned pos;
+        unsigned position;
     };
     enum class CharacterSetType {
         Simplified,
         Traditional
     };
-
-    DictionaryChi(std::shared_ptr<zikhron::Config> config);
     static auto Lower_bound(const std::string& key, const std::span<const Key>& characterSet)
             -> std::span<const Key>;
     static auto Lower_bound(const std::string_view& key, const std::span<const Key>& characterSet)
@@ -41,24 +45,7 @@ public:
 
     [[nodiscard]] auto Traditional() const -> std::span<const Key> { return traditional; }
 
-    struct Entry
-    {
-        std::string key;
-        std::string pronounciation;
-        std::vector<std::string> meanings;
-        VocableId id;
-        auto operator<=>(const Entry&) const -> std::weak_ordering;
-        auto operator==(const Entry&) const -> bool = default;
-    };
-
-    using EntryVector = std::vector<Entry>;
-
     [[nodiscard]] auto characterSetTypeFromKeySpan(const std::span<const Key>& keys) const -> CharacterSetType;
-    [[nodiscard]] auto keySpanFromCharacterSetType(CharacterSetType characterSet) const -> std::span<const Key>;
-    [[nodiscard]] auto entryFromPosition(size_t pos, CharacterSetType characterSet = CharacterSetType::Simplified) const -> Entry;
-    [[nodiscard]] auto entryVectorFromKey(const std::string& key) const -> std::vector<Entry>;
-    [[nodiscard]] auto contains(const std::string& key) const -> bool;
-    [[nodiscard]] auto posFromKey(const std::string& key) const -> unsigned;
     [[nodiscard]] auto size() const -> unsigned;
 
 private:

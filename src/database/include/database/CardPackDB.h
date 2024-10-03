@@ -6,6 +6,7 @@
 #include <database/WordDB.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 
 #include <filesystem>
 #include <generator>
@@ -17,11 +18,11 @@ namespace database {
 
 class CardPackDB
 {
-    static constexpr auto s_packSubdirectory = "pack";
     static constexpr auto s_spackExtension = ".spkg";
 
 public:
     CardPackDB(std::shared_ptr<zikhron::Config> config,
+               Language language,
                std::shared_ptr<CardIdGenerator> cardIdGenerator,
                std::shared_ptr<PackIdGenerator> packIdGenerator,
                std::shared_ptr<WordDB> wordDB,
@@ -44,6 +45,8 @@ private:
             -> std::map<std::string, CardPackPtr>;
     [[nodiscard]] auto traverseCards() const -> std::generator<CardAudio>;
     void setupCards();
+    std::map<Language, std::filesystem::path> languageToPackDirectory = {{Language::chinese, "chi_pack"},
+                                                                         {Language::japanese, "jpn_pack"}};
     std::shared_ptr<CardIdGenerator> cardIdGenerator;
     std::shared_ptr<PackIdGenerator> packIdGenerator;
     std::shared_ptr<WordDB> wordDB;

@@ -1,8 +1,10 @@
 #pragma once
+#include "Dictionary.h"
+#include "Entry.h"
+
 #include <misc/Config.h>
 
 #include <cstddef>
-#include <filesystem>
 #include <map>
 #include <memory>
 #include <set>
@@ -10,43 +12,33 @@
 #include <vector>
 
 namespace dictionary {
-enum class PartOfSpeech {
-    undefined,
-    adjective,
-    adverb,
-    conjunction,
-    interjection,
-    noun,
-    pronoun,
-    prefix,
-    particle,
-    suffix,
-    verb,
-};
 
-struct Definition
-{
-    std::set<std::string> reading;
-    std::set<std::string> glossary;
-    std::set<PartOfSpeech> pos;
-    auto operator==(const Definition&) const -> bool = default;
-};
-
-struct Entry
-{
-    std::vector<std::string> kanji;
-    std::vector<Definition> definition;
-};
-
-class DictionaryJpn
+class DictionaryJpn : public Dictionary
 {
 public:
     DictionaryJpn(std::shared_ptr<zikhron::Config> config);
-    [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> Entry;
-    [[nodiscard]] auto getEntryByReading(const std::string& key) const -> Entry;
+    [[nodiscard]] auto entriesFromKey(const std::string& key) const -> std::vector<Entry> override;
+    [[nodiscard]] auto contains(const std::string& key) const -> bool override;
+
+    struct Definition
+    {
+        std::set<std::string> reading;
+        std::set<std::string> glossary;
+        std::set<PartOfSpeech> pos;
+        auto operator==(const Definition&) const -> bool = default;
+    };
+
+    struct InternalEntry
+    {
+        std::vector<std::string> kanji;
+        std::vector<Definition> definition;
+    };
+
+    [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> InternalEntry;
+    [[nodiscard]] auto getEntryByReading(const std::string& key) const -> InternalEntry;
 
 private:
-    std::vector<Entry> entries;
+    std::vector<InternalEntry> entries;
     std::map<std::string, std::vector<std::size_t>> kanjiToIndex;
 
     struct ReadingPosition

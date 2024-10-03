@@ -24,11 +24,6 @@ Token::Token(utl::StringU8 _value, std::shared_ptr<database::Word> _word)
     , word{std::move(_word)}
 {}
 
-Token::Token(utl::StringU8 _value, EntryVector _dictionaryEntries)
-    : value{std::move(_value)}
-    , dictionaryEntries{std::move(_dictionaryEntries)}
-{}
-
 auto Token::getWord() const -> std::shared_ptr<database::Word>
 {
     return word;
@@ -60,11 +55,6 @@ auto Token::getVocableId() const -> std::optional<VocableId>
         return word->getId();
     }
     return {};
-}
-
-auto Token::getDictionaryEntries() const -> const EntryVector&
-{
-    return dictionaryEntries;
 }
 
 void Token::resetWord()

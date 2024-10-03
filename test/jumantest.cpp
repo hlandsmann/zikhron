@@ -1,6 +1,6 @@
 
 #include <annotation/TokenizerJpn.h>
-#include <dictionary/JpnDictionary.h>
+#include <dictionary/DictionaryJpn.h>
 #include <misc/Config.h>
 
 #include <filesystem>
@@ -93,9 +93,9 @@ auto main() -> int
     // std::cout << text3 << "\n";
     // std::cout << "res: " << fmt->result();
     //
-    auto jpnDictionary = std::make_shared<dictionary::JpnDictionary>(get_zikhron_cfg());
-    auto jpnTokenizer = std::make_unique<annotation::JpnTokenizer>(jpnDictionary);
-    jpnTokenizer->split(text1);
+    // auto jpnDictionary = std::make_shared<dictionary::DictionaryJpn>(get_zikhron_cfg());
+    // auto jpnTokenizer = std::make_unique<annotation::TokenizerJpn>(jpnDictionary);
+    // jpnTokenizer->split(text1);
     // auto jumanxx = jumanpp::Jumanpp{};
     // jumanxx.tokenize(text1);
 }
