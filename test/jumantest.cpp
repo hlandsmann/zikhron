@@ -1,6 +1,7 @@
-
+#include <annotation/Mecab.h>
 #include <annotation/TokenizerJpn.h>
 #include <dictionary/DictionaryJpn.h>
+#include <mecab/mecab.h>
 #include <misc/Config.h>
 
 #include <filesystem>
@@ -26,11 +27,19 @@ static auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     return zikhron_cfg;
 }
 
-auto main() -> int
+auto main(int argc, char** argv) -> int
 {
     std::string text1 = "投降してほしけりゃてめえをあと百万体呼んで来るんだな";
     std::string text2 = "だから全然 心洗われるように 聞こえんぞ 千斗いすずよ";
-    std::string text3 = "だから全然心洗われるように聞こえんぞ千斗いすずよ";
+    std::string text3 = "彼はトムさんです。";
+    std::string text4 = "私は日本語を勉強しています。";
+    // auto tagger = std::unique_ptr<MeCab::Tagger>(MeCab::createTagger("--dicdir=/home/harmen/zikhron/dictionary/unidic-novel"));
+    // // auto tagger = std::unique_ptr<MeCab::Tagger>(MeCab::createTagger("--dicdir=/usr/lib64/mecab/dic/unidic/"));
+    // std::string out = tagger->parse(text4.c_str());
+    // spdlog::info(out);
+    // return mecab_do(argc, argv);
+    // auto mecab = std::make_unique<annotation::Mecab>();
+    // mecab->split(text3);
 
     // jumandic::JumanppConf conf;
     // jumanpp::core::analysis::rnn::RnnInferenceConfig rnnConfig{};
@@ -93,9 +102,10 @@ auto main() -> int
     // std::cout << text3 << "\n";
     // std::cout << "res: " << fmt->result();
     //
-    // auto jpnDictionary = std::make_shared<dictionary::DictionaryJpn>(get_zikhron_cfg());
-    // auto jpnTokenizer = std::make_unique<annotation::TokenizerJpn>(jpnDictionary);
-    // jpnTokenizer->split(text1);
+    auto jpnDictionary = std::make_shared<dictionary::DictionaryJpn>(get_zikhron_cfg());
+    auto wordDB = std::make_shared<database::WordDB>(get_zikhron_cfg(), Language::japanese);
+    auto jpnTokenizer = std::make_unique<annotation::TokenizerJpn>(wordDB);
+    jpnTokenizer->split(text1);
     // auto jumanxx = jumanpp::Jumanpp{};
     // jumanxx.tokenize(text1);
 }

@@ -72,6 +72,7 @@ private:
     double duration{};
     double timePos{};
 
+    bool stopped{true};
     bool seeking{false};
     std::optional<double> secondarySeekPosition;
 

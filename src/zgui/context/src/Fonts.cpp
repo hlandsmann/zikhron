@@ -38,7 +38,7 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
     //                                           io.Fonts->GetGlyphRangesChineseFull());
     // chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
     //                                             ChineseFull());
-    chineseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/fonts/NotoSansCJKjp-VF.ttf", 50, nullptr,
+    chineseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/fonts/NotoSerifCJK.ttc", 60, nullptr,
                                               io.Fonts->GetGlyphRangesJapanese());
     chineseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/fonts/NotoSansCJKjp-VF.ttf", 25, nullptr,
                                               io.Fonts->GetGlyphRangesJapanese());

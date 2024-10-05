@@ -63,6 +63,7 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     mpv_observe_property(mpv.get(), 0, "duration", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "time-pos", MPV_FORMAT_DOUBLE);
     mpv_observe_property(mpv.get(), 0, "pause", MPV_FORMAT_FLAG);
+    mpv_observe_property(mpv.get(), 0, "end-file", MPV_FORMAT_FLAG);
 }
 
 auto MpvWrapper::handleEventTask() -> kocoro::Task<>
@@ -87,6 +88,16 @@ auto MpvWrapper::handleEventTask() -> kocoro::Task<>
 void MpvWrapper::handle_mpv_event(mpv_event* event)
 {
     switch (event->event_id) {
+    case MPV_EVENT_END_FILE: {
+        auto* prop = reinterpret_cast<mpv_event_end_file*>(event->data);
+        if (prop->reason == mpv_end_file_reason::MPV_END_FILE_REASON_EOF) {
+            stopped = true;
+            timePos = duration;
+            signalTimePos->set(timePos);
+        }
+
+        break;
+    }
     case MPV_EVENT_PROPERTY_CHANGE: {
         auto* prop = reinterpret_cast<mpv_event_property*>(event->data);
         if (std::string{prop->name} == "time-pos") {
@@ -108,7 +119,7 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
         } else if (std::string{prop->name} == "pause") {
             if (prop->format == MPV_FORMAT_FLAG) {
                 paused = static_cast<bool>(*reinterpret_cast<int*>(prop->data));
-                // spdlog::info("paused: {}", paused);
+                spdlog::info("paused: {}", paused);
             }
         }
         break;
@@ -122,7 +133,7 @@ void MpvWrapper::openFile(const std::filesystem::path& mediaFile_in)
 {
     duration = 0.;
     timePos = 0.;
-    if (mediaFile == mediaFile_in.string()) {
+    if (mediaFile == mediaFile_in.string() && !stopped) {
         return;
     }
     mediaFile = mediaFile_in.string();
@@ -131,6 +142,7 @@ void MpvWrapper::openFile(const std::filesystem::path& mediaFile_in)
         closeFile();
         return;
     }
+    stopped = false;
     const char* cmd[] = {"loadfile", mediaFile.c_str(), nullptr};
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
     spdlog::info("mpv opening file {}", mediaFile.c_str());
@@ -152,6 +164,9 @@ void MpvWrapper::play(double until)
 {
     if (until == 0) {
         until = duration - 0.1F;
+    }
+    if (stopped) {
+        openFile(mediaFile);
     }
     stopAtPosition = until;
     mpv_flag_paused = 0;

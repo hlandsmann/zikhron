@@ -331,6 +331,9 @@ void spreadSenses(std::vector<DictionaryJpn::InternalEntry>& entries, const std:
     // auto
     auto insertSenseToDefinition = [](DictionaryJpn::Definition& def, const Sense& sense) {
         def.glossary.insert(sense.meanings.begin(), sense.meanings.end());
+        if (!sense.info.empty()) {
+            def.info.insert(sense.info);
+        }
         ranges::transform(sense.partOfSpeech, std::inserter(def.pos, def.pos.begin()), parsePOS);
     };
     auto insertSense = [&](DictionaryJpn::InternalEntry& entry, const Sense& sense) {
@@ -389,6 +392,7 @@ void joinDefinitions(std::vector<DictionaryJpn::Definition>& definitions)
                                             });
             found != definitions.end()) {
             found->reading.insert(definition->reading.begin(), definition->reading.end());
+            found->info.insert(definition->info.begin(), definition->info.end());
             definition = definitions.erase(definition);
             joined++;
             // spdlog::info("erase");
@@ -538,7 +542,6 @@ auto DictionaryJpn::entriesFromKey(const std::string& key) const -> std::vector<
 {
     std::vector<Entry> result;
     auto internalEntryByKanji = getEntryByKanji(key);
-    auto internalEntryByReading = getEntryByReading(key);
 
     if (!internalEntryByKanji.definition.empty()) {
         for (const auto& definition : internalEntryByKanji.definition) {
@@ -550,6 +553,7 @@ auto DictionaryJpn::entriesFromKey(const std::string& key) const -> std::vector<
         }
 
     } else {
+        auto internalEntryByReading = getEntryByReading(key);
         for (const auto& definition : internalEntryByReading.definition) {
             std::vector<std::string> glossary;
             ranges::copy(definition.glossary, std::back_inserter(glossary));
@@ -580,7 +584,7 @@ auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> InternalEnt
         return entry;
 
     } catch (...) {
-        // spdlog::error("Failed to get dictionary entry for key: {}", key);
+        spdlog::error("Failed to get dictionary entry for kanji: {}", key);
         return {};
     }
 }
@@ -609,7 +613,7 @@ auto DictionaryJpn::getEntryByReading(const std::string& key) const -> InternalE
         }
         return entry;
     } catch (...) {
-        spdlog::error("Failed to get dictionary entry for key: {}", key);
+        spdlog::error("Failed to get dictionary entry for Reading: {}", key);
         return {};
     }
 }

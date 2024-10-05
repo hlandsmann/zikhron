@@ -46,19 +46,19 @@ AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> sy
 {
     synchronousExecutor->startCoro(taskFullfillPromises());
     // asyncDataBase->runAsync([]() -> DataBasePtr {
-    auto injectorChi = boost::di::make_injector(
-            boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
-            boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
-            boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
-            boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryChi>(),
-            boost::di::bind<Language>.to(Language::chinese));
-    auto injectorJpn = boost::di::make_injector(
-            boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
-            boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),
-            boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
-            boost::di::bind<Language>.to(Language::japanese));
-    auto db = injectorJpn.create<std::shared_ptr<DataBase>>();
-    asyncDataBase->runAsync([=]() -> DataBasePtr { return db; });
+    // auto injectorChi = boost::di::make_injector(
+    //         boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+    //         boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
+    //         boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
+    //         boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryChi>(),
+    //         boost::di::bind<Language>.to(Language::chinese));
+    // auto injectorJpn = boost::di::make_injector(
+    //         boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+    //         boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),
+    //         boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
+    //         boost::di::bind<Language>.to(Language::japanese));
+    // auto db = injectorJpn.create<std::shared_ptr<DataBase>>();
+    // asyncDataBase->runAsync([=]() -> DataBasePtr { return db; });
 }
 
 auto AsyncTreeWalker::getDataBase() const -> kocoro::Async<DataBasePtr>&
@@ -87,27 +87,27 @@ auto AsyncTreeWalker::getNextCardChoice() -> kocoro::Async<CardMeta>&
 
 auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
 {
-    // asyncDataBase->runAsync([]() -> DataBasePtr {
-    // auto injectorChi = boost::di::make_injector(
-    //         boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
-    //         boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
-    //         boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
-    //         boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryChi>(),
-    //         boost::di::bind<Language>.to(Language::chinese));
-    // auto injectorJpn = boost::di::make_injector(
-    //         boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
-    //         boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),
-    //         boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
-    //         boost::di::bind<Language>.to(Language::japanese));
-    // try {
-    // auto db = injectorJpn.create<std::shared_ptr<DataBase>>();
-    //         return db;
-    //     } catch (const std::exception& e) {
-    //         std::cout << std::stacktrace::current();
-    //         spdlog::critical("async, exception: {}", e.what());
-    //         std::terminate();
-    //     }
-    // });
+    asyncDataBase->runAsync([]() -> DataBasePtr {
+    auto injectorChi = boost::di::make_injector(
+            boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+            boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
+            boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
+            boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryChi>(),
+            boost::di::bind<Language>.to(Language::chinese));
+    auto injectorJpn = boost::di::make_injector(
+            boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+            boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),
+            boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
+            boost::di::bind<Language>.to(Language::japanese));
+    try {
+    auto db = injectorJpn.create<std::shared_ptr<DataBase>>();
+            return db;
+        } catch (const std::exception& e) {
+            std::cout << std::stacktrace::current();
+            spdlog::critical("async, exception: {}", e.what());
+            std::terminate();
+        }
+    });
     DataBasePtr dbPtr = co_await *asyncDataBase;
     asyncTreewalker->runAsync([=]() -> TreeWalkerPtr {
         return ITreeWalker::createTreeWalker(std::move(dbPtr));

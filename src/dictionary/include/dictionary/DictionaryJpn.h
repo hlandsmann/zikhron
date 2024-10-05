@@ -24,6 +24,7 @@ public:
     {
         std::set<std::string> reading;
         std::set<std::string> glossary;
+        std::set<std::string> info;
         std::set<PartOfSpeech> pos;
         auto operator==(const Definition&) const -> bool = default;
     };

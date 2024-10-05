@@ -1,6 +1,7 @@
 #pragma once
 #include "Token.h"
 #include "Tokenizer.h"
+#include "Mecab.h"
 
 #include <database/WordDB.h>
 #include <dictionary/DictionaryJpn.h>
@@ -23,10 +24,11 @@ class TokenizerJpn : public Tokenizer
 {
 public:
     TokenizerJpn(std::shared_ptr<database::WordDB> wordDB);
-    [[nodiscard]] auto split(const std::string& text) const -> std::vector<Token>;
+    [[nodiscard]] auto split(const std::string& text) const -> std::vector<Token> override;
 
 private:
-    std::shared_ptr<JumanppWrapper> jumanppWrapper;
+    std::shared_ptr<Mecab> mecab;
+    std::shared_ptr<database::WordDB> wordDB;
     std::shared_ptr<const dictionary::DictionaryJpn> jpnDictionary;
 };
 

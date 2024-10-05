@@ -13,6 +13,7 @@ target_sources(zikhron_annotation
         include/annotation/Ease.h
         include/annotation/FreqDictionary.h
         include/annotation/JieBa.h
+        include/annotation/Mecab.h
         include/annotation/Rules.h
         include/annotation/Token.h
         include/annotation/TokenText.h
@@ -27,6 +28,9 @@ target_sources(zikhron_annotation
         src/Jumanpp.cpp
         src/Jumanpp.h
         src/JumanppWrapper.cpp
+        src/Mecab.cpp
+        src/MecabWrapper.cpp
+        src/MecabWrapper.h
         src/Rules.cpp
         src/Token.cpp
         src/TokenText.cpp
@@ -41,6 +45,7 @@ target_link_libraries(zikhron_annotation
     PRIVATE
         Microsoft.GSL::GSL
         cppjieba::cppjieba
+        mecab::mecab
         ctre::ctre
         jpp::jumandic
         magic_enum::magic_enum

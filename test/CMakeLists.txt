@@ -38,6 +38,7 @@ target_link_libraries(jumantest
         magic_enum::magic_enum
         jpp::jumandic
         pugixml::pugixml
+        mecab::mecab
 )
 set_property(TARGET jumantest PROPERTY CXX_STANDARD 23)
 

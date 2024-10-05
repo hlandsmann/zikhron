@@ -1,0 +1,82 @@
+
+add_library(mecab)
+add_library(mecab::mecab ALIAS mecab)
+
+target_sources(mecab
+    PRIVATE
+        include/mecab/char_property.h
+        include/mecab/common.h
+        include/mecab/connector.h
+        include/mecab/context_id.h
+        include/mecab/darts.h
+        include/mecab/dictionary.h
+        include/mecab/dictionary_rewriter.h
+        include/mecab/feature_index.h
+        include/mecab/freelist.h
+        include/mecab/iconv_utils.h
+        include/mecab/lbfgs.h
+        include/mecab/learner_node.h
+        include/mecab/learner_tagger.h
+        include/mecab/mecab.h
+        include/mecab/mmap.h
+        include/mecab/nbest_generator.h
+        include/mecab/param.h
+        include/mecab/scoped_ptr.h
+        include/mecab/stream_wrapper.h
+        include/mecab/string_buffer.h
+        include/mecab/thread.h
+        include/mecab/tokenizer.h
+        include/mecab/ucs.h
+        include/mecab/ucstable.h
+        include/mecab/utils.h
+        include/mecab/viterbi.h
+        include/mecab/winmain.h
+        include/mecab/writer.h
+        src/char_property.cpp
+        src/connector.cpp
+        src/context_id.cpp
+        src/dictionary.cpp
+        src/dictionary_compiler.cpp
+        src/dictionary_generator.cpp
+        src/dictionary_rewriter.cpp
+        src/eval.cpp
+        src/feature_index.cpp
+        src/iconv_utils.cpp
+        src/lbfgs.cpp
+        src/learner.cpp
+        src/learner_tagger.cpp
+        src/libmecab.cpp
+        src/mecab-cost-train.cpp
+        src/mecab-dict-gen.cpp
+        src/mecab-dict-index.cpp
+        src/mecab-system-eval.cpp
+        src/mecab-test-gen.cpp
+        src/nbest_generator.cpp
+        src/param.cpp
+        src/string_buffer.cpp
+        src/tagger.cpp
+        src/tokenizer.cpp
+        src/utils.cpp
+        src/viterbi.cpp
+        src/writer.cpp
+)
+
+target_include_directories(mecab
+    PRIVATE
+        include/mecab
+    INTERFACE
+        include
+)
+
+target_link_libraries(mecab
+    PRIVATE
+        spdlog::spdlog
+)
+target_compile_definitions(mecab
+    PRIVATE
+        DIC_VERSION=102
+        PACKAGE="mecab"
+        VERSION="0.996"
+        MECAB_DEFAULT_RC="/etc/mecabrc"
+)
+set_property(TARGET mecab PROPERTY CXX_STANDARD 23)
