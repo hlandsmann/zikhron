@@ -9,10 +9,12 @@ target_include_directories(zikhron_dictionary
 target_sources(zikhron_dictionary
     PRIVATE
         include/dictionary/Entry.h
+        include/dictionary/Kana.h
         include/dictionary/Dictionary.h
         include/dictionary/DictionaryChi.h
         include/dictionary/DictionaryJpn.h
         src/Entry.cpp
+        src/Kana.cpp
         src/DictionaryChi.cpp
         src/DictionaryJpn.cpp
 )
