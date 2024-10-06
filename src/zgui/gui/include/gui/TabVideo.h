@@ -5,6 +5,7 @@
 
 #include <context/WidgetId.h>
 #include <database/VideoSet.h>
+#include <misc/Language.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/DataBase.h>
 #include <widgets/Layer.h>
@@ -28,6 +29,7 @@ public:
     virtual ~TabVideo() = default;
 
     void setUp(widget::Layer& layer);
+    void setLanguage(Language language);
     void displayOnLayer(widget::Layer& layer);
 
     template<class... Args>
@@ -44,6 +46,7 @@ private:
     using GridPtr = std::shared_ptr<widget::Grid>;
     std::shared_ptr<kocoro::PersistentSignal<GridPtr>> signalGroupGrid;
     std::shared_ptr<kocoro::VolatileSignal<std::filesystem::path>> signalVideoFileOpen;
+    std::shared_ptr<kocoro::PersistentSignal<Language>> signalLanguage;
 
     constexpr static widget::BoxCfg gridCfg = {.padding = {},
                                                .paddingHorizontal = {},

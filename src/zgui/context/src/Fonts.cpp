@@ -34,14 +34,14 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
     gui = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/IBM_Plex_Sans/IBMPlexSans-Regular.ttf",
                                        18, nullptr,
                                        io.Fonts->GetGlyphRangesDefault());
-    // chineseBig = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 50, nullptr,
-    //                                           io.Fonts->GetGlyphRangesChineseFull());
-    // chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
-    //                                             ChineseFull());
-    chineseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/fonts/NotoSerifCJK.ttc", 60, nullptr,
-                                              io.Fonts->GetGlyphRangesJapanese());
-    chineseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/fonts/NotoSansCJKjp-VF.ttf", 25, nullptr,
-                                              io.Fonts->GetGlyphRangesJapanese());
+    chineseBig = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 50, nullptr,
+                                              io.Fonts->GetGlyphRangesChineseFull());
+    chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
+                                                ChineseFull());
+    japaneseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron/fonts/NotoSerifCJK.ttc", 60, nullptr,
+                                               io.Fonts->GetGlyphRangesJapanese());
+    japaneseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron//fonts/NotoSansCJKjp-VF.ttf", 25, nullptr,
+                                                 io.Fonts->GetGlyphRangesJapanese());
 }
 
 auto Fonts::dropFont(FontType fontType) const -> FontDrop
@@ -59,27 +59,27 @@ auto Fonts::dropFont(FontType fontType) const -> FontDrop
 
 auto Fonts::dropChineseBig() const -> FontDrop
 {
-    return {ChineseBig()};
+    return {chineseBig};
 }
 
 auto Fonts::dropChineseSmall() const -> FontDrop
 {
-    return {ChineseSmall()};
+    return {chineseSmall};
+}
+
+auto Fonts::dropJapaneseBig() const -> FontDrop
+{
+    return {japaneseBig};
+}
+
+auto Fonts::dropJapaneseSmall() const -> FontDrop
+{
+    return {japaneseSmall};
 }
 
 auto Fonts::dropGui() const -> FontDrop
 {
     return {Gui()};
-}
-
-auto Fonts::ChineseBig() const -> ImFont*
-{
-    return chineseBig;
-}
-
-auto Fonts::ChineseSmall() const -> ImFont*
-{
-    return chineseSmall;
 }
 
 auto Fonts::Gui() const -> ImFont*

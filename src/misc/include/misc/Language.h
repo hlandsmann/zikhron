@@ -1,6 +1,8 @@
 #pragma once
+#include <cstddef>
 
-enum class Language : unsigned {
-    chinese = 0,
-    japanese = 1,
+enum class Language : std::size_t {
+    chinese,
+    japanese,
+    languageCount
 };

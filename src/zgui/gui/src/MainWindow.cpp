@@ -29,8 +29,10 @@ namespace gui {
 
 MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
                        std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
-                       std::unique_ptr<TabCard> _tabCard,
-                       std::unique_ptr<TabVideo> _tabVideo)
+                       std::unique_ptr<TabCard> _tabCardChi,
+                       std::unique_ptr<TabCard> _tabCardJpn,
+                       std::unique_ptr<TabVideo> _tabVideoChi,
+                       std::unique_ptr<TabVideo> _tabVideoJpn)
     : theme{std::move(_theme)}
     , boxRect{std::make_shared<widget::layout::Rect>()}
     , box{std::make_shared<widget::Box>(widget::WidgetInit{
@@ -42,11 +44,16 @@ MainWindow::MainWindow(std::shared_ptr<context::Theme> _theme,
               .parent = std::weak_ptr<widget::Widget>{}
 
       })}
-    , tabCard{std::move(_tabCard)}
-    , tabVideo{std::move(_tabVideo)}
+    , tabCardChi{std::move(_tabCardChi)}
+    , tabCardJpn{std::move(_tabCardJpn)}
+    , tabVideoChi{std::move(_tabVideoChi)}
+    , tabVideoJpn{std::move(_tabVideoJpn)}
 {
-    tabVideo->connect_playVideoSet(&MainWindow::slot_playVideoSet, this);
-    tabVideo->connect_playVideoSet(&TabCard::slot_playVideoSet, tabCard);
+    tabVideoChi->connect_playVideoSet(&MainWindow::slot_playVideoSet, this);
+    tabVideoJpn->connect_playVideoSet(&MainWindow::slot_playVideoSet, this);
+
+    tabVideoChi->connect_playVideoSet(&TabCard::slot_playVideoSet, tabCardChi);
+    tabVideoJpn->connect_playVideoSet(&TabCard::slot_playVideoSet, tabCardJpn);
 }
 
 void MainWindow::arrange(const widget::layout::Rect& rect)
@@ -78,10 +85,28 @@ void MainWindow::doImGui()
     auto& layer = box->next<widget::Layer>();
     switch (activeTab) {
     case ActiveTab::cards:
-        tabCard->displayOnLayer(layer);
+        switch (language) {
+        case Language::chinese:
+            tabCardChi->displayOnLayer(layer);
+            break;
+        case Language::japanese:
+            tabCardJpn->displayOnLayer(layer);
+            break;
+        case Language::languageCount:
+            break;
+        }
         break;
     case ActiveTab::video:
-        tabVideo->displayOnLayer(layer);
+        switch (language) {
+        case Language::chinese:
+            tabVideoChi->displayOnLayer(layer);
+            break;
+        case Language::japanese:
+            tabVideoJpn->displayOnLayer(layer);
+            break;
+        case Language::languageCount:
+            break;
+        }
         break;
     case ActiveTab::audio:
         [[fallthrough]];
@@ -132,8 +157,15 @@ void MainWindow::setup()
         mainLayer->setExpandType(width_expand, height_expand);
         mainLayer->setName("mainLayer");
 
-        tabCard->setUp(*mainLayer);
-        tabVideo->setUp(*mainLayer);
+        tabCardChi->setUp(*mainLayer);
+        tabCardJpn->setUp(*mainLayer);
+        tabVideoChi->setUp(*mainLayer);
+        tabVideoJpn->setUp(*mainLayer);
+
+        tabCardChi->setLanguage(Language::chinese);
+        tabVideoChi->setLanguage(Language::chinese);
+        tabCardJpn->setLanguage(Language::japanese);
+        tabVideoJpn->setLanguage(Language::japanese);
     }
 }
 

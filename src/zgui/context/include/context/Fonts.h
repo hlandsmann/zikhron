@@ -32,15 +32,17 @@ public:
     [[nodiscard]] auto dropFont(FontType) const -> FontDrop;
     [[nodiscard]] auto dropChineseBig() const -> FontDrop;
     [[nodiscard]] auto dropChineseSmall() const -> FontDrop;
+    [[nodiscard]] auto dropJapaneseBig() const -> FontDrop;
+    [[nodiscard]] auto dropJapaneseSmall() const -> FontDrop;
     [[nodiscard]] auto dropGui() const -> FontDrop;
 
 private:
-    [[nodiscard]] auto ChineseBig() const -> ImFont*;
-    [[nodiscard]] auto ChineseSmall() const -> ImFont*;
     [[nodiscard]] auto Gui() const -> ImFont*;
 
     ImFont* chineseBig;
     ImFont* chineseSmall;
+    ImFont* japaneseBig;
+    ImFont* japaneseSmall;
     ImFont* gui;
     std::shared_ptr<GlfwImguiContext> glfwImguiContext;
 };

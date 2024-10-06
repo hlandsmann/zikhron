@@ -4,6 +4,7 @@
 #include <GroupAdd.h>
 #include <GroupVideo.h>
 #include <imgui.h>
+#include <misc/Language.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spdlog/spdlog.h>
 #include <theme/Sizes.h>
@@ -21,6 +22,7 @@ TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecu
     : executor{std::move(synchronousExecutor)}
     , signalGroupGrid{executor->makePersistentSignal<GridPtr>()}
     , signalVideoFileOpen{executor->makeVolatileSignal<std::filesystem::path>()}
+    , signalLanguage{executor->makePersistentSignal<Language>()}
 {
     executor->startCoro(manageVideosTask(std::move(asyncTreeWalker)));
 }
@@ -34,6 +36,11 @@ void TabVideo::setUp(widget::Layer& layer)
     grid->setExpandType(width_expand, height_expand);
     grid->setVerticalPadding(20.F);
     signalGroupGrid->set(grid);
+}
+
+void TabVideo::setLanguage(Language language)
+{
+    signalLanguage->set(language);
 }
 
 void TabVideo::displayOnLayer(widget::Layer& layer)
@@ -65,7 +72,8 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
 
 auto TabVideo::manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) -> kocoro::Task<>
 {
-    dataBase = co_await asyncTreeWalker->getDataBase();
+    auto language = co_await *signalLanguage;
+    dataBase = co_await asyncTreeWalker->getDataBase(language);
     auto groupGrid = co_await *signalGroupGrid;
     auto videoDB = dataBase->getCardDB()->getVideoDB();
     while (true) {

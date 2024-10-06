@@ -28,8 +28,10 @@ class MainWindow
 public:
     MainWindow(std::shared_ptr<context::Theme> theme,
                std::shared_ptr<context::WidgetIdGenerator> widgetIdGenerator,
-               std::unique_ptr<TabCard> tabCard,
-               std::unique_ptr<TabVideo> tabVideo);
+               std::unique_ptr<TabCard> tabCardChi,
+               std::unique_ptr<TabCard> tabCardJpn,
+               std::unique_ptr<TabVideo> tabVideoChi,
+               std::unique_ptr<TabVideo> tabVideoJpn);
     MainWindow(const MainWindow&) = delete;
     MainWindow(MainWindow&&) = delete;
     auto operator=(const MainWindow&) -> MainWindow& = delete;
@@ -45,8 +47,10 @@ private:
     std::shared_ptr<context::Theme> theme;
     std::shared_ptr<widget::layout::Rect> boxRect;
     std::shared_ptr<widget::Box> box;
-    std::shared_ptr<TabCard> tabCard;
-    std::unique_ptr<TabVideo> tabVideo;
+    std::shared_ptr<TabCard> tabCardChi;
+    std::shared_ptr<TabCard> tabCardJpn;
+    std::unique_ptr<TabVideo> tabVideoChi;
+    std::unique_ptr<TabVideo> tabVideoJpn;
     bool needArrange = false;
 
     ActiveTab activeTab{};

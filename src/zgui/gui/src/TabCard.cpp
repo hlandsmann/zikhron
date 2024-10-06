@@ -17,6 +17,7 @@
 #include <database/VideoSet.h>
 #include <database/WordDB.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
@@ -56,6 +57,7 @@ TabCard::TabCard(std::shared_ptr<kocoro::SynchronousExecutor> _synchronousExecut
     , signalCardBox{executor->makePersistentSignal<BoxPtr>()}
     , signalProceed{executor->makeVolatileSignal<Proceed>()}
     , signalAnnotationDone{executor->makeVolatileSignal<TokenizationChoice>()}
+    , signalLanguage{executor->makePersistentSignal<Language>()}
     , displayVideo{std::move(_displayVideo)}
     , mpvAudio{std::move(_mpvAudio)}
     , mpvVideo{displayVideo->getMpv()}
@@ -75,6 +77,11 @@ void TabCard::setUp(widget::Layer& layer)
     auto& ctrlWindow = *box->add<widget::Window>(Align::end, ExpandType::width_expand, ExpandType::height_fixed, "card_ctrl");
     setupCardWindow(cardWindow);
     setupCtrlWindow(ctrlWindow);
+}
+
+void TabCard::setLanguage(Language language)
+{
+    signalLanguage->set(language);
 }
 
 void TabCard::displayOnLayer(widget::Layer& layer)
@@ -150,8 +157,9 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     cardLayer->setName("cardLayer");
     vocableLayer->setName("vocableLayer");
     cardLayer->setExpandType(width_fixed, height_fixed);
-    auto treeWalker = co_await asyncTreeWalker->getTreeWalker();
-    dataBase = co_await asyncTreeWalker->getDataBase();
+    auto language = co_await *signalLanguage;
+    auto treeWalker = co_await asyncTreeWalker->getTreeWalker(language);
+    dataBase = co_await asyncTreeWalker->getDataBase(language);
     auto wordDB = dataBase->getWordDB();
     auto cardDB = dataBase->getCardDB();
     sr::CardMeta cardMeta;
@@ -163,7 +171,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         switch (proceed) {
         case Proceed::walkTree:
             clearStudy(cardLayer, vocableLayer);
-            cardMeta = co_await asyncTreeWalker->getNextCardChoice();
+            cardMeta = co_await asyncTreeWalker->getNextCardChoice(language);
             spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.getCardId());
             track = cardDB->getTrackFromCardId(cardMeta.getCardId());
             loadTrack();

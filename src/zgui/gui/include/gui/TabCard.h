@@ -15,6 +15,7 @@
 #include <database/VideoSet.h>
 #include <database/WordDB.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <misc/TokenizationChoice.h>
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
@@ -86,6 +87,7 @@ public:
     virtual ~TabCard() = default;
 
     void setUp(widget::Layer& layer);
+    void setLanguage(Language language);
     void displayOnLayer(widget::Layer& layer);
     void slot_playVideoSet(database::VideoSetPtr);
 
@@ -160,6 +162,7 @@ private:
     std::shared_ptr<kocoro::PersistentSignal<BoxPtr>> signalCardBox;
     std::shared_ptr<kocoro::VolatileSignal<Proceed>> signalProceed;
     std::shared_ptr<kocoro::VolatileSignal<TokenizationChoice>> signalAnnotationDone;
+    std::shared_ptr<kocoro::PersistentSignal<Language>> signalLanguage;
 
     std::shared_ptr<widget::Layer> secondaryCtrlLayer;
     std::unique_ptr<DisplayText> displayText;
