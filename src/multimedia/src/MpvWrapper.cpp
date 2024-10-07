@@ -119,7 +119,7 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
         } else if (std::string{prop->name} == "pause") {
             if (prop->format == MPV_FORMAT_FLAG) {
                 paused = static_cast<bool>(*reinterpret_cast<int*>(prop->data));
-                spdlog::info("paused: {}", paused);
+                // spdlog::info("paused: {}", paused);
             }
         }
         break;

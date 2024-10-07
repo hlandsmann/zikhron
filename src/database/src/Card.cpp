@@ -112,10 +112,16 @@ auto Card::isActive() const -> bool
     return active;
 }
 
+auto Card::getTokenizerDebug() const -> std::string
+{
+    return tokenizerDebug;
+}
+
 void Card::executeTokenizer()
 {
     const auto& cardText = getText();
     tokens = tokenizer->split(cardText);
+    tokenizerDebug = tokenizer->debugString();
 }
 
 DialogueCard::DialogueCard(std::string_view content,

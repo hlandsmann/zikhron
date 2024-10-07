@@ -16,5 +16,7 @@ public:
     auto operator=(Tokenizer&&) -> Tokenizer& = default;
 
     [[nodiscard]] virtual auto split(const std::string& /* text */) const -> std::vector<Token> = 0; //{ return {}; };
+
+    [[nodiscard]] virtual auto debugString() const -> std::string { return {}; }
 };
 } // namespace annotation

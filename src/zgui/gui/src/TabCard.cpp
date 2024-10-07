@@ -169,14 +169,18 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
         Proceed proceed = co_await *signalProceed;
 
         switch (proceed) {
-        case Proceed::walkTree:
+        case Proceed::walkTree: {
             clearStudy(cardLayer, vocableLayer);
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(language);
             spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.getCardId());
+            const auto& tokenizerDebug = cardMeta.getCard()->getTokenizerDebug();
+            if (!tokenizerDebug.empty()) {
+                spdlog::info("Card {} debug info: \n{}", cardMeta.getCardId(), tokenizerDebug);
+            }
             track = cardDB->getTrackFromCardId(cardMeta.getCardId());
             loadTrack();
             prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
-            break;
+        } break;
         case Proceed::submit: {
             treeWalker->setEaseForCard(cardMeta.getCard(), displayVocables->getVocIdEase());
             if (!track.has_value()) {
@@ -186,15 +190,19 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
                 signalProceed->set(Proceed::nextTrack);
             }
         } break;
-        case Proceed::nextTrack:
+        case Proceed::nextTrack: {
             clearStudy(cardLayer, vocableLayer);
             cardMeta = dataBase->getCardMeta(track->getCard());
             spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.getCardId());
+            const auto& tokenizerDebug = cardMeta.getCard()->getTokenizerDebug();
+            if (!tokenizerDebug.empty()) {
+                spdlog::info("Card {} debug info: \n{}", cardMeta.getCardId(), tokenizerDebug);
+            }
             loadTrack();
             if (!track->isSubtitlePrefix()) {
                 prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
             }
-            break;
+        } break;
         case Proceed::reload:
             clearStudy(cardLayer, vocableLayer);
             cardMeta = dataBase->getCardMeta(cardMeta.getCard());

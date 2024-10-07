@@ -58,6 +58,7 @@ public:
     void setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoices);
     void setActive(bool active);
     [[nodiscard]] auto isActive() const -> bool;
+    [[nodiscard]] auto getTokenizerDebug() const -> std::string;
 
 protected:
     void executeTokenizer();
@@ -76,6 +77,7 @@ private:
     std::shared_ptr<annotation::Tokenizer> tokenizer;
 
     std::vector<annotation::Token> tokens;
+    std::string tokenizerDebug;
 };
 
 class DialogueCard : public Card

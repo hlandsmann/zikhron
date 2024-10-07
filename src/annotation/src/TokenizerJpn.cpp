@@ -54,6 +54,12 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
         // }
     }
     spdlog::info("full: {}", fmt::join(result, ","));
+    lastDebugString = "japanese card\n";
     return result;
+}
+
+auto TokenizerJpn::debugString() const -> std::string
+{
+    return lastDebugString;
 }
 } // namespace annotation
