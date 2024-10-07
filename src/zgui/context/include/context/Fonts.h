@@ -5,6 +5,7 @@
 
 #include <imgui.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 
 #include <memory>
 
@@ -13,11 +14,20 @@ namespace context {
 class FontDrop;
 class FontColorDrop;
 
+enum class FontSize {
+    big,
+    small
+};
+
 enum class FontType {
     chineseBig,
     chineseSmall,
+    japaneseBig,
+    japaneseSmall,
     Gui,
 };
+
+auto getFontType(FontSize fontSize, Language language) -> FontType;
 
 constexpr auto bToColor(unsigned char r, unsigned char g, unsigned char b) -> ImVec4
 {

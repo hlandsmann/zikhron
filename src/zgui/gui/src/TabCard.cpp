@@ -175,7 +175,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.getCardId());
             track = cardDB->getTrackFromCardId(cardMeta.getCardId());
             loadTrack();
-            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
+            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
             break;
         case Proceed::submit: {
             treeWalker->setEaseForCard(cardMeta.getCard(), displayVocables->getVocIdEase());
@@ -192,13 +192,13 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.getCardId());
             loadTrack();
             if (!track->isSubtitlePrefix()) {
-                prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
+                prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
             }
             break;
         case Proceed::reload:
             clearStudy(cardLayer, vocableLayer);
             cardMeta = dataBase->getCardMeta(cardMeta.getCard());
-            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer);
+            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
             break;
         case Proceed::annotate: {
             spdlog::info("co_await annotationTask");
@@ -259,15 +259,16 @@ void TabCard::clearStudy(const std::shared_ptr<widget::Layer>& cardLayer,
 void TabCard::prepareStudy(sr::CardMeta& cardMeta,
                            std::shared_ptr<database::WordDB> wordDB,
                            const std::shared_ptr<widget::Layer>& cardLayer,
-                           const std::shared_ptr<widget::Layer>& vocableLayer)
+                           const std::shared_ptr<widget::Layer>& vocableLayer,
+                           Language language)
 {
     auto vocId_ease = cardMeta.getRelevantEase();
     auto tokenText = cardMeta.getStudyTokenText();
 
     auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
-    displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText));
+    displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText), language);
     if (!vocId_ease.empty()) {
-        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease));
+        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease), language);
     }
 }
 

@@ -3,10 +3,12 @@
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
+#include <context/Fonts.h>
 #include <database/Word.h>
 #include <database/WordDB.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <utils/format.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
@@ -27,11 +29,12 @@ namespace ranges = std::ranges;
 namespace gui {
 DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
                                  std::shared_ptr<database::WordDB> _wordDB,
-                                 std::vector<ActiveVocable>&& _orderedVocId_ease)
+                                 std::vector<ActiveVocable>&& _orderedVocId_ease,
+                                 Language language)
     : layer{std::move(_layer)}
     , wordDB{std::move(_wordDB)}
     , activeVocables{std::move(_orderedVocId_ease)}
-
+    , fontType{context::getFontType(context::FontSize::small, language)}
 {
     setup();
 }

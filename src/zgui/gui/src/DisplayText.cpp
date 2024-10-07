@@ -3,6 +3,7 @@
 #include <VocableOverlay.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
+#include <misc/Language.h>
 #include <utils/format.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
@@ -18,12 +19,15 @@ namespace gui {
 
 DisplayText::DisplayText(std::shared_ptr<widget::Layer> _layer,
                          std::shared_ptr<widget::Overlay> _overlay,
-                         std::unique_ptr<annotation::TokenText> _tokenText)
+                         std::unique_ptr<annotation::TokenText> _tokenText,
+                         Language _language)
     : layer{std::move(_layer)}
     , overlay{std::move(_overlay)}
     , tokenText{std::move(_tokenText)}
+    , language{_language}
+    , ttqConfig{.fontType = context::getFontType(context::FontSize::big, language)}
+    , colorSetId{layer->getTheme().getColorSet().getColorSetId(tokenText->getVocableCount())}
 {
-    colorSetId = layer->getTheme().getColorSet().getColorSetId(tokenText->getVocableCount());
     using annotation::TextType;
     switch (tokenText->getType()) {
     case TextType::dialogue:
@@ -59,7 +63,7 @@ auto DisplayText::draw() -> bool
         }
     }
     if (optTextToken.has_value()) {
-        vocableOverlay = std::make_unique<VocableOverlay>(overlay, optTextToken.value());
+        vocableOverlay = std::make_unique<VocableOverlay>(overlay, optTextToken.value(), language);
     }
     return configured;
 }

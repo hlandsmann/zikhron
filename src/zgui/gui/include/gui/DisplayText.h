@@ -5,6 +5,7 @@
 #include <context/ColorSet.h>
 #include <context/Fonts.h>
 #include <context/WidgetId.h>
+#include <misc/Language.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
@@ -23,7 +24,8 @@ class DisplayText
 public:
     DisplayText(std::shared_ptr<widget::Layer> layer,
                 std::shared_ptr<widget::Overlay> overlay,
-                std::unique_ptr<annotation::TokenText> tokenText);
+                std::unique_ptr<annotation::TokenText> tokenText,
+                Language language);
 
     auto draw() -> bool;
 
@@ -41,8 +43,6 @@ private:
     void setupDialogue();
     void setupText();
 
-    widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseBig};
-    context::ColorSetId colorSetId;
 
     std::shared_ptr<widget::Layer> layer;
     std::shared_ptr<widget::Overlay> overlay;
@@ -50,6 +50,10 @@ private:
     context::WidgetId textWidgetId{};
 
     std::unique_ptr<VocableOverlay> vocableOverlay;
+
+    Language language;
+    widget::TextTokenSeq::Config ttqConfig;
+    context::ColorSetId colorSetId;
 };
 
 } // namespace gui

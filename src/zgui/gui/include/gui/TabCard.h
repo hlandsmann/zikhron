@@ -103,7 +103,8 @@ private:
     void prepareStudy(sr::CardMeta& cardMeta,
                       std::shared_ptr<database::WordDB> wordDB,
                       const std::shared_ptr<widget::Layer>& cardLayer,
-                      const std::shared_ptr<widget::Layer>& vocableLayer);
+                      const std::shared_ptr<widget::Layer>& vocableLayer, 
+                      Language language);
     void loadTrack();
 
     void setupCardWindow(widget::Window& cardWindow);

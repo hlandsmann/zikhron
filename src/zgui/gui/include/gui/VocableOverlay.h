@@ -1,6 +1,7 @@
 #pragma once
 #include <context/Fonts.h>
 #include <database/Word.h>
+#include <misc/Language.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
@@ -32,9 +33,10 @@ class VocableOverlay
         Openbtn open{0};
     };
 
-
 public:
-    VocableOverlay(std::shared_ptr<widget::Overlay> overlay, std::shared_ptr<widget::TextToken> token);
+    VocableOverlay(std::shared_ptr<widget::Overlay> overlay,
+                   std::shared_ptr<widget::TextToken> token,
+                   Language language);
     void draw();
     [[nodiscard]] auto shouldClose() const -> bool;
     [[nodiscard]] auto configured() const -> bool;
@@ -59,10 +61,8 @@ private:
     constexpr static float s_horizontalPadding = 32.F;
     constexpr static float s_padding = 32.F;
     using FontType = context::FontType;
-    constexpr static FontType fontType{FontType::chineseSmall};
-    constexpr static widget::TextTokenSeq::Config ttqConfig = {.fontType = FontType::chineseSmall,
-                                                               .wordPadding = 10.F,
-                                                               .border = 0.F};
+    widget::TextTokenSeq::Config ttqConfig = {.wordPadding = 10.F,
+                                              .border = 0.F};
     constexpr static widget::BoxCfg headerBoxCfg = {.padding = 8.F,
                                                     .paddingHorizontal = 0.F,
                                                     .paddingVertical = 0.F,

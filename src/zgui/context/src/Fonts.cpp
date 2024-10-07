@@ -4,12 +4,40 @@
 #include <GlfwImguiContext.h>
 #include <imgui.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
 #include <utility>
 
 namespace context {
+auto getFontType(FontSize fontSize, Language language) -> FontType
+{
+    switch (fontSize) {
+    case FontSize::big:
+        switch (language) {
+        case Language::chinese:
+            return FontType::chineseBig;
+        case Language::japanese:
+            return FontType::japaneseBig;
+        default:
+            break;
+        }
+        break;
+    case FontSize::small:
+        switch (language) {
+        case Language::chinese:
+            return FontType::chineseSmall;
+        case Language::japanese:
+            return FontType::japaneseSmall;
+        default:
+            break;
+        }
+        break;
+    }
+    return FontType::Gui;
+}
+
 auto ChineseFull() -> const ImWchar*
 {
     // clang-format off
@@ -38,9 +66,9 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
                                               io.Fonts->GetGlyphRangesChineseFull());
     chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
                                                 ChineseFull());
-    japaneseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron/fonts/NotoSerifCJK.ttc", 60, nullptr,
+    japaneseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron/fonts/NotoSerifCJK.ttc", 64, nullptr,
                                                io.Fonts->GetGlyphRangesJapanese());
-    japaneseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron//fonts/NotoSansCJKjp-VF.ttf", 25, nullptr,
+    japaneseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron//fonts/NotoSerifCJK.ttc", 32, nullptr,
                                                  io.Fonts->GetGlyphRangesJapanese());
 }
 
@@ -51,6 +79,10 @@ auto Fonts::dropFont(FontType fontType) const -> FontDrop
         return dropChineseSmall();
     case FontType::chineseBig:
         return dropChineseBig();
+    case FontType::japaneseBig:
+        return dropJapaneseBig();
+    case FontType::japaneseSmall:
+        return dropJapaneseSmall();
     case FontType::Gui:
         return dropGui();
     }

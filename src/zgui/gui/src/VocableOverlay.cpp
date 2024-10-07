@@ -7,6 +7,7 @@
 #include <context/Fonts.h>
 #include <database/Word.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <utils/format.h>
 #include <widgets/Button.h>
 #include <widgets/Grid.h>
@@ -29,7 +30,9 @@ namespace gui {
 using namespace widget::layout;
 namespace views = std::views;
 
-VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::shared_ptr<widget::TextToken> _token)
+VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay,
+                               std::shared_ptr<widget::TextToken> _token,
+                               Language language)
     : overlay{std::move(_overlay)}
     , word{_token->getToken().getWord()}
     , textToken{std::move(_token)}
@@ -37,6 +40,8 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay, std::s
     , options{optionsFromWord(*word)}
 {
     using namespace widget::layout;
+
+    ttqConfig.fontType = context::getFontType(context::FontSize::small, language);
     overlay->setMaxWidth(Sizes::vocableOverlay);
     overlay->clear();
     overlay->setFirstDrop();

@@ -7,6 +7,7 @@
 #include <database/WordDB.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
+#include <misc/Language.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 
@@ -29,7 +30,8 @@ public:
     using pair_vocId_Ease = std::pair<VocableId, Ease>;
     DisplayVocables(std::shared_ptr<widget::Layer> layer,
                     std::shared_ptr<database::WordDB> wordDB,
-                    std::vector<ActiveVocable>&& orderedVocId_ease);
+                    std::vector<ActiveVocable>&& orderedVocId_ease,
+                    Language language);
 
     void draw();
     void reload();
@@ -48,11 +50,10 @@ private:
                                                .paddingVertical = 16.F,
                                                .border = 16.F};
 
-    context::FontType fontType = context::FontType::chineseSmall;
-
     std::shared_ptr<widget::Layer> layer;
     std::shared_ptr<database::WordDB> wordDB;
     std::vector<ActiveVocable> activeVocables;
+    context::FontType fontType;
 };
 
 } // namespace gui
