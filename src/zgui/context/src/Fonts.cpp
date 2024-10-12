@@ -1,4 +1,5 @@
 #include "ColorSet.h"
+#include "FontData.h"
 
 #include <Fonts.h>
 #include <GL/gl.h>
@@ -10,6 +11,7 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 void ImGui_ImplOpenGL3_CreateFontsTexture(ImFontAtlas& fonts)
 {
@@ -94,16 +96,17 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
     gui = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/IBM_Plex_Sans/IBMPlexSans-Regular.ttf",
                                        18, nullptr,
                                        io.Fonts->GetGlyphRangesDefault());
+    static std::vector<ImWchar> chineseGlyphRanges = getChineseGlyphRanges();
     constexpr auto fontFileChi = "/home/harmen/zikhron/fonts/GBZenKai-Medium.ttf";
     chineseBig = io.Fonts->AddFontFromFileTTF(fontFileChi, 50, nullptr,
-                                              io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+                                              chineseGlyphRanges.data());
     chineseSmall = io.Fonts->AddFontFromFileTTF(fontFileChi, 32, nullptr,
-                                                io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
-    fonts = std::make_unique<ImFontAtlas>();
+                                                chineseGlyphRanges.data());
     // auto* fonts = new ImFontAtlas();
     // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/NotoSerifCJK.ttc";
     // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/irohamaru-Light.ttf";
     // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/Hiragino Kaku Gothic Pro W6.otf";
+    fonts = std::make_unique<ImFontAtlas>();
     constexpr auto fontFileJpn = "/usr/share/fonts/kochi-substitute/kochi-gothic-subst.ttf";
     japaneseBig = fonts->AddFontFromFileTTF(fontFileJpn, 50, nullptr,
                                             io.Fonts->GetGlyphRangesJapanese());
