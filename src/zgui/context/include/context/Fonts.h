@@ -55,6 +55,7 @@ private:
     ImFont* japaneseSmall;
     ImFont* gui;
     std::shared_ptr<GlfwImguiContext> glfwImguiContext;
+    std::unique_ptr<ImFontAtlas> fonts;
 };
 
 class FontDrop : public Drop<FontDrop>

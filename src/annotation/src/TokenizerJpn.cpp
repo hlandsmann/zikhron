@@ -25,7 +25,7 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
 {
     auto jumanppTokens = mecab->split(text);
     std::vector<Token> result;
-    spdlog::info("{}", text);
+    // spdlog::info("{}", text);
 
     for (const auto& jumanppToken : jumanppTokens) {
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
@@ -53,7 +53,7 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
         //     spdlog::info("    rf: {}", *entry.definition.front().glossary.begin());
         // }
     }
-    spdlog::info("full: {}", fmt::join(result, ","));
+    // spdlog::info("full: {}", fmt::join(result, ","));
     lastDebugString = "japanese card\n";
     return result;
 }

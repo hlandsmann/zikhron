@@ -1,6 +1,7 @@
 #include "ColorSet.h"
 
 #include <Fonts.h>
+#include <GL/gl.h>
 #include <GlfwImguiContext.h>
 #include <imgui.h>
 #include <misc/Identifier.h>
@@ -9,6 +10,37 @@
 
 #include <memory>
 #include <utility>
+
+void ImGui_ImplOpenGL3_CreateFontsTexture(ImFontAtlas& fonts)
+{
+    GLuint tex = 0;
+    // ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
+
+    // Build texture atlas
+    unsigned char* pixels = nullptr;
+    int width = 0;
+    int height = 0;
+    fonts.GetTexDataAsRGBA32(&pixels, &width, &height); // Load as RGBA 32-bit (75% of the memory is wasted, but default font is so small) because it is more likely to be compatible with user's existing shaders. If your ImTextureId represent a higher-level concept than just a GL texture id, consider calling GetTexDataAsAlpha8() instead to save on GPU memory.
+
+    // Upload texture to graphics system
+    // (Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling)
+    GLint last_texture = 0;
+    glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture);
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+#ifdef GL_UNPACK_ROW_LENGTH // Not on WebGL/ES
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
+#endif
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+
+    // Store our identifier
+    fonts.SetTexID(reinterpret_cast<ImTextureID>(tex));
+
+    // Restore state
+    glBindTexture(GL_TEXTURE_2D, static_cast<GLuint>(last_texture));
+}
 
 namespace context {
 auto getFontType(FontSize fontSize, Language language) -> FontType
@@ -62,14 +94,31 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
     gui = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/IBM_Plex_Sans/IBMPlexSans-Regular.ttf",
                                        18, nullptr,
                                        io.Fonts->GetGlyphRangesDefault());
-    chineseBig = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 50, nullptr,
-                                              io.Fonts->GetGlyphRangesChineseFull());
-    chineseSmall = io.Fonts->AddFontFromFileTTF("/usr/share/fonts/arphicfonts/gkai00mp.ttf", 25, nullptr,
-                                                ChineseFull());
-    japaneseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron/fonts/NotoSerifCJK.ttc", 64, nullptr,
-                                               io.Fonts->GetGlyphRangesJapanese());
-    japaneseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron//fonts/NotoSerifCJK.ttc", 32, nullptr,
-                                                 io.Fonts->GetGlyphRangesJapanese());
+    constexpr auto fontFileChi = "/home/harmen/zikhron/fonts/GBZenKai-Medium.ttf";
+    chineseBig = io.Fonts->AddFontFromFileTTF(fontFileChi, 50, nullptr,
+                                              io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    chineseSmall = io.Fonts->AddFontFromFileTTF(fontFileChi, 32, nullptr,
+                                                io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    fonts = std::make_unique<ImFontAtlas>();
+    // auto* fonts = new ImFontAtlas();
+    // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/NotoSerifCJK.ttc";
+    // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/irohamaru-Light.ttf";
+    // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/Hiragino Kaku Gothic Pro W6.otf";
+    constexpr auto fontFileJpn = "/usr/share/fonts/kochi-substitute/kochi-gothic-subst.ttf";
+    japaneseBig = fonts->AddFontFromFileTTF(fontFileJpn, 50, nullptr,
+                                            io.Fonts->GetGlyphRangesJapanese());
+    japaneseSmall = fonts->AddFontFromFileTTF(fontFileJpn, 32, nullptr,
+                                              io.Fonts->GetGlyphRangesJapanese());
+    fonts->Build();
+    ImGui_ImplOpenGL3_CreateFontsTexture(*fonts);
+
+    // fonts
+    // japaneseBig = chineseBig;
+    // japaneseSmall = chineseSmall;
+    // japaneseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron/fonts/NotoSerifCJK.ttc", 64, nullptr,
+    //                                            io.Fonts->GetGlyphRangesJapanese());
+    // japaneseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron//fonts/NotoSerifCJK.ttc", 32, nullptr,
+    //                                              io.Fonts->GetGlyphRangesJapanese());
 }
 
 auto Fonts::dropFont(FontType fontType) const -> FontDrop

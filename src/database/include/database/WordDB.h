@@ -5,10 +5,12 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
+#include <utils/StringU8.h>
 
 #include <filesystem>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -34,6 +36,7 @@ public:
 
     [[nodiscard]] auto wordIsKnown(const std::string& key) const -> bool;
     [[nodiscard]] auto getDictionary() const -> std::shared_ptr<const dictionary::Dictionary>;
+    auto extractCharacters() -> std::set<utl::CharU8>;
 
 private:
     void load();

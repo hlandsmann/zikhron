@@ -101,6 +101,8 @@ public:
     [[nodiscard]] auto back() const -> const CharU8&;
     [[nodiscard]] auto front() const -> const CharU8&;
 
+    [[nodiscard]] auto getChars() const -> const std::vector<utl::CharU8>& { return chars; }
+
     [[nodiscard]] auto cbegin() const { return chars.cbegin(); }
 
     [[nodiscard]] auto cend() const { return chars.cend(); }

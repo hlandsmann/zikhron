@@ -9,6 +9,7 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
+#include <utils/StringU8.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
 
@@ -20,6 +21,7 @@
 #include <magic_enum.hpp>
 #include <map>
 #include <memory>
+#include <set>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -44,6 +46,8 @@ WordDB::WordDB(std::shared_ptr<zikhron::Config> _config,
 {
     spdlog::info("WordDB constructed with {}", magic_enum::enum_name(language));
     load();
+    const auto& characters = extractCharacters();
+    spdlog::info("Character size: {}", characters.size());
 }
 
 auto WordDB::lookup(const std::string& key) -> std::shared_ptr<Word>
@@ -74,6 +78,18 @@ auto WordDB::wordIsKnown(const std::string& key) const -> bool
 auto WordDB::getDictionary() const -> std::shared_ptr<const dictionary::Dictionary>
 {
     return dictionary;
+}
+
+auto WordDB::extractCharacters() -> std::set<utl::CharU8>
+{
+    std::set<utl::CharU8> characters;
+    for (const auto& [key, _] : key_word) {
+        auto keyU8 = utl::StringU8{key};
+        for (const utl::CharU8& character : keyU8.getChars()) {
+            characters.insert(character);
+        }
+    }
+    return characters;
 }
 
 void WordDB::load()

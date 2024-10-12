@@ -584,7 +584,7 @@ auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> InternalEnt
         return entry;
 
     } catch (...) {
-        spdlog::error("Failed to get dictionary entry for kanji: {}", key);
+        // spdlog::error("Failed to get dictionary entry for kanji: {}", key);
         return {};
     }
 }
@@ -613,7 +613,7 @@ auto DictionaryJpn::getEntryByReading(const std::string& key) const -> InternalE
         }
         return entry;
     } catch (...) {
-        spdlog::error("Failed to get dictionary entry for Reading: {}", key);
+        // spdlog::error("Failed to get dictionary entry for Reading: {}", key);
         return {};
     }
 }
