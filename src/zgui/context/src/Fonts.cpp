@@ -1,4 +1,5 @@
 #include "ColorSet.h"
+#include "FontData.h"
 
 #include <Fonts.h>
 #include <GL/gl.h>
@@ -10,11 +11,11 @@
 
 #include <memory>
 #include <utility>
+#include <vector>
 
 void ImGui_ImplOpenGL3_CreateFontsTexture(ImFontAtlas& fonts)
 {
     GLuint tex = 0;
-    // ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
 
     // Build texture atlas
     unsigned char* pixels = nullptr;
@@ -70,55 +71,29 @@ auto getFontType(FontSize fontSize, Language language) -> FontType
     return FontType::Gui;
 }
 
-auto ChineseFull() -> const ImWchar*
-{
-    // clang-format off
-    static const ImWchar ranges[] = 
-    {
-        0x0020, 0x00FF, // Basic Latin + Latin Supplement
-        0x0100, 0x01DC, // PINYIN
-        0x2000, 0x206F, // General Punctuation
-        0x3000, 0x30FF, // CJK Symbols and Punctuations, Hiragana, Katakana
-        0x31F0, 0x31FF, // Katakana Phonetic Extensions
-        0xFF00, 0xFFEF, // Half-width characters
-        0xFFFD, 0xFFFD, // Invalid
-        0x4e00, 0x9FAF, // CJK Ideograms
-        0,
-    }; // clang-format on
-    return &ranges[0];
-}
-
 Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
 {
     ImGuiIO& io = ImGui::GetIO();
     gui = io.Fonts->AddFontFromFileTTF("/home/harmen/src/zikhron/resources/IBM_Plex_Sans/IBMPlexSans-Regular.ttf",
                                        18, nullptr,
                                        io.Fonts->GetGlyphRangesDefault());
+    static std::vector<ImWchar> chineseGlyphRanges = getChineseGlyphRanges();
     constexpr auto fontFileChi = "/home/harmen/zikhron/fonts/GBZenKai-Medium.ttf";
     chineseBig = io.Fonts->AddFontFromFileTTF(fontFileChi, 50, nullptr,
-                                              io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
+                                              chineseGlyphRanges.data());
     chineseSmall = io.Fonts->AddFontFromFileTTF(fontFileChi, 32, nullptr,
-                                                io.Fonts->GetGlyphRangesChineseSimplifiedCommon());
-    fonts = std::make_unique<ImFontAtlas>();
-    // auto* fonts = new ImFontAtlas();
+                                                chineseGlyphRanges.data());
     // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/NotoSerifCJK.ttc";
-    // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/irohamaru-Light.ttf";
     // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/Hiragino Kaku Gothic Pro W6.otf";
-    constexpr auto fontFileJpn = "/usr/share/fonts/kochi-substitute/kochi-gothic-subst.ttf";
-    japaneseBig = fonts->AddFontFromFileTTF(fontFileJpn, 50, nullptr,
+    // constexpr auto fontFileJpn = "/usr/share/fonts/kochi-substitute/kochi-gothic-subst.ttf";
+    fonts = std::make_unique<ImFontAtlas>();
+    constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/irohamaru-Regular.ttf";
+    japaneseBig = fonts->AddFontFromFileTTF(fontFileJpn, 64, nullptr,
                                             io.Fonts->GetGlyphRangesJapanese());
     japaneseSmall = fonts->AddFontFromFileTTF(fontFileJpn, 32, nullptr,
                                               io.Fonts->GetGlyphRangesJapanese());
     fonts->Build();
     ImGui_ImplOpenGL3_CreateFontsTexture(*fonts);
-
-    // fonts
-    // japaneseBig = chineseBig;
-    // japaneseSmall = chineseSmall;
-    // japaneseBig = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron/fonts/NotoSerifCJK.ttc", 64, nullptr,
-    //                                            io.Fonts->GetGlyphRangesJapanese());
-    // japaneseSmall = io.Fonts->AddFontFromFileTTF("/home/harmen/zikhron//fonts/NotoSerifCJK.ttc", 32, nullptr,
-    //                                              io.Fonts->GetGlyphRangesJapanese());
 }
 
 auto Fonts::dropFont(FontType fontType) const -> FontDrop
