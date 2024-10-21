@@ -1,4 +1,6 @@
 #pragma once
+#include <magic_enum.hpp>
+#include <utils/format.h>
 #include <compare>
 #include <string>
 #include <vector>
@@ -30,3 +32,19 @@ struct Entry
     auto operator==(const Entry&) const -> bool = default;
 };
 } // namespace dictionary
+
+template<>
+struct fmt::formatter<dictionary::PartOfSpeech>
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx)
+    {
+        return ctx.begin();
+    }
+
+    template<typename FormatContext>
+    auto format(dictionary::PartOfSpeech orientation, FormatContext& ctx)
+    {
+        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(orientation));
+    }
+};

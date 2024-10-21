@@ -20,8 +20,9 @@ target_sources(zikhron_dictionary
 )
 set_property(TARGET zikhron_dictionary PROPERTY CXX_STANDARD 23)
 target_link_libraries(zikhron_dictionary
-    PRIVATE
+    PUBLIC
         magic_enum::magic_enum
+    PRIVATE
         pugixml::pugixml
         zikhron::miscellaneous
         zikhron::spaced_repetition
