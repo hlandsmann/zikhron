@@ -20,7 +20,7 @@ auto MecabWrapper::split(const std::string& text) const -> std::vector<MecabToke
 {
     std::vector<MecabToken> result;
     std::string mecabOut = tagger->parse(text.c_str());
-    // spdlog::info("Text out: \n {}", mecabOut);
+    spdlog::warn("Text out: \n {}", mecabOut);
     auto rest = std::string_view{mecabOut};
     while (true) {
         auto tagged = utl::split_front(rest, '\n');

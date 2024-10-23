@@ -28,6 +28,7 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
     // spdlog::info("{}", text);
 
     for (const auto& jumanppToken : jumanppTokens) {
+        spdlog::info("{},{},{},{},{}", jumanppToken.lemmaType, jumanppToken.pos1, jumanppToken.pos2, jumanppToken.pos3, jumanppToken.pos4);
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
         auto word = wordDB->lookup(jumanppToken.lemma);
         if (!word) {

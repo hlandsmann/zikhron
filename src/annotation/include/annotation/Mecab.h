@@ -8,6 +8,13 @@
 namespace annotation {
 class MecabWrapper;
 
+enum class POS_Japanese {
+    verb,
+    adjective,
+    noun,
+    particle
+};
+
 struct MecabToken
 {
     std::string surface;
