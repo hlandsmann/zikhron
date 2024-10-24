@@ -25,9 +25,6 @@ target_sources(zikhron_annotation
         src/Ease.cpp
         src/FreqDictionary.cpp
         src/JieBa.cpp
-        src/Jumanpp.cpp
-        src/Jumanpp.h
-        src/JumanppWrapper.cpp
         src/Mecab.cpp
         src/MecabWrapper.cpp
         src/MecabWrapper.h
@@ -47,7 +44,6 @@ target_link_libraries(zikhron_annotation
         cppjieba::cppjieba
         mecab::mecab
         ctre::ctre
-        jpp::jumandic
         magic_enum::magic_enum
         spdlog::spdlog
         zikhron::spaced_repetition

@@ -4,6 +4,3 @@
 [submodule "third_party/cppjieba"]
 	path = third_party/cppjieba
 	url = git@github.com:hlandsmann/cppjieba.git
-[submodule "third_party/jumanpp"]
-	path = third_party/jumanpp
-	url = git@github.com:hlandsmann/jumanpp.git

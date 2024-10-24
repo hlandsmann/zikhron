@@ -42,5 +42,4 @@ target_include_directories(stb_image
 add_subdirectory(cppjieba)
 add_subdirectory(glad)
 add_subdirectory(ImGuiFileDialog)
-add_subdirectory(jumanpp)
 add_subdirectory(mecab)
