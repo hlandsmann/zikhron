@@ -1,7 +1,7 @@
 #pragma once
 #include "Widget.h"
 
-#include <fmt/format.h> // IWYU pragma: export core.h
+#include <utils/format.h> // IWYU pragma: export core.h
 
 #include <cstddef>
 #include <magic_enum.hpp>
@@ -143,13 +143,13 @@ template<>
 struct fmt::formatter<widget::Orientation>
 {
     template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
+    constexpr auto parse(ParseContext& ctx) const
     {
         return ctx.begin();
     }
 
     template<typename FormatContext>
-    auto format(widget::Orientation orientation, FormatContext& ctx)
+    auto format(widget::Orientation orientation, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(orientation));
     }

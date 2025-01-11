@@ -4,7 +4,7 @@
 #include <annotation/Ease.h>
 #include <bits/ranges_algo.h>
 #include <database/CbdFwd.h>
-#include <fmt/format.h>
+#include <utils/format.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
 #include <srtypes.h>

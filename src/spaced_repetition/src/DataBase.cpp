@@ -8,7 +8,6 @@
 #include <database/VocableProgress.h>
 #include <database/WordDB.h>
 #include <dictionary/DictionaryChi.h>
-#include <fmt/format.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -19,13 +18,11 @@
 #include <utils/min_element_val.h>
 
 #include <algorithm>
-#include <cstddef>
 #include <iterator>
 #include <map>
 #include <memory>
 #include <ranges>
 #include <set>
-#include <stdexcept>
 #include <utility>
 
 #include <sys/types.h>

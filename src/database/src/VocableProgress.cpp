@@ -1,6 +1,5 @@
 #include <VocableProgress.h>
 #include <annotation/Ease.h>
-#include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <utils/Time.h>
 #include <utils/format.h>

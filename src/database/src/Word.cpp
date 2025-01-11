@@ -1,15 +1,13 @@
 #include "Word.h"
-#include <dictionary/Dictionary.h>
 
 #include <VocableProgress.h>
+#include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
-#include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
 
 #include <algorithm>
-#include <cstddef>
 #include <iterator>
 #include <memory>
 #include <string>

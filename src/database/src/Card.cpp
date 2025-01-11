@@ -7,7 +7,6 @@
 #include <annotation/TokenizerChi.h>
 #include <database/WordDB.h>
 #include <dictionary/DictionaryChi.h>
-#include <fmt/format.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
 #include <spdlog/spdlog.h>

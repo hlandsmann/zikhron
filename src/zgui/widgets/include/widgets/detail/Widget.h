@@ -205,7 +205,7 @@ struct fmt::formatter<widget::layout::Align>
     }
 
     template<typename FormatContext>
-    auto format(widget::layout::Align align, FormatContext& ctx)
+    auto format(widget::layout::Align align, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(align));
     }
@@ -221,7 +221,7 @@ struct fmt::formatter<widget::layout::ExpandType>
     }
 
     template<typename FormatContext>
-    auto format(widget::layout::ExpandType expandType, FormatContext& ctx)
+    auto format(widget::layout::ExpandType expandType, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(expandType));
     }

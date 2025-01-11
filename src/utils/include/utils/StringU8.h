@@ -1,7 +1,5 @@
 #pragma once
-#include "format.h"
-
-#include <fmt/format.h> // IWYU pragma: export core.h
+#include "format.h" // IWYU pragma: export core.h
 
 #include <compare>
 #include <cstddef>
@@ -119,8 +117,18 @@ auto stringU8VectorFromStrings(const std::vector<std::string>& strings) -> std::
 
 template<>
 struct fmt::formatter<utl::CharU8> : fmt::formatter<std::string>
-{};
+{
+    auto format(utl::CharU8 const& charU8, format_context& ctx) const
+    {
+        return formatter<std::string>::format(charU8.string(), ctx);
+    }
+};
 
 template<>
 struct fmt::formatter<utl::StringU8> : fmt::formatter<std::string>
-{};
+{
+    auto format(utl::StringU8 const& strU8, format_context& ctx) const
+    {
+        return formatter<std::string>::format(strU8.string(), ctx);
+    }
+};

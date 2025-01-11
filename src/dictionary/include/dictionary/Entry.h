@@ -37,13 +37,13 @@ template<>
 struct fmt::formatter<dictionary::PartOfSpeech>
 {
     template<typename ParseContext>
-    constexpr auto parse(ParseContext& ctx)
+    constexpr auto parse(ParseContext& ctx) const
     {
         return ctx.begin();
     }
 
     template<typename FormatContext>
-    auto format(dictionary::PartOfSpeech orientation, FormatContext& ctx)
+    auto format(dictionary::PartOfSpeech orientation, FormatContext& ctx) const
     {
         return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(orientation));
     }
