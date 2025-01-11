@@ -11,6 +11,7 @@ namespace context {
 
 enum class Image {
     cards,
+    automatic,
     audio,
     configure_app,
     configure_mid,
@@ -63,6 +64,7 @@ struct TextureData;
 
 class Texture
 {
+    static constexpr auto automatic = "/home/harmen/src/zikhron/build/resources/icons/automatic_32px.png";
     static constexpr auto audio = "/home/harmen/src/zikhron/build/resources/icons/audiobook_48px.png";
     static constexpr auto cards = "/home/harmen/src/zikhron/build/resources/icons/cards_48px.png";
     static constexpr auto configure_app = "/home/harmen/src/zikhron/build/resources/icons/configure_app_48px.png";

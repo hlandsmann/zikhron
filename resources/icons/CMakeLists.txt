@@ -22,6 +22,8 @@ svg_to_png(checkbox-symbolic.svg 24)
 svg_to_png(configure.svg 24)
 svg_to_png(list-add.svg 24)
 
+svg_to_png(automatic.svg 32)
+
 svg_to_png(document-open.svg 32)
 svg_to_png(document-save.svg 32)
 
