@@ -18,6 +18,7 @@ MecabWrapper::MecabWrapper()
 
 auto MecabWrapper::split(const std::string& text) const -> std::vector<MecabToken>
 {
+    spdlog::warn("Text:  {}", text);
     std::vector<MecabToken> result;
     std::string mecabOut = tagger->parse(text.c_str());
     spdlog::warn("Text out: \n {}", mecabOut);

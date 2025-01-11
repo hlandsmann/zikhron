@@ -45,3 +45,16 @@ target_link_libraries(scratch
 )
 set_property(TARGET scratch PROPERTY CXX_STANDARD 23)
 
+add_executable(callee)
+target_sources(callee
+    PRIVATE
+        callee.cpp
+)
+target_link_libraries(callee
+    PRIVATE
+        zikhron::warnings
+        zikhron::utils
+        spdlog::spdlog
+        Pal::Sigslot
+)
+set_property(TARGET callee PROPERTY CXX_STANDARD 23)
