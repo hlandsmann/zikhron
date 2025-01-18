@@ -1,13 +1,12 @@
 #include "TabCard.h"
 
-#include "TranslationOverlay.h"
-
 #include <DisplayAnnotation.h>
 #include <DisplayText.h>
 #include <DisplayVideo.h>
 #include <DisplayVocables.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
+#include <context/Fonts.h>
 #include <context/imglog.h>
 #include <database/CardDB.h>
 #include <database/CardPackDB.h>
@@ -154,6 +153,8 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
     auto cardBox = co_await *signalCardBox;
     auto cardLayer = cardBox->add<widget::Layer>(Align::start);
     auto vocableLayer = cardBox->add<widget::Layer>(Align::start);
+    auto translationLayer = cardBox->add<widget::Layer>(Align::end);
+    auto metaLayer = cardBox->add<widget::Layer>(Align::end);
     cardLayer->setName("cardLayer");
     vocableLayer->setName("vocableLayer");
     cardLayer->setExpandType(width_fixed, height_fixed);
@@ -170,7 +171,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 
         switch (proceed) {
         case Proceed::walkTree: {
-            clearStudy(cardLayer, vocableLayer);
+            clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(language);
             spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.getCardId());
             const auto& tokenizerDebug = cardMeta.getCard()->getTokenizerDebug();
@@ -179,7 +180,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             }
             track = cardDB->getTrackFromCardId(cardMeta.getCardId());
             loadTrack();
-            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
+            prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, language);
         } break;
         case Proceed::submit: {
             treeWalker->setEaseForCard(cardMeta.getCard(), displayVocables->getVocIdEase());
@@ -191,7 +192,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             }
         } break;
         case Proceed::nextTrack: {
-            clearStudy(cardLayer, vocableLayer);
+            clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = dataBase->getCardMeta(track->getCard());
             spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.getCardId());
             const auto& tokenizerDebug = cardMeta.getCard()->getTokenizerDebug();
@@ -200,13 +201,13 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             }
             loadTrack();
             if (!track->isSubtitlePrefix()) {
-                prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
+                prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, language);
             }
         } break;
         case Proceed::reload:
-            clearStudy(cardLayer, vocableLayer);
+            clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = dataBase->getCardMeta(cardMeta.getCard());
-            prepareStudy(cardMeta, wordDB, cardLayer, vocableLayer, language);
+            prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, language);
             break;
         case Proceed::annotate: {
             spdlog::info("co_await annotationTask");
@@ -256,18 +257,21 @@ auto TabCard::annotationTask(sr::CardMeta& cardMeta,
 }
 
 void TabCard::clearStudy(const std::shared_ptr<widget::Layer>& cardLayer,
-                         const std::shared_ptr<widget::Layer>& vocableLayer)
+                         const std::shared_ptr<widget::Layer>& vocableLayer,
+                         const std::shared_ptr<widget::Layer>& translationLayer)
 {
     displayText.reset();
     displayVocables.reset();
+    ttqTranslation.reset();
     cardLayer->clear();
     vocableLayer->clear();
+    translationLayer->clear();
 }
 
 void TabCard::prepareStudy(sr::CardMeta& cardMeta,
-                           std::shared_ptr<database::WordDB> wordDB,
                            const std::shared_ptr<widget::Layer>& cardLayer,
                            const std::shared_ptr<widget::Layer>& vocableLayer,
+                           const std::shared_ptr<widget::Layer>& translationLayer,
                            Language language)
 {
     auto vocId_ease = cardMeta.getRelevantEase();
@@ -276,7 +280,16 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
     auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
     displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText), language);
     if (!vocId_ease.empty()) {
-        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, wordDB, std::move(orderedVocId_ease), language);
+        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, dataBase, std::move(orderedVocId_ease), language);
+    }
+    if (auto optTranslation = track->getTranslation(); optTranslation.has_value()) {
+        auto translation = *optTranslation;
+        constexpr static widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseSmall,
+                                                                   .wordPadding = 10.F,
+                                                                   .border = 8.F};
+        ttqTranslation = translationLayer->add<widget::TextTokenSeq>(Align::start,
+                                                                     annotation::tokenVectorFromString(translation),
+                                                                     ttqConfig);
     }
 }
 
@@ -310,6 +323,7 @@ void TabCard::loadTrack()
 void TabCard::setupCardWindow(widget::Window& cardWindow)
 {
     auto cardBox = cardWindow.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    cardBox->setExpandType(ExpandType::width_fixed, ExpandType::height_expand);
     overlayForVocable = cardWindow.add<widget::Overlay>(Align::start);
     overlayForAnnotation = cardWindow.add<widget::Overlay>(Align::start);
     overlayForTranslation = cardWindow.add<widget::Overlay>(Align::start);
@@ -344,9 +358,8 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
             displayVocables->reload();
         }
     }
-
-    if (translationOverlay) {
-        translationOverlay->draw();
+    if (ttqTranslation && revealTranslation) {
+        ttqTranslation->draw();
     }
 }
 
@@ -494,6 +507,7 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_add_prev);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_add_next);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_cut_next);
+    ctrlBox.add<widget::ImageButton>(Align::end, Image::automatic);
 
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::object_select);
@@ -543,10 +557,12 @@ void TabCard::doVideoCtrlBox(widget::Box& ctrlBox)
     auto& btnAddPrev = ctrlBox.next<widget::ImageButton>();
     auto& btnAddNext = ctrlBox.next<widget::ImageButton>();
     auto& btnCutNext = ctrlBox.next<widget::ImageButton>();
+    auto& btnAuto = ctrlBox.next<widget::ImageButton>();
     handleSubAddCut(btnCutPrev,
                     btnAddPrev,
                     btnAddNext,
-                    btnCutNext);
+                    btnCutNext,
+                    btnAuto);
 
     ctrlBox.next<widget::Separator>();
     auto& btnSelect = ctrlBox.next<widget::ImageButton>();
@@ -811,7 +827,8 @@ void TabCard::handlePlayMode(widget::ImageButton& btnPlayMode)
 void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
                               widget::ImageButton& btnAddPrev,
                               widget::ImageButton& btnAddNext,
-                              widget::ImageButton& btnCutNext)
+                              widget::ImageButton& btnCutNext,
+                              widget::ImageButton& btnAuto)
 {
     if (!track.has_value()) {
         return;
@@ -838,6 +855,7 @@ void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
         cutAddClicked = true;
         track = track->cutBack();
     }
+    btnAuto.clicked();
     if (cutAddClicked) {
         revealVocables = false;
         signalProceed->set(Proceed::nextTrack);
@@ -1021,27 +1039,13 @@ void TabCard::handleTimeDelAdd(widget::ImageButton& btnTimeDelFront,
 
 void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
 {
-    if (!track.has_value()) {
+    if (!ttqTranslation) {
         return;
     }
-    auto translation = std::string{};
-    if (auto optTranslation = track->getTranslation()) {
-        translation = *optTranslation;
-    }
-    if (translation.empty()) {
-        return;
-    }
+    btnTranslation.setChecked(revealTranslation);
     if (btnTranslation.clicked()) {
-        if (btnTranslation.isChecked()) {
-            translationOverlay.reset();
-        } else {
-            translationOverlay = std::make_unique<TranslationOverlay>(overlayForTranslation, translation);
-        }
+        revealTranslation = !btnTranslation.isChecked();
     }
-    if (translationOverlay && translationOverlay->getText() != translation) {
-        translationOverlay.reset();
-    }
-    btnTranslation.setChecked(translationOverlay != nullptr);
 }
 
 void TabCard::handleAnnotate(widget::ImageButton& btnAnnotate)

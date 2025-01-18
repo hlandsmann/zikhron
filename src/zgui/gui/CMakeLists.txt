@@ -15,7 +15,6 @@ target_sources(zgui_gui
         include/gui/TabCard.h
         include/gui/TabVideo.h
         include/gui/TokenizationOverlay.h
-        include/gui/TranslationOverlay.h
         include/gui/VocableOverlay.h
         include/gui/theme/Sizes.h
         src/DisplayAnnotation.cpp
@@ -30,7 +29,6 @@ target_sources(zgui_gui
         src/TabCard.cpp
         src/TabVideo.cpp
         src/TokenizationOverlay.cpp
-        src/TranslationOverlay.cpp
         src/VocableOverlay.cpp
 )
 

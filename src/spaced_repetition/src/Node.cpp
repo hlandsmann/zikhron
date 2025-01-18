@@ -2,6 +2,7 @@
 
 #include "Path.h"
 
+#include <CardContent.h>
 #include <DataBase.h>
 #include <misc/Identifier.h>
 #include <spdlog/spdlog.h>
@@ -53,7 +54,7 @@ auto Node::lowerOrder(size_t order) -> size_t
     }
     size_t nextOrder = order;
     const auto& cards = db->MetaCards();
-    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(true);
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(CardContent::pulled);
     if (thisTnv.vocables.size() <= s_stopBreakDown) {
         return nextOrder;
     }
@@ -89,7 +90,7 @@ auto Node::collectSubCards() const -> cardId_set
 {
     cardId_set subCardsResult;
 
-    const auto& tnv = db->MetaCards().at(nodeCardId).getTimingAndVocables(true);
+    const auto& tnv = db->MetaCards().at(nodeCardId).getTimingAndVocables(CardContent::pulled);
     const auto& vocables = db->Vocables();
     const auto& containedVocables = tnv.vocables
                                     | views::transform([&vocables](size_t index) -> const sr::VocableMeta& {
@@ -108,9 +109,9 @@ auto Node::removeInactiveCardIds(const cardId_set& cardIds) -> std::vector<CardI
 {
     std::vector<CardId> result;
     const auto& cards = db->MetaCards();
-    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(true);
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(CardContent::pulled);
     ranges::copy_if(cardIds, std::back_inserter(result), [&cards, &thisTnv](CardId cardId) -> bool {
-        const auto& tnv = cards.at(cardId).getTimingAndVocables(true);
+        const auto& tnv = cards.at(cardId).getTimingAndVocables(CardContent::pulled);
         return tnv.timing <= 0
                && not tnv.vocables.empty()
                && tnv.vocables.size() < thisTnv.vocables.size();
@@ -121,7 +122,7 @@ auto Node::removeInactiveCardIds(const cardId_set& cardIds) -> std::vector<CardI
 void Node::sortCardIds(std::vector<CardId>& cardIds)
 {
     const auto& cards = db->MetaCards();
-    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(true);
+    const auto& thisTnv = cards.at(nodeCardId).getTimingAndVocables(CardContent::pulled);
     const auto preferedQuantity = [](size_t a, size_t b) -> bool {
         const std::array quantity = {4, 3, 2, 5, 1, 6};
         const auto* a_it = ranges::find(quantity, a);
@@ -132,7 +133,7 @@ void Node::sortCardIds(std::vector<CardId>& cardIds)
         return a < b;
     };
     const auto triggerValue = [&](CardId cardId) -> std::size_t {
-        const auto& tnv = cards.at(cardId).getTimingAndVocables(true);
+        const auto& tnv = cards.at(cardId).getTimingAndVocables(CardContent::pulled);
         index_set intersect;
         ranges::set_intersection(thisTnv.vocables, tnv.vocables, std::inserter(intersect, intersect.begin()));
         std::size_t value = 0;
@@ -142,8 +143,8 @@ void Node::sortCardIds(std::vector<CardId>& cardIds)
         return value;
     };
     ranges::sort(cardIds, [&](CardId cardId_a, CardId cardId_b) -> bool {
-        const auto& tnv_a = cards.at(cardId_a).getTimingAndVocables(true);
-        const auto& tnv_b = cards.at(cardId_b).getTimingAndVocables(true);
+        const auto& tnv_a = cards.at(cardId_a).getTimingAndVocables(CardContent::pulled);
+        const auto& tnv_b = cards.at(cardId_b).getTimingAndVocables(CardContent::pulled);
         size_t countIntersect_a = ranges::set_intersection(
                                           thisTnv.vocables, tnv_a.vocables, utl::counting_iterator{})
                                           .out.count;

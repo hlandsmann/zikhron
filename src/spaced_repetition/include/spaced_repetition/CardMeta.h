@@ -1,4 +1,5 @@
 #pragma once
+#include "CardContent.h"
 #include "VocableMeta.h"
 #include "srtypes.h"
 
@@ -35,7 +36,7 @@ public:
     [[nodiscard]] auto VocableIndices() const -> const index_set&;
     [[nodiscard]] auto VocableIds() const -> const vocId_set&;
     [[nodiscard]] auto NewVocableIds() const -> vocId_set;
-    [[nodiscard]] auto getTimingAndVocables(bool pull = false) const -> const TimingAndVocables&;
+    [[nodiscard]] auto getTimingAndVocables(CardContent cardContent = CardContent::normal) const -> const TimingAndVocables&;
     void resetTimingAndVocables();
 
     [[nodiscard]] auto getStudyTokenText() -> std::unique_ptr<annotation::TokenText>;
@@ -45,7 +46,7 @@ public:
     void resetMetaData();
 
 private:
-    [[nodiscard]] auto generateTimingAndVocables(bool pull) const -> TimingAndVocables;
+    [[nodiscard]] auto generateTimingAndVocables(CardContent cardContent) const -> TimingAndVocables;
     auto generateVocableIDs() const -> std::vector<VocableId>;
     auto generateVocableIndexes() const -> index_set;
     auto getActiveVocableIds() const -> std::vector<VocableId>;
@@ -56,6 +57,7 @@ private:
     mutable std::optional<vocId_set> optVocableIds;
     mutable std::optional<TimingAndVocables> timingAndVocables;
     mutable std::optional<TimingAndVocables> timingAndVocablesPulled;
+    mutable std::optional<TimingAndVocables> timingAndVocablesInactiveVisible;
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
 };
 } // namespace sr

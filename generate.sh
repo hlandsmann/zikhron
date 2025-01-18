@@ -12,3 +12,4 @@ cmake -B "$build_dir" \
     -DCMAKE_BUILD_TYPE=$mode \
     --preset=ninja
 (cd "$build_dir"||exit; cmake --build . -j"$(nproc)")
+(cd "$build_dir"||exit; cmake --build . -j1)

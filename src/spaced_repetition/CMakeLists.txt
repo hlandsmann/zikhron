@@ -9,6 +9,7 @@ target_include_directories(zikhron_spaced_repetition
 target_sources(zikhron_spaced_repetition
     PRIVATE
         include/spaced_repetition/AsyncTreeWalker.h
+        include/spaced_repetition/CardContent.h
         include/spaced_repetition/CardMeta.h
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/ITreeWalker.h

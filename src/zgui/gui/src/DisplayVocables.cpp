@@ -9,8 +9,10 @@
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
+#include <spaced_repetition/DataBase.h>
 #include <utils/format.h>
 #include <widgets/Grid.h>
+#include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
 #include <widgets/Separator.h>
 #include <widgets/TextTokenSeq.h>
@@ -28,11 +30,12 @@ namespace ranges = std::ranges;
 
 namespace gui {
 DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
-                                 std::shared_ptr<database::WordDB> _wordDB,
+                                 std::shared_ptr<sr::DataBase> _dataBase,
                                  std::vector<ActiveVocable>&& _orderedVocId_ease,
                                  Language language)
     : layer{std::move(_layer)}
-    , wordDB{std::move(_wordDB)}
+    , database{std::move(_dataBase)}
+    , wordDB{database->getWordDB()}
     , activeVocables{std::move(_orderedVocId_ease)}
     , fontType{context::getFontType(context::FontSize::small, language)}
 {
@@ -42,7 +45,8 @@ DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
 void DisplayVocables::setup()
 {
     using namespace widget::layout;
-    auto grid = layer->add<widget::Grid>(Align::start, gridCfg, 5, widget::Grid::Priorities{0.1F, 0.2F, 0.4F, 0.3F, 0.1F});
+    auto grid = layer->add<widget::Grid>(Align::start, gridCfg, 7,
+                                         widget::Grid::Priorities{0.1F, 0.2F, 0.4F, 0.3F, 0.1F, 0.1F, 0.1F});
     setupVocables(*grid);
 }
 
@@ -75,6 +79,8 @@ auto DisplayVocables::getVocIdEase() const -> VocableId_Ease
 void DisplayVocables::setupVocables(widget::Grid& grid)
 {
     using annotation::tokenVectorFromString;
+    using context::Image;
+
     widget::TextTokenSeq::Config ttqConfig;
     ttqConfig.fontType = fontType;
     ttqConfig.wordPadding = 15.F;
@@ -84,6 +90,7 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
         const auto& word = wordDB->lookupId(vocId);
         bool renderKey = true;
         bool renderEase = true;
+        bool renderEnabled = true;
         for (const auto& def : word->getDefinitions()) {
             bool renderPronounciation = true;
             for (const auto& meaning : def.meanings) {
@@ -108,6 +115,15 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);
                 }
+                if (renderEnabled) {
+                    grid.add<widget::ImageButton>(Align::start, widget::Images{Image::checkbox,
+                                                                               Image::checkbox_checked});
+                    grid.add<widget::TextTokenSeq>(Align::start, makeCountLabel(vocId, colorId), ttqConfig);
+                    renderEnabled = false;
+
+                } else {
+                    grid.add<widget::Separator>(Align::start, 0.F, 0.F);
+                }
             }
         }
     }
@@ -116,12 +132,14 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
 void DisplayVocables::drawVocables(widget::Grid& grid)
 {
     using annotation::tokenVectorFromString;
+    using context::Image;
 
     grid.start();
     for (auto& [vocId, ease, colorId] : activeVocables) {
         const auto& word = wordDB->lookupId(vocId);
         bool renderKey = true;
         bool renderEase = true;
+        bool renderEnabled = true;
         for (const auto& def : word->getDefinitions()) {
             bool renderPronounciation = true;
             for (const auto& _ : def.meanings) {
@@ -140,7 +158,7 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
                 grid.next<widget::TextTokenSeq>().draw();
                 if (renderEase) {
                     auto easeVal = grid.next<widget::ToggleButtonGroup>().Active(mapEaseToUint(ease.easeVal));
-                    auto tmp = std::exchange(ease.easeVal, mapIntToEase(static_cast<unsigned>(easeVal)));
+                    auto tmp = std::exchange(ease.easeVal, mapIntToEase(easeVal));
 
                     auto& ttq = grid.next<widget::TextTokenSeq>();
                     ttq.draw();
@@ -151,6 +169,14 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
                     renderEase = false;
                 } else {
                     grid.next<widget::Separator>();
+                    grid.next<widget::Separator>();
+                }
+                if (renderEnabled) {
+                    bool checked = false;
+                    checked = grid.next<widget::ImageButton>().toggled(checked);
+                    grid.next<widget::TextTokenSeq>().draw();
+                    renderEnabled = false;
+                } else {
                     grid.next<widget::Separator>();
                 }
             }
@@ -169,6 +195,13 @@ auto DisplayVocables::makeEaseLabel(const Ease& ease, ColorId colorId) -> std::v
     auto progress = ease.getProgress();
     auto easeLabel = fmt::format("{:.1f}, ({:.1f})", progress.intervalDay, progress.easeFactor);
     return annotation::tokenVectorFromString(easeLabel, colorId);
+}
+
+auto DisplayVocables::makeCountLabel(VocableId vocId, ColorId colorId) const -> std::vector<annotation::Token>
+{
+    auto count = database->Vocables().at_id(vocId).second.CardIds().size();
+    auto countLabel = fmt::format("count: {}", count);
+    return annotation::tokenVectorFromString(countLabel, colorId);
 }
 
 } // namespace gui

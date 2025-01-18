@@ -182,3 +182,8 @@ auto VocableProgress::getLastSeenStr() const -> std::string
 {
     return utl::serialize_time_t(lastSeen);
 }
+
+auto VocableProgress::isEnabled() const -> bool
+{
+    return enabled;
+}

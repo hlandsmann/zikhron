@@ -1,4 +1,6 @@
-#include <CardMeta.h>
+#include "CardMeta.h"
+
+#include <CardContent.h>
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
@@ -20,6 +22,7 @@
 #include <iterator>
 #include <map>
 #include <memory>
+#include <optional>
 #include <ranges>
 #include <utility>
 #include <vector>
@@ -81,13 +84,23 @@ auto CardMeta::NewVocableIds() const -> vocId_set
     return newVocableIds;
 }
 
-auto CardMeta::getTimingAndVocables(bool pull) const -> const TimingAndVocables&
+auto CardMeta::getTimingAndVocables(CardContent cardContent) const -> const TimingAndVocables&
 {
-    auto& tav = pull ? timingAndVocablesPulled : timingAndVocables;
+    auto& tav = [this, cardContent]() -> std::optional<TimingAndVocables>& {
+        switch (cardContent) {
+        case CardContent::normal:
+            return timingAndVocables;
+        case sr::CardContent::pulled:
+            return timingAndVocablesPulled;
+        case sr::CardContent::inactiveVisible:
+            return timingAndVocablesInactiveVisible;
+        }
+        std::unreachable();
+    }();
     if (tav.has_value()) {
         return *tav;
     }
-    return tav.emplace(generateTimingAndVocables(pull));
+    return tav.emplace(generateTimingAndVocables(cardContent));
 }
 
 void CardMeta::resetTimingAndVocables()
@@ -123,7 +136,7 @@ void CardMeta::resetMetaData()
     timingAndVocablesPulled.reset();
 }
 
-auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
+auto CardMeta::generateTimingAndVocables(CardContent cardContent) const -> TimingAndVocables
 {
     auto vocable_progress = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].Progress(); };
     const auto& vocableIndices = VocableIndices();
@@ -132,7 +145,7 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
     }
 
     VocableProgress threshHoldProgress{};
-    if (not pull) {
+    if (cardContent == CardContent::normal) {
         auto progresses = vocableIndices | views::transform(vocable_progress);
         auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
         threshHoldProgress = *minIt;
@@ -156,7 +169,7 @@ auto CardMeta::generateTimingAndVocables(bool pull) const -> TimingAndVocables
             },
             &VocableProgress::getRepeatRange);
     const auto& nextActiveProgress = *nextActiveIt;
-    if (!pull) {
+    if (cardContent == CardContent::normal) {
         auto minNormalIt = ranges::min_element(
                 progressesNextActive,
                 [](const auto& range1, const auto& range2) -> bool {
@@ -220,7 +233,7 @@ auto CardMeta::generateVocableIndexes() const -> index_set
 
 auto CardMeta::getActiveVocableIds() const -> std::vector<VocableId>
 {
-    const auto& activeVocableIndices = getTimingAndVocables(true).vocables;
+    const auto& activeVocableIndices = getTimingAndVocables(CardContent::pulled).vocables;
     std::vector<VocableId> activeVocableIds;
     ranges::transform(activeVocableIndices, std::inserter(activeVocableIds, activeVocableIds.begin()),
                       [this](size_t vocableIndex) -> VocableId {

@@ -18,19 +18,22 @@ public:
         float intervalDay = 0.F;
         std::vector<std::size_t> triggeredBy;
         std::time_t lastSeen{std::time(nullptr)};
+        bool enabled = false;
     };
 
     static constexpr Init new_vocable = {
             .easeFactor = 0.F,
             .intervalDay = 0.F,
             .triggeredBy = {},
-            .lastSeen = {}};
+            .lastSeen = {},
+            .enabled = {}};
 
     VocableProgress(Init init)
         : easeFactor{init.easeFactor}
         , intervalDay{init.intervalDay}
         , triggerCardIndices{std::move(init.triggeredBy)}
         , lastSeen{init.lastSeen}
+        , enabled{init.enabled}
     {}
 
     VocableProgress()
@@ -73,10 +76,13 @@ public:
     [[nodiscard]] auto dueDays() const -> int;
     [[nodiscard]] auto getLastSeenStr() const -> std::string;
 
+    [[nodiscard]] auto isEnabled() const -> bool;
+
 private:
     void deserialize(std::string_view sv);
     float easeFactor = 0.F;
     float intervalDay = 0.F;
     std::vector<std::size_t> triggerCardIndices;
     std::time_t lastSeen{std::time(nullptr)};
+    bool enabled = false;
 };

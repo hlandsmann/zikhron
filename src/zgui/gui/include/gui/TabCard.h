@@ -3,7 +3,6 @@
 #include "DisplayText.h"
 #include "DisplayVideo.h"
 #include "DisplayVocables.h"
-#include "TranslationOverlay.h"
 
 #include <annotation/Ease.h>
 #include <context/WidgetId.h>
@@ -99,11 +98,12 @@ private:
                         const std::shared_ptr<database::CardDB>& cardDB,
                         std::shared_ptr<widget::Layer> cardLayer) -> kocoro::Task<bool>;
     void clearStudy(const std::shared_ptr<widget::Layer>& cardLayer,
-                    const std::shared_ptr<widget::Layer>& vocableLayer);
+                    const std::shared_ptr<widget::Layer>& vocableLayer,
+                    const std::shared_ptr<widget::Layer>& translationLayer);
     void prepareStudy(sr::CardMeta& cardMeta,
-                      std::shared_ptr<database::WordDB> wordDB,
                       const std::shared_ptr<widget::Layer>& cardLayer,
-                      const std::shared_ptr<widget::Layer>& vocableLayer, 
+                      const std::shared_ptr<widget::Layer>& vocableLayer,
+                      const std::shared_ptr<widget::Layer>& translationLayer,
                       Language language);
     void loadTrack();
 
@@ -136,7 +136,8 @@ private:
     void handleSubAddCut(widget::ImageButton& btnCutPrev,
                          widget::ImageButton& btnAddPrev,
                          widget::ImageButton& btnAddNext,
-                         widget::ImageButton& btnCutNext);
+                         widget::ImageButton& btnCutNext,
+                         widget::ImageButton& btnAuto);
     void handleSelection(widget::ImageButton& btnSelect,
                          widget::ImageButton& btnUnselect);
     void handleNextPreviousVideo(widget::ImageButton& btnContinue,
@@ -169,10 +170,10 @@ private:
     std::unique_ptr<DisplayText> displayText;
     std::unique_ptr<DisplayAnnotation> displayAnnotation;
     std::unique_ptr<DisplayVocables> displayVocables;
+    std::shared_ptr<widget::TextTokenSeq> ttqTranslation;
     std::optional<database::Track> track;
 
     std::unique_ptr<DisplayVideo> displayVideo;
-    std::unique_ptr<TranslationOverlay> translationOverlay;
 
     std::shared_ptr<widget::Overlay> overlayForVocable;
     std::shared_ptr<widget::Overlay> overlayForAnnotation;
@@ -182,6 +183,7 @@ private:
     context::WidgetId boxId{};
 
     bool revealVocables{false};
+    bool revealTranslation{false};
     Mode mode{Mode::shuffle};
     PlayMode playMode{PlayMode::playNext};
     SecondaryCtrlMode secondaryCtrlMode{SecondaryCtrlMode::progress};
