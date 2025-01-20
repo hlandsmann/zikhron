@@ -32,6 +32,7 @@ target_link_libraries(zikhron_utils
     PUBLIC
         ${ICU_UC_LIBRARIES}
         ${ICU_IO_LIBRARIES}
+        fmt::fmt
         spdlog::spdlog
     PRIVATE
         zikhron::warnings
