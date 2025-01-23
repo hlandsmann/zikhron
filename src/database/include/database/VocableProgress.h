@@ -77,6 +77,7 @@ public:
     [[nodiscard]] auto getLastSeenStr() const -> std::string;
 
     [[nodiscard]] auto isEnabled() const -> bool;
+    void setEnabled(bool enabled);
 
 private:
     void deserialize(std::string_view sv);

@@ -138,8 +138,10 @@ void CardMeta::resetMetaData()
 
 auto CardMeta::generateTimingAndVocables(CardContent cardContent) const -> TimingAndVocables
 {
+    auto filter_enabled = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].Progress().isEnabled(); };
     auto vocable_progress = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].Progress(); };
-    const auto& vocableIndices = VocableIndices();
+    const auto& vocableIndices = cardContent == CardContent::inactiveVisible ? VocableIndices()
+                                                                             : std::ranges::to<index_set>(VocableIndices() | views::filter(filter_enabled));
     if (vocableIndices.empty()) {
         return {};
     }

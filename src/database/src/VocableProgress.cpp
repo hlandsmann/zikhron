@@ -187,3 +187,8 @@ auto VocableProgress::isEnabled() const -> bool
 {
     return enabled;
 }
+
+void VocableProgress::setEnabled(bool _enabled)
+{
+    enabled = _enabled;
+}

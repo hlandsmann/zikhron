@@ -27,6 +27,7 @@ public:
 
     void insertCardId(CardId);
     void eraseCardId(CardId);
+    void setEnabled(bool enabled);
 
 private:
     std::shared_ptr<VocableProgress> progress;

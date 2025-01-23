@@ -18,7 +18,7 @@ using node_vector = std::map<CardId, std::optional<Node>>;
 
 class Node
 {
-    static constexpr size_t s_stopBreakDown = 5;
+    static constexpr size_t s_stopBreakDown = 4;
 
 public:
     Node() = default;

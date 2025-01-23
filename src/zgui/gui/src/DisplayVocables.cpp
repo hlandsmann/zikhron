@@ -123,6 +123,7 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
 
                 } else {
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);
+                    grid.add<widget::Separator>(Align::start, 0.F, 0.F);
                 }
             }
         }
@@ -137,6 +138,8 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
     grid.start();
     for (auto& [vocId, ease, colorId] : activeVocables) {
         const auto& word = wordDB->lookupId(vocId);
+        const auto& progress = database->Vocables().at_id(vocId).second.Progress();
+
         bool renderKey = true;
         bool renderEase = true;
         bool renderEnabled = true;
@@ -172,11 +175,12 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
                     grid.next<widget::Separator>();
                 }
                 if (renderEnabled) {
-                    bool checked = false;
+                    bool checked = progress.isEnabled();
                     checked = grid.next<widget::ImageButton>().toggled(checked);
                     grid.next<widget::TextTokenSeq>().draw();
                     renderEnabled = false;
                 } else {
+                    grid.next<widget::Separator>();
                     grid.next<widget::Separator>();
                 }
             }

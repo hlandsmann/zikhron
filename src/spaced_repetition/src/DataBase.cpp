@@ -224,7 +224,15 @@ void DataBase::fillIndexMaps()
             (*vocables)[vocableIndex].insertCardId(cardId);
         }
     }
-    spdlog::info("number of vocables: {}", allVocableIds.size());
+    
+    std::size_t enabledVocables=0;
+    for (auto& vocableMeta : *vocables) {
+        if (vocableMeta.CardIds().size() > 1) {
+            vocableMeta.setEnabled(true);
+            enabledVocables++;
+        }
+    }
+    spdlog::info("number of vocables: {}, enabled: {}", allVocableIds.size(), enabledVocables);
     spdlog::info("number of cards: {}", metaCards.size());
 }
 

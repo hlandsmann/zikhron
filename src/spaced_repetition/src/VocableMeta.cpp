@@ -76,4 +76,9 @@ void VocableMeta::eraseCardId(CardId cardId)
     cardIds.erase(cardId);
 }
 
+void VocableMeta::setEnabled(bool enabled)
+{
+    progress->setEnabled(enabled);
+}
+
 } // namespace sr
