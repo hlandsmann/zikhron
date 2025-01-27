@@ -50,6 +50,7 @@ public:
     [[nodiscard]] auto joinBack() const -> Track;
     [[nodiscard]] auto cutFront() const -> Track;
     [[nodiscard]] auto cutBack() const -> Track;
+    [[nodiscard]] auto autoJoin() const -> Track;
 
     [[nodiscard]] auto getCard() const -> CardPtr;
     [[nodiscard]] auto getTrackType() const -> TrackType;

@@ -18,6 +18,7 @@
 #include <utils/min_element_val.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <iterator>
 #include <map>
 #include <memory>
@@ -152,9 +153,15 @@ void DataBase::addCard(const database::CardPtr& card)
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
         (*vocables)[vocableIndex].insertCardId(cardId);
     }
+    for (const auto& vocableIndex : cardMeta.VocableIndices()) {
+        if ((*vocables)[vocableIndex].CardIds().size() > 1) {
+            (*vocables)[vocableIndex].setEnabled(true);
+        }
+    }
     // spdlog::error("added!, {}", fmt::ptr(&cardMeta));
     card->setActive(true);
     cardDB->addCard(card);
+    numberOfEnabledVocables = countEnabledVocables();
     spdlog::info("Added card with cardId: {}", cardId);
 }
 
@@ -165,10 +172,16 @@ void DataBase::removeCard(CardId cardId)
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
         (*vocables)[vocableIndex].eraseCardId(cardId);
     }
+    for (const auto& vocableIndex : cardMeta.VocableIndices()) {
+        if ((*vocables)[vocableIndex].CardIds().size() <= 1) {
+            (*vocables)[vocableIndex].setEnabled(false);
+        }
+    }
     metaCards.erase(cardId);
 
     card->setActive(false);
     cardDB->eraseCard(cardId);
+    numberOfEnabledVocables = countEnabledVocables();
     spdlog::info("Removed card with cardId: {}", cardId);
 }
 
@@ -183,6 +196,12 @@ void DataBase::cleanupCards()
     for (CardId cardId : deadCards) {
         removeCard(cardId);
     }
+    numberOfEnabledVocables = countEnabledVocables();
+}
+
+auto DataBase::getNumberOfEnabledVocables() const -> std::size_t
+{
+    return numberOfEnabledVocables;
 }
 
 auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
@@ -224,15 +243,8 @@ void DataBase::fillIndexMaps()
             (*vocables)[vocableIndex].insertCardId(cardId);
         }
     }
-    
-    std::size_t enabledVocables=0;
-    for (auto& vocableMeta : *vocables) {
-        if (vocableMeta.CardIds().size() > 1) {
-            vocableMeta.setEnabled(true);
-            enabledVocables++;
-        }
-    }
-    spdlog::info("number of vocables: {}, enabled: {}", allVocableIds.size(), enabledVocables);
+    numberOfEnabledVocables = countEnabledVocables();
+    spdlog::info("number of vocables: {}, enabled: {}", allVocableIds.size(), numberOfEnabledVocables);
     spdlog::info("number of cards: {}", metaCards.size());
 }
 
@@ -268,6 +280,17 @@ void DataBase::setTokenizationChoiceForCardAllCards() const
             card->setTokenizationChoices(choices);
         }
     }
+}
+
+auto DataBase::countEnabledVocables() const -> std::size_t
+{
+    std::size_t _numberOfEnabledVocables = 0;
+    for (const auto& vocableMeta : *vocables) {
+        if (vocableMeta.Progress().isEnabled()) {
+            _numberOfEnabledVocables++;
+        }
+    }
+    return _numberOfEnabledVocables;
 }
 
 } // namespace sr

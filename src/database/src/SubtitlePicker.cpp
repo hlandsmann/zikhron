@@ -144,6 +144,11 @@ auto SubtitlePicker::cutBack(const CardPtr& card) -> JoinedSubtitle
     return createJoinedSubtitle(index, nullptr);
 }
 
+auto SubtitlePicker::autoJoin(const CardPtr& card) -> JoinedSubtitle
+{
+    return joinedSubtitleFromCard(card);
+}
+
 auto SubtitlePicker::getPrevious(const CardPtr& card) -> JoinedSubtitle
 {
     auto index = static_cast<long>(card->getIndexInPack());

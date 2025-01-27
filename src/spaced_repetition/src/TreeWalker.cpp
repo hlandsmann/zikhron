@@ -49,6 +49,8 @@ auto TreeWalker::getTodayVocables() const -> index_set
             todayVocables.insert(tnv.vocables.begin(), tnv.vocables.end());
         }
     }
+
+    numberOfTodayVocables = todayVocables.size();
     return todayVocables;
 }
 
@@ -161,6 +163,16 @@ auto TreeWalker::getNextCardChoice() -> const CardMeta&
         return db->MetaCards().begin()->second;
     }
     return db->MetaCards().at(cardId);
+}
+
+auto TreeWalker::getNumberOfFailedVocables() const -> std::size_t
+{
+    return failedVocables.size();
+}
+
+auto TreeWalker::getNumberOfTodayVocables() const -> std::size_t
+{
+    return numberOfTodayVocables;
 }
 
 void TreeWalker::setEaseForCard(database::CardPtr card, const Id_Ease_vt& id_ease)

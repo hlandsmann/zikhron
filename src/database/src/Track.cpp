@@ -196,6 +196,14 @@ auto Track::cutBack() const -> Track
     return {medium, joinedSubtitle};
 }
 
+auto Track::autoJoin() const -> Track
+{
+    const auto& video = std::get<VideoPtr>(medium);
+    auto subtitlePicker = video->getActiveSubtitle();
+    auto joinedSubtitle = subtitlePicker->cutBack(card);
+    return {medium, joinedSubtitle};
+}
+
 auto Track::getCard() const -> CardPtr
 {
     return card;

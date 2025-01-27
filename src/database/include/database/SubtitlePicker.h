@@ -46,6 +46,7 @@ public:
     [[nodiscard]] auto joinBack(const CardPtr& card) -> JoinedSubtitle;
     [[nodiscard]] auto cutFront(const CardPtr& card) -> JoinedSubtitle;
     [[nodiscard]] auto cutBack(const CardPtr& card) -> JoinedSubtitle;
+    [[nodiscard]] auto autoJoin(const CardPtr& card) -> JoinedSubtitle;
 
     [[nodiscard]] auto getPrevious(const CardPtr& card) -> JoinedSubtitle;
     [[nodiscard]] auto getNext(const CardPtr& card) -> JoinedSubtitle;

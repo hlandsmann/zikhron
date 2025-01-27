@@ -6,6 +6,7 @@
 #include <database/CbdFwd.h>
 #include <misc/Identifier.h>
 
+#include <cstddef>
 #include <map>
 #include <memory>
 
@@ -25,6 +26,8 @@ public:
     using Id_Ease_vt = std::map<VocableId, Ease>;
     virtual void setEaseForCard(database::CardPtr cardId, const Id_Ease_vt& id_ease) = 0;
     virtual auto getNextCardChoice() -> const CardMeta& = 0;
+    [[nodiscard]] virtual auto getNumberOfFailedVocables() const -> std::size_t = 0;
+    [[nodiscard]] virtual auto getNumberOfTodayVocables() const -> std::size_t = 0;
 
     static auto createTreeWalker(std::shared_ptr<DataBase>) -> std::unique_ptr<ITreeWalker>;
 };

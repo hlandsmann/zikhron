@@ -35,6 +35,9 @@ public:
     void setEaseForCard(database::CardPtr cardId, const Id_Ease_vt& id_ease) override;
     auto getNextCardChoice() -> const CardMeta& override;
 
+    [[nodiscard]] auto getNumberOfFailedVocables() const -> std::size_t override;
+    [[nodiscard]] auto getNumberOfTodayVocables() const -> std::size_t override;
+
 private:
     [[nodiscard]] auto getTodayVocables() const -> index_set;
     [[nodiscard]] auto getNextTargetVocable(const std::shared_ptr<cardId_set>& ignoreCards) const -> std::optional<size_t>;
@@ -51,6 +54,8 @@ private:
     // std::optional<Tree> tree;
     std::map<size_t, std::optional<Tree>> vocableIndex_tree;
     index_set failedVocables;
+
+    mutable std::size_t numberOfTodayVocables{};
 };
 
 } // namespace sr

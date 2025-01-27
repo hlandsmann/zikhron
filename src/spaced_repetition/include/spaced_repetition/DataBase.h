@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include "CardMeta.h"
 #include "VocableMeta.h"
 #include "srtypes.h"
@@ -70,6 +71,7 @@ public:
     void addCard(const CardPtr& card);
     void removeCard(CardId cardId);
     void cleanupCards();
+    [[nodiscard]] auto getNumberOfEnabledVocables() const -> std::size_t;
 
 private:
     [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
@@ -77,6 +79,7 @@ private:
     void addVocablesOfCardMeta(const CardMeta& cardMeta);
     void setTokenizationChoiceForCard(const database::CardPtr& card) const; 
     void setTokenizationChoiceForCardAllCards() const; 
+    [[nodiscard]] auto countEnabledVocables() const -> std::size_t;
 
     std::shared_ptr<zikhron::Config> config;
 
@@ -87,5 +90,6 @@ private:
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
     std::map<CardId, CardMeta> metaCards;
+    std::size_t numberOfEnabledVocables{};
 };
 } // namespace sr

@@ -6,6 +6,7 @@
 #include <DisplayVocables.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
+#include <annotation/Token.h>
 #include <context/Fonts.h>
 #include <context/imglog.h>
 #include <database/CardDB.h>
@@ -21,6 +22,7 @@
 #include <multimedia/MpvWrapper.h>
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/CardMeta.h>
+#include <spaced_repetition/ITreeWalker.h>
 #include <spdlog/spdlog.h>
 #include <utils/Algorithm.h>
 #include <widgets/Box.h>
@@ -180,7 +182,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             }
             track = cardDB->getTrackFromCardId(cardMeta.getCardId());
             loadTrack();
-            prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, language);
+            prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, metaLayer, treeWalker, language);
         } break;
         case Proceed::submit: {
             treeWalker->setEaseForCard(cardMeta.getCard(), displayVocables->getVocIdEase());
@@ -201,13 +203,13 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             }
             loadTrack();
             if (!track->isSubtitlePrefix()) {
-                prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, language);
+                prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, metaLayer, treeWalker, language);
             }
         } break;
         case Proceed::reload:
             clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = dataBase->getCardMeta(cardMeta.getCard());
-            prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, language);
+            prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, metaLayer, treeWalker, language);
             break;
         case Proceed::annotate: {
             spdlog::info("co_await annotationTask");
@@ -272,8 +274,13 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
                            const std::shared_ptr<widget::Layer>& cardLayer,
                            const std::shared_ptr<widget::Layer>& vocableLayer,
                            const std::shared_ptr<widget::Layer>& translationLayer,
+                           const std::shared_ptr<widget::Layer>& metaLayer,
+                           const std::shared_ptr<sr::ITreeWalker>& treeWalker,
                            Language language)
 {
+    constexpr static widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseSmall,
+                                                               .wordPadding = 10.F,
+                                                               .border = 8.F};
     auto vocId_ease = cardMeta.getRelevantEase();
     auto tokenText = cardMeta.getStudyTokenText();
 
@@ -284,13 +291,17 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
     }
     if (auto optTranslation = track->getTranslation(); optTranslation.has_value()) {
         auto translation = *optTranslation;
-        constexpr static widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseSmall,
-                                                                   .wordPadding = 10.F,
-                                                                   .border = 8.F};
         ttqTranslation = translationLayer->add<widget::TextTokenSeq>(Align::start,
                                                                      annotation::tokenVectorFromString(translation),
                                                                      ttqConfig);
     }
+    metaLayer->clear();
+    auto metaInformation = fmt::format("Study today: {}, failed: {}, total vocables: {}",
+                                       treeWalker->getNumberOfTodayVocables(),
+                                       treeWalker->getNumberOfFailedVocables(),
+                                       dataBase->getNumberOfEnabledVocables());
+    ttqMetaInformation = metaLayer->add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(metaInformation),
+                                                              ttqConfig);
 }
 
 void TabCard::loadTrack()
@@ -360,6 +371,9 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
     }
     if (ttqTranslation && revealTranslation) {
         ttqTranslation->draw();
+    }
+    if (ttqMetaInformation) {
+        ttqMetaInformation->draw();
     }
 }
 
@@ -855,7 +869,10 @@ void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
         cutAddClicked = true;
         track = track->cutBack();
     }
-    btnAuto.clicked();
+    if (btnAuto.clicked()) {
+        cutAddClicked = true;
+        track = track->autoJoin();
+    }
     if (cutAddClicked) {
         revealVocables = false;
         signalProceed->set(Proceed::nextTrack);
@@ -881,9 +898,11 @@ void TabCard::handleSelection(widget::ImageButton& btnSelect,
     btnUnselect.setSensitive(dataBase->cardExists(cardId));
     if (btnSelect.clicked()) {
         dataBase->addCard(card);
+        signalProceed->set(Proceed::reload);
     }
     if (btnUnselect.clicked()) {
         dataBase->removeCard(cardId);
+        signalProceed->set(Proceed::reload);
     }
 }
 

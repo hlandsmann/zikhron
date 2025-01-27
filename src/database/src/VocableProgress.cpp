@@ -22,10 +22,11 @@ VocableProgress::VocableProgress(std::string_view sv)
 
 auto VocableProgress::serialize() const -> std::string
 {
-    return fmt::format("{},{:.2F},{:.1F},{},",
+    return fmt::format("{},{:.2F},{:.1F},{},{},",
                        utl::serialize_time_t(lastSeen),
                        easeFactor,
                        intervalDay,
+                       enabled,
                        fmt::join(triggerCardIndices, ","));
 }
 
@@ -34,6 +35,7 @@ void VocableProgress::deserialize(std::string_view sv)
     lastSeen = utl::deserialize_time_t(std::string{utl::split_front(sv, ',')});
     easeFactor = std::stof(std::string{utl::split_front(sv, ',')});
     intervalDay = std::stof(std::string{utl::split_front(sv, ',')});
+    enabled = std::string{utl::split_front(sv, ',')} == "true";
     while (true) {
         auto cardIndex = std::string{utl::split_front(sv, ',')};
         if (cardIndex.empty()) {

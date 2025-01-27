@@ -20,6 +20,7 @@
 #include <spaced_repetition/AsyncTreeWalker.h>
 #include <spaced_repetition/CardMeta.h>
 #include <spaced_repetition/DataBase.h>
+#include <spaced_repetition/ITreeWalker.h>
 #include <utils/StringU8.h>
 #include <widgets/Box.h>
 #include <widgets/Button.h>
@@ -28,6 +29,7 @@
 #include <widgets/MediaSlider.h>
 #include <widgets/Overlay.h>
 #include <widgets/SteppedSlider.h>
+#include <widgets/TextTokenSeq.h>
 #include <widgets/ToggleButtonGroup.h>
 #include <widgets/Video.h>
 #include <widgets/Window.h>
@@ -104,6 +106,8 @@ private:
                       const std::shared_ptr<widget::Layer>& cardLayer,
                       const std::shared_ptr<widget::Layer>& vocableLayer,
                       const std::shared_ptr<widget::Layer>& translationLayer,
+                      const std::shared_ptr<widget::Layer>& metaLayer,
+                      const std::shared_ptr<sr::ITreeWalker>& treeWalker,
                       Language language);
     void loadTrack();
 
@@ -171,6 +175,7 @@ private:
     std::unique_ptr<DisplayAnnotation> displayAnnotation;
     std::unique_ptr<DisplayVocables> displayVocables;
     std::shared_ptr<widget::TextTokenSeq> ttqTranslation;
+    std::shared_ptr<widget::TextTokenSeq> ttqMetaInformation;
     std::optional<database::Track> track;
 
     std::unique_ptr<DisplayVideo> displayVideo;
