@@ -157,7 +157,7 @@ void Node::sortCardIds(std::vector<CardId>& cardIds)
         const std::size_t triggerValue_a = triggerValue(cardId_a);
         const std::size_t triggerValue_b = triggerValue(cardId_b);
         if (triggerValue_a != triggerValue_b) {
-            spdlog::info("TriggerValueA: {}, triggerValueB: {}", triggerValue_a, triggerValue_b);
+            // spdlog::info("TriggerValueA: {}, triggerValueB: {}", triggerValue_a, triggerValue_b);
             return triggerValue_a > triggerValue_b;
         }
         return countIntersect_a > countIntersect_b;

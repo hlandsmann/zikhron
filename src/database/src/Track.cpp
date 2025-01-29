@@ -200,7 +200,7 @@ auto Track::autoJoin() const -> Track
 {
     const auto& video = std::get<VideoPtr>(medium);
     auto subtitlePicker = video->getActiveSubtitle();
-    auto joinedSubtitle = subtitlePicker->cutBack(card);
+    auto joinedSubtitle = subtitlePicker->autoJoin(card);
     return {medium, joinedSubtitle};
 }
 

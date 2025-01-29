@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <string>
+#include <utility>
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wconversion"
@@ -19,7 +20,7 @@ void Label::setup(const std::string& _text, context::FontType _fontType)
 }
 
 Label::Label(WidgetInit init)
-    : Widget{init}
+    : Widget{std::move(init)}
 {
 }
 

@@ -146,7 +146,40 @@ auto SubtitlePicker::cutBack(const CardPtr& card) -> JoinedSubtitle
 
 auto SubtitlePicker::autoJoin(const CardPtr& card) -> JoinedSubtitle
 {
-    return joinedSubtitleFromCard(card);
+    auto index = card->getIndexInPack();
+    auto& count = joinings.at(index);
+    if (count != 1) {
+        return joinedSubtitleFromCard(card);
+    }
+
+    const auto& subtexts = subtitle->getSubTexts();
+    constexpr auto maxPause = 1000;
+    constexpr auto maxLength = 8000;
+
+    const auto& firstSub = subtexts.at(index);
+    spdlog::warn("startTime: {}, duration: {}", firstSub.startTime, firstSub.duration);
+    auto startTime = firstSub.startTime;
+    auto lastEndTime = startTime + firstSub.duration;
+    auto subtitleSpan = std::span{std::next(subtexts.begin(),
+                                            static_cast<long>(index + 1)),
+                                  subtexts.end()};
+    for (const auto& sub : subtitleSpan) {
+        if (sub.startTime - lastEndTime > maxPause) {
+            spdlog::warn("pause: {}", sub.startTime - lastEndTime);
+            break;
+        }
+        lastEndTime = sub.startTime + sub.duration;
+        if (lastEndTime - startTime > maxLength) {
+            spdlog::warn("length: {}", lastEndTime - startTime );
+            break;
+        }
+        joinings.at(index + count) = 0;
+        removeCardAtIndex(index + count);
+        count++;
+        spdlog::warn("startTime: {}, duration: {}", sub.startTime, sub.duration);
+    }
+    indices.clear();
+    return createJoinedSubtitle(index, nullptr);
 }
 
 auto SubtitlePicker::getPrevious(const CardPtr& card) -> JoinedSubtitle
@@ -221,7 +254,9 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
     auto count = joinings.at(index);
 
     const auto& subtexts = subtitle->getSubTexts();
-    auto subtitleSpan = std::span{std::next(subtexts.begin(), static_cast<long>(index)), count};
+    auto subtitleSpan = std::span{std::next(subtexts.begin(),
+                                            static_cast<long>(index)),
+                                  count};
 
     const auto& lastSub = *ranges::max_element(subtitleSpan, ranges::less{}, [](const SubText& subText) {
         return subText.startTime + subText.duration;
