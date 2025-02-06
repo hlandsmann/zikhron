@@ -61,6 +61,11 @@ auto VideoDB::getDeserializedCards() const -> std::generator<CardPtr>
 auto VideoDB::addVideoSet(const std::vector<std::filesystem::path>& videoFiles) -> VideoSetPtr
 {
     if (videoFiles.empty() || !std::filesystem::exists(videoFiles.front())) {
+        if (!videoFiles.empty()) {
+            spdlog::error("File: `{}` doesn't exist", videoFiles.front().c_str());
+        } else {
+            spdlog::error("No filename provided");
+        }
         return nullptr;
     }
     const auto& firstVideoFile = videoFiles.front();
