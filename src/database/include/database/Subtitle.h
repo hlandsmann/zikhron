@@ -1,6 +1,7 @@
 #pragma once
 #include <multimedia/Subtitle.h>
 
+#include <cstddef>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -18,6 +19,7 @@ class Subtitle
 
 public:
     Subtitle(const multimedia::Subtitle& sub,
+             std::size_t count,
              const std::filesystem::path& videoFile,
              const std::filesystem::path& videoSetDir);
     Subtitle(const std::filesystem::path& subtitleFile,
@@ -34,6 +36,7 @@ private:
     void cleanSubTexts();
     static auto nameFromSub(const multimedia::Subtitle& sub) -> std::string;
     static auto fileNameFromSubVideo(const multimedia::Subtitle& sub,
+                                     std::size_t count,
                                      const std::filesystem::path& videoFile,
                                      const std::filesystem::path& videoSetDir) -> std::filesystem::path;
     std::string name;

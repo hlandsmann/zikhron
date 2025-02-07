@@ -8,6 +8,7 @@
 #include <utils/format.h>
 #include <utils/string_split.h>
 
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -18,10 +19,11 @@
 
 namespace database {
 Subtitle::Subtitle(const multimedia::Subtitle& sub,
+                   std::size_t count,
                    const std::filesystem::path& videoFile,
                    const std::filesystem::path& videoSetDir)
     : name{nameFromSub(sub)}
-    , filename{fileNameFromSubVideo(sub, videoFile, videoSetDir)}
+    , filename{fileNameFromSubVideo(sub, count, videoFile, videoSetDir)}
     , subTexts{sub.subs}
 {
 }
@@ -63,18 +65,19 @@ auto Subtitle::nameFromSub(const multimedia::Subtitle& sub) -> std::string
 }
 
 auto Subtitle::fileNameFromSubVideo(const multimedia::Subtitle& sub,
+                                    std::size_t count,
                                     const std::filesystem::path& videoFile,
                                     const std::filesystem::path& videoSetDir) -> std::filesystem::path
 {
     std::string allowedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789%~#%-_+,.";
     std::string subName = nameFromSub(sub);
-    auto nameCRC = utl::calculateCrc32(videoFile.string() + subName);
+    auto nameCRC = utl::calculateCrc32(videoFile.string() + subName + fmt::format("{}", count));
     for (char& character : subName) {
         if (!allowedCharacters.contains(character)) {
             character = '.';
         }
     }
-    auto fileName = fmt::format("{}.{}.{:08x}{}", videoFile.stem().string(), subName, nameCRC, s_subtitleExtension);
+    auto fileName = fmt::format("{}.{}.{:02d}.{:08x}{}", videoFile.stem().string(), subName, count, nameCRC, s_subtitleExtension);
     return videoSetDir / s_subtitleSubDirectory / fileName;
 }
 

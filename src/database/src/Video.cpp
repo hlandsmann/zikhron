@@ -14,6 +14,7 @@
 #include <utils/format.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <filesystem>
 #include <iterator>
 #include <memory>
@@ -110,8 +111,8 @@ void Video::loadSubtitles()
     auto subtitleDecoder = multimedia::ExtractSubtitles{videoFile};
     auto subs = subtitleDecoder.decode(stopToken);
     ranges::transform(subs, std::back_inserter(subtitles),
-                      [this](const multimedia::Subtitle sub) -> SubtitlePtr {
-                          return std::make_shared<Subtitle>(sub, videoFile, videoSetFile.parent_path());
+                      [this, count = std::size_t{0}](const multimedia::Subtitle sub) mutable -> SubtitlePtr {
+                          return std::make_shared<Subtitle>(sub, count++, videoFile, videoSetFile.parent_path());
                       });
     for (const auto& sub : subtitles) {
         fmt::print("fn: `{}`\n", sub->getFileName().string());
