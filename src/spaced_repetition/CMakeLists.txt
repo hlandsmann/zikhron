@@ -13,6 +13,7 @@ target_sources(zikhron_spaced_repetition
         include/spaced_repetition/CardMeta.h
         include/spaced_repetition/DataBase.h
         include/spaced_repetition/ITreeWalker.h
+        include/spaced_repetition/Scheduler.h
         include/spaced_repetition/VocableMeta.h
         include/spaced_repetition/srtypes.h
         src/AsyncTreeWalker.cpp
@@ -21,6 +22,7 @@ target_sources(zikhron_spaced_repetition
         src/Node.cpp
         src/Node.h
         src/Path.h
+        src/Scheduler.cpp
         src/Tree.cpp
         src/Tree.h
         src/TreeWalker.cpp

@@ -1,41 +1,42 @@
 #pragma once
 
-enum class EaseVal : unsigned int {
+#include <utility>
+
+enum class Rating : unsigned int {
     again,
     hard,
     good,
     easy
 };
 
-inline auto mapIntToEase(unsigned int e) -> EaseVal
+inline auto mapIntToEase(unsigned int e) -> Rating
 {
     switch (e) {
     case 0:
-        return EaseVal::again;
+        return Rating::again;
     case 1:
-        return EaseVal::hard;
+        return Rating::hard;
     case 2:
-        return EaseVal::good;
+        return Rating::good;
     case 3:
     default:
-        return EaseVal::easy;
+        return Rating::easy;
     }
 }
 
-inline auto mapEaseToUint(EaseVal e) -> unsigned
+inline auto mapEaseToUint(Rating e) -> unsigned
 {
     switch (e) {
-    case EaseVal::again:
+    case Rating::again:
         return 0;
-    case EaseVal::hard:
+    case Rating::hard:
         return 1;
-    case EaseVal::good:
+    case Rating::good:
         return 2;
-    case EaseVal::easy:
+    case Rating::easy:
         return 3;
-    default:
-        return 0;
     }
+    std::unreachable();
 }
 
 struct Ease
@@ -61,9 +62,10 @@ struct Ease
         int dueDays;
         float easeFactor;
     };
+
     Ease(float intervalDay, int dueDays, float easeFactor);
     [[nodiscard]] auto getProgress() const -> Progress;
 
-    EaseVal easeVal;
+    Rating easeVal;
     Progress progress;
 };
