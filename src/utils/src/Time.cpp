@@ -8,6 +8,17 @@
 namespace chrono = std::chrono;
 
 namespace utl {
+auto serializeTimePoint(const std::chrono::time_point<std::chrono::system_clock>& timePoint) -> std::string
+{
+    auto time = std::chrono::system_clock::to_time_t(timePoint);
+    return serialize_time_t(time);
+}
+
+auto deserializeTimePoint(const std::string& s) -> std::chrono::time_point<std::chrono::system_clock>
+{
+    auto time = deserialize_time_t(s);
+    return std::chrono::system_clock::from_time_t(time);
+}
 
 auto serialize_time_t(const std::time_t& time) -> std::string
 {
