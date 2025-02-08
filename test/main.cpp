@@ -1,4 +1,5 @@
 #include <annotation/AdaptJiebaDict.h>
+#include <annotation/Ease.h>
 #include <annotation/FreqDictionary.h>
 #include <annotation/JieBa.h>
 #include <annotation/Tokenizer.h>
@@ -6,6 +7,8 @@
 #include <annotation/TokenizerJpn.h>
 #include <database/CardPack.h>
 #include <database/CardPackDB.h>
+#include <database/SpacedRepetitionData.h>
+#include <database/SrsWeights.h>
 #include <database/TokenizationChoiceDB.h>
 #include <database/TokenizationChoiceDbChi.h>
 #include <database/WordDB.h>
@@ -17,6 +20,7 @@
 #include <misc/Language.h>
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
+#include <spaced_repetition/Scheduler.h>
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
@@ -24,6 +28,7 @@
 
 #include <algorithm>
 #include <boost/di.hpp>
+#include <cstddef>
 #include <filesystem>
 #include <iostream>
 #include <memory>
@@ -56,6 +61,80 @@ void adaptJiebaDictionaries(const std::shared_ptr<database::WordDB>& wordDB)
 
 auto main() -> int
 {
+    auto scheduler = sr::Scheduler{};
+    spdlog::info("Hello World");
+    auto injectorChi = boost::di::make_injector(
+            boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+            boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
+            boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryChi>(),
+            boost::di::bind<Language>.to(Language::chinese));
+
+    auto db = injectorChi.create<std::shared_ptr<sr::DataBase>>();
+    auto dictionary = db->getWordDB()->getDictionary();
+    auto dictionaryChi = std::dynamic_pointer_cast<const dictionary::DictionaryJpn>(dictionary);
+    std::size_t countEnabled = 0;
+    std::size_t countDisabled = 0;
+    for (const auto& vocMeta : db->Vocables()) {
+        if (vocMeta.Progress().isEnabled()) {
+            countEnabled++;
+            if (countEnabled % 200 == 0) {
+                spdlog::info("enabled: {}", vocMeta.Progress().serialize());
+                auto srsData = database::SpacedRepetitionData::fromVocableProgress(vocMeta.Progress(), database::defaultSrsWeights);
+                scheduler.review(srsData, Rating::good);
+                spdlog::info("   -->: {}", srsData.serialize());
+            }
+        }
+    }
+    for (const auto& vocMeta : db->Vocables()) {
+        if (vocMeta.Progress().isEnabled()) {
+        } else {
+            countDisabled++;
+            if (countDisabled % 500 == 0) {
+                spdlog::info("disabled: {}", vocMeta.Progress().serialize());
+                auto srsData = database::SpacedRepetitionData::fromVocableProgress(vocMeta.Progress(), database::defaultSrsWeights);
+                spdlog::info("   -->: {}", srsData.serialize());
+            }
+        }
+    }
+
+    auto review = [&scheduler](const database::SpacedRepetitionData& srd, Rating rating) -> database::SpacedRepetitionData {
+        auto srsAgain = scheduler.review(srd, Rating::again);
+        auto srsHard = scheduler.review(srd, Rating::hard);
+        auto srsGood = scheduler.review(srd, Rating::good);
+        auto srsEasy = scheduler.review(srd, Rating::easy);
+        spdlog::info("again: {}", srsAgain.getDueInTimeLabel());
+        spdlog::info("hard: {}", srsHard.getDueInTimeLabel());
+        spdlog::info("good: {}", srsGood.getDueInTimeLabel());
+        spdlog::info("easy: {}", srsEasy.getDueInTimeLabel());
+        switch (rating) {
+        case Rating::again:
+            spdlog::info("Again");
+            return srsAgain;
+        case Rating::hard:
+            spdlog::info("Hard");
+            return srsHard;
+        case Rating::good:
+            spdlog::info("Good");
+            return srsGood;
+        case Rating::easy:
+            spdlog::info("Easy");
+            return srsEasy;
+        }
+        std::unreachable();
+    };
+    database::SpacedRepetitionData srd{};
+    srd = review(srd, Rating::again);
+    srd = review(srd, Rating::good);
+    srd = review(srd, Rating::good);
+    srd = review(srd, Rating::good);
+    srd = review(srd, Rating::good);
+    srd = review(srd, Rating::good);
+    // srd = review(srd, Rating::good);
+    // srd = review(srd, Rating::good);
+    srd = review(srd, Rating::again);
+    srd = review(srd, Rating::good);
+
+    spdlog::info("Time: {}", srd.getDueInTimeLabel());
     // auto injectorJpn = boost::di::make_injector(
     //         boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
     //         boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),

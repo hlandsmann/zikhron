@@ -1,5 +1,4 @@
 #include <spdlog/spdlog.h>
-#include <unistd.h>
 
 #include <cstring>
 #include <string>
@@ -87,7 +86,7 @@ int createChild(const char* szCommand, char* const aArguments[], char* const aEn
         // Just a char by char read here, you can change it accordingly
         while (read(aStdoutPipe[PIPE_READ], &nChar, 1) == 1) {
             write(STDOUT_FILENO, &nChar, 1);
-            response+=nChar;
+            response += nChar;
         }
         spdlog::info("done, msg: {}", response);
 
@@ -107,14 +106,15 @@ int createChild(const char* szCommand, char* const aArguments[], char* const aEn
 
 int main(int argc, char* argv_[])
 {
-    char* const* aEnv = environ;//{nullptr};
+    spdlog::info("Hello {:03d}", 3);
+    char* const* aEnv = environ; //{nullptr};
     // char* argv[] = {"-jar", "/home/harmen/zikhron/sudachi-0.7.5/sudachi-0.7.5.jar", nullptr};
     char* argv[] = {"", "-jar", "sudachi-0.7.5.jar", nullptr};
     // char* argv[] = {"sudachi-0.7.5.jar", nullptr};
     // /usr/bin/java --jar /home/harmen/zikhron/sudachi-0.7.4/sudachi-0.7.4.jar
     std::string text1 = "投降してほしけりゃてめえをあと百万体呼んで来るんだな\n";
     // return createChild("/usr/bin/mecab", argv_, aEnv,text1.c_str());
-    return createChild("/usr/bin/java", argv, aEnv,text1.c_str());
+    return createChild("/usr/bin/java", argv, aEnv, text1.c_str());
     // return createChild("/home/harmen/src/zikhron/build/test/sr_treewalker", argv_, aEnv, "hello world");
     // return createChild("/home/harmen/src/zikhron/build/test/callee", argv, aEnv, "hello world");
     // return createChild("/usr/bin/ls", argv, aEnv, "hello world");
