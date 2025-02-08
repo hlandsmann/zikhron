@@ -79,7 +79,6 @@ public:
     [[nodiscard]] auto isEnabled() const -> bool;
     void setEnabled(bool enabled);
 
-private:
     void deserialize(std::string_view sv);
     float easeFactor = 0.F;
     float intervalDay = 0.F;

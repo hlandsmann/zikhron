@@ -185,7 +185,7 @@ void TreeWalker::setEaseForCard(database::CardPtr card, const Id_Ease_vt& id_eas
         db->setEaseVocable(vocId, ease);
         db->triggerVocable(vocId, cardId);
         db->resetCardsContainingVocable(vocId);
-        if (ease.easeVal == EaseVal::again) {
+        if (ease.easeVal == Rating::again) {
             size_t vocableIndex = db->Vocables().index_at_id(vocId);
             failedVocables.insert(vocableIndex);
         }

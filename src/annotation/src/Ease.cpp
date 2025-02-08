@@ -1,43 +1,43 @@
 #include <Ease.h>
-// #include <spdlog/spdlog.h>
 
 #include <algorithm>
 #include <array>
 #include <iterator>
 #include <span>
+#include <utility>
 
 namespace ranges = std::ranges;
 
 Ease::Ease(float intervalDay, int dueDays, float easeFactor)
-    : easeVal{EaseVal::easy}
+    : easeVal{Rating::easy}
     , progress{.intervalDay = intervalDay,
                .dueDays = dueDays,
                .easeFactor = easeFactor}
 {
     if (easeFactor <= thresholdFactorGood) {
-        easeVal = EaseVal::good;
+        easeVal = Rating::good;
     }
     if (easeFactor <= thresholdFactorHard && intervalDay < thresholdIntervalHard) {
-        easeVal = EaseVal::hard;
+        easeVal = Rating::hard;
     }
     if (easeFactor <= thresholdFactorAgain && intervalDay < thresholdIntervalAgain) {
-        easeVal = EaseVal::again;
+        easeVal = Rating::again;
     }
 }
 
-auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
+auto computeProgress(Rating ease, Ease::Progress progress) -> Ease::Progress
 {
     float easeChange = [=]() -> float {
         switch (ease) {
-        case EaseVal::easy:
+        case Rating::easy:
             return Ease::changeFactorEasy;
-        case EaseVal::good:
+        case Rating::good:
             return Ease::changeFactorGood;
-        case EaseVal::hard:
+        case Rating::hard:
+        case Rating::again:
             return Ease::changeFactorHard;
-        default:
-            return 0.F;
         }
+        std::unreachable();
     }();
     float easeFactor = std::clamp(std::max(Ease::minEaseFactor, progress.easeFactor) * easeChange,
                                   Ease::minEaseFactor,
@@ -45,10 +45,10 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
 
     float tempEaseFactor = [=]() -> float {
         switch (ease) {
-        case EaseVal::easy:
-        case EaseVal::good:
+        case Rating::easy:
+        case Rating::good:
             return easeFactor;
-        case EaseVal::hard:
+        case Rating::hard:
             return Ease::tempEaseFactorHard;
         default:
             return 0.F;
@@ -63,7 +63,6 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
         float partEaseFactor = tempEaseFactor - 1.F;
         intervalDay = progress.intervalDay + partEaseFactor * partIntervalDay;
     }
-    // spdlog::info("itdy: {}", intervalDay);
     return {.intervalDay = intervalDay,
             .dueDays = 0,
             .easeFactor = easeFactor};
@@ -71,9 +70,9 @@ auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
 
 auto Ease::getProgress() const -> Progress
 {
-    std::array easeValList = {EaseVal::again, EaseVal::hard, EaseVal::good, EaseVal::easy};
+    std::array easeValList = {Rating::again, Rating::hard, Rating::good, Rating::easy};
     std::array<float, easeValList.size()> intervals{};
-    ranges::transform(easeValList, intervals.begin(), [this](EaseVal ease) {
+    ranges::transform(easeValList, intervals.begin(), [this](Rating ease) {
         return computeProgress(ease, progress).intervalDay;
     });
 

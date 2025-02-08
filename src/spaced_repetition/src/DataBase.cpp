@@ -154,7 +154,7 @@ void DataBase::addCard(const database::CardPtr& card)
         (*vocables)[vocableIndex].insertCardId(cardId);
     }
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
-        if ((*vocables)[vocableIndex].CardIds().size() > 1) {
+        if ((*vocables)[vocableIndex].CardIds().size() > 2) {
             (*vocables)[vocableIndex].setEnabled(true);
         }
     }
