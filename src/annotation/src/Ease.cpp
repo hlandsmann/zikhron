@@ -9,32 +9,32 @@
 namespace ranges = std::ranges;
 
 Ease::Ease(float intervalDay, int dueDays, float easeFactor)
-    : easeVal{Rating::easy}
+    : easeVal{EaseVal::easy}
     , progress{.intervalDay = intervalDay,
                .dueDays = dueDays,
                .easeFactor = easeFactor}
 {
     if (easeFactor <= thresholdFactorGood) {
-        easeVal = Rating::good;
+        easeVal = EaseVal::good;
     }
     if (easeFactor <= thresholdFactorHard && intervalDay < thresholdIntervalHard) {
-        easeVal = Rating::hard;
+        easeVal = EaseVal::hard;
     }
     if (easeFactor <= thresholdFactorAgain && intervalDay < thresholdIntervalAgain) {
-        easeVal = Rating::again;
+        easeVal = EaseVal::again;
     }
 }
 
-auto computeProgress(Rating ease, Ease::Progress progress) -> Ease::Progress
+auto computeProgress(EaseVal ease, Ease::Progress progress) -> Ease::Progress
 {
     float easeChange = [=]() -> float {
         switch (ease) {
-        case Rating::easy:
+        case EaseVal::easy:
             return Ease::changeFactorEasy;
-        case Rating::good:
+        case EaseVal::good:
             return Ease::changeFactorGood;
-        case Rating::hard:
-        case Rating::again:
+        case EaseVal::hard:
+        case EaseVal::again:
             return Ease::changeFactorHard;
         }
         std::unreachable();
@@ -45,10 +45,10 @@ auto computeProgress(Rating ease, Ease::Progress progress) -> Ease::Progress
 
     float tempEaseFactor = [=]() -> float {
         switch (ease) {
-        case Rating::easy:
-        case Rating::good:
+        case EaseVal::easy:
+        case EaseVal::good:
             return easeFactor;
-        case Rating::hard:
+        case EaseVal::hard:
             return Ease::tempEaseFactorHard;
         default:
             return 0.F;
@@ -70,9 +70,9 @@ auto computeProgress(Rating ease, Ease::Progress progress) -> Ease::Progress
 
 auto Ease::getProgress() const -> Progress
 {
-    std::array easeValList = {Rating::again, Rating::hard, Rating::good, Rating::easy};
+    std::array easeValList = {EaseVal::again, EaseVal::hard, EaseVal::good, EaseVal::easy};
     std::array<float, easeValList.size()> intervals{};
-    ranges::transform(easeValList, intervals.begin(), [this](Rating ease) {
+    ranges::transform(easeValList, intervals.begin(), [this](EaseVal ease) {
         return computeProgress(ease, progress).intervalDay;
     });
 

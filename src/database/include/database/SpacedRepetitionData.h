@@ -1,5 +1,6 @@
 #pragma once
-#include "SrsWeights.h"
+#include <compare>
+#include <misc/Identifier.h>
 #include "VocableProgress.h"
 
 #include <utils/format.h>
@@ -25,8 +26,13 @@ struct SpacedRepetitionData
     [[nodiscard]] auto serialize() const -> std::string;
     static auto deserialize(std::string_view sv) -> SpacedRepetitionData;
     [[nodiscard]] auto getDueInTimeLabel() const -> std::string;
+    void triggeredBy(CardId cardId, const std::vector<CardId>& availableCardIds);
+    auto triggerValue(CardId cardId, const std::vector<CardId>& availableCardIds) -> std::size_t;
+    [[nodiscard]] auto getNextTriggerCard(const std::vector<CardId>& availableCardIds) const -> CardId;
+    [[nodiscard]] auto pauseTimeOver() const -> bool;
+    [[nodiscard]] auto recency() const -> double;
 
-    static auto fromVocableProgress(const VocableProgress& progress, const SrsWeights& srsWeights) -> SpacedRepetitionData;
+    // static auto fromVocableProgress(const VocableProgress& progress) -> SpacedRepetitionData;
     using time_point = std::chrono::time_point<std::chrono::system_clock>;
     time_point reviewed;
     time_point due;
@@ -37,6 +43,17 @@ struct SpacedRepetitionData
     StudyState state{StudyState::newWord};
     bool enabled{false};
     std::vector<std::size_t> triggerCardIndices;
+
+    struct RepeatRange
+    {
+        int daysMin;
+        int daysNormal;
+        int daysMax;
+        [[nodiscard]] auto implies(const RepeatRange&) const -> bool;
+        void debug() const;
+        auto operator<=>(const RepeatRange&) const -> std::weak_ordering;
+    };
+    [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
 };
 } // namespace database
 

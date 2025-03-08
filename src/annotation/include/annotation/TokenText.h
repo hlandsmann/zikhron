@@ -19,10 +19,9 @@ enum class TextType {
     text,
 };
 
-struct ActiveVocable
+struct ColoredVocable
 {
     VocableId vocableId;
-    Ease ease;
     ColorId colorId;
 };
 
@@ -36,7 +35,7 @@ class TokenText
 public:
     using Paragraph = std::vector<Token>;
     TokenText(std::shared_ptr<database::Card> card);
-    [[nodiscard]] auto setupActiveVocableIds(const std::map<VocableId, Ease>&) -> std::vector<ActiveVocable>;
+    [[nodiscard]] auto setupActiveVocableIds(const std::vector<VocableId>&) -> std::vector<ColoredVocable>;
     void setupAnnotation(const std::vector<annotation::Alternative>& alternatives);
     [[nodiscard]] auto getType() const -> TextType;
     [[nodiscard]] auto getParagraph() const -> const Paragraph&;

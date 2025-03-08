@@ -1,12 +1,10 @@
 #pragma once
 #include <database/SpacedRepetitionData.h>
-#include <database/SrsWeights.h>
 
 #include <array>
 #include <chrono>
 #include <cmath>
 #include <cstddef>
-#include <ratio>
 #include <utility>
 
 namespace sr {
@@ -50,6 +48,7 @@ private:
     [[nodiscard]] auto getBin(double stability, double ease) const -> double;
     [[nodiscard]] auto getInterval(double stability, double ease) const -> double;
     [[nodiscard]] auto getIntervalDays(double stability, double ease) const -> std::chrono::days;
+    [[nodiscard]] static auto normalizeDue(const SpacedRepetitionData::time_point& due)->SpacedRepetitionData::time_point;
 
     [[nodiscard]] static auto increaseEase(double ease, double speed) -> double;
     [[nodiscard]] static auto decreaseEase(double ease, double speed) -> double;
@@ -67,10 +66,9 @@ private:
                                     Rating rating) const -> int;
     void initBins();
 
-    double decay = -0.5;
+    // double decay = -0.5;
     // double factor = 19. / 81.; // std::pow(0.9, (1. / decay)) - 1;
     double maxInterval = 800.0;
-    database::SrsWeights weights = database::defaultSrsWeights;
 
     double desiredRetention = 0.9;
 

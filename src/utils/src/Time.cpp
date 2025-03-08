@@ -8,6 +8,9 @@
 namespace chrono = std::chrono;
 
 namespace utl {
+auto serialize_time_t(const std::time_t& time) -> std::string;
+auto deserialize_time_t(const std::string& s) -> std::time_t;
+
 auto serializeTimePoint(const std::chrono::time_point<std::chrono::system_clock>& timePoint) -> std::string
 {
     auto time = std::chrono::system_clock::to_time_t(timePoint);
@@ -34,6 +37,18 @@ auto deserialize_time_t(const std::string& s) -> std::time_t
     std::stringstream ss(s);
     ss >> std::get_time(&time, "%Y-%m-%d %H:%M:%S");
     return std::mktime(&time);
+}
+
+auto setHourOfDay(std::chrono::time_point<std::chrono::system_clock> timePoint, int hour)
+        -> std::chrono::time_point<std::chrono::system_clock>
+{
+    auto time = std::chrono::system_clock::to_time_t(timePoint);
+    std::tm todayMidnight_tm = *std::localtime(&time);
+    todayMidnight_tm.tm_sec = 0;
+    todayMidnight_tm.tm_min = 0;
+    todayMidnight_tm.tm_hour = hour;
+    time = std::mktime(&todayMidnight_tm);
+    return std::chrono::system_clock::from_time_t(time);
 }
 
 auto todayMidnightTime() -> std::time_t

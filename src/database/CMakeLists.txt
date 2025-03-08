@@ -15,7 +15,6 @@ target_sources(zikhron_database
         include/database/CardPackDB.h
         include/database/IdGenerator.h
         include/database/SpacedRepetitionData.h
-        include/database/SrsWeights.h
         include/database/Subtitle.h
         include/database/SubtitlePicker.h
         include/database/TokenizationChoiceDB.h
@@ -35,7 +34,6 @@ target_sources(zikhron_database
         src/ParsingHelpers.cpp
         src/ParsingHelpers.h
         src/SpacedRepetitionData.cpp
-        src/SrsWeights.cpp
         src/Subtitle.cpp
         src/SubtitlePicker.cpp
         src/TokenizationChoiceDbChi.cpp

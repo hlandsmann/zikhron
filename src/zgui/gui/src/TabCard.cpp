@@ -185,7 +185,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, metaLayer, treeWalker, language);
         } break;
         case Proceed::submit: {
-            treeWalker->setEaseForCard(cardMeta.getCard(), displayVocables->getVocIdEase());
+            dataBase->rateCard(cardMeta.getCard(), displayVocables->getRatedVocables());
             if (!track.has_value()) {
                 mode = Mode::shuffle;
                 signalProceed->set(Proceed::walkTree);
@@ -281,13 +281,13 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
     constexpr static widget::TextTokenSeq::Config ttqConfig = {.fontType = context::FontType::chineseSmall,
                                                                .wordPadding = 10.F,
                                                                .border = 8.F};
-    auto vocId_ease = cardMeta.getRelevantEase();
+    auto activeVocableIds = cardMeta.getActiveVocableIds();
     auto tokenText = cardMeta.getStudyTokenText();
 
-    auto orderedVocId_ease = tokenText->setupActiveVocableIds(vocId_ease);
+    auto activeVocablesColered = tokenText->setupActiveVocableIds(activeVocableIds);
     displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText), language);
-    if (!vocId_ease.empty()) {
-        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, dataBase, std::move(orderedVocId_ease), language);
+    if (!activeVocableIds.empty()) {
+        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, dataBase, std::move(activeVocablesColered), language);
     }
     if (auto optTranslation = track->getTranslation(); optTranslation.has_value()) {
         auto translation = *optTranslation;

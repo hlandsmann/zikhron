@@ -3,6 +3,7 @@
 #include "VocableProgress.h" // IWYU pragma: keep (isNewVocable)
 #include "Word.h"
 
+#include <database/SpacedRepetitionData.h>
 #include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
 #include <dictionary/DictionaryJpn.h>
@@ -113,7 +114,7 @@ void WordDB::save()
 {
     auto out = std::ofstream{config->DatabaseDirectory() / progressDbFilename};
     for (const auto& word : words) {
-        if ((!word->getProgress()->isNewVocable()) || word->isModified()) {
+        if ((word->getSpacedRepetitionData()->state != database::StudyState::newWord) || word->isModified()) {
             out << word->serialize();
         } else {
             // spdlog::info("Removed word: {} - {} -  {}",

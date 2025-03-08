@@ -31,15 +31,26 @@ namespace ranges = std::ranges;
 namespace gui {
 DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
                                  std::shared_ptr<sr::DataBase> _dataBase,
-                                 std::vector<ActiveVocable>&& _orderedVocId_ease,
+                                 std::vector<ColoredVocable>&& _coloredVocables,
                                  Language language)
     : layer{std::move(_layer)}
     , database{std::move(_dataBase)}
+    , scheduler{database->getScheduler()}
     , wordDB{database->getWordDB()}
-    , activeVocables{std::move(_orderedVocId_ease)}
+    , coloredVocables{std::move(_coloredVocables)}
+    , ratings(createInitialRatings(coloredVocables))
     , fontType{context::getFontType(context::FontSize::small, language)}
 {
     setup();
+}
+
+auto DisplayVocables::createInitialRatings(const std::vector<ColoredVocable>& coloredVocables) -> std::vector<Rating>
+{
+    std::vector<Rating> ratings;
+    ranges::transform(coloredVocables, std::back_inserter(ratings), [](const auto&) -> Rating {
+        return Rating::pass;
+    });
+    return ratings;
 }
 
 void DisplayVocables::setup()
@@ -64,13 +75,12 @@ void DisplayVocables::reload()
     setupVocables(grid);
 }
 
-auto DisplayVocables::getVocIdEase() const -> VocableId_Ease
+auto DisplayVocables::getRatedVocables() const -> VocableId_Rating
 {
-    VocableId_Ease vocIdEase;
-    ranges::transform(activeVocables, std::inserter(vocIdEase, vocIdEase.begin()),
-                      [](const auto& idEaseColor) -> std::pair<VocableId, Ease> {
-                          const auto& [vocId, ease, colorId] = idEaseColor;
-                          return {vocId, ease};
+    VocableId_Rating vocIdEase;
+    ranges::transform(coloredVocables, ratings, std::inserter(vocIdEase, vocIdEase.begin()),
+                      [](const ColoredVocable& coloredVocable, Rating rating) -> std::pair<VocableId, Rating> {
+                          return {coloredVocable.vocableId, rating};
                       });
 
     return vocIdEase;
@@ -86,8 +96,11 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
     ttqConfig.wordPadding = 15.F;
 
     grid.clear();
-    for (auto& [vocId, ease, colorId] : activeVocables) {
+    auto itEase = ratings.begin();
+    for (const auto& [vocId, colorId] : coloredVocables) {
         const auto& word = wordDB->lookupId(vocId);
+        auto rating = *itEase++;
+        const auto& srd = scheduler->review(*database->Vocables().at_id(vocId).second.SpacedRepetitionData(), rating);
         bool renderKey = true;
         bool renderEase = true;
         bool renderEnabled = true;
@@ -108,8 +121,8 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
                 }
                 grid.add<widget::TextTokenSeq>(Align::start, tokenVectorFromString(meaning, colorId), ttqConfig);
                 if (renderEase) {
-                    addEaseButtonGroup(grid);
-                    grid.add<widget::TextTokenSeq>(Align::start, makeEaseLabel(ease, colorId), ttqConfig);
+                    addRatingButtonGroup(grid);
+                    grid.add<widget::TextTokenSeq>(Align::start, makeProgressLabel(srd, colorId), ttqConfig);
                     renderEase = false;
                 } else {
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);
@@ -136,9 +149,10 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
     using context::Image;
 
     grid.start();
-    for (auto& [vocId, ease, colorId] : activeVocables) {
+    auto itEase = ratings.begin();
+    for (const auto& [vocId, colorId] : coloredVocables) {
         const auto& word = wordDB->lookupId(vocId);
-        const auto& progress = database->Vocables().at_id(vocId).second.Progress();
+        auto& rating = *itEase++;
 
         bool renderKey = true;
         bool renderEase = true;
@@ -160,13 +174,16 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
                 }
                 grid.next<widget::TextTokenSeq>().draw();
                 if (renderEase) {
-                    auto easeVal = grid.next<widget::ToggleButtonGroup>().Active(mapEaseToUint(ease.easeVal));
-                    auto tmp = std::exchange(ease.easeVal, mapIntToEase(easeVal));
+                    auto updatedRating = grid.next<widget::ToggleButtonGroup>().Active(rating);
+                    auto oldRating = std::exchange(rating, updatedRating);
 
                     auto& ttq = grid.next<widget::TextTokenSeq>();
                     ttq.draw();
-                    if (tmp != ease.easeVal) {
-                        ttq.setParagraph(makeEaseLabel(ease, colorId));
+                    if (oldRating != rating) {
+                        const auto& srd = scheduler->review(
+                                *database->Vocables().at_id(vocId).second.SpacedRepetitionData(),
+                                rating);
+                        ttq.setParagraph(makeProgressLabel(srd, colorId));
                     }
 
                     renderEase = false;
@@ -175,7 +192,8 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
                     grid.next<widget::Separator>();
                 }
                 if (renderEnabled) {
-                    bool checked = progress.isEnabled();
+                    const auto& srd = database->Vocables().at_id(vocId).second.SpacedRepetitionData();
+                    bool checked = srd->enabled;
                     checked = grid.next<widget::ImageButton>().toggled(checked);
                     grid.next<widget::TextTokenSeq>().draw();
                     renderEnabled = false;
@@ -188,17 +206,18 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
     }
 }
 
-void DisplayVocables::addEaseButtonGroup(widget::Grid& grid)
+void DisplayVocables::addRatingButtonGroup(widget::Grid& grid)
 {
     auto tbg = grid.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::horizontal,
-                                                   std::initializer_list<std::string>{"Again", "Hard", "Normal", "Easy"});
+                                                   std::initializer_list<std::string>{"fail", "pass"});
 }
 
-auto DisplayVocables::makeEaseLabel(const Ease& ease, ColorId colorId) -> std::vector<annotation::Token>
+auto DisplayVocables::makeProgressLabel(const SpacedRepetitionData& srd, ColorId colorId) -> std::vector<annotation::Token>
 {
-    auto progress = ease.getProgress();
-    auto easeLabel = fmt::format("{:.1f}, ({:.1f})", progress.intervalDay, progress.easeFactor);
-    return annotation::tokenVectorFromString(easeLabel, colorId);
+    // auto progress = ease.getProgress();
+    // const auto& scheduler = database->getScheduler();
+    auto progressLabel = srd.getDueInTimeLabel();
+    return annotation::tokenVectorFromString(progressLabel, colorId);
 }
 
 auto DisplayVocables::makeCountLabel(VocableId vocId, ColorId colorId) const -> std::vector<annotation::Token>

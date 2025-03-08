@@ -23,57 +23,57 @@ namespace sr {
 Scheduler::Scheduler()
 {
     initBins();
-    double ease = 1.;
-    ease = decreaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-
-    spdlog::info("-------------------");
-
-    ease = increaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-
-    spdlog::info("-------------------");
-
-    ease = increaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
-    spdlog::info("EASE: {}", ease);
-
-    spdlog::info("-------------------");
-    ease = decreaseEase(ease, speedStabilize);
-    spdlog::info("EASE: {}", ease);
-    ease = increaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-    ease = decreaseEase(ease, speedChange);
-    spdlog::info("EASE: {}", ease);
-
-    stabilityFromInterval(365, 0.84);
+    // double ease = 1.;
+    // ease = decreaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    //
+    // spdlog::info("-------------------");
+    //
+    // ease = increaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    //
+    // spdlog::info("-------------------");
+    //
+    // ease = increaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEaseTowardsNeutral(ease, speedChange).first;
+    // spdlog::info("EASE: {}", ease);
+    //
+    // spdlog::info("-------------------");
+    // ease = decreaseEase(ease, speedStabilize);
+    // spdlog::info("EASE: {}", ease);
+    // ease = increaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    // ease = decreaseEase(ease, speedChange);
+    // spdlog::info("EASE: {}", ease);
+    //
+    // stabilityFromInterval(365, 0.84);
 }
 
 auto Scheduler::review(const SpacedRepetitionData& srd,
@@ -124,13 +124,13 @@ auto Scheduler::reviewStateNewWord(const SpacedRepetitionData& srd,
     }
     return {
             .reviewed = timeNow,
-            .due = timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration),
+            .due = normalizeDue(timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration)),
             .shiftBackward = rating == Rating::familiar ? 2 : 0,
             .shiftForward = rating == Rating::familiar ? 4 : 0,
             .ease = ease,
             .stability = stability,
             .state = studyState,
-            .enabled = {},
+            .enabled = srd.enabled,
             .triggerCardIndices = srd.triggerCardIndices,
     };
 }
@@ -164,25 +164,22 @@ auto Scheduler::reviewStateLearning(const SpacedRepetitionData& srd,
     }
     return {
             .reviewed = timeNow,
-            .due = timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration),
+            .due = normalizeDue(timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration)),
             .shiftBackward = srd.shiftBackward,
             .shiftForward = srd.shiftForward,
             .ease = ease,
             .stability = stability,
             .state = studyState,
-            .enabled = {},
+            .enabled = srd.enabled,
             .triggerCardIndices = srd.triggerCardIndices,
     };
 }
 
-auto Scheduler::reviewStateReview(const SpacedRepetitionData& srdTmp,
+auto Scheduler::reviewStateReview(const SpacedRepetitionData& srd,
                                   Rating rating) const -> SpacedRepetitionData
 {
-    SpacedRepetitionData srd = srdTmp;
     using Days = std::chrono::duration<double, std::ratio<86400>>;
-    Days reviewedDuration{srd.due - srd.reviewed};
-    srd.stability = stabilityFromInterval(reviewedDuration.count(), srd.ease);
-    // spdlog::info("result stability: {}", result.stability);
+    // result.reviewed = std::chrono::system_clock::now();
 
     auto timeNow = std::chrono::system_clock::now();
     double ease = 0;
@@ -197,15 +194,25 @@ auto Scheduler::reviewStateReview(const SpacedRepetitionData& srdTmp,
         studyState = StudyState::relearning;
         break;
     case Rating::pass: {
-        ease = nextEase(srd.stability, srd.ease);
-        auto tmpStability = nextStability(srd.stability, ease, rating);
+        Days reviewedDuration{std::chrono::system_clock::now() - srd.reviewed};
+        auto reviewStability = stabilityFromInterval(reviewedDuration.count(), srd.ease);
+        // in case the stability may not rise because interval days is unchanging, this should prevent unchanging stability
+        // if (getIntervalDays(reviewStability, srd.ease) == getIntervalDays(srd)) {
+        //     reviewStability = std::max(reviewStability, srd.stability);
+        // }
+
+        // spdlog::info("srd: {}, ", srd.serialize());
+        // spdlog::info("result stability: {}, {}", reviewStability, reviewedDuration.count());
+        ease = nextEase(reviewStability, srd.ease);
+        auto tmpStability = nextStability(reviewStability, ease, rating);
         auto tmpInterval = getInterval(tmpStability, srd.ease);
         stability = stabilityFromInterval(tmpInterval, ease);
 
         // if the stability doesn't change, force a change. (if the ease doesn't change, stability should rise)
-        if (ease == srd.ease && stability - srdTmp.stability < 0.01) {
-            stability = nextStability(srdTmp.stability, ease, rating);
-        }
+        // if (ease == srd.ease && stability - srd.stability < 0.01) {
+        //     stability = nextStability(srd.stability, ease, rating);
+        //     spdlog::info("force a change, stability: {}", stability);
+        // }
         duration = getIntervalDays(stability, ease);
         break;
     }
@@ -214,13 +221,13 @@ auto Scheduler::reviewStateReview(const SpacedRepetitionData& srdTmp,
     }
     return {
             .reviewed = timeNow,
-            .due = timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration),
+            .due = normalizeDue(timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration)),
             .shiftBackward = shiftBackward(srd, stability, ease, rating),
             .shiftForward = shiftForward(srd, stability, ease, rating),
             .ease = ease,
             .stability = stability,
             .state = studyState,
-            .enabled = {},
+            .enabled = srd.enabled,
             .triggerCardIndices = srd.triggerCardIndices,
     };
 }
@@ -242,6 +249,7 @@ auto Scheduler::reviewStateRelearning(const SpacedRepetitionData& srd,
         stability = srd.stability;
         ease = srd.ease;
         duration = getIntervalDays(stability, ease);
+        // spdlog::info("dur: {}", getInterval(stability, ease));
         studyState = StudyState::review;
         break;
     default:
@@ -249,13 +257,13 @@ auto Scheduler::reviewStateRelearning(const SpacedRepetitionData& srd,
     }
     return {
             .reviewed = timeNow,
-            .due = timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration),
+            .due = normalizeDue(timeNow + std::chrono::duration_cast<std::chrono::nanoseconds>(duration)),
             .shiftBackward = srd.shiftBackward,
             .shiftForward = srd.shiftForward,
             .ease = ease,
             .stability = stability,
             .state = studyState,
-            .enabled = {},
+            .enabled = srd.enabled,
             .triggerCardIndices = srd.triggerCardIndices,
     };
 }
@@ -388,7 +396,7 @@ auto Scheduler::getInterval(double stability, double ease) const -> double
     double bin = getBin(stability, ease);
     double interval = std::pow(bin, stability);
     // spdlog::info("i: {}, bin: {}, stability: {}", interval, bin, stability);
-    interval = std::clamp(std::floor(interval), 1., maxInterval);
+    interval = std::clamp(interval, 1., maxInterval);
     return interval;
 }
 
@@ -396,6 +404,16 @@ auto Scheduler::getIntervalDays(double stability, double ease) const -> std::chr
 {
     double interval = getInterval(stability, ease);
     return std::chrono::days{static_cast<int>(interval)};
+}
+
+auto Scheduler::normalizeDue(const SpacedRepetitionData::time_point& due) -> SpacedRepetitionData::time_point
+{
+    auto duration = due - std::chrono::system_clock::now();
+    using Days = std::chrono::duration<double, std::ratio<86400>>;
+    if (std::chrono::duration_cast<Days>(duration).count() > 0.9) {
+        // return std::chrono::time_point_cast<std::chrono::days>(due);
+    }
+    return due;
 }
 
 auto Scheduler::getIntervalDays(const SpacedRepetitionData& srd) const -> std::chrono::days
@@ -531,7 +549,7 @@ auto Scheduler::shiftBackward(const SpacedRepetitionData& srd,
     switch (rating) {
     case Rating::fail: {
         const auto& [failEase, failStability] = failStabilityAndEase(srd);
-        double newInterval = getInterval(failEase, failStability);
+        double newInterval = getInterval(failStability, failEase);
         return static_cast<int>(newInterval / 4.);
     }
 
@@ -540,6 +558,9 @@ auto Scheduler::shiftBackward(const SpacedRepetitionData& srd,
         easeHard = decreaseEase(easeHard, speedChange);
         double stabilityHard = nextStability(srd.stability, easeHard, rating);
         double intervalHard = getInterval(stabilityHard, easeHard);
+        if (intervalHard == maxInterval) {
+            intervalHard *= 0.75;
+        }
         double interval = getInterval(stability, ease);
         // spdlog::info("ih{:.2F}:ig{:.2F}, dh{:.2F}, sh{:.2F}", intervalHard, interval, easeHard, stabilityHard);
         // return static_cast<int>(std::max((interval - intervalHard), 0.));
@@ -557,7 +578,7 @@ auto Scheduler::shiftForward(const SpacedRepetitionData& srd,
     switch (rating) {
     case Rating::fail: {
         const auto& [failEase, failStability] = failStabilityAndEase(srd);
-        double newInterval = getInterval(failEase, failStability);
+        double newInterval = getInterval(failStability, failEase);
         return static_cast<int>(newInterval / 4.);
     }
 
@@ -567,7 +588,10 @@ auto Scheduler::shiftForward(const SpacedRepetitionData& srd,
         double stabilityEasy = nextStability(srd.stability, easeEasy, rating);
         double intervalEasy = getInterval(stabilityEasy, easeEasy);
         double interval = getInterval(stability, ease);
-        // spdlog::info("ih{:.2F}:ig{:.2F}, dh{:.2F}, sh{:.2F}", intervalEasy, interval, easeEasy, stabilityEasy);
+        if (interval == maxInterval) {
+            intervalEasy *= 1.25;
+        }
+        // spdlog::info("intervalEasy{:.2F}, interval{:.2F}, easeEasy{:.2F}, stabilityEasy{:.2F}", intervalEasy, interval, easeEasy, stabilityEasy);
         return static_cast<int>(std::clamp((intervalEasy - interval), 0., interval / 3));
         // double easeEasy = increaseEase(srd.ease, speedChange);
         //  easeEasy = increaseEase(easeEasy, speedChange);
@@ -596,18 +620,18 @@ void Scheduler::initBins()
         return std::pow(std::pow(bin, expPrev), 1. / exp);
     });
     std::generate(binsEasy.begin(), std::prev(binsEasy.end()), [this, index = std::size_t{1}]() mutable -> double {
-        auto expNext = static_cast<double>(index);
-        auto exp = static_cast<double>(index - 1);
+        auto expNext = static_cast<double>(index + 1);
+        auto exp = static_cast<double>(index);
         auto bin = binsGood.at(index);
         index++;
 
         return std::pow(std::pow(bin, expNext), 1. / exp);
     });
     binsEasy.back() = binsEasy.at(numberOfBins - 2);
-    double exp = 0;
-    for (const auto& [hard, good, easy] : views::zip(binsHard, binsGood, binsEasy)) {
-        // spdlog::info("{} {} {} - {}", hard, good, easy, std::pow(easy, exp));
-        exp++;
-    }
+    // double exp = 0;
+    // for (const auto& [hard, good, easy] : views::zip(binsHard, binsGood, binsEasy)) {
+    //     spdlog::info("{} {} {} - {}", hard, good, easy, std::pow(easy, exp));
+    //     exp++;
+    // }
 }
 } // namespace sr

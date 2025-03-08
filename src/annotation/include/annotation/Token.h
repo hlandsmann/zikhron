@@ -49,4 +49,10 @@ auto tokenVectorFromString(const std::string& str, ColorId colorId = ColorId::de
 
 template<>
 struct fmt::formatter<annotation::Token> : fmt::formatter<std::string>
-{};
+{
+    auto format(annotation::Token const& token, format_context& ctx) const
+    {
+        return formatter<std::string>::format(token.string(), ctx);
+    }
+
+};

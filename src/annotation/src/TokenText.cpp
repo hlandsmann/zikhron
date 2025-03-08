@@ -48,12 +48,12 @@ TokenText::TokenText(std::shared_ptr<Card> _card)
     }
 }
 
-auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_ease) -> std::vector<ActiveVocable>
+auto TokenText::setupActiveVocableIds(const std::vector<VocableId>& activeVocableIds) -> std::vector<ColoredVocable>
 {
-    std::vector<ActiveVocable> activeVocables{};
+    std::vector<ColoredVocable> activeVocables{};
     auto tokens = views::join(paragraphSeq);
-    ranges::transform(vocId_ease, std::back_inserter(activeVocables), [](const auto& pairVocId_ease) -> ActiveVocable {
-        return {.vocableId = pairVocId_ease.first, .ease = pairVocId_ease.second, .colorId = {}};
+    ranges::transform(activeVocableIds, std::back_inserter(activeVocables), [](const auto vocableId) -> ColoredVocable {
+        return {.vocableId = vocableId, .colorId = {}};
     });
     ranges::sort(activeVocables, std::less{}, [&](const auto& activeVocable) {
         auto it = ranges::find_if(tokens, [&](const auto& token) -> bool {
@@ -70,7 +70,7 @@ auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_eas
     std::size_t nextColorId = 0;
 
     for (auto& token : tokens) {
-        auto it = ranges::find(activeVocables, token.getVocableId(), &ActiveVocable::vocableId);
+        auto it = ranges::find(activeVocables, token.getVocableId(), &ColoredVocable::vocableId);
         if (it != activeVocables.end()) {
             if (it->colorId >= nextColorId) {
                 token.setColorId(it->colorId);
@@ -78,7 +78,7 @@ auto TokenText::setupActiveVocableIds(const std::map<VocableId, Ease>& vocId_eas
             }
         }
     }
-    vocableCount = vocId_ease.size();
+    vocableCount = activeVocableIds.size();
     return activeVocables;
 }
 

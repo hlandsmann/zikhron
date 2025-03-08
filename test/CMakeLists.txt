@@ -31,6 +31,21 @@ target_link_libraries(kocoro_signal
 )
 set_property(TARGET kocoro_signal PROPERTY CXX_STANDARD 23)
 
+add_executable(schedulerTest)
+target_sources(schedulerTest
+    PRIVATE
+        schedulerTest.cpp
+)
+target_link_libraries(schedulerTest
+    PRIVATE
+        zikhron::spaced_repetition
+        zikhron::warnings
+        zikhron::utils
+        spdlog::spdlog
+        Pal::Sigslot
+)
+set_property(TARGET schedulerTest PROPERTY CXX_STANDARD 23)
+
 add_executable(scratch)
 target_sources(scratch
     PRIVATE

@@ -29,6 +29,13 @@ public:
     auto operator=(ToggleButtonGroup&&) -> ToggleButtonGroup& = delete;
 
     auto Active(unsigned active) -> unsigned;
+
+    template<class EnumType>
+    auto Active(EnumType _active) -> EnumType
+    {
+        return static_cast<EnumType>(Active(static_cast<unsigned>(_active)));
+    }
+
     auto getActive() -> unsigned;
     auto arrange(const layout::Rect& /* rect */) -> bool override;
     void setExpandType(layout::ExpandType expandWidth, layout::ExpandType expandHeight);
