@@ -2,6 +2,7 @@
 #include "srtypes.h"
 
 #include <annotation/Ease.h>
+#include <database/SpacedRepetitionData.h>
 #include <database/VocableProgress.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -16,8 +17,8 @@ namespace sr {
 class VocableMeta
 {
 public:
-    VocableMeta(std::shared_ptr<VocableProgress> progress);
-    [[nodiscard]] auto Progress() const -> const VocableProgress&;
+    VocableMeta( std::shared_ptr<database::SpacedRepetitionData> spacedRepetitionData);
+    [[nodiscard]] auto SpacedRepetitionData() const -> std::shared_ptr<database::SpacedRepetitionData>;
     [[nodiscard]] auto CardIds() const -> const std::set<CardId>&;
     void triggerByCardId(CardId cardId);
     [[nodiscard]] auto triggerValue(CardId cardId) const -> std::size_t;
@@ -30,7 +31,7 @@ public:
     void setEnabled(bool enabled);
 
 private:
-    std::shared_ptr<VocableProgress> progress;
+    std::shared_ptr<database::SpacedRepetitionData> spacedRepetitionData;
     std::set<CardId> cardIds;
 };
 

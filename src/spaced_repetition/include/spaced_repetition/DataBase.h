@@ -1,6 +1,6 @@
 #pragma once
-#include <cstddef>
 #include "CardMeta.h"
+#include "Scheduler.h"
 #include "VocableMeta.h"
 #include "srtypes.h"
 
@@ -22,6 +22,7 @@
 #include <utils/index_map.h>
 #include <utils/min_element_val.h>
 
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <optional>
@@ -38,6 +39,7 @@ class DataBase
     using TokenizationChoiceDB = database::TokenizationChoiceDB;
     using TokenizationChoiceDbChi = database::TokenizationChoiceDbChi;
     using CardPtr = database::CardPtr;
+    using VocableId_Rating = std::map<VocableId, Rating>;
 
 public:
     using CharacterSequence = database::Card::CharacterSequence;
@@ -45,7 +47,8 @@ public:
     DataBase(std::shared_ptr<zikhron::Config> config,
              std::shared_ptr<WordDB> wordDB,
              std::shared_ptr<CardDB> cardDB,
-             std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB);
+             std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB,
+             std::shared_ptr<Scheduler> scheduler);
     virtual ~DataBase();
 
     DataBase(const DataBase&) = delete;
@@ -59,11 +62,13 @@ public:
     [[nodiscard]] auto getTokenizationChoiceDB() const -> std::shared_ptr<database::TokenizationChoiceDB>;
     [[nodiscard]] auto getCardDB() const -> std::shared_ptr<CardDB>;
     [[nodiscard]] auto getWordDB() const -> std::shared_ptr<WordDB>;
+    [[nodiscard]] auto getScheduler() const -> std::shared_ptr<Scheduler>;
 
     [[nodiscard]] auto getCardMeta(const database::CardPtr& card) -> CardMeta;
     void reloadCard(const database::CardPtr& card);
 
-    void setEaseVocable(VocableId, const Ease&);
+    void rateCard(CardPtr card, const VocableId_Rating& vocableRatings);
+    void setEaseVocable(VocableId, const Rating&);
     void triggerVocable(VocableId, CardId);
     void resetCardsContainingVocable(VocableId vocId);
 
@@ -74,11 +79,11 @@ public:
     [[nodiscard]] auto getNumberOfEnabledVocables() const -> std::size_t;
 
 private:
-    [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
+    // [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
     void fillIndexMaps();
     void addVocablesOfCardMeta(const CardMeta& cardMeta);
-    void setTokenizationChoiceForCard(const database::CardPtr& card) const; 
-    void setTokenizationChoiceForCardAllCards() const; 
+    void setTokenizationChoiceForCard(const database::CardPtr& card) const;
+    void setTokenizationChoiceForCardAllCards() const;
     [[nodiscard]] auto countEnabledVocables() const -> std::size_t;
 
     std::shared_ptr<zikhron::Config> config;
@@ -86,10 +91,12 @@ private:
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB;
-    std::map<VocableId, VocableProgress> progressVocables;
+    // std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
     std::map<CardId, CardMeta> metaCards;
     std::size_t numberOfEnabledVocables{};
+
+    std::shared_ptr<Scheduler> scheduler;
 };
 } // namespace sr

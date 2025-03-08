@@ -32,13 +32,14 @@ public:
     ~TreeWalker() override = default;
 
     using Id_Ease_vt = ITreeWalker::Id_Ease_vt;
-    void setEaseForCard(database::CardPtr cardId, const Id_Ease_vt& id_ease) override;
+    // void setEaseForCard(database::CardPtr cardId, const Id_Ease_vt& id_ease) override;
     auto getNextCardChoice() -> const CardMeta& override;
 
     [[nodiscard]] auto getNumberOfFailedVocables() const -> std::size_t override;
     [[nodiscard]] auto getNumberOfTodayVocables() const -> std::size_t override;
 
 private:
+    void updateFailedVocables();
     [[nodiscard]] auto getTodayVocables() const -> index_set;
     [[nodiscard]] auto getNextTargetVocable(const std::shared_ptr<cardId_set>& ignoreCards) const -> std::optional<size_t>;
     [[nodiscard]] auto getNextTargetCard() -> std::optional<CardId>;

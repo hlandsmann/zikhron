@@ -41,7 +41,8 @@ public:
 
     [[nodiscard]] auto getStudyTokenText() -> std::unique_ptr<annotation::TokenText>;
 
-    [[nodiscard]] auto getRelevantEase() const -> std::map<VocableId, Ease>;
+    // [[nodiscard]] auto getRelevantEase() const -> std::map<VocableId, Ease>;
+    auto getActiveVocableIds() const -> std::vector<VocableId>;
 
     void resetMetaData();
 
@@ -49,8 +50,7 @@ private:
     [[nodiscard]] auto generateTimingAndVocables(CardContent cardContent) const -> TimingAndVocables;
     auto generateVocableIDs() const -> std::vector<VocableId>;
     auto generateVocableIndexes() const -> index_set;
-    auto getActiveVocableIds() const -> std::vector<VocableId>;
-    auto easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>;
+    // auto easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>;
     CardId cardId{};
     std::shared_ptr<Card> card;
     mutable std::optional<index_set> optVocableIndices;

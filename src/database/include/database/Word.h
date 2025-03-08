@@ -10,6 +10,7 @@
 class VocableProgress;
 
 namespace database {
+class SpacedRepetitionData;
 
 struct Definition;
 
@@ -27,7 +28,7 @@ public:
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] auto getId() const -> VocableId;
     [[nodiscard]] auto Key() const -> std::string;
-    [[nodiscard]] auto getProgress() const -> std::shared_ptr<VocableProgress>;
+    [[nodiscard]] auto getSpacedRepetitionData() const -> std::shared_ptr<SpacedRepetitionData>;
     [[nodiscard]] auto getDefinitions() const -> const std::vector<Definition>&;
     void setDefinitions(const std::vector<Definition>& definitions);
     [[nodiscard]] auto isConfigureable() const -> bool;
@@ -37,7 +38,7 @@ public:
 private:
     void parseDefinitions(std::string_view description);
     VocableId vocableId{};
-    std::shared_ptr<VocableProgress> vocableProgress;
+    std::shared_ptr<SpacedRepetitionData> spacedRepetitionData;
 
     std::string key;
     std::vector<Definition> definitions;

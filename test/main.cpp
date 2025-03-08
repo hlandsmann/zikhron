@@ -7,7 +7,6 @@
 #include <database/CardPack.h>
 #include <database/CardPackDB.h>
 #include <database/SpacedRepetitionData.h>
-#include <database/SrsWeights.h>
 #include <database/TokenizationChoiceDB.h>
 #include <database/TokenizationChoiceDbChi.h>
 #include <database/WordDB.h>
@@ -82,7 +81,7 @@ auto main() -> int
             countEnabled++;
             if (countEnabled % 200 == 0) {
                 spdlog::info("enabled: {}", vocMeta.Progress().serialize());
-                auto srsData = database::SpacedRepetitionData::fromVocableProgress(vocMeta.Progress(), database::defaultSrsWeights);
+                auto srsData = database::SpacedRepetitionData::fromVocableProgress(vocMeta.Progress());
                 // scheduler.review(srsData, Rating::pass);
                 spdlog::info("   -->: {}", srsData.serialize());
                 srsData = srsData.deserialize(srsData.serialize());
@@ -96,7 +95,7 @@ auto main() -> int
             countDisabled++;
             if (countDisabled % 500 == 0) {
                 spdlog::info("disabled: {}", vocMeta.Progress().serialize());
-                auto srsData = database::SpacedRepetitionData::fromVocableProgress(vocMeta.Progress(), database::defaultSrsWeights);
+                auto srsData = database::SpacedRepetitionData::fromVocableProgress(vocMeta.Progress());
                 spdlog::info("   -->: {}", srsData.serialize());
             }
         }
@@ -110,23 +109,23 @@ auto main() -> int
         srdTemp.reviewed = srd.reviewed - dur + duration_cast<std::chrono::nanoseconds>(Days{srd.shiftBackward});
         srdTemp.due = std::chrono::system_clock::now();
 
-        auto srsAgain = scheduler.review(srdTemp, Rating::fail);
-        auto srsGood = scheduler.review(srdTemp, Rating::pass);
+        auto srsFail = scheduler.review(srdTemp, Rating::fail);
+        auto srsPass = scheduler.review(srdTemp, Rating::pass);
         // auto srsEasy = scheduler.review(srd, Rating::familiar);
         spdlog::info("incd: {}, ----> {}", srdTemp.getDueInTimeLabel(), srdTemp.serialize());
-        spdlog::info("fail: {}, ----> {}", srsAgain.getDueInTimeLabel(), srsAgain.serialize());
-        spdlog::info("pass: {}, ----> {}", srsGood.getDueInTimeLabel(), srsGood.serialize());
+        spdlog::info("fail: {}, ----> {}", srsFail.getDueInTimeLabel(), srsFail.serialize());
+        spdlog::info("pass: {}, ----> {}", srsPass.getDueInTimeLabel(), srsPass.serialize());
         // spdlog::info("easy: {}", srsEasy.getDueInTimeLabel());
         switch (rating) {
         case Rating::fail:
             spdlog::info("Fail");
-            return srsAgain;
+            return srsFail;
         case Rating::pass:
             spdlog::info("Pass");
-            return srsGood;
-            // case Rating::familiar:
-            //     spdlog::info("Familiar");
-            //     return srsEasy;
+            return srsPass;
+            case Rating::familiar:
+                spdlog::info("Familiar");
+                return srsPass;
         }
         std::unreachable();
     };

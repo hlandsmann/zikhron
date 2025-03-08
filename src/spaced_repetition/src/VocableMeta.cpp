@@ -1,6 +1,7 @@
 #include <DataBase.h>
 #include <VocableMeta.h>
 #include <annotation/Ease.h>
+#include <database/SpacedRepetitionData.h>
 #include <database/VocableProgress.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
@@ -13,7 +14,6 @@
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
-#include <map>
 #include <memory>
 #include <set>
 #include <utility>
@@ -26,13 +26,13 @@ namespace ranges = std::ranges;
 // namespace views = std::views;
 
 namespace sr {
-VocableMeta::VocableMeta(std::shared_ptr<VocableProgress> _progress)
-    : progress{std::move(_progress)}
+VocableMeta::VocableMeta(std::shared_ptr<database::SpacedRepetitionData> _spacedRepetitionData)
+    : spacedRepetitionData{std::move(_spacedRepetitionData)}
 {}
 
-auto VocableMeta::Progress() const -> const VocableProgress&
+auto VocableMeta::SpacedRepetitionData() const -> std::shared_ptr<database::SpacedRepetitionData>
 {
-    return *progress;
+    return spacedRepetitionData;
 }
 
 auto VocableMeta::CardIds() const -> const std::set<CardId>&
@@ -40,30 +40,25 @@ auto VocableMeta::CardIds() const -> const std::set<CardId>&
     return cardIds;
 }
 
-void VocableMeta::advanceByEase(const Ease& ease)
-{
-    progress->advanceByEase(ease);
-}
-
 void VocableMeta::triggerByCardId(CardId cardId)
 {
     std::vector<CardId> cardIdVec;
     ranges::copy(cardIds, std::back_inserter(cardIdVec));
-    progress->triggeredBy(cardId, cardIdVec);
+    spacedRepetitionData->triggeredBy(cardId, cardIdVec);
 }
 
 auto VocableMeta::triggerValue(CardId cardId) const -> std::size_t
 {
     std::vector<CardId> cardIdVec;
     ranges::copy(cardIds, std::back_inserter(cardIdVec));
-    return progress->triggerValue(cardId, cardIdVec);
+    return spacedRepetitionData->triggerValue(cardId, cardIdVec);
 }
 
 auto VocableMeta::getNextTriggerCard() const -> CardId
 {
     std::vector<CardId> cardIdVec;
     ranges::copy(cardIds, std::back_inserter(cardIdVec));
-    return progress->getNextTriggerCard(cardIdVec);
+    return spacedRepetitionData->getNextTriggerCard(cardIdVec);
 }
 
 void VocableMeta::insertCardId(CardId cardId)
@@ -78,7 +73,7 @@ void VocableMeta::eraseCardId(CardId cardId)
 
 void VocableMeta::setEnabled(bool enabled)
 {
-    progress->setEnabled(enabled);
+    spacedRepetitionData->enabled = enabled;
 }
 
 } // namespace sr

@@ -114,19 +114,19 @@ auto CardMeta::getStudyTokenText() -> std::unique_ptr<annotation::TokenText>
     return std::make_unique<annotation::TokenText>(card);
 }
 
-auto CardMeta::getRelevantEase() const -> std::map<VocableId, Ease>
-{
-    std::vector<VocableId> vocableIds = getActiveVocableIds();
-    std::vector<Ease> eases = easesFromVocableIds(vocableIds);
-    std::map<VocableId, Ease> relevantEases;
-
-    ranges::transform(vocableIds, eases,
-                      std::inserter(relevantEases, relevantEases.begin()),
-                      [](VocableId vocId, Ease ease) -> std::pair<VocableId, Ease> {
-                          return {vocId, ease};
-                      });
-    return relevantEases;
-}
+// auto CardMeta::getRelevantEase() const -> std::map<VocableId, Ease>
+// {
+//     std::vector<VocableId> vocableIds = getActiveVocableIds();
+//     std::vector<Ease> eases = easesFromVocableIds(vocableIds);
+//     std::map<VocableId, Ease> relevantEases;
+//
+//     ranges::transform(vocableIds, eases,
+//                       std::inserter(relevantEases, relevantEases.begin()),
+//                       [](VocableId vocId, Ease ease) -> std::pair<VocableId, Ease> {
+//                           return {vocId, ease};
+//                       });
+//     return relevantEases;
+// }
 
 void CardMeta::resetMetaData()
 {
@@ -138,38 +138,40 @@ void CardMeta::resetMetaData()
 
 auto CardMeta::generateTimingAndVocables(CardContent cardContent) const -> TimingAndVocables
 {
-    auto filter_enabled = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].Progress().isEnabled(); };
-    auto vocable_progress = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].Progress(); };
+    using SpacedRepetitionData = database::SpacedRepetitionData;
+    auto filter_enabled = [this](std::size_t vocableIndex) { return (*vocables)[vocableIndex].SpacedRepetitionData()->enabled; };
+    const auto& srd = [this](std::size_t vocableIndex) { return *(*vocables)[vocableIndex].SpacedRepetitionData(); };
     const auto& vocableIndices = cardContent == CardContent::inactiveVisible ? VocableIndices()
-                                                                             : std::ranges::to<index_set>(VocableIndices() | views::filter(filter_enabled));
+                                                                             : std::ranges::to<index_set>(VocableIndices()
+                                                                                                          | views::filter(filter_enabled));
     if (vocableIndices.empty()) {
         return {};
     }
 
-    VocableProgress threshHoldProgress{};
+    SpacedRepetitionData threshHoldProgress{};
     if (cardContent == CardContent::normal) {
-        auto progresses = vocableIndices | views::transform(vocable_progress);
-        auto minIt = ranges::min_element(progresses, std::less{}, &VocableProgress::getRepeatRange);
+        auto progresses = vocableIndices | views::transform(srd);
+        auto minIt = ranges::min_element(progresses, std::less{}, &SpacedRepetitionData::getRepeatRange);
         threshHoldProgress = *minIt;
     }
     index_set nextActiveVocables;
     ranges::copy_if(vocableIndices,
                     std::inserter(nextActiveVocables, nextActiveVocables.begin()),
                     [&](const auto& vocableIndex) {
-                        auto getRepeatRange = (*vocables)[vocableIndex].Progress().getRepeatRange();
+                        auto getRepeatRange = (*vocables)[vocableIndex].SpacedRepetitionData()->getRepeatRange();
                         return threshHoldProgress.getRepeatRange().implies(getRepeatRange);
                     });
     if (nextActiveVocables.empty()) {
         return {};
     }
 
-    auto progressesNextActive = nextActiveVocables | views::transform(vocable_progress);
+    auto progressesNextActive = nextActiveVocables | views::transform(srd);
     auto nextActiveIt = ranges::max_element(
             progressesNextActive,
             [](const auto& range1, const auto& range2) -> bool {
                 return range1.daysMin < range2.daysMin;
             },
-            &VocableProgress::getRepeatRange);
+            &SpacedRepetitionData::getRepeatRange);
     const auto& nextActiveProgress = *nextActiveIt;
     if (cardContent == CardContent::normal) {
         auto minNormalIt = ranges::min_element(
@@ -177,14 +179,14 @@ auto CardMeta::generateTimingAndVocables(CardContent cardContent) const -> Timin
                 [](const auto& range1, const auto& range2) -> bool {
                     return range1.daysNormal < range2.daysNormal;
                 },
-                &VocableProgress::getRepeatRange);
+                &SpacedRepetitionData::getRepeatRange);
         const auto& minNormalProgress = *minNormalIt;
         auto minMaxIt = ranges::min_element(
                 progressesNextActive,
                 [](const auto& range1, const auto& range2) -> bool {
                     return range1.daysMax < range2.daysMax;
                 },
-                &VocableProgress::getRepeatRange);
+                &SpacedRepetitionData::getRepeatRange);
         const auto& minMaxProgress = *minMaxIt;
         auto timing = minNormalProgress.getRepeatRange().daysNormal;
         if (minMaxProgress.getRepeatRange().daysMax > 0
@@ -245,26 +247,26 @@ auto CardMeta::getActiveVocableIds() const -> std::vector<VocableId>
     return activeVocableIds;
 }
 
-auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>
-{
-    std::vector<Ease> eases;
-    // const auto& dictionary = *card->getTokenizer().Dictionary();
-    ranges::transform(
-            vocableIds,
-            std::back_inserter(eases),
-            [&, this](VocableId vocId) -> Ease {
-                const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
-                const auto& wordDB = card->getWordDB();
-                spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f}, seen: {}, dueDays: {} - id: {}, --- nCards: {}",
-                              wordDB->lookupId(vocId)->Key(),
-                              vocSR.EaseFactor(),
-                              vocSR.IntervalDay(),
-                              vocSR.getLastSeenStr(),
-                              vocSR.dueDays(),
-                              vocId,
-                              vocables->at_id(vocId).second.CardIds().size());
-                return {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()};
-            });
-    return eases;
-}
+// auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>
+// {
+//     std::vector<Ease> eases;
+//     // const auto& dictionary = *card->getTokenizer().Dictionary();
+//     ranges::transform(
+//             vocableIds,
+//             std::back_inserter(eases),
+//             [&, this](VocableId vocId) -> Ease {
+//                 const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
+//                 const auto& wordDB = card->getWordDB();
+//                 spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f}, seen: {}, dueDays: {} - id: {}, --- nCards: {}",
+//                               wordDB->lookupId(vocId)->Key(),
+//                               vocSR.EaseFactor(),
+//                               vocSR.IntervalDay(),
+//                               vocSR.getLastSeenStr(),
+//                               vocSR.dueDays(),
+//                               vocId,
+//                               vocables->at_id(vocId).second.CardIds().size());
+//                 return {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()};
+//             });
+//     return eases;
+// }
 } // namespace sr

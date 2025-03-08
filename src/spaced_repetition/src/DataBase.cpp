@@ -1,5 +1,8 @@
+#include "DataBase.h"
+
+#include "Scheduler.h"
+
 #include <CardMeta.h>
-#include <DataBase.h>
 #include <VocableMeta.h>
 #include <annotation/Ease.h>
 #include <database/CbdFwd.h>
@@ -35,12 +38,14 @@ namespace sr {
 DataBase::DataBase(std::shared_ptr<zikhron::Config> _config,
                    std::shared_ptr<WordDB> _wordDB,
                    std::shared_ptr<CardDB> _cardDB,
-                   std::shared_ptr<TokenizationChoiceDB> _tokenizationChoiceDB)
+                   std::shared_ptr<TokenizationChoiceDB> _tokenizationChoiceDB,
+                   std::shared_ptr<Scheduler> _scheduler)
     : config{std::move(_config)}
     , wordDB{std::move(_wordDB)}
     , cardDB{std::move(_cardDB)}
     , tokenizationChoiceDB{std::move(_tokenizationChoiceDB)}
     , vocables{std::make_shared<utl::index_map<VocableId, VocableMeta>>()}
+    , scheduler{std::move(_scheduler)}
 {
     fillIndexMaps();
 }
@@ -84,6 +89,11 @@ auto DataBase::getWordDB() const -> std::shared_ptr<WordDB>
     return wordDB;
 }
 
+auto DataBase::getScheduler() const -> std::shared_ptr<Scheduler>
+{
+    return scheduler;
+}
+
 auto DataBase::getCardMeta(const database::CardPtr& card) -> CardMeta
 {
     auto cardId = card->getCardId();
@@ -96,7 +106,7 @@ auto DataBase::getCardMeta(const database::CardPtr& card) -> CardMeta
             continue;
         }
         const auto& word = wordDB->lookupId(vocId);
-        vocables->emplace(word->getId(), word->getProgress());
+        vocables->emplace(word->getId(), word->getSpacedRepetitionData());
     }
     return cardMeta;
 }
@@ -118,10 +128,24 @@ void DataBase::reloadCard(const database::CardPtr& card)
     }
 }
 
-void DataBase::setEaseVocable(VocableId vocId, const Ease& ease)
+void DataBase::rateCard(CardPtr card, const VocableId_Rating& vocableRatings)
+{
+    auto cardId = card->getCardId();
+    if (!cardExists(cardId)) {
+        addCard(card);
+    }
+    for (auto [vocId, ease] : vocableRatings) {
+        setEaseVocable(vocId, ease);
+        triggerVocable(vocId, cardId);
+        resetCardsContainingVocable(vocId);
+    }
+}
+
+void DataBase::setEaseVocable(VocableId vocId, const Rating& rating)
 {
     VocableMeta& vocable = vocables->at_id(vocId).second;
-    vocable.advanceByEase(ease);
+    const auto& srd = vocable.SpacedRepetitionData();
+    *srd = scheduler->review(*srd, rating);
 }
 
 void DataBase::triggerVocable(VocableId vocId, CardId cardId)
@@ -204,17 +228,6 @@ auto DataBase::getNumberOfEnabledVocables() const -> std::size_t
     return numberOfEnabledVocables;
 }
 
-auto DataBase::generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>
-{
-    std::map<VocableId, VocableProgress> id_progress;
-    ranges::transform(vocables->id_index_view(),
-                      std::inserter(id_progress, id_progress.begin()),
-                      [this](const auto& id_index) -> std::pair<VocableId, VocableProgress> {
-                          const auto [vocableId, index] = id_index;
-                          return {vocableId, (*vocables)[index].Progress()};
-                      });
-    return id_progress;
-}
 
 void DataBase::fillIndexMaps()
 {
@@ -231,12 +244,7 @@ void DataBase::fillIndexMaps()
     }
     for (VocableId vocId : allVocableIds) {
         const auto& word = wordDB->lookupId(vocId);
-        vocables->emplace(word->getId(), word->getProgress());
-        // if (progressVocables.contains(vocId)) {
-        //     vocables->emplace(vocId, progressVocables.at(vocId));
-        // } else {
-        //     vocables->emplace(vocId, VocableProgress::new_vocable);
-        // }
+        vocables->emplace(word->getId(), word->getSpacedRepetitionData());
     }
     for (const auto& [cardId, cardMeta] : metaCards) {
         for (const auto& vocableIndex : cardMeta.VocableIndices()) {
@@ -255,7 +263,7 @@ void DataBase::addVocablesOfCardMeta(const CardMeta& cardMeta)
             continue;
         }
         const auto& word = wordDB->lookupId(vocId);
-        vocables->emplace(word->getId(), word->getProgress());
+        vocables->emplace(word->getId(), word->getSpacedRepetitionData());
     }
 }
 
@@ -286,7 +294,7 @@ auto DataBase::countEnabledVocables() const -> std::size_t
 {
     std::size_t _numberOfEnabledVocables = 0;
     for (const auto& vocableMeta : *vocables) {
-        if (vocableMeta.Progress().isEnabled()) {
+        if (vocableMeta.SpacedRepetitionData()->enabled) {
             _numberOfEnabledVocables++;
         }
     }
