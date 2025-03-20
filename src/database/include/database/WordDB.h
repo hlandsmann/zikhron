@@ -35,7 +35,7 @@ public:
     auto lookupId(VocableId vocableId) -> std::shared_ptr<Word>;
 
     [[nodiscard]] auto wordIsKnown(const std::string& key) const -> bool;
-    [[nodiscard]] auto getDictionary() const -> std::shared_ptr<const dictionary::Dictionary>;
+    [[nodiscard]] auto getDictionary() const -> std::shared_ptr<dictionary::Dictionary>;
     auto extractCharacters() -> std::set<utl::CharU8>;
 
 private:

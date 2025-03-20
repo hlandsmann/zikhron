@@ -76,7 +76,7 @@ auto WordDB::wordIsKnown(const std::string& key) const -> bool
     return key_word.contains(key);
 }
 
-auto WordDB::getDictionary() const -> std::shared_ptr<const dictionary::Dictionary>
+auto WordDB::getDictionary() const -> std::shared_ptr< dictionary::Dictionary>
 {
     return dictionary;
 }

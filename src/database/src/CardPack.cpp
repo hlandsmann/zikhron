@@ -124,6 +124,7 @@ void CardPack::deserialize()
     name = utl::split_front(rest, '\n');
 
     std::string_view audioFile;
+    std::string_view translation;
 
     auto cardInit = CardInit{.cardId = cardIdGenerator->getNext(),
                              .packName = name,
@@ -137,6 +138,10 @@ void CardPack::deserialize()
             audioFile = utl::split_front(rest, '\n');
             unknown = utl::split_front(rest, ':');
         }
+        if (unknown == "trnsl") {
+            translation = utl::split_front(rest, '\n');
+            unknown = utl::split_front(rest, ':');
+        }
         std::string start{unknown};
         std::string end{utl::split_front(rest, ';')};
         auto cardText = utl::split_front(rest, '\n');
@@ -148,6 +153,7 @@ void CardPack::deserialize()
         auto card = Card::deserializeCard(cardText, cardInit);
         card->setActive(true);
         cardAudios.push_back({.audioFile = optAudioFile,
+                              .translation = std::string{translation},
                               .card = card,
                               .start = std::stod(start),
                               .end = std::stod(end)});

@@ -20,6 +20,8 @@
 #include <spaced_repetition/ITreeWalker.h>
 #include <spaced_repetition/Scheduler.h>
 #include <spdlog/common.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/ringbuffer_sink.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
 #include <utils/format.h>
@@ -61,6 +63,21 @@ void adaptJiebaDictionaries(const std::shared_ptr<database::WordDB>& wordDB)
 
 auto main() -> int
 {
+    spdlog::sink_ptr sink;
+    auto ring_sink = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(128);
+    ring_sink->set_pattern("[%H:%M:%S %e] [%L] %v");
+    spdlog::logger tmplog("", ring_sink);
+    tmplog.info("Hello world, {}", 42);
+    tmplog.info("yes, {}", 42);
+
+    for (const auto& str : ring_sink->last_formatted()) {
+        fmt::print("{}", str);
+    }
+    for (const auto& str : ring_sink->last_formatted()) {
+        fmt::print("{}", str);
+    }
+
+    return 0;
 
     auto injectorJpn = boost::di::make_injector(
             boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),

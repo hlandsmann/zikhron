@@ -87,11 +87,12 @@ Fonts::Fonts(std::shared_ptr<GlfwImguiContext> /* _glfwImguiContext */)
     // constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/Hiragino Kaku Gothic Pro W6.otf";
     // constexpr auto fontFileJpn = "/usr/share/fonts/kochi-substitute/kochi-gothic-subst.ttf";
     fonts = std::make_unique<ImFontAtlas>();
+    static std::vector<ImWchar> japaneseGlyphRanges = getJapaneseGlyphRanges();
     constexpr auto fontFileJpn = "/home/harmen/zikhron/fonts/irohamaru-Regular.ttf";
     japaneseBig = fonts->AddFontFromFileTTF(fontFileJpn, 64, nullptr,
-                                            io.Fonts->GetGlyphRangesJapanese());
+                                            japaneseGlyphRanges.data());
     japaneseSmall = fonts->AddFontFromFileTTF(fontFileJpn, 32, nullptr,
-                                              io.Fonts->GetGlyphRangesJapanese());
+                                              japaneseGlyphRanges.data());
     fonts->Build();
     ImGui_ImplOpenGL3_CreateFontsTexture(*fonts);
 }

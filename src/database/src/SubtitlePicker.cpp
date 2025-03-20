@@ -154,7 +154,7 @@ auto SubtitlePicker::autoJoin(const CardPtr& card) -> JoinedSubtitle
 
     const auto& subtexts = subtitle->getSubTexts();
     constexpr auto maxPause = 1000;
-    constexpr auto maxLength = 8000;
+    constexpr auto maxLength = 3000;
 
     const auto& firstSub = subtexts.at(index);
     spdlog::warn("startTime: {}, duration: {}", firstSub.startTime, firstSub.duration);

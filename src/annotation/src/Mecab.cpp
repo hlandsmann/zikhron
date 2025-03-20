@@ -2,6 +2,11 @@
 
 #include "MecabWrapper.h"
 
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/null_sink.h>
+#include <spdlog/spdlog.h>
+
 #include <array>
 #include <map>
 #include <memory>
@@ -12,11 +17,18 @@ namespace annotation {
 
 Mecab::Mecab()
     : mecabWrapper{std::make_shared<MecabWrapper>()}
+    , log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
 {}
 
 auto Mecab::split(const std::string& text) -> std::vector<MecabToken>
 {
     return mecabWrapper->split(text);
+}
+
+void Mecab::setDebugSink(spdlog::sink_ptr sink)
+{
+    log = std::make_unique<spdlog::logger>("", sink);
+    mecabWrapper->setDebugSink(sink);
 }
 
 // Type and POS fields in unidic-cwj-202302

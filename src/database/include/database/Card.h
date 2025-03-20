@@ -4,6 +4,7 @@
 
 #include <annotation/JieBa.h>
 #include <annotation/Token.h>
+#include <spdlog/sinks/ringbuffer_sink.h>
 #include <annotation/Tokenizer.h>
 #include <annotation/TokenizerChi.h>
 #include <dictionary/DictionaryChi.h>
@@ -58,13 +59,15 @@ public:
     void setTokenizationChoices(const TokenizationChoiceVec& tokenizationChoices);
     void setActive(bool active);
     [[nodiscard]] auto isActive() const -> bool;
-    [[nodiscard]] auto getTokenizerDebug() const -> std::string;
+
+    void dumpDebugLog() const;
 
 protected:
     void executeTokenizer();
 
 private:
     [[nodiscard]] virtual auto getText() const -> utl::StringU8 = 0;
+    [[nodiscard]] static auto createDebugSink() -> std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt>;
 
     CardId cardId;
     bool active{false};
@@ -78,6 +81,8 @@ private:
 
     std::vector<annotation::Token> tokens;
     std::string tokenizerDebug;
+
+    std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt> dbgSink;
 };
 
 class DialogueCard : public Card

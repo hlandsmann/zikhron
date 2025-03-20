@@ -9,6 +9,7 @@
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
+#include <spdlog/sinks/ringbuffer_sink.h>
 #include <spdlog/spdlog.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
@@ -46,7 +47,15 @@ Card::Card(const CardInit& cardInit)
     , indexInPack{cardInit.indexInPack}
     , wordDB{cardInit.wordDB}
     , tokenizer{cardInit.tokenizer}
+    , dbgSink{createDebugSink()}
 {
+}
+
+auto Card::createDebugSink() -> std::shared_ptr<spdlog::sinks::ringbuffer_sink_mt>
+{
+    auto sink = std::make_shared<spdlog::sinks::ringbuffer_sink_mt>(128);
+    sink->set_pattern("[%H:%M:%S %e] [%L] %v");
+    return sink;
 }
 
 auto Card::getCardId() const -> CardId
@@ -111,16 +120,18 @@ auto Card::isActive() const -> bool
     return active;
 }
 
-auto Card::getTokenizerDebug() const -> std::string
+void Card::dumpDebugLog() const
 {
-    return tokenizerDebug;
+    for (const auto& str : dbgSink->last_formatted()) {
+        fmt::print("{}", str);
+    }
 }
 
 void Card::executeTokenizer()
 {
+    tokenizer->setDebugSink(dbgSink);
     const auto& cardText = getText();
     tokens = tokenizer->split(cardText);
-    tokenizerDebug = tokenizer->debugString();
 }
 
 DialogueCard::DialogueCard(std::string_view content,

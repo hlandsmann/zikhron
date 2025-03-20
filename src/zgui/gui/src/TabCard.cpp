@@ -176,10 +176,8 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(language);
             spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.getCardId());
-            const auto& tokenizerDebug = cardMeta.getCard()->getTokenizerDebug();
-            if (!tokenizerDebug.empty()) {
-                spdlog::info("Card {} debug info: \n{}", cardMeta.getCardId(), tokenizerDebug);
-            }
+            cardMeta.getCard()->dumpDebugLog();
+
             track = cardDB->getTrackFromCardId(cardMeta.getCardId());
             loadTrack();
             prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, metaLayer, treeWalker, language);
@@ -197,10 +195,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = dataBase->getCardMeta(track->getCard());
             spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.getCardId());
-            const auto& tokenizerDebug = cardMeta.getCard()->getTokenizerDebug();
-            if (!tokenizerDebug.empty()) {
-                spdlog::info("Card {} debug info: \n{}", cardMeta.getCardId(), tokenizerDebug);
-            }
+            cardMeta.getCard()->dumpDebugLog();
             loadTrack();
             if (!track->isSubtitlePrefix()) {
                 prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, metaLayer, treeWalker, language);
@@ -770,7 +765,9 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
     bool btnClicked = false;
 
     if (displayVocables == nullptr) {
-        btnClicked |= btnNext.clicked();
+        if (track && track->hasNext()) {
+            btnClicked |= btnNext.clicked();
+        }
         cardSubmission = CardSubmission::next;
     } else if (revealVocables) {
         btnClicked |= btnSubmit.clicked();

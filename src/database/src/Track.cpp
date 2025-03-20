@@ -284,7 +284,12 @@ auto Track::isSubtitlePrefix() const -> bool
 
 auto Track::getTranslation() const -> std::optional<std::string>
 {
-    return std::visit(utl::overloaded{[](const CardPackPtr& /* cardPack */) -> std::optional<std::string> {
+    return std::visit(utl::overloaded{[this](const CardPackPtr& cardPack) -> std::optional<std::string> {
+                                          auto index = card->getIndexInPack();
+                                          const auto& translation = cardPack->getCardAudioByIndex(index).translation;
+                                          if (!translation.empty()) {
+                                              return {translation};
+                                          }
                                           return {};
                                       },
                                       [this](const VideoPtr& video) -> std::optional<std::string> {

@@ -1,9 +1,11 @@
-
 #include "DictionaryJpn.h"
 
 #include "Entry.h"
 
 #include <misc/Config.h>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
 
@@ -502,6 +504,7 @@ auto parseEntry(const pugi::xml_node& node) -> std::vector<DictionaryJpn::Intern
 }
 
 DictionaryJpn::DictionaryJpn(std::shared_ptr<zikhron::Config> config)
+    : log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
 {
     pugi::xml_document doc;
     const auto& filename = config->Dictionary() / "JMdict_e";
@@ -609,7 +612,7 @@ auto DictionaryJpn::getEntryByReading(const std::string& key) const -> InternalE
             entry.definition.push_back(currentEntry.definition.at(indexDefinition));
         }
         if (indexEntryCount != 1) {
-            spdlog::info("indexEntryCount: {}", indexEntryCount);
+            log->info("indexEntryCount: {}", indexEntryCount);
         }
         return entry;
     } catch (...) {
@@ -618,4 +621,8 @@ auto DictionaryJpn::getEntryByReading(const std::string& key) const -> InternalE
     }
 }
 
+void DictionaryJpn::setDebugSink(spdlog::sink_ptr sink)
+{
+    log = std::make_unique<spdlog::logger>("", sink);
+}
 } // namespace dictionary

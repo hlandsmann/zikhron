@@ -18,6 +18,24 @@ target_link_libraries(sr_treewalker
 )
 set_property(TARGET sr_treewalker PROPERTY CXX_STANDARD 23)
 
+add_executable(print_char_jpn)
+target_sources(print_char_jpn
+    PRIVATE
+        print_char_jpn.cpp
+)
+target_link_libraries(print_char_jpn
+    PRIVATE
+        Boost.DI
+        spdlog::spdlog
+        zikhron::database
+        zikhron::annotation
+        zikhron::dictionary
+        zikhron::miscellaneous
+        zikhron::spaced_repetition
+        zikhron::warnings
+)
+set_property(TARGET print_char_jpn PROPERTY CXX_STANDARD 23)
+
 add_executable(kocoro_signal)
 target_sources(kocoro_signal
     PRIVATE

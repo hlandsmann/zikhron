@@ -1,4 +1,5 @@
 #pragma once
+#include <spdlog/common.h>
 #include "Token.h"
 
 #include <string>
@@ -17,6 +18,7 @@ public:
 
     [[nodiscard]] virtual auto split(const std::string& /* text */) const -> std::vector<Token> = 0; //{ return {}; };
 
-    [[nodiscard]] virtual auto debugString() const -> std::string { return {}; }
+    virtual void setDebugSink(spdlog::sink_ptr /* sink */) {};
+
 };
 } // namespace annotation

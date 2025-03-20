@@ -7,6 +7,9 @@
 #include <database/Word.h>
 #include <database/WordDB.h>
 #include <dictionary/DictionaryJpn.h>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>
 
 #include <memory>
@@ -18,7 +21,8 @@ namespace annotation {
 TokenizerJpn::TokenizerJpn(std::shared_ptr<database::WordDB> _wordDB)
     : mecab{std::make_shared<Mecab>()}
     , wordDB{std::move(_wordDB)}
-    , jpnDictionary{std::dynamic_pointer_cast<const dictionary::DictionaryJpn>(wordDB->getDictionary())}
+    , jpnDictionary{std::dynamic_pointer_cast<dictionary::DictionaryJpn>(wordDB->getDictionary())}
+    , log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
 {}
 
 auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
@@ -28,7 +32,7 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
     // spdlog::info("{}", text);
 
     for (const auto& jumanppToken : jumanppTokens) {
-        spdlog::info("{},{},{},{},{}", jumanppToken.lemmaType, jumanppToken.pos1, jumanppToken.pos2, jumanppToken.pos3, jumanppToken.pos4);
+        log->info("{},{},{},{},{}", jumanppToken.lemmaType, jumanppToken.pos1, jumanppToken.pos2, jumanppToken.pos3, jumanppToken.pos4);
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
         auto word = wordDB->lookup(jumanppToken.lemma);
         if (!word) {
@@ -55,12 +59,14 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
         // }
     }
     // spdlog::info("full: {}", fmt::join(result, ","));
-    lastDebugString = "japanese card\n";
     return result;
 }
 
-auto TokenizerJpn::debugString() const -> std::string
+void TokenizerJpn::setDebugSink(spdlog::sink_ptr sink)
 {
-    return lastDebugString;
+    log = std::make_unique<spdlog::logger>("", sink);
+    mecab->setDebugSink(sink);
+    jpnDictionary->setDebugSink(sink);
 }
+
 } // namespace annotation

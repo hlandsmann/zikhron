@@ -3,6 +3,8 @@
 #include "Entry.h"
 
 #include <misc/Config.h>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
 
 #include <cstddef>
 #include <map>
@@ -38,9 +40,11 @@ public:
     [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> InternalEntry;
     [[nodiscard]] auto getEntryByReading(const std::string& key) const -> InternalEntry;
 
+    void setDebugSink(spdlog::sink_ptr sink) override;
+    std::map<std::string, std::vector<std::size_t>> kanjiToIndex;
+
 private:
     std::vector<InternalEntry> entries;
-    std::map<std::string, std::vector<std::size_t>> kanjiToIndex;
 
     struct ReadingPosition
     {
@@ -49,5 +53,7 @@ private:
     };
 
     std::map<std::string, std::vector<ReadingPosition>> readingToIndex;
+
+    std::unique_ptr<spdlog::logger> log;
 };
 } // namespace dictionary

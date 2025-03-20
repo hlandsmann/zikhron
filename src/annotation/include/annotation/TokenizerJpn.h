@@ -5,6 +5,8 @@
 
 #include <database/WordDB.h>
 #include <dictionary/DictionaryJpn.h>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
 
 #include <memory>
 #include <string>
@@ -25,14 +27,13 @@ class TokenizerJpn : public Tokenizer
 public:
     TokenizerJpn(std::shared_ptr<database::WordDB> wordDB);
     [[nodiscard]] auto split(const std::string& text) const -> std::vector<Token> override;
-    [[nodiscard]] auto debugString() const -> std::string override;
+    void setDebugSink(spdlog::sink_ptr sink) override;
 
 private:
     std::shared_ptr<Mecab> mecab;
     std::shared_ptr<database::WordDB> wordDB;
-    std::shared_ptr<const dictionary::DictionaryJpn> jpnDictionary;
-
-    mutable std::string lastDebugString;
+    std::shared_ptr< dictionary::DictionaryJpn> jpnDictionary;
+    std::unique_ptr<spdlog::logger> log;
 };
 
 } // namespace annotation

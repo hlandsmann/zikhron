@@ -3,6 +3,9 @@
 #include "Mecab.h"
 
 #include <mecab/mecab.h>
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
+#include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>
 #include <utils/string_split.h>
 
@@ -14,14 +17,15 @@
 namespace annotation {
 MecabWrapper::MecabWrapper()
     : tagger{std::shared_ptr<MeCab::Tagger>(MeCab::createTagger("--dicdir=/home/harmen/zikhron/dictionary/unidic-novel"))}
+    , log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
 {}
 
 auto MecabWrapper::split(const std::string& text) const -> std::vector<MecabToken>
 {
-    spdlog::warn("Text:  {}", text);
+    log->warn("Text:  {}", text);
     std::vector<MecabToken> result;
     std::string mecabOut = tagger->parse(text.c_str());
-    spdlog::warn("Text out: \n {}", mecabOut);
+    log->warn("Text out: \n {}", mecabOut);
     auto rest = std::string_view{mecabOut};
     while (true) {
         auto tagged = utl::split_front(rest, '\n');
@@ -104,4 +108,8 @@ auto MecabWrapper::split(const std::string& text) const -> std::vector<MecabToke
     return result;
 }
 
+void MecabWrapper::setDebugSink(spdlog::sink_ptr sink)
+{
+    log = std::make_unique<spdlog::logger>("", sink);
+}
 } // namespace annotation

@@ -19,6 +19,7 @@ namespace database {
 struct CardAudio
 {
     std::optional<std::filesystem::path> audioFile;
+    std::string translation;
     std::shared_ptr<Card> card;
     double start;
     double end;

@@ -1,6 +1,9 @@
 #pragma once
 #include "Token.h"
 
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
+
 #include <memory>
 #include <string>
 #include <vector>
@@ -78,7 +81,10 @@ public:
     Mecab();
     auto split(const std::string& text) -> std::vector<MecabToken>;
 
+    void setDebugSink(spdlog::sink_ptr sink);
+
 private:
     std::shared_ptr<MecabWrapper> mecabWrapper;
+    std::unique_ptr<spdlog::logger> log;
 };
 } // namespace annotation
