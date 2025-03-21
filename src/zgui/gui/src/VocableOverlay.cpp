@@ -108,7 +108,10 @@ void VocableOverlay::setupHeader(widget::Box& headerBox)
 {
     headerBox.clear();
     headerBox.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key()), ttqConfig);
-    headerBox.add<widget::Button>(Align::center, "ok");
+    const auto& layer = headerBox.add<widget::Layer>(Align::start);
+    layer->setExpandType(width_expand, height_fixed);
+    layer->add<widget::Button>(Align::center, "ok");
+    const auto& failEnableBox = layer->add<widget::Box>(Align::start, widget::Orientation::horizontal);
     headerBox.add<widget::ImageButton>(Align::end, context::Image::configure);
 }
 
@@ -116,7 +119,9 @@ void VocableOverlay::drawHeader(widget::Box& headerBox)
 {
     headerBox.start();
     headerBox.next<widget::TextTokenSeq>().draw();
-    auto& okBtn = headerBox.next<widget::Button>();
+    auto& layer = headerBox.next<widget::Layer>();
+    layer.start();
+    auto& okBtn = layer.next<widget::Button>();
     auto& cfgBtn = headerBox.next<widget::ImageButton>();
     if (!word->isConfigureable()) {
         return;
