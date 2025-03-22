@@ -56,6 +56,7 @@ class TabCard
         walkTree,
         nextTrack,
         reload,
+        reloadCardOnly,
         annotate,
     };
 

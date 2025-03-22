@@ -2,6 +2,7 @@
 #include <context/Fonts.h>
 #include <database/Word.h>
 #include <misc/Language.h>
+#include <spaced_repetition/DataBase.h>
 #include <widgets/Grid.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
@@ -36,6 +37,7 @@ class VocableOverlay
 public:
     VocableOverlay(std::shared_ptr<widget::Overlay> overlay,
                    std::shared_ptr<widget::TextToken> token,
+                   std::shared_ptr<sr::DataBase> database,
                    Language language);
     void draw();
     [[nodiscard]] auto shouldClose() const -> bool;
@@ -67,6 +69,10 @@ private:
                                                     .paddingHorizontal = 0.F,
                                                     .paddingVertical = 0.F,
                                                     .border = s_border};
+    constexpr static widget::BoxCfg failEnableBoxCfg = {.padding = 12.F,
+                                                        .paddingHorizontal = 0.F,
+                                                        .paddingVertical = 0.F,
+                                                        .border = 0.F};
     constexpr static widget::BoxCfg boxCfg = {.padding = s_padding,
                                               .paddingHorizontal = 0.F,
                                               .paddingVertical = 0.F,
@@ -85,5 +91,8 @@ private:
 
     bool showOptions{false};
     bool wordWasConfigured{false};
+
+    bool vocableIsEnabled{};
+    std::shared_ptr<sr::DataBase> database;
 };
 } // namespace gui

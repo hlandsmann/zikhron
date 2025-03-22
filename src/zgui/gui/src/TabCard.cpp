@@ -206,6 +206,8 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             cardMeta = dataBase->getCardMeta(cardMeta.getCard());
             prepareStudy(cardMeta, cardLayer, vocableLayer, translationLayer, metaLayer, treeWalker, language);
             break;
+        case Proceed::reloadCardOnly:
+
         case Proceed::annotate: {
             spdlog::info("co_await annotationTask");
             auto cardAnnotationChanged = co_await annotationTask(cardMeta, cardDB, cardLayer);
@@ -280,7 +282,7 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
     auto tokenText = cardMeta.getStudyTokenText();
 
     auto activeVocablesColered = tokenText->setupActiveVocableIds(activeVocableIds);
-    displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText), language);
+    displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText), dataBase, language);
     if (!activeVocableIds.empty()) {
         displayVocables = std::make_unique<DisplayVocables>(vocableLayer, dataBase, std::move(activeVocablesColered), language);
     }
@@ -360,8 +362,8 @@ void TabCard::doCardWindow(widget::Window& cardWindow)
             signalAnnotationDone->set(choice);
         }
     } else if (displayText) {
-        if (displayText->draw() && displayVocables) {
-            displayVocables->reload();
+        if (displayText->draw()) {
+            signalProceed->set(Proceed::reload);
         }
     }
     if (ttqTranslation && revealTranslation) {

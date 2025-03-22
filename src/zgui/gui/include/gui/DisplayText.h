@@ -6,6 +6,7 @@
 #include <context/Fonts.h>
 #include <context/WidgetId.h>
 #include <misc/Language.h>
+#include <spaced_repetition/DataBase.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
 #include <widgets/TextToken.h>
@@ -25,6 +26,7 @@ public:
     DisplayText(std::shared_ptr<widget::Layer> layer,
                 std::shared_ptr<widget::Overlay> overlay,
                 std::unique_ptr<annotation::TokenText> tokenText,
+                std::shared_ptr<sr::DataBase> database,
                 Language language);
 
     auto draw() -> bool;
@@ -43,7 +45,6 @@ private:
     void setupDialogue();
     void setupText();
 
-
     std::shared_ptr<widget::Layer> layer;
     std::shared_ptr<widget::Overlay> overlay;
     std::unique_ptr<annotation::TokenText> tokenText;
@@ -54,6 +55,7 @@ private:
     Language language;
     widget::TextTokenSeq::Config ttqConfig;
     context::ColorSetId colorSetId;
+    std::shared_ptr<sr::DataBase> database;
 };
 
 } // namespace gui

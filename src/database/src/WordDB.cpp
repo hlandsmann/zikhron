@@ -76,7 +76,7 @@ auto WordDB::wordIsKnown(const std::string& key) const -> bool
     return key_word.contains(key);
 }
 
-auto WordDB::getDictionary() const -> std::shared_ptr< dictionary::Dictionary>
+auto WordDB::getDictionary() const -> std::shared_ptr<dictionary::Dictionary>
 {
     return dictionary;
 }
@@ -114,7 +114,9 @@ void WordDB::save()
 {
     auto out = std::ofstream{config->DatabaseDirectory() / progressDbFilename};
     for (const auto& word : words) {
-        if ((word->getSpacedRepetitionData()->state != database::StudyState::newWord) || word->isModified()) {
+        if ((word->getSpacedRepetitionData()->state != database::StudyState::newWord)
+            || word->isModified()
+            || word->getSpacedRepetitionData()->enabled) {
             out << word->serialize();
         } else {
             // spdlog::info("Removed word: {} - {} -  {}",

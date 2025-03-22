@@ -5,9 +5,11 @@
 #include <annotation/Token.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
+#include <database/SpacedRepetitionData.h>
 #include <database/Word.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
+#include <spaced_repetition/DataBase.h>
 #include <utils/format.h>
 #include <widgets/Button.h>
 #include <widgets/Grid.h>
@@ -32,12 +34,15 @@ namespace views = std::views;
 
 VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay,
                                std::shared_ptr<widget::TextToken> _token,
+                               std::shared_ptr<sr::DataBase> _database,
                                Language language)
     : overlay{std::move(_overlay)}
     , word{_token->getToken().getWord()}
     , textToken{std::move(_token)}
     , definitions{word->getDefinitions()}
     , options{optionsFromWord(*word)}
+    , vocableIsEnabled{word->getSpacedRepetitionData()->enabled}
+    , database{std::move(_database)}
 {
     using namespace widget::layout;
 
@@ -106,12 +111,19 @@ void VocableOverlay::setupBox()
 
 void VocableOverlay::setupHeader(widget::Box& headerBox)
 {
+    using context::Image;
+
     headerBox.clear();
     headerBox.add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(word->Key()), ttqConfig);
     const auto& layer = headerBox.add<widget::Layer>(Align::start);
     layer->setExpandType(width_expand, height_fixed);
     layer->add<widget::Button>(Align::center, "ok");
-    const auto& failEnableBox = layer->add<widget::Box>(Align::start, widget::Orientation::horizontal);
+    const auto& failEnableBox = layer->add<widget::Box>(Align::center, failEnableBoxCfg, widget::Orientation::horizontal);
+    failEnableBox->setExpandType(width_fixed, height_fixed);
+    failEnableBox->add<widget::ImageButton>(Align::start, widget::Images{Image::checkbox,
+                                                                         Image::checkbox_checked});
+    failEnableBox->add<widget::Button>(Align::start, "fail");
+
     headerBox.add<widget::ImageButton>(Align::end, context::Image::configure);
 }
 
@@ -122,18 +134,27 @@ void VocableOverlay::drawHeader(widget::Box& headerBox)
     auto& layer = headerBox.next<widget::Layer>();
     layer.start();
     auto& okBtn = layer.next<widget::Button>();
+    auto& failEnableBox = layer.next<widget::Box>();
+    failEnableBox.start();
+    auto& enabledCheckbox = failEnableBox.next<widget::ImageButton>();
+    auto& failBtn = failEnableBox.next<widget::Button>();
     auto& cfgBtn = headerBox.next<widget::ImageButton>();
-    if (!word->isConfigureable()) {
-        return;
-    }
     if (!definitions.empty() && definitions != word->getDefinitions()) {
         if (okBtn.clicked()) {
             word->setDefinitions(definitions);
             wordWasConfigured = true;
             overlay->close();
         }
+    } else {
+        const auto _vocableIsEnabled = enabledCheckbox.toggled(vocableIsEnabled);
+        if (_vocableIsEnabled != vocableIsEnabled) {
+            database->setVocableEnabled(word->getId(), _vocableIsEnabled);
+            wordWasConfigured = true;
+            overlay->close();
+        }
+        failBtn.clicked();
     }
-    if (cfgBtn.clicked()) {
+    if (word->isConfigureable() && cfgBtn.clicked()) {
         cfgBtn.setChecked(!cfgBtn.isChecked());
         showOptions = cfgBtn.isChecked();
         if (showOptions) {

@@ -223,11 +223,26 @@ void DataBase::cleanupCards()
     numberOfEnabledVocables = countEnabledVocables();
 }
 
+void DataBase::setVocableEnabled(VocableId vocId, bool enabled)
+{
+    const auto& word = wordDB->lookupId(vocId);
+    const auto& srd = word->getSpacedRepetitionData();
+    if (!vocables->contains(vocId)) {
+        vocables->emplace(word->getId(), srd);
+    }
+    const auto& [_, vocMeta] = vocables->at_id(vocId);
+    for (const auto& cardId : vocMeta.CardIds()) {
+        auto& metaCard = metaCards.at(cardId);
+        metaCard.resetTimingAndVocables();
+    }
+    srd->enabled = enabled;
+    numberOfEnabledVocables = countEnabledVocables();
+}
+
 auto DataBase::getNumberOfEnabledVocables() const -> std::size_t
 {
     return numberOfEnabledVocables;
 }
-
 
 void DataBase::fillIndexMaps()
 {

@@ -69,6 +69,8 @@ public:
 
     void rateCard(CardPtr card, const VocableId_Rating& vocableRatings);
     void setEaseVocable(VocableId, const Rating&);
+
+    /* trigger vocable in card, so that the card unlikely to be used for that vocable next time the word is reviewed */
     void triggerVocable(VocableId, CardId);
     void resetCardsContainingVocable(VocableId vocId);
 
@@ -76,6 +78,7 @@ public:
     void addCard(const CardPtr& card);
     void removeCard(CardId cardId);
     void cleanupCards();
+    void setVocableEnabled(VocableId vocId, bool enabled);
     [[nodiscard]] auto getNumberOfEnabledVocables() const -> std::size_t;
 
 private:
