@@ -342,15 +342,15 @@ auto Scheduler::failStabilityAndEase(const SpacedRepetitionData& srd) const -> s
         return {std::max(0., srd.stability - srd.ease),
                 decreaseEase(srd.ease, speedChange)};
     }
-    double stability = (srd.stability + log(srd.stability)) / 2.;
+    double interval = (srd.stability + log(srd.stability));
     double stabilityCounter = srd.stability;
     double ease = srd.ease;
-    while (stabilityCounter > stability) {
+    while (stabilityCounter > interval / 2) {
         stabilityCounter -= speedChange / speedStabilize;
         ease = increaseEase(ease, speedChange);
     }
 
-    return {std::max(0., stability - (ease - srd.ease)), ease};
+    return {stabilityFromInterval(interval, ease), ease};
 }
 
 auto Scheduler::stabilityFromInterval(double interval, double ease) const -> double
@@ -419,6 +419,26 @@ auto Scheduler::normalizeDue(const SpacedRepetitionData::time_point& due) -> Spa
 auto Scheduler::getIntervalDays(const SpacedRepetitionData& srd) const -> std::chrono::days
 {
     return getIntervalDays(srd.stability, srd.ease);
+}
+
+auto Scheduler::getRatingSuggestion(const SpacedRepetitionData& srd) const -> Rating
+{
+    switch (srd.state) {
+    case StudyState::newWord:
+        return Rating::fail;
+    case StudyState::learning: {
+        auto lastDuration = std::chrono::duration_cast<std::chrono::minutes>(srd.due - srd.reviewed);
+        if (lastDuration < learnFirstStepTime) {
+            return Rating::fail;
+        }
+        return Rating::pass;
+    }
+    case StudyState::relearning:
+        return Rating::fail;
+    case StudyState::review:
+        return Rating::pass;
+    }
+    return Rating::pass;
 }
 
 auto Scheduler::increaseEase(double ease, double speed) -> double
@@ -566,6 +586,8 @@ auto Scheduler::shiftBackward(const SpacedRepetitionData& srd,
         // return static_cast<int>(std::max((interval - intervalHard), 0.));
         return static_cast<int>(std::clamp((interval - intervalHard), 0., interval / 4));
     }
+    default:
+        return 0;
     }
     std::unreachable();
 }
@@ -602,6 +624,8 @@ auto Scheduler::shiftForward(const SpacedRepetitionData& srd,
         // double intervalEasy = nextInterval(stabilityEasy, difficultyEasy);
         // return static_cast<int>(std::max((intervalEasy - intervalGood) / 3., 0.));
     }
+    default:
+        return 0;
     }
     std::unreachable();
 }

@@ -10,6 +10,7 @@
 #include <misc/Identifier.h>
 #include <misc/Language.h>
 #include <spaced_repetition/DataBase.h>
+#include <spaced_repetition/Scheduler.h>
 #include <utils/format.h>
 #include <widgets/Grid.h>
 #include <widgets/ImageButton.h>
@@ -38,18 +39,26 @@ DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
     , scheduler{database->getScheduler()}
     , wordDB{database->getWordDB()}
     , coloredVocables{std::move(_coloredVocables)}
-    , ratings(createInitialRatings(coloredVocables))
+    , ratings(createInitialRatings(coloredVocables, scheduler, wordDB, database))
     , fontType{context::getFontType(context::FontSize::small, language)}
 {
     setup();
 }
 
-auto DisplayVocables::createInitialRatings(const std::vector<ColoredVocable>& coloredVocables) -> std::vector<Rating>
+auto DisplayVocables::createInitialRatings(const std::vector<ColoredVocable>& coloredVocables,
+                                           const std::shared_ptr<sr::Scheduler>& scheduler,
+                                           const std::shared_ptr<database::WordDB>& wordDB,
+                                           std::shared_ptr<sr::DataBase> database) -> std::vector<Rating>
 {
     std::vector<Rating> ratings;
-    ranges::transform(coloredVocables, std::back_inserter(ratings), [](const auto&) -> Rating {
-        return Rating::pass;
-    });
+    ranges::transform(coloredVocables, std::back_inserter(ratings),
+                      [&](const auto& coloredVocable) -> Rating {
+                          const auto& [vocId, _] = coloredVocable;
+                          const auto& word = wordDB->lookupId(vocId);
+                          const auto& srd = *database->Vocables().at_id(vocId).second.SpacedRepetitionData();
+
+                          return scheduler->getRatingSuggestion(srd);
+                      });
     return ratings;
 }
 
