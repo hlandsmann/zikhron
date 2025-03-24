@@ -46,10 +46,11 @@ void TreeWalker::updateFailedVocables()
     failedVocables.clear();
     const auto& vocables = db->Vocables();
     for (const auto& [index, vocableMeta] : views::enumerate(vocables)) {
-        if (vocableMeta.SpacedRepetitionData()->state == database::StudyState::learning
-            || vocableMeta.SpacedRepetitionData()->state == database::StudyState::relearning) {
+        if (!vocableMeta.CardIds().empty()
+            && vocableMeta.SpacedRepetitionData()->enabled
+            && (vocableMeta.SpacedRepetitionData()->state == database::StudyState::learning
+                || vocableMeta.SpacedRepetitionData()->state == database::StudyState::relearning)) {
             failedVocables.insert(static_cast<std::size_t>(index));
-            // spdlog::critical("inserting, {}", index);
             numberOfFailedVocables++;
         }
     }

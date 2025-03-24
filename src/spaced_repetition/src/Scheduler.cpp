@@ -421,6 +421,26 @@ auto Scheduler::getIntervalDays(const SpacedRepetitionData& srd) const -> std::c
     return getIntervalDays(srd.stability, srd.ease);
 }
 
+auto Scheduler::getRatingSuggestion(const SpacedRepetitionData& srd) const -> Rating
+{
+    switch (srd.state) {
+    case StudyState::newWord:
+        return Rating::fail;
+    case StudyState::learning: {
+        auto lastDuration = std::chrono::duration_cast<std::chrono::minutes>(srd.due - srd.reviewed);
+        if (lastDuration < learnFirstStepTime) {
+            return Rating::fail;
+        }
+        return Rating::pass;
+    }
+    case StudyState::relearning:
+        return Rating::fail;
+    case StudyState::review:
+        return Rating::pass;
+    }
+    return Rating::pass;
+}
+
 auto Scheduler::increaseEase(double ease, double speed) -> double
 {
     if (ease < 1.0) {

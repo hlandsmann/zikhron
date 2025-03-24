@@ -26,6 +26,8 @@ public:
                               Rating rating) const -> SpacedRepetitionData;
     [[nodiscard]] auto getIntervalDays(const SpacedRepetitionData& srd) const -> std::chrono::days;
 
+    [[nodiscard]] auto getRatingSuggestion(const SpacedRepetitionData& srd) const -> Rating;
+
 private:
     // using Days = std::chrono::duration<double, std::ratio<86400>>;
     [[nodiscard]] auto reviewStateNewWord(const SpacedRepetitionData& srd,
@@ -48,7 +50,7 @@ private:
     [[nodiscard]] auto getBin(double stability, double ease) const -> double;
     [[nodiscard]] auto getInterval(double stability, double ease) const -> double;
     [[nodiscard]] auto getIntervalDays(double stability, double ease) const -> std::chrono::days;
-    [[nodiscard]] static auto normalizeDue(const SpacedRepetitionData::time_point& due)->SpacedRepetitionData::time_point;
+    [[nodiscard]] static auto normalizeDue(const SpacedRepetitionData::time_point& due) -> SpacedRepetitionData::time_point;
 
     [[nodiscard]] static auto increaseEase(double ease, double speed) -> double;
     [[nodiscard]] static auto decreaseEase(double ease, double speed) -> double;
