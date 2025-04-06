@@ -58,11 +58,11 @@ namespace annotation {
 //     return jTokenCandidates;
 // }
 
-TokenizerChi::TokenizerChi(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<database::WordDB> _wordDB)
+TokenizerChi::TokenizerChi(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<database::WordDB> wordDB)
     : config{std::move(_config)}
-    , wordDB{std::move(_wordDB)}
-    , dictionaryChi{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())}
-    , jieba{wordDB}
+    , wordDB_chi{std::dynamic_pointer_cast<database::WordDB_chi>(wordDB)}
+    , dictionaryChi{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB_chi->getDictionary())}
+    , jieba{wordDB_chi}
     , rules{dictionaryChi}
     , freqDictionary{std::make_shared<FreqDictionary>()}
 {}
@@ -334,12 +334,12 @@ auto TokenizerChi::getSplitForChoices(const TokenizationChoiceVec& choices,
     std::vector<Token> result;
     for (const auto& alternative : alternatives) {
         for (const auto& str : alternative.current) {
-            if (auto word = wordDB->lookup(str)) {
+            if (auto word = wordDB_chi->lookup(str)) {
                 result.emplace_back(str, word);
                 continue;
             }
             if (const auto& rule = rules.findRule(str); !rule.empty()) {
-                auto word = wordDB->lookup(rule);
+                auto word = wordDB_chi->lookup(rule);
                 result.emplace_back(str, word);
                 continue;
             }
@@ -382,7 +382,7 @@ auto TokenizerChi::joinMissed(const std::vector<Token>& splitVector, const std::
         }
         if (altATokenVec.size() == 1) {
             for (const auto& t : altATokenVec.front()) {
-                result.emplace_back(t.key, wordDB->lookup(t.key));
+                result.emplace_back(t.key, wordDB_chi->lookup(t.key));
                 fillUp += static_cast<int>(t.key.length() - token.getValue().length());
             }
         } else {
@@ -398,19 +398,19 @@ auto TokenizerChi::split(const std::string& text) const -> std::vector<Token>
     std::vector<std::string> splitVector = jieba.cut(text);
 
     for (const auto& str : splitVector) {
-        if (auto word = wordDB->lookup(str)) {
+        if (auto word = wordDB_chi->lookup(str)) {
             result.emplace_back(utl::StringU8{str}, word);
             continue;
         }
         if (const auto& rule = rules.findRule(str); !rule.empty()) {
-            auto word = wordDB->lookup(rule);
+            auto word = wordDB_chi->lookup(rule);
             result.emplace_back(utl::StringU8{str}, word);
             continue;
         }
         if (const auto& tokens = splitFurther(str); !tokens.empty()) {
             ranges::transform(tokens, std::back_inserter(result),
                               [this](const AToken& token) -> Token {
-                                  auto word = wordDB->lookup(token.str);
+                                  auto word = wordDB_chi->lookup(token.str);
                                   return {token.str, word};
                               });
             continue;

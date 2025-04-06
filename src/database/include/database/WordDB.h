@@ -21,7 +21,9 @@ using namespace std::literals;
 class WordDB
 {
 public:
-    WordDB(std::shared_ptr<zikhron::Config> config, Language language);
+    WordDB(std::shared_ptr<zikhron::Config> config,
+           std::shared_ptr<dictionary::Dictionary> dictionary,
+           Language language);
     virtual ~WordDB() = default;
 
     WordDB(const WordDB&) = delete;
@@ -31,12 +33,17 @@ public:
 
     void save();
 
-    auto lookup(const std::string& key) -> std::shared_ptr<Word>;
+    // auto lookup(const std::string& key) -> std::shared_ptr<Word>;
     auto lookupId(VocableId vocableId) -> std::shared_ptr<Word>;
-
-    [[nodiscard]] auto wordIsKnown(const std::string& key) const -> bool;
+    //
+    // [[nodiscard]] auto wordIsKnown(const std::string& key) const -> bool;
     [[nodiscard]] auto getDictionary() const -> std::shared_ptr<dictionary::Dictionary>;
     auto extractCharacters() -> std::set<utl::CharU8>;
+
+protected:
+    [[nodiscard]] auto getWords() -> std::vector<std::shared_ptr<Word>>& { return words; };
+
+    [[nodiscard]] auto getKeyWords() -> std::map<std::string, std::shared_ptr<Word>>& { return key_word; };
 
 private:
     void load();

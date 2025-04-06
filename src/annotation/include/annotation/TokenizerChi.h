@@ -6,7 +6,7 @@
 #include "Tokenizer.h"
 #include "misc/TokenizationChoice.h"
 
-#include <database/WordDB.h>
+#include <database/WordDB_chi.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -86,7 +86,7 @@ private:
     [[nodiscard]] auto splitFurther(const std::string& text) const -> std::vector<AToken>;
 
     std::shared_ptr<zikhron::Config> config;
-    std::shared_ptr<database::WordDB> wordDB;
+    std::shared_ptr<database::WordDB_chi> wordDB_chi;
     std::shared_ptr<const dictionary::DictionaryChi> dictionaryChi;
     JieBa jieba;
     Rules rules;

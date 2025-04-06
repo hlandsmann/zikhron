@@ -27,6 +27,10 @@ target_sources(zikhron_database
         include/database/VocableProgress.h
         include/database/Word.h
         include/database/WordDB.h
+        include/database/WordDB_chi.h
+        include/database/WordDB_jpn.h
+        include/database/Word_chi.h
+        include/database/Word_jpn.h
         src/Card.cpp
         src/CardDB.cpp
         src/CardPack.cpp
@@ -45,6 +49,10 @@ target_sources(zikhron_database
         src/VocableProgress.cpp
         src/Word.cpp
         src/WordDB.cpp
+        src/WordDB_chi.cpp
+        src/WordDB_jpn.cpp
+        src/Word_chi.cpp
+        src/Word_jpn.cpp
 )
 
 target_link_libraries(zikhron_database

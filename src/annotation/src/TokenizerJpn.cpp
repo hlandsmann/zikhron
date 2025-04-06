@@ -20,7 +20,7 @@
 namespace annotation {
 TokenizerJpn::TokenizerJpn(std::shared_ptr<database::WordDB> _wordDB)
     : mecab{std::make_shared<Mecab>()}
-    , wordDB{std::move(_wordDB)}
+    , wordDB{std::dynamic_pointer_cast<database::WordDB_jpn>(_wordDB)}
     , jpnDictionary{std::dynamic_pointer_cast<dictionary::DictionaryJpn>(wordDB->getDictionary())}
     , log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
 {}

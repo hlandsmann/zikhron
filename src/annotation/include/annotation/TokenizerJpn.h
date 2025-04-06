@@ -3,7 +3,7 @@
 #include "Token.h"
 #include "Tokenizer.h"
 
-#include <database/WordDB.h>
+#include <database/WordDB_jpn.h>
 #include <dictionary/DictionaryJpn.h>
 #include <spdlog/common.h>
 #include <spdlog/logger.h>
@@ -31,8 +31,8 @@ public:
 
 private:
     std::shared_ptr<Mecab> mecab;
-    std::shared_ptr<database::WordDB> wordDB;
-    std::shared_ptr< dictionary::DictionaryJpn> jpnDictionary;
+    std::shared_ptr<database::WordDB_jpn> wordDB;
+    std::shared_ptr<dictionary::DictionaryJpn> jpnDictionary;
     std::unique_ptr<spdlog::logger> log;
 };
 

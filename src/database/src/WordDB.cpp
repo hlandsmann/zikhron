@@ -39,10 +39,11 @@ using vocId_vocId_map = std::map<VocableId, VocableId>;
 namespace database {
 
 WordDB::WordDB(std::shared_ptr<zikhron::Config> _config,
+               std::shared_ptr<dictionary::Dictionary> _dictionary,
                Language language)
     : progressDbFilename{languageToProgressDbFileNames.at(language)}
     , config{std::move(_config)}
-    , dictionary{createDictionary(language, config)}
+    , dictionary{std::move(_dictionary)}
 
 {
     spdlog::info("WordDB constructed with {}", magic_enum::enum_name(language));
@@ -51,30 +52,30 @@ WordDB::WordDB(std::shared_ptr<zikhron::Config> _config,
     spdlog::info("Character size: {}", characters.size());
 }
 
-auto WordDB::lookup(const std::string& key) -> std::shared_ptr<Word>
-{
-    if (key_word.contains(key)) {
-        return key_word.at(key);
-    }
-    auto entryVectorFromKey = dictionary->entriesFromKey(key);
-    if (entryVectorFromKey.empty()) {
-        return nullptr;
-    }
-    auto word = std::make_shared<Word>(std::move(entryVectorFromKey), static_cast<VocableId>(words.size()));
-    words.push_back(word);
-    key_word.insert({key, word});
-    return word;
-}
-
+// auto WordDB::lookup(const std::string& key) -> std::shared_ptr<Word>
+// {
+//     if (key_word.contains(key)) {
+//         return key_word.at(key);
+//     }
+//     auto entryVectorFromKey = dictionary->entriesFromKey(key);
+//     if (entryVectorFromKey.empty()) {
+//         return nullptr;
+//     }
+//     auto word = std::make_shared<Word>(std::move(entryVectorFromKey), static_cast<VocableId>(words.size()));
+//     words.push_back(word);
+//     key_word.insert({key, word});
+//     return word;
+// }
+//
 auto WordDB::lookupId(VocableId vocableId) -> std::shared_ptr<Word>
 {
     return words.at(vocableId);
 }
 
-auto WordDB::wordIsKnown(const std::string& key) const -> bool
-{
-    return key_word.contains(key);
-}
+// auto WordDB::wordIsKnown(const std::string& key) const -> bool
+// {
+//     return key_word.contains(key);
+// }
 
 auto WordDB::getDictionary() const -> std::shared_ptr<dictionary::Dictionary>
 {
@@ -112,6 +113,9 @@ void WordDB::load()
 
 void WordDB::save()
 {
+    // spdlog::warn("Save ommitted for WordDB");
+    // return;
+
     auto out = std::ofstream{config->DatabaseDirectory() / progressDbFilename};
     for (const auto& word : words) {
         if ((word->getSpacedRepetitionData()->state != database::StudyState::newWord)
@@ -141,16 +145,16 @@ void WordDB::parse(const std::string& str)
     }
 }
 
-auto WordDB::createDictionary(Language language,
-                              std::shared_ptr<zikhron::Config> config) -> std::shared_ptr<dictionary::Dictionary>
-{
-    switch (language) {
-    case Language::chinese:
-        return std::make_shared<dictionary::DictionaryChi>(config);
-    case Language::japanese:
-        return std::make_shared<dictionary::DictionaryJpn>(config);
-    }
-    std::unreachable();
-}
+// auto WordDB::createDictionary(Language language,
+//                               std::shared_ptr<zikhron::Config> config) -> std::shared_ptr<dictionary::Dictionary>
+// {
+//     switch (language) {
+//     case Language::chinese:
+//         return std::make_shared<dictionary::DictionaryChi>(config);
+//     case Language::japanese:
+//         return std::make_shared<dictionary::DictionaryJpn>(config);
+//     }
+//     std::unreachable();
+// }
 
 } // namespace database
