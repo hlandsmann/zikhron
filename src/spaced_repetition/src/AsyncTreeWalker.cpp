@@ -8,6 +8,9 @@
 #include <annotation/TokenizerJpn.h>
 #include <database/TokenizationChoiceDB.h>
 #include <database/TokenizationChoiceDbChi.h>
+#include <database/WordDB.h>
+#include <database/WordDB_chi.h>
+#include <database/WordDB_jpn.h>
 #include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
 #include <dictionary/DictionaryJpn.h>
@@ -107,13 +110,14 @@ auto AsyncTreeWalker::getNextCardChoice(Language language) -> kocoro::Task<CardM
 
 auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
 {
-  auto& asyncDataBaseChi = asyncDataBaseArray.at(static_cast<std::size_t>(Language::chinese));
-  auto& asyncDataBaseJpn = asyncDataBaseArray.at(static_cast<std::size_t>(Language::japanese));
+    auto& asyncDataBaseChi = asyncDataBaseArray.at(static_cast<std::size_t>(Language::chinese));
+    auto& asyncDataBaseJpn = asyncDataBaseArray.at(static_cast<std::size_t>(Language::japanese));
     asyncDataBaseChi->runAsync([]() -> DataBasePtr {
         auto injectorChi = boost::di::make_injector(
                 boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
                 boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
                 boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
+                boost::di::bind<database::WordDB>.to<database::WordDB_chi>(),
                 boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryChi>(),
                 boost::di::bind<Language>.to(Language::chinese));
         try {
@@ -130,6 +134,7 @@ auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
                 boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
                 boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),
                 boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
+                boost::di::bind<database::WordDB>.to<database::WordDB_jpn>(),
                 boost::di::bind<Language>.to(Language::japanese));
         try {
             auto db = injectorJpn.create<std::shared_ptr<DataBase>>();

@@ -113,6 +113,7 @@ int main(int argc, char* argv_[])
     // char* argv[] = {"sudachi-0.7.5.jar", nullptr};
     // /usr/bin/java --jar /home/harmen/zikhron/sudachi-0.7.4/sudachi-0.7.4.jar
     std::string text1 = "投降してほしけりゃてめえをあと百万体呼んで来るんだな\n";
+    // std::string text2 = "あとでジュース おごってあげるね - 暑そうだから";
     // return createChild("/usr/bin/mecab", argv_, aEnv,text1.c_str());
     return createChild("/usr/bin/java", argv, aEnv, text1.c_str());
     // return createChild("/home/harmen/src/zikhron/build/test/sr_treewalker", argv_, aEnv, "hello world");
