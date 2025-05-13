@@ -196,6 +196,11 @@ auto Scheduler::reviewStateReview(const SpacedRepetitionData& srd,
     case Rating::pass: {
         Days reviewedDuration{std::chrono::system_clock::now() - srd.reviewed};
         auto reviewStability = stabilityFromInterval(reviewedDuration.count(), srd.ease);
+        reviewStability = std::min(srd.stability, reviewStability);
+        if (std::floor(getInterval(srd.stability, srd.ease)) == std::floor(reviewedDuration.count())) {
+            reviewStability = srd.stability;
+        }
+        // spdlog::info("reviewStability: {}, getInterval: {}", reviewStability, getInterval(reviewStability, srd.ease));
         // in case the stability may not rise because interval days is unchanging, this should prevent unchanging stability
         // if (getIntervalDays(reviewStability, srd.ease) == getIntervalDays(srd)) {
         //     reviewStability = std::max(reviewStability, srd.stability);
@@ -204,9 +209,13 @@ auto Scheduler::reviewStateReview(const SpacedRepetitionData& srd,
         // spdlog::info("srd: {}, ", srd.serialize());
         // spdlog::info("result stability: {}, {}", reviewStability, reviewedDuration.count());
         ease = nextEase(reviewStability, srd.ease);
-        auto tmpStability = nextStability(reviewStability, ease, rating);
+        auto tmpStability = nextStability(reviewStability, srd.ease, rating);
         auto tmpInterval = getInterval(tmpStability, srd.ease);
         stability = stabilityFromInterval(tmpInterval, ease);
+        // spdlog::info("nextStability: {}, tmpStability: {}, easeDelta: {}",
+        //              stability, tmpStability,
+        //              ease - srd.ease);
+        // spdlog::info("tmpInterval: {}, interval: {}", tmpInterval, getInterval(stability, ease));
 
         // if the stability doesn't change, force a change. (if the ease doesn't change, stability should rise)
         // if (ease == srd.ease && stability - srd.stability < 0.01) {
@@ -310,14 +319,20 @@ auto Scheduler::nextStability(double stability,
     double resultStability = stability + getStep(ease);
 
     // for hard cards it may be, that it jumps from 1 day to 3 days. It should only go to 2 days max (double)
-    if (ease < getStep(ease) && ease < 1.) {
+    if (ease < 1.) {
         double oldInterval = getInterval(stability, ease);
         double newInterval = getInterval(resultStability, ease);
-        if (oldInterval < newInterval / 2.) {
-            return stabilityFromInterval(oldInterval * 2., ease);
+        // spdlog::info("oi: {}, ni: {}", oldInterval, newInterval);
+        if (std::floor(oldInterval) < std::floor(newInterval) / 2.) {
+            // spdlog::info("correct: oi: {}, ni: {}", oldInterval, oldInterval * 2);
+            return stabilityFromInterval((std::floor(oldInterval) * 2.), ease);
+        }
+        if (std::floor(oldInterval) < std::floor(newInterval)) {
+            return stabilityFromInterval(std::floor(newInterval), ease);
         }
     }
 
+    // spdlog::info("oi: {}, ni: {}", stability, resultStability);
     return resultStability;
 }
 
@@ -326,36 +341,45 @@ auto Scheduler::getStep(double ease) const -> double
     double step{};
 
     if (ease <= 1.) {
-        step += 0.5 + (ease / 2.);
+        step += 0.2 + (ease * 0.8);
         // step = std::max(0.75, step);
     } else {
-        step += 1 + ((ease - 1) / 2.);
+        step += 1 + ((ease - 1) * 0.8);
         // step = std::min(1.25, step);
     }
-    return std::clamp(step, 0.75, 1.25);
+    return std::clamp(step, 0.35, 1.75);
 }
 
 auto Scheduler::failStabilityAndEase(const SpacedRepetitionData& srd) const -> std::pair<double, double>
 {
-    if (srd.stability < 1.5) {
+    if (getInterval(srd.stability, srd.ease) < 2. && srd.ease < 1.) {
+        return {std::max(0., srd.stability - srd.ease),
+                srd.ease};
+    }
+    if (getInterval(srd.stability, srd.ease) < 5) {
         // spdlog::info("e: {}, newe: {}, s: {}", srd.ease, decreaseEase(srd.ease, speedChange), srd.stability);
         return {std::max(0., srd.stability - srd.ease),
                 decreaseEase(srd.ease, speedChange)};
     }
     double interval = (srd.stability + log(srd.stability));
+    // if (srd.stability < 3) {
+    //     return {stabilityFromInterval(interval, srd.ease), srd.ease};
+    // }
+
     double stabilityCounter = srd.stability;
-    double ease = srd.ease;
+    double ease = std::min(1.0, srd.ease);
     while (stabilityCounter > interval / 2) {
         stabilityCounter -= speedChange / speedStabilize;
         ease = increaseEase(ease, speedChange);
     }
 
-    return {stabilityFromInterval(interval, ease), ease};
+    return {stabilityFromInterval(std::floor(interval), ease), ease};
 }
 
 auto Scheduler::stabilityFromInterval(double interval, double ease) const -> double
 {
-    constexpr double skewForFloor = 0.1;
+    constexpr double skewForFloor = 0.0;
+    interval = std::max(0., interval);
     double stability = 1;
     double oldStability = 0;
     double saveCount = 0;
@@ -366,9 +390,11 @@ auto Scheduler::stabilityFromInterval(double interval, double ease) const -> dou
 
         auto bin = getBin(stability, ease);
         stability = log(interval + skewForFloor) / log(bin);
+        // spdlog::warn("bin: {}, stability: {}, ease: {}, interval: {}, skew: {}", bin, stability, ease, interval, skewForFloor);
 
         // spdlog::info("i: {:.3F}, ni: {:.3F}, s: {}", interval, getInterval(stability, ease), stability);
     }
+    // spdlog::warn(" stability: {}, ease: {}", stability, ease);
 
     return std::clamp<double>(stability, 0, numberOfBins);
 }
@@ -397,6 +423,11 @@ auto Scheduler::getInterval(double stability, double ease) const -> double
     double interval = std::pow(bin, stability);
     // spdlog::info("i: {}, bin: {}, stability: {}", interval, bin, stability);
     interval = std::clamp(interval, 1., maxInterval);
+
+    if (!(interval >= 0)) {
+        // assert(interval >= 0);
+        spdlog::critical("Interval: {}, bin: {}, stability: {}, ease: {}", interval, bin, stability, ease);
+    }
     return interval;
 }
 
@@ -505,7 +536,7 @@ auto Scheduler::decreaseEaseTowardsNeutral(double ease, double speed) -> std::pa
 
 auto Scheduler::nextEase(double stability, double ease) const -> double
 {
-    constexpr double stabilizeAt = 3.;
+    constexpr double stabilizeAt = 1.5;
     if (std::max(stability, stability / getStep(ease)) < stabilizeAt) {
         return ease;
     }
@@ -652,10 +683,13 @@ void Scheduler::initBins()
         return std::pow(std::pow(bin, expNext), 1. / exp);
     });
     binsEasy.back() = binsEasy.at(numberOfBins - 2);
-    // double exp = 0;
-    // for (const auto& [hard, good, easy] : views::zip(binsHard, binsGood, binsEasy)) {
-    //     spdlog::info("{} {} {} - {}", hard, good, easy, std::pow(easy, exp));
-    //     exp++;
-    // }
+    ranges::fill(binsHard, 1.5);
+    ranges::fill(binsGood, 2.0);
+    ranges::fill(binsEasy, 2.5);
+    double exp = 0;
+    for (const auto& [hard, good, easy] : views::zip(binsHard, binsGood, binsEasy)) {
+        spdlog::info("{} {} {} - {}", hard, good, easy, std::pow(easy, exp));
+        exp++;
+    }
 }
 } // namespace sr

@@ -47,7 +47,7 @@ auto Translation::get(double _beginTimeStamp, double _endTimeStamp) -> std::opti
     if (translation.empty()) {
         text.reset();
     } else {
-        text = translation;
+        text = translation.substr(0, 1024);
     }
     return text;
 }

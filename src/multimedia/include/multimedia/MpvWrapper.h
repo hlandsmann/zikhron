@@ -31,6 +31,7 @@ public:
     void playFragment(double start, double end);
     void pause();
     void seek(double pos);
+    void setSubtitle(bool enabled);
     [[nodiscard]] auto getDuration() const -> double;
     [[nodiscard]] auto getTimePos() const -> double;
 

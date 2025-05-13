@@ -16,7 +16,11 @@
 #include <utils/StringU8.h>
 #include <utils/format.h>
 
+#include <algorithm>
+#include <array>
 #include <chrono>
+#include <cstddef>
+#include <cstdlib>
 #include <filesystem>
 #include <memory>
 #include <ratio>
@@ -25,15 +29,101 @@
 
 namespace fs = std::filesystem;
 
+void genMatrix()
+{
+    std::array<int, 16> values{};
+    std::array<double, 16> factors{};
+    for (double fac : {1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0, 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0}) {
+        {
+            double val = 1.;
+            double lval = 0;
+            for (auto& v : values) {
+                v = static_cast<int>(val);
+                if (lval != 0) {
+                    if (v - 1 != lval) {
+                        if (std::abs(static_cast<double>(v) - (lval * fac)) > std::abs(static_cast<double>(v - 1) - (lval * fac))) {
+                            v--;
+                        }
+                    }
+                    if (std::abs(static_cast<double>(v) - (lval * fac)) > std::abs(static_cast<double>(v + 1) - (lval * fac))) {
+                        v++;
+                    }
+                }
+                lval = static_cast<double>(v);
+                val *= fac;
+                val = std::min(4242., val);
+            }
+            fmt::print("{{{:4d}}},\n", fmt::join(values, "}, {"));
+        }
+        {
+            double val = 1;
+            double lval = 1;
+            std::size_t i = 0;
+            for (auto& f : factors) {
+                val = values.at(i++);
+                f = val / lval;
+                lval = val;
+            }
+            fmt::print("{{{:.2f}}},\n", fmt::join(factors, "}, {"));
+        }
+    }
+    // {
+    //     double val = 1;
+    //     double lval = 1;
+    //     for (auto& v : values) {
+    //         v = static_cast<int>(val);
+    //         lval = std::exchange(val, val + lval);
+    //         val = std::min(4242., val);
+    //     }
+    //     fmt::print("{{{:4d}}},\n", fmt::join(values, "}, {"));
+    // }
+
+    // {
+    //     double val = 1;
+    //     double lval = 1;
+    //     std::size_t i = 0;
+    //     for (auto& f : factors) {
+    //         val = values.at(i++);
+    //         f = val / lval;
+    //         lval = val;
+    //     }
+    //     fmt::print("{{{:.2f}}},\n", fmt::join(factors, "}, {"));
+    // }
+    // for (double fac : {1., 2., 3.} /* {0.5, 0.7, 0.85, 1.0, 2.} */) {
+    //     {
+    //         double val = 1;
+    //         double lval = 1;
+    //         for (auto& v : values) {
+    //             v = static_cast<int>(val);
+    //             lval = std::exchange(val, val + (lval * fac));
+    //             val = std::min(4242., val);
+    //         }
+    //         fmt::print("{{{:4d}}},\n", fmt::join(values, "}, {"));
+    //     }
+    //     {
+    //         double val = 1;
+    //         double lval = 1;
+    //         std::size_t i = 0;
+    //         for (auto& f : factors) {
+    //             val = values.at(i++);
+    //             f = val / lval;
+    //             lval = val;
+    //         }
+    //         fmt::print("{{{:.2f}}},\n", fmt::join(factors, "}, {"));
+    //     }
+    // }
+}
+
 auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 {
     auto path_to_exe = fs::read_symlink("/proc/self/exe");
     return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
 }
 
-
 auto main() -> int
 {
+    genMatrix();
+    return 0;
     using Rating = sr::Rating;
     auto scheduler = sr::Scheduler{};
     auto review = [&scheduler](const database::SpacedRepetitionData& srd, Rating rating) -> database::SpacedRepetitionData {
@@ -41,7 +131,7 @@ auto main() -> int
         using Days = std::chrono::duration<double, std::ratio<86400>>;
         // auto dur = scheduler.getIntervalDays(srd);
         auto dur = srd.due - srd.reviewed;
-        srdTemp.reviewed = srd.reviewed - dur + duration_cast<std::chrono::nanoseconds>(Days{srd.shiftBackward});
+        srdTemp.reviewed = srd.reviewed - dur; //+ duration_cast<std::chrono::nanoseconds>(Days{srd.shiftBackward});
         srdTemp.due = std::chrono::system_clock::now();
 
         auto srsFail = scheduler.review(srdTemp, Rating::fail);
@@ -58,9 +148,9 @@ auto main() -> int
         case Rating::pass:
             spdlog::info("Pass");
             return srsPass;
-            case Rating::familiar:
-                spdlog::info("Familiar");
-                return srsPass;
+        case Rating::familiar:
+            spdlog::info("Familiar");
+            return srsPass;
         }
         std::unreachable();
     };
@@ -70,24 +160,37 @@ auto main() -> int
     auto srd = database::SpacedRepetitionData::deserialize(ser);
     srd = review(srd, Rating::fail);
     srd = review(srd, Rating::pass);
+    srd = review(srd, Rating::pass);
+    srd = review(srd, Rating::fail);
+    srd = review(srd, Rating::pass);
+    srd = review(srd, Rating::pass);
+    srd = review(srd, Rating::fail);
+    srd = review(srd, Rating::pass);
+    srd = review(srd, Rating::pass);
+    srd = review(srd, Rating::fail);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::fail);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::fail);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::fail);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::pass);
+    // srd = review(srd, Rating::fail);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::fail);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::fail);
     // srd = review(srd, Rating::pass);
-    // srd = review(srd, Rating::fail);
-    // srd = review(srd, Rating::pass);
-    // srd = review(srd, Rating::fail);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::pass);
-    // srd = review(srd, Rating::pass);
-    // // srd = review(srd, Rating::fail);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::fail);
-    // srd = review(srd, Rating::pass);
-    // // srd = review(srd, Rating::fail);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::pass);
     // srd = review(srd, Rating::pass);
@@ -95,4 +198,3 @@ auto main() -> int
 
     spdlog::info("Time: {}", srd.getDueInTimeLabel());
 }
-

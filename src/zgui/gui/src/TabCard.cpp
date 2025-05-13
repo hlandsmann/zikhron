@@ -286,7 +286,7 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
     if (!activeVocableIds.empty()) {
         displayVocables = std::make_unique<DisplayVocables>(vocableLayer, dataBase, std::move(activeVocablesColered), language);
     }
-    if (auto optTranslation = track->getTranslation(); optTranslation.has_value()) {
+    if (auto optTranslation = track->getTranslation(); optTranslation.has_value() && track->getTrackType() == TrackType::audio) {
         auto translation = *optTranslation;
         ttqTranslation = translationLayer->add<widget::TextTokenSeq>(Align::start,
                                                                      annotation::tokenVectorFromString(translation),
@@ -318,6 +318,7 @@ void TabCard::loadTrack()
     if (track->getTrackType() == database::TrackType::video) {
         if (mpvVideo->getMediaFile() != track->getMediaFile()) {
             mpvVideo->openFile(track->getMediaFile().value());
+            mpvVideo->setSubtitle(revealTranslation);
         }
         if (mode == Mode::shuffle) {
             double start = track->getStartTimeStamp();
@@ -1057,12 +1058,20 @@ void TabCard::handleTimeDelAdd(widget::ImageButton& btnTimeDelFront,
 
 void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
 {
-    if (!ttqTranslation) {
+    if (!track) {
+        return;
+    }
+    if (track->getTrackType() == TrackType::audio && !ttqTranslation) {
         return;
     }
     btnTranslation.setChecked(revealTranslation);
     if (btnTranslation.clicked()) {
         revealTranslation = !btnTranslation.isChecked();
+        if (track && track->getTrackType() == TrackType::video) {
+            mpvVideo->setSubtitle(revealTranslation);
+            mpvVideo->seek(mpvVideo->getTimePos() + 0.1);
+            mpvVideo->seek(mpvVideo->getTimePos());
+        }
     }
 }
 

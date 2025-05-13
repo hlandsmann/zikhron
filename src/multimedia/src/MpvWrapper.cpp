@@ -50,7 +50,8 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
     // mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
-    mpv_set_option_string(mpv.get(), "sid", "no");
+    mpv_set_option_string(mpv.get(), "sid", "2");
+    // mpv_set_option_string(mpv.get(), "sid", "no");
     mpv_set_option_string(mpv.get(), "audio-display", "no");
     if (mpv_initialize(mpv.get()) < 0) {
         throw std::runtime_error("could not initialize mpv context");
@@ -202,6 +203,14 @@ void MpvWrapper::seek(double pos)
     static std::string seek_position;
     seek_position = std::to_string(pos);
     const char* cmd[] = {"seek", seek_position.c_str(), "absolute", nullptr};
+    mpv_command(mpv.get(), static_cast<const char**>(cmd));
+}
+
+void MpvWrapper::setSubtitle(bool enabled)
+{
+    static std::string enabled_str;
+    enabled_str = enabled ? "yes" : "no";
+    const char* cmd[] = {"set", "sub-visibility", enabled_str.c_str(), nullptr};
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
 }
 
