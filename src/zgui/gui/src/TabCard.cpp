@@ -1,5 +1,7 @@
 #include "TabCard.h"
 
+#include "imgui.h"
+
 #include <DisplayAnnotation.h>
 #include <DisplayText.h>
 #include <DisplayVideo.h>
@@ -422,7 +424,7 @@ void TabCard::setupAudioCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{Image::media_playback_start,
                                                                   Image::media_playback_pause});
     // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
-    ctrlBox.add<widget::MediaSlider>(Align::start);
+    ctrlBox.add<widget::MediaSlider>(Align::start)->setUseKeyboard(true);
 
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::media_skip_backward);
@@ -507,7 +509,7 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{Image::media_playback_start,
                                                                   Image::media_playback_pause});
     // ctrlBox.add<widget::Separator>(Align::start, 4.F, 0.F);
-    ctrlBox.add<widget::MediaSlider>(Align::start);
+    ctrlBox.add<widget::MediaSlider>(Align::start)->setUseKeyboard(true);
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
 
     ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{Image::circle_stop,
@@ -729,6 +731,9 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     unsigned playing = mpvCurrent->is_paused() ? 0 : 1;
     auto oldPlaying = playing;
     playing = btnPlay.toggled(oldPlaying);
+    if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_P)) {
+        playing = playing == 0 ? 1 : 0;
+    }
     if (oldPlaying != playing) {
         if (playing != 0) {
             if (timePos >= end - 0.05) {
@@ -770,13 +775,16 @@ void TabCard::handleCardSubmission(widget::Button& btnReveal, widget::Button& bt
     if (displayVocables == nullptr) {
         if (track && track->hasNext()) {
             btnClicked |= btnNext.clicked();
+            btnClicked |= ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Space);
         }
         cardSubmission = CardSubmission::next;
     } else if (revealVocables) {
         btnClicked |= btnSubmit.clicked();
+        btnClicked |= ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_S);
         cardSubmission = CardSubmission::submit;
     } else {
         btnClicked |= btnReveal.clicked();
+        btnClicked |= ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Space);
         cardSubmission = CardSubmission::reveal;
     }
     if (!btnClicked) {
@@ -896,11 +904,11 @@ void TabCard::handleSelection(widget::ImageButton& btnSelect,
     auto cardId = card->getCardId();
     btnSelect.setSensitive(!dataBase->cardExists(cardId));
     btnUnselect.setSensitive(dataBase->cardExists(cardId));
-    if (btnSelect.clicked()) {
+    if (btnSelect.clicked() || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_A)) {
         dataBase->addCard(card);
         signalProceed->set(Proceed::reload);
     }
-    if (btnUnselect.clicked()) {
+    if (btnUnselect.clicked() || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_X)) {
         dataBase->removeCard(cardId);
         signalProceed->set(Proceed::reload);
     }
@@ -923,7 +931,8 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
         nextPreviousClicked = true;
         track = track->continueTrack();
     }
-    if (btnPrevious.clicked()) {
+
+    if (btnPrevious.clicked() || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_B)) {
         nextPreviousClicked = true;
         if (track->hasPrevious()) {
             track = track->previousTrack();
@@ -931,7 +940,7 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
             track = track->getSubtitlePrefix();
         }
     }
-    if (btnNext.clicked()) {
+    if (btnNext.clicked() || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_N)) {
         nextPreviousClicked = true;
         execVideoNext();
     }
@@ -1065,12 +1074,14 @@ void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
         return;
     }
     btnTranslation.setChecked(revealTranslation);
-    if (btnTranslation.clicked()) {
+    if (btnTranslation.clicked()||ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_T)) {
         revealTranslation = !btnTranslation.isChecked();
         if (track && track->getTrackType() == TrackType::video) {
             mpvVideo->setSubtitle(revealTranslation);
-            mpvVideo->seek(mpvVideo->getTimePos() + 0.1);
-            mpvVideo->seek(mpvVideo->getTimePos());
+            if (mpvVideo->is_paused()) {
+                mpvVideo->seek(mpvVideo->getTimePos() + 0.1);
+                mpvVideo->seek(mpvVideo->getTimePos());
+            }
         }
     }
 }

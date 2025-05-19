@@ -24,15 +24,18 @@ public:
     auto operator=(MediaSlider&&) -> MediaSlider& = delete;
 
     auto slide(double start, double end, double pos) -> double;
+    void setUseKeyboard(bool useKeyboard);
 
 private:
-    static auto sliderValueFromPos(double start, double end, double pos) -> float;
-    static auto posFromSliderValue(double start, double end, float value) -> double;
-    static auto timeString(double start, double pos) -> std::string;
-    auto calculateSize() const -> WidgetSize override;
+    [[nodiscard]] static auto valueFromKeyboard(float value) -> float;
+    [[nodiscard]] static auto sliderValueFromPos(double start, double end, double pos) -> float;
+    [[nodiscard]] static auto posFromSliderValue(double start, double end, float value) -> double;
+    [[nodiscard]] static auto timeString(double start, double pos) -> std::string;
+    [[nodiscard]] auto calculateSize() const -> WidgetSize override;
     [[nodiscard]] auto getWidgetSizeFromRect(const layout::Rect& rect) -> WidgetSize override;
 
     float lastValue{};
+    bool useKeyboard{false};
 };
 
 } // namespace widget
