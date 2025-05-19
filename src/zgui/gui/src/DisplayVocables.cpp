@@ -109,7 +109,10 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
     for (const auto& [vocId, colorId] : coloredVocables) {
         const auto& word = wordDB->lookupId(vocId);
         auto rating = *itEase++;
-        const auto& srd = scheduler->review(*database->Vocables().at_id(vocId).second.SpacedRepetitionData(), rating);
+        // const auto
+        const auto& oldSrd = *database->Vocables().at_id(vocId).second.SpacedRepetitionData();
+        const auto& newSrd = scheduler->review(oldSrd, rating);
+        spdlog::info("    {}, {}", word->Key(), oldSrd.serialize());
         bool renderKey = true;
         bool renderEase = true;
         bool renderEnabled = true;
@@ -131,7 +134,7 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
                 grid.add<widget::TextTokenSeq>(Align::start, tokenVectorFromString(meaning, colorId), ttqConfig);
                 if (renderEase) {
                     addRatingButtonGroup(grid);
-                    grid.add<widget::TextTokenSeq>(Align::start, makeProgressLabel(srd, colorId), ttqConfig);
+                    grid.add<widget::TextTokenSeq>(Align::start, makeProgressLabel(newSrd, colorId), ttqConfig);
                     renderEase = false;
                 } else {
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);

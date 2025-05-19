@@ -197,7 +197,7 @@ void DataBase::removeCard(CardId cardId)
         (*vocables)[vocableIndex].eraseCardId(cardId);
     }
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
-        if ((*vocables)[vocableIndex].CardIds().size() <= 1) {
+        if ((*vocables)[vocableIndex].CardIds().size() == 0) {
             (*vocables)[vocableIndex].setEnabled(false);
         }
     }

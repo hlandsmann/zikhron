@@ -378,7 +378,7 @@ auto Scheduler::failStabilityAndEase(const SpacedRepetitionData& srd) const -> s
 
 auto Scheduler::stabilityFromInterval(double interval, double ease) const -> double
 {
-    constexpr double skewForFloor = 0.0;
+    constexpr double skewForFloor = 0.1;
     interval = std::max(0., interval);
     double stability = 1;
     double oldStability = 0;
