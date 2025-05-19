@@ -1,6 +1,7 @@
 #include "Word_jpn.h"
 
 #include "SpacedRepetitionData.h"
+#include "Word.h"
 
 #include <VocableProgress.h>
 #include <dictionary/Dictionary.h>
@@ -22,7 +23,8 @@ namespace ranges = std::ranges;
 namespace database {
 
 Word_jpn::Word_jpn(std::string_view description, VocableId _vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary)
-    : vocableId{_vocableId}
+    : Word(description, _vocableId, dictionary)
+    , vocableId{_vocableId}
 {
     auto rest = std::string_view{description};
     key = utl::split_front(rest, ';');
@@ -39,7 +41,8 @@ Word_jpn::Word_jpn(std::string_view description, VocableId _vocableId, const std
 }
 
 Word_jpn::Word_jpn(std::vector<dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
-    : vocableId{_vocableId}
+    : Word(_dictionaryEntries, _vocableId)
+    , vocableId{_vocableId}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {
     key = dictionaryEntries.front().key;

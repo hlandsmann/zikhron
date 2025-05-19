@@ -24,7 +24,7 @@ public:
     auto operator=(Word&&) -> Word& = default;
 
     Word(std::string_view description, VocableId vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary);
-    Word(std::vector<dictionary::Entry>&& dictionaryEntries, VocableId vocableId);
+    Word(std::vector<dictionary::Entry> dictionaryEntries, VocableId vocableId);
     [[nodiscard]] auto serialize() const -> std::string;
     [[nodiscard]] auto getId() const -> VocableId;
     [[nodiscard]] auto Key() const -> std::string;

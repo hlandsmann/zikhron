@@ -38,7 +38,7 @@ Word::Word(std::string_view description, VocableId _vocableId, const std::shared
     // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
 
-Word::Word(std::vector<dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
+Word::Word(std::vector<dictionary::Entry> _dictionaryEntries, VocableId _vocableId)
     : vocableId{_vocableId}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {

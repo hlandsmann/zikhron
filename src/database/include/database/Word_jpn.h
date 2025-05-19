@@ -15,12 +15,12 @@ class SpacedRepetitionData;
 
 struct Definition;
 
-class Word_jpn
+class Word_jpn : public Word
 {
 public:
     Word_jpn(const Word_jpn&) = default;
     Word_jpn(Word_jpn&&) = default;
-    virtual ~Word_jpn() = default;
+     ~Word_jpn() override = default;
     auto operator=(const Word_jpn&) -> Word_jpn& = default;
     auto operator=(Word_jpn&&) -> Word_jpn& = default;
 
