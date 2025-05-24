@@ -9,6 +9,7 @@
 #include <mutex>
 #include <optional>
 #include <utility>
+
 namespace kocoro {
 template<class result_type, bool persistent>
 struct SignalAwaiter
@@ -25,6 +26,7 @@ struct SignalAwaiter
         : result{std::move(_result)}
         , handle{_handle}
         , resultMutex{_resultMutex} {}
+
     [[nodiscard]] auto await_ready() const noexcept -> bool
     {
         auto lock = std::lock_guard{resultMutex.get()};
@@ -61,15 +63,24 @@ class Signal : public ScheduleEntry
 
 public:
     Signal() = default;
+
     auto operator co_await() -> SignalAwaiter<result_type, persistent>
     {
         return {result, std::ref(handle), std::ref(resultMutex)};
     }
+
     void set(result_type _result)
     {
         auto lock = std::lock_guard{resultMutex};
         result->emplace(std::move(_result));
     }
+
+    void reset()
+    {
+        auto lock = std::lock_guard{resultMutex};
+        result->reset();
+    }
+
     auto resume() -> bool override
     {
         if (handle.has_value() && !handle->done() && result->has_value()) {

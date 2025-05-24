@@ -34,8 +34,7 @@ public:
     void setSubtitle(bool enabled);
     [[nodiscard]] auto getDuration() const -> double;
     [[nodiscard]] auto getTimePos() const -> double;
-
-    [[nodiscard]] auto is_paused() const -> bool { return paused; }
+    [[nodiscard]] auto is_playing() const -> bool;
 
     void initGL();
     auto render(GLuint fbo, int width, int height) -> int64_t;
@@ -47,6 +46,8 @@ public:
 
 private:
     auto handleEventTask() -> kocoro::Task<>;
+    auto handleCommandTask() -> kocoro::Task<>;
+    void setSeekCommand(double pos);
 
     void handle_mpv_event(mpv_event* event);
     [[nodiscard]] auto getNextFrameTargetTime() const -> int64_t;
@@ -77,9 +78,22 @@ private:
     bool seeking{false};
     std::optional<double> secondarySeekPosition;
 
+    enum class CommandType {
+        seek,
+    };
+
+    struct Command
+    {
+        CommandType type{};
+        double seekPosition{};
+    };
+
     // Signals:
-    std::shared_ptr<kocoro::VolatileSignal<bool>> signalShouldRender;
+    std::shared_ptr<kocoro::VolatileSignal<bool>>
+            signalShouldRender;
     std::shared_ptr<kocoro::VolatileSignal<double>> signalTimePos;
     std::shared_ptr<kocoro::VolatileSignal<bool>> signalEvent;
+    std::shared_ptr<kocoro::VolatileSignal<Command>> signalCommand;
+    std::shared_ptr<kocoro::PersistentSignal<double>> signalDuration; // a file is opened if this is duration available
 };
 } // namespace multimedia

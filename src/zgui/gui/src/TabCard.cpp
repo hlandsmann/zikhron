@@ -305,10 +305,10 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
 
 void TabCard::loadTrack()
 {
-    if (mpvAudio && !mpvAudio->is_paused()) {
+    if (mpvAudio && mpvAudio->is_playing()) {
         mpvAudio->pause();
     }
-    if (mpvVideo && !mpvVideo->is_paused() && mode == Mode::shuffle) {
+    if (mpvVideo && mpvVideo->is_playing() && mode == Mode::shuffle) {
         mpvVideo->pause();
     }
     if (!track->getMediaFile().has_value()) {
@@ -728,14 +728,18 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     double end = track->getEndTimeStamp();
     double timePos = std::max(mpvCurrent->getTimePos(), start);
 
-    unsigned playing = mpvCurrent->is_paused() ? 0 : 1;
+    auto playing = mpvCurrent->is_playing();
     auto oldPlaying = playing;
     playing = btnPlay.toggled(oldPlaying);
     if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_P)) {
-        playing = playing == 0 ? 1 : 0;
+        playing = !playing;
+    }
+    if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_R)) {
+        playing = true;
+        mpvCurrent->seek(start);
     }
     if (oldPlaying != playing) {
-        if (playing != 0) {
+        if (playing) {
             if (timePos >= end - 0.05) {
                 timePos = start;
             }
@@ -750,7 +754,7 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     }
     auto oldTimePos = std::exchange(timePos, sliderProgress.slide(start, end, timePos));
     if (oldTimePos != timePos) {
-        if (mpvCurrent->is_paused()) {
+        if (!mpvCurrent->is_playing()) {
             mpvCurrent->playFragment(timePos, end);
         } else {
             mpvCurrent->seek(timePos);
@@ -1074,11 +1078,11 @@ void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
         return;
     }
     btnTranslation.setChecked(revealTranslation);
-    if (btnTranslation.clicked()||ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_T)) {
+    if (btnTranslation.clicked() || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_T)) {
         revealTranslation = !btnTranslation.isChecked();
         if (track && track->getTrackType() == TrackType::video) {
             mpvVideo->setSubtitle(revealTranslation);
-            if (mpvVideo->is_paused()) {
+            if (!mpvVideo->is_playing()) {
                 mpvVideo->seek(mpvVideo->getTimePos() + 0.1);
                 mpvVideo->seek(mpvVideo->getTimePos());
             }

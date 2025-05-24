@@ -1,4 +1,5 @@
 // clang-format off
+#include <magic_enum.hpp>
 #include <epoxy/glx.h>
 #include <epoxy/egl.h>
 #include <epoxy/gl_generated.h>
@@ -45,8 +46,11 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     : signalShouldRender{executor->makeVolatileSignal<bool>()}
     , signalTimePos{executor->makeVolatileSignal<double>()}
     , signalEvent{executor->makeVolatileSignal<bool>()}
+    , signalCommand{executor->makeVolatileSignal<Command>()}
+    , signalDuration{executor->makePersistentSignal<double>()}
 {
     executor->startCoro(handleEventTask());
+    executor->startCoro(handleCommandTask());
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
     // mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
@@ -86,6 +90,20 @@ auto MpvWrapper::handleEventTask() -> kocoro::Task<>
     co_return;
 }
 
+auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
+{
+    while (true) {
+        auto command = co_await *signalCommand;
+        switch (command.type) {
+        case CommandType::seek: {
+            auto _ = co_await *signalDuration; // use a set duration signal as indicator whether a file is opened
+            seek(command.seekPosition);
+        } break;
+        }
+    }
+    co_return;
+}
+
 void MpvWrapper::handle_mpv_event(mpv_event* event)
 {
     switch (event->event_id) {
@@ -95,6 +113,7 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
             stopped = true;
             timePos = duration;
             signalTimePos->set(timePos);
+            signalDuration->reset();
         }
 
         break;
@@ -115,12 +134,12 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
         } else if (std::string{prop->name} == "duration") {
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 duration = *reinterpret_cast<double*>(prop->data);
+                signalDuration->set(duration);
                 spdlog::info("duration: {}", duration);
             }
         } else if (std::string{prop->name} == "pause") {
             if (prop->format == MPV_FORMAT_FLAG) {
                 paused = static_cast<bool>(*reinterpret_cast<int*>(prop->data));
-                // spdlog::info("paused: {}", paused);
             }
         }
         break;
@@ -195,6 +214,10 @@ void MpvWrapper::pause()
 
 void MpvWrapper::seek(double pos)
 {
+    if (stopped) {
+        setSeekCommand(pos);
+        return;
+    }
     if (seeking) {
         secondarySeekPosition = pos;
         return;
@@ -204,6 +227,12 @@ void MpvWrapper::seek(double pos)
     seek_position = std::to_string(pos);
     const char* cmd[] = {"seek", seek_position.c_str(), "absolute", nullptr};
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
+}
+
+void MpvWrapper::setSeekCommand(double pos)
+{
+    signalCommand->set({.type = CommandType::seek,
+                        .seekPosition = pos});
 }
 
 void MpvWrapper::setSubtitle(bool enabled)
@@ -222,6 +251,11 @@ auto MpvWrapper::getDuration() const -> double
 auto MpvWrapper::getTimePos() const -> double
 {
     return timePos;
+}
+
+auto MpvWrapper::is_playing() const -> bool
+{
+    return !(paused || stopped);
 }
 
 void MpvWrapper::initGL()
