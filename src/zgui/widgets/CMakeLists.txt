@@ -13,6 +13,7 @@ target_sources(zgui_widgets
         include/widgets/MediaSlider.h
         include/widgets/Overlay.h
         include/widgets/Separator.h
+        include/widgets/ScrollArea.h
         include/widgets/SteppedSlider.h
         include/widgets/TextToken.h
         include/widgets/TextTokenSeq.h
@@ -32,6 +33,7 @@ target_sources(zgui_widgets
         src/MetaBox.cpp
         src/Overlay.cpp
         src/Separator.cpp
+        src/ScrollArea.cpp
         src/SteppedSlider.cpp
         src/TextToken.cpp
         src/TextTokenSeq.cpp

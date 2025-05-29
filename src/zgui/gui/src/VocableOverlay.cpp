@@ -16,6 +16,7 @@
 #include <widgets/ImageButton.h>
 #include <widgets/Layer.h>
 #include <widgets/Overlay.h>
+#include <widgets/ScrollArea.h>
 #include <widgets/Separator.h>
 #include <widgets/TextToken.h>
 #include <widgets/TextTokenSeq.h>
@@ -99,7 +100,8 @@ void VocableOverlay::setupBox()
     box.clear();
     const auto& headerBox = box.add<widget::Box>(Align::start, headerBoxCfg, widget::Orientation::horizontal);
     const auto& definitionGrid = box.add<widget::Grid>(Align::start, definitionGridCfg, 2, widget::Grid::Priorities{0.2F, 0.8F});
-    const auto& optionBox = box.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    auto& optionScrollArea = *box.add<widget::ScrollArea>(Align::start, "vocableScrollArea");
+    const auto& optionBox = optionScrollArea.add<widget::Box>(Align::start, widget::Orientation::vertical);
 
     headerBox->setName("headerBox");
     headerBox->setExpandType(width_adapt, height_fixed);
@@ -293,13 +295,16 @@ void VocableOverlay::draw()
     box.start();
     auto& headerBox = box.next<widget::Box>();
     auto& definitionGrid = box.next<widget::Grid>();
-    auto& optionBox = box.next<widget::Box>();
+    auto& optionScrollArea = box.next<widget::ScrollArea>();
+    optionScrollArea.start();
+    auto& optionBox = optionScrollArea.next<widget::Box>();
 
     drawHeader(headerBox);
     if (!setupPendingDefinition) {
         drawDefinition(definitionGrid);
     }
     if (showOptions && !setupPendingOptions) {
+        auto dropScrollArea = optionScrollArea.dropScrollArea();
         drawOptions(optionBox);
     }
 
