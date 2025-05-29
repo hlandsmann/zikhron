@@ -11,6 +11,7 @@
 #include <spaced_repetition/DataBase.h>
 #include <spaced_repetition/ITreeWalker.h>
 #include <spaced_repetition/Scheduler.h>
+#include <spaced_repetition/Scheduler2.h>
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 #include <utils/StringU8.h>
@@ -114,6 +115,27 @@ void genMatrix()
     // }
 }
 
+void printValues()
+{
+    fmt::print("\n");
+    for (unsigned lastInterval = 0; lastInterval <= 62; lastInterval++) {
+        fmt::print("{:4d}: ", lastInterval);
+        for (int skew = -8; skew <= 10; skew++) {
+            unsigned interval = sr::Scheduler2::nextIntervalDays(lastInterval, skew);
+            if (interval == 0) {
+                if (skew < 0) {
+                    fmt::print("[       ], ");
+                } else {
+                    fmt::print("[      ], ");
+                }
+            } else {
+                fmt::print("[{}:{:4d}], ", skew, interval);
+            }
+        }
+        fmt::print("\n");
+    }
+}
+
 auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 {
     auto path_to_exe = fs::read_symlink("/proc/self/exe");
@@ -122,7 +144,7 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 
 auto main() -> int
 {
-    genMatrix();
+    printValues();
     return 0;
     using Rating = sr::Rating;
     auto scheduler = sr::Scheduler{};
