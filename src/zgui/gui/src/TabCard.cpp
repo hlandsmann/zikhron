@@ -325,8 +325,7 @@ void TabCard::loadTrack()
         if (mode == Mode::shuffle) {
             double start = track->getStartTimeStamp();
             double end = track->getEndTimeStamp();
-            mpvVideo->playFragment(start, end);
-            mpvVideo->pause();
+            mpvVideo->setFragment(start, end);
         }
     }
 }
@@ -731,12 +730,14 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     auto playing = mpvCurrent->is_playing();
     auto oldPlaying = playing;
     playing = btnPlay.toggled(oldPlaying);
+
+    if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_R)) {
+        mpvCurrent->setFragment(start, end);
+        mpvCurrent->play();
+        return;
+    }
     if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_P)) {
         playing = !playing;
-    }
-    if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_R)) {
-        playing = true;
-        mpvCurrent->seek(start);
     }
     if (oldPlaying != playing) {
         if (playing) {
@@ -746,7 +747,8 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
             if (mode == Mode::story && track->getTrackType() == database::TrackType::video) {
                 mpvCurrent->playFrom(timePos);
             } else {
-                mpvCurrent->playFragment(timePos, end);
+                mpvCurrent->setFragment(timePos, end);
+                mpvCurrent->play();
             }
         } else {
             mpvCurrent->pause();
@@ -754,11 +756,13 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     }
     auto oldTimePos = std::exchange(timePos, sliderProgress.slide(start, end, timePos));
     if (oldTimePos != timePos) {
-        if (!mpvCurrent->is_playing()) {
-            mpvCurrent->playFragment(timePos, end);
-        } else {
-            mpvCurrent->seek(timePos);
-        }
+        mpvCurrent->setFragment(timePos, end);
+        mpvCurrent->play();
+        // if (!mpvCurrent->is_playing()) {
+        //     mpvCurrent->setFragment(timePos, end);
+        // } else {
+        //     mpvCurrent->seek(timePos);
+        // }
     }
 }
 
@@ -1060,12 +1064,14 @@ void TabCard::handleTimeDelAdd(widget::ImageButton& btnTimeDelFront,
     if (frontClicked) {
         double start = track->getStartTimeStamp();
         double end = std::min(track->getEndTimeStamp(), start + 0.5);
-        mpvVideo->playFragment(start, end);
+        mpvVideo->setFragment(start, end);
+        mpvVideo->play();
     }
     if (backClicked) {
         double end = track->getEndTimeStamp();
         double start = std::max(track->getStartTimeStamp(), end - 0.5);
-        mpvVideo->playFragment(start, end);
+        mpvVideo->setFragment(start, end);
+        mpvVideo->play();
     }
 }
 
@@ -1122,18 +1128,23 @@ void TabCard::execVideoNext()
     }
     if (playMode == PlayMode::stop) {
         track = track->nextTrack();
+        mpvVideo->setFragment(track->getStartTimeStamp(), track->getEndTimeStamp());
         mpvVideo->pause();
     } else {
+        double endTimeStamp{};
         if (track->isSubtitlePrefix()) {
             track = track->getNonPrefixDefault();
+            endTimeStamp = track->getEndTimeStamp();
         } else {
             track = track->nextTrack();
+            endTimeStamp = track->getEndTimeStamp();
             if (track->hasSubtitlePrefix()) {
                 track = track->getSubtitlePrefix();
             }
         }
 
-        mpvVideo->playFrom(track->getStartTimeStamp());
+        mpvVideo->setFragment(track->getStartTimeStamp(), endTimeStamp);
+        mpvVideo->play();
     }
 }
 

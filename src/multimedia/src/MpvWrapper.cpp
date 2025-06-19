@@ -14,8 +14,11 @@
 #include <spdlog/spdlog.h>
 
 #include <bit>
+#include <chrono>
 #include <cstdint>
+#include <cstdlib>
 #include <filesystem>
+#include <gsl/util>
 #include <kocoro/kocoro.hpp>
 #include <memory>
 #include <stdexcept>
@@ -33,6 +36,7 @@
 #include <epoxy/wgl.h>
 #include <gdk/gdkwin32.h>
 #endif
+using namespace std::chrono_literals;
 
 namespace {
 auto get_proc_address(void* /* fn_ctx */, const char* name) -> void*
@@ -45,6 +49,7 @@ namespace multimedia {
 MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     : signalShouldRender{executor->makeVolatileSignal<bool>()}
     , signalTimePos{executor->makeVolatileSignal<double>()}
+    , signalTimePosInternal{executor->makeVolatileSignal<double>()}
     , signalEvent{executor->makeVolatileSignal<bool>()}
     , signalCommand{executor->makeVolatileSignal<Command>()}
     , signalDuration{executor->makePersistentSignal<double>()}
@@ -57,6 +62,7 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     mpv_set_option_string(mpv.get(), "sid", "2");
     // mpv_set_option_string(mpv.get(), "sid", "no");
     mpv_set_option_string(mpv.get(), "audio-display", "no");
+    mpv_set_option_string(mpv.get(), "hr-seek", "yes");
     if (mpv_initialize(mpv.get()) < 0) {
         throw std::runtime_error("could not initialize mpv context");
     }
@@ -83,6 +89,9 @@ auto MpvWrapper::handleEventTask() -> kocoro::Task<>
             }
             handle_mpv_event(event);
         }
+        if (stopAtPosition == 0) {
+            stopAtPosition = duration;
+        }
         if (!paused && timePos >= stopAtPosition) {
             pause();
         }
@@ -94,13 +103,71 @@ auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
 {
     while (true) {
         auto command = co_await *signalCommand;
+        isSeeking = true;
+        auto self = shared_from_this();
+        auto finally = gsl::finally([self]() {
+            self->isSeeking = false;
+            if (self->shouldUnpause) {
+                self->shouldUnpause = false;
+                self->mpvCommandPlay(true);
+            }
+        });
         switch (command.type) {
         case CommandType::seek: {
+            constexpr double threshold = 0.1;
+            auto position = co_await *signalTimePosInternal;
+            if (std::abs(command.seekPosition - position) < threshold) {
+                signalTimePosInternal->set(position);
+                break;
+            }
+
+            mpvCommandSeek(command.seekPosition);
+            bool rising = false;
+            signalTimePosInternal->setTimeOut(500ms);
+            while (true) {
+                auto tmpPosition = co_await *signalTimePosInternal;
+                if (tmpPosition == 0) {
+                    break;
+                }
+                auto oldPosition = position;
+                position = tmpPosition;
+                if (!paused && oldPosition > position - threshold) {
+                    spdlog::critical("breaking out");
+                    rising = true;
+                    break;
+                }
+                signalTimePosInternal->setTimeOut(100ms);
+            }
+            if (rising || std::abs(command.seekPosition - position) < threshold) {
+                signalTimePosInternal->set(position);
+                break;
+            }
+            mpv_set_option_string(mpv.get(), "hr-seek-demuxer-offset", "10");
+            spdlog::warn("seeking failed, need to adjust");
+
+            // spdlog::info("   1 pos: {} ", position);
+            //
+            // mpvCommandSeek(0);
+            // // signalTimePosInternal->setTimeOut(100ms);
+            // position = co_await *signalTimePosInternal;
+            // spdlog::info("   2 pos: {} ", position);
+            mpvCommandSeek(command.seekPosition);
+
+            position = co_await *signalTimePosInternal;
+            signalTimePosInternal->set(position);
+
+        } break;
+        case CommandType::stoppedMediaSeek: {
+            if (mediaFile.empty()) {
+                break;
+            }
+            openFile(mediaFile);
             auto _ = co_await *signalDuration; // use a set duration signal as indicator whether a file is opened
             seek(command.seekPosition);
         } break;
         }
     }
+
     co_return;
 }
 
@@ -113,6 +180,7 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
             stopped = true;
             timePos = duration;
             signalTimePos->set(timePos);
+            signalTimePosInternal->set(timePos);
             signalDuration->reset();
         }
 
@@ -124,12 +192,7 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
             if (prop->format == MPV_FORMAT_DOUBLE) {
                 timePos = *reinterpret_cast<double*>(prop->data);
                 signalTimePos->set(timePos);
-                seeking = false;
-                if (secondarySeekPosition) {
-                    auto newPos = *secondarySeekPosition;
-                    secondarySeekPosition.reset();
-                    seek(newPos);
-                }
+                signalTimePosInternal->set(timePos);
             }
         } else if (std::string{prop->name} == "duration") {
             if (prop->format == MPV_FORMAT_DOUBLE) {
@@ -159,14 +222,15 @@ void MpvWrapper::openFile(const std::filesystem::path& mediaFile_in)
     mediaFile = mediaFile_in.string();
     if (mediaFile.empty()) {
         pause();
-        closeFile();
+        resetTime();
         return;
     }
     stopped = false;
     const char* cmd[] = {"loadfile", mediaFile.c_str(), nullptr};
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
     spdlog::info("mpv opening file {}", mediaFile.c_str());
-    pause();
+    mpv_set_option_string(mpv.get(), "hr-seek-demuxer-offset", "0");
+    mpvCommandPlay(false);
 }
 
 auto MpvWrapper::getMediaFile() const -> std::filesystem::path
@@ -174,24 +238,26 @@ auto MpvWrapper::getMediaFile() const -> std::filesystem::path
     return mediaFile;
 }
 
-void MpvWrapper::closeFile()
+void MpvWrapper::resetTime()
 {
     duration = 0.;
     timePos = 0.;
 }
 
-void MpvWrapper::play(double until)
+void MpvWrapper::play()
 {
-    if (until == 0) {
-        until = duration - 0.1F;
+    if (!isSeeking) {
+        mpvCommandPlay(true);
+    } else {
+        shouldUnpause = true;
     }
-    if (stopped) {
-        openFile(mediaFile);
-    }
-    stopAtPosition = until;
-    mpv_flag_paused = 0;
-    mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
     mpv_set_property_async(mpv.get(), 0, "ao-volume", MPV_FORMAT_DOUBLE, &volume);
+}
+
+void MpvWrapper::pause()
+{
+    mpvCommandPlay(false);
+    shouldUnpause = false;
 }
 
 void MpvWrapper::playFrom(double start)
@@ -200,39 +266,42 @@ void MpvWrapper::playFrom(double start)
     play();
 }
 
-void MpvWrapper::playFragment(double start, double end)
+void MpvWrapper::setFragment(double start, double end)
 {
+    stopAtPosition = end;
     seek(start);
-    play(end);
-}
-
-void MpvWrapper::pause()
-{
-    mpv_flag_paused = 1;
-    mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
 }
 
 void MpvWrapper::seek(double pos)
 {
     if (stopped) {
-        setSeekCommand(pos);
-        return;
+        setSeekCommandTask(pos, CommandType::stoppedMediaSeek);
+    } else {
+        setSeekCommandTask(pos, CommandType::seek);
     }
-    if (seeking) {
-        secondarySeekPosition = pos;
-        return;
-    }
-    seeking = true;
+}
+
+void MpvWrapper::mpvCommandSeek(double pos)
+{
     static std::string seek_position;
     seek_position = std::to_string(pos);
     const char* cmd[] = {"seek", seek_position.c_str(), "absolute", nullptr};
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
 }
 
-void MpvWrapper::setSeekCommand(double pos)
+void MpvWrapper::mpvCommandPlay(bool play)
 {
-    signalCommand->set({.type = CommandType::seek,
+    mpv_flag_paused = play ? 0 : 1;
+    if (paused != (mpv_flag_paused == 1)) {
+        mpv_set_property(mpv.get(), "pause", MPV_FORMAT_FLAG, &mpv_flag_paused);
+    }
+}
+
+void MpvWrapper::setSeekCommandTask(double pos, CommandType commandType)
+{
+    signalCommand->set({.type = commandType,
                         .seekPosition = pos});
+    isSeeking = true;
 }
 
 void MpvWrapper::setSubtitle(bool enabled)

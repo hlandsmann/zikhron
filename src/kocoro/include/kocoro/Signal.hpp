@@ -3,6 +3,7 @@
 
 #include <spdlog/spdlog.h>
 
+#include <chrono>
 #include <coroutine>
 #include <functional>
 #include <memory>
@@ -61,6 +62,9 @@ class Signal : public ScheduleEntry
     std::shared_ptr<optional_result> result{std::make_shared<optional_result>()};
     std::mutex resultMutex;
 
+    using time_point = std::chrono::time_point<std::chrono::system_clock>;
+    std::optional<time_point> timeout;
+
 public:
     Signal() = default;
 
@@ -73,22 +77,37 @@ public:
     {
         auto lock = std::lock_guard{resultMutex};
         result->emplace(std::move(_result));
+        timeout.reset();
     }
 
     void reset()
     {
         auto lock = std::lock_guard{resultMutex};
         result->reset();
+        timeout.reset();
     }
 
     auto resume() -> bool override
     {
-        if (handle.has_value() && !handle->done() && result->has_value()) {
+        if (handle.has_value() && !handle->done() && (result->has_value() || isTimeOut())) {
             auto tempHandle = std::exchange(handle, std::nullopt);
             tempHandle->resume();
             return true;
         }
         return false;
+    }
+
+    void setTimeOut(std::chrono::milliseconds ms)
+    {
+        timeout = std::chrono::system_clock::now() + ms;
+    }
+
+    auto isTimeOut() -> bool
+    {
+        if (!timeout.has_value()) {
+            return false;
+        }
+        return timeout < std::chrono::system_clock::now();
     }
 };
 
