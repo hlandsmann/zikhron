@@ -1117,6 +1117,9 @@ void TabCard::handleDataBaseSave(widget::ImageButton& btnSave)
 
 void TabCard::execVideoNext()
 {
+    if (!track->hasNext()) {
+        return;
+    }
     if (playMode == PlayMode::stop) {
         track = track->nextTrack();
         mpvVideo->pause();
