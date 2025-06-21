@@ -30,6 +30,7 @@ public:
                 Language language);
 
     auto draw() -> bool;
+    [[nodiscard]] auto vocableOverlayIsActive() const -> bool;
 
 private:
     constexpr static float s_border = 16.F;

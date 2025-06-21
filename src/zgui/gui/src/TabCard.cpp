@@ -101,6 +101,9 @@ void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
     const auto& [_, videoChoice] = videoSet->getChoice();
 
     track = cardDB->getTrackFromVideo(videoChoice);
+    if (track->hasSubtitlePrefix()) {
+        track = track->getSubtitlePrefix();
+    }
 
     signalProceed->set(Proceed::nextTrack);
     mode = Mode::story;
@@ -111,7 +114,7 @@ auto TabCard::videoPlaybackTask() -> kocoro::Task<>
     auto localTrack = track;
     while (true) {
         double timePos = co_await mpvVideo->SignalTimePos();
-        if (localTrack != track) {
+        if (localTrack != track) { // this only happens if next is pressed manually.
             localTrack = track;
             if (localTrack && localTrack->getStartTimeStamp() > timePos) {
                 mpvVideo->seek(track->getStartTimeStamp());
@@ -120,20 +123,21 @@ auto TabCard::videoPlaybackTask() -> kocoro::Task<>
         }
         if (timePos >= track->getEndTimeStamp()) {
             // track is set here, so set localTrack at the end of switch/case
-            switch (playMode) {
+            auto tmpPlayMode = evaluateTemporaryPlaymode();
+            switch (tmpPlayMode) {
             case PlayMode::stop:
-                mpvVideo->pause();
-                break;
-            case PlayMode::playNext:
                 if (track->isSubtitlePrefix()) {
                     track = track->getNonPrefixDefault();
                     signalProceed->set(Proceed::nextTrack);
                 } else {
-                    mpvVideo->pause();
+                    // mpvVideo->pause();
+                    mpvVideo->setStopMark(track->getEndTimeStamp());
+                    // isReviewingSubtitle = false;
                 }
                 break;
-            case PlayMode::playUntilUnknown:
-            case PlayMode::playThrough:
+            case PlayMode::play:
+                execVideoNext();
+                signalProceed->set(Proceed::nextTrack);
                 break;
             }
             localTrack = track;
@@ -509,10 +513,9 @@ void TabCard::setupVideoCtrlBox(widget::Box& ctrlBox)
     ctrlBox.add<widget::MediaSlider>(Align::start)->setUseKeyboard(true);
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
 
-    ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{Image::circle_stop,
-                                                                  Image::circle_play,
-                                                                  Image::circle_fast_forward,
-                                                                  Image::circle_forward});
+    ctrlBox.add<widget::ImageButton>(Align::start, widget::Images{
+                                                           Image::circle_stop,
+                                                           Image::circle_play});
     ctrlBox.add<widget::Separator>(Align::end, 16.F, 0.F);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_cut_prev);
     ctrlBox.add<widget::ImageButton>(Align::end, Image::sub_add_prev);
@@ -730,16 +733,23 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     playing = btnPlay.toggled(oldPlaying);
 
     if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_R)) {
+        isReviewingSubtitle = true;
         mpvCurrent->setFragment(start, end);
         mpvCurrent->play();
         return;
     }
     if (ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_P)) {
         playing = !playing;
+        isReviewingSubtitle = false;
     }
     if (oldPlaying != playing) {
         if (playing) {
             if (timePos >= end - 0.05) {
+                if (!isReviewingSubtitle && playMode == PlayMode::play) {
+                    mpvCurrent->setStopMark(0);
+                    mpvCurrent->play();
+                    return;
+                }
                 timePos = start;
             }
             if (mode == Mode::story && track->getTrackType() == database::TrackType::video) {
@@ -754,6 +764,7 @@ void TabCard::handlePlayback(widget::ImageButton& btnPlay, widget::MediaSlider& 
     }
     auto oldTimePos = std::exchange(timePos, sliderProgress.slide(start, end, timePos));
     if (oldTimePos != timePos) {
+        isReviewingSubtitle = true;
         mpvCurrent->setFragment(timePos, end);
         mpvCurrent->play();
         // if (!mpvCurrent->is_playing()) {
@@ -849,7 +860,21 @@ void TabCard::handleMode(widget::ToggleButtonGroup& tbgMode)
 
 void TabCard::handlePlayMode(widget::ImageButton& btnPlayMode)
 {
-    playMode = btnPlayMode.toggled(playMode);
+    auto oldPlayMode = std::exchange(playMode, btnPlayMode.toggled(playMode));
+    if (oldPlayMode == playMode) {
+        return;
+    }
+    const auto& mpvCurrent = track->getTrackType() == database::TrackType::audio
+                                     ? mpvAudio
+                                     : mpvVideo;
+    switch (playMode) {
+    case PlayMode::stop:
+        mpvCurrent->setStopMark(track->getEndTimeStamp());
+        break;
+    case PlayMode::play:
+        mpvCurrent->setStopMark(0);
+        break;
+    }
 }
 
 void TabCard::handleSubAddCut(widget::ImageButton& btnCutPrev,
@@ -945,8 +970,10 @@ void TabCard::handleNextPreviousVideo(widget::ImageButton& btnContinue,
         } else {
             track = track->getSubtitlePrefix();
         }
+        isReviewingSubtitle = true;
     }
     if (btnNext.clicked() || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_N)) {
+        isReviewingSubtitle = false;
         nextPreviousClicked = true;
         execVideoNext();
     }
@@ -1064,12 +1091,14 @@ void TabCard::handleTimeDelAdd(widget::ImageButton& btnTimeDelFront,
         double end = std::min(track->getEndTimeStamp(), start + 0.5);
         mpvVideo->setFragment(start, end);
         mpvVideo->play();
+        isReviewingSubtitle = true;
     }
     if (backClicked) {
         double end = track->getEndTimeStamp();
         double start = std::max(track->getStartTimeStamp(), end - 0.5);
         mpvVideo->setFragment(start, end);
         mpvVideo->play();
+        isReviewingSubtitle = true;
     }
 }
 
@@ -1119,16 +1148,26 @@ void TabCard::handleDataBaseSave(widget::ImageButton& btnSave)
     }
 }
 
+auto TabCard::evaluateTemporaryPlaymode() const -> PlayMode
+{
+    if (playMode == PlayMode::play
+        && (mode == Mode::shuffle
+            || displayAnnotation
+            || (displayText && displayText->vocableOverlayIsActive())
+            || isReviewingSubtitle
+            || revealVocables)) {
+        return PlayMode::stop;
+    }
+    return playMode;
+}
+
 void TabCard::execVideoNext()
 {
     if (!track->hasNext()) {
         return;
     }
-    if (playMode == PlayMode::stop) {
-        track = track->nextTrack();
-        mpvVideo->setFragment(track->getStartTimeStamp(), track->getEndTimeStamp());
-        mpvVideo->pause();
-    } else {
+    switch (playMode) {
+    case PlayMode::stop: {
         double endTimeStamp{};
         if (track->isSubtitlePrefix()) {
             track = track->getNonPrefixDefault();
@@ -1143,6 +1182,20 @@ void TabCard::execVideoNext()
 
         mpvVideo->setFragment(track->getStartTimeStamp(), endTimeStamp);
         mpvVideo->play();
+    } break;
+    case PlayMode::play: {
+        if (track->isSubtitlePrefix()) {
+            track = track->getNonPrefixDefault();
+        } else {
+            track = track->nextTrack();
+            if (track->hasSubtitlePrefix()) {
+                track = track->getSubtitlePrefix();
+            }
+        }
+
+        mpvVideo->setFragment(track->getStartTimeStamp(), 0);
+        mpvVideo->play();
+    } break;
     }
 }
 

@@ -67,9 +67,7 @@ class TabCard
 
     enum class PlayMode : unsigned {
         stop,
-        playNext,
-        playUntilUnknown,
-        playThrough,
+        play,
     };
 
     enum class SecondaryCtrlMode {
@@ -160,6 +158,7 @@ private:
     void handleTranslation(widget::ImageButton& btnTranslation);
     void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);
+    [[nodiscard]] auto evaluateTemporaryPlaymode() const -> PlayMode;
 
     void execVideoNext();
 
@@ -188,10 +187,11 @@ private:
 
     context::WidgetId boxId{};
 
+    bool isReviewingSubtitle{false};
     bool revealVocables{false};
     bool revealTranslation{false};
     Mode mode{Mode::shuffle};
-    PlayMode playMode{PlayMode::playNext};
+    PlayMode playMode{PlayMode::stop};
     SecondaryCtrlMode secondaryCtrlMode{SecondaryCtrlMode::progress};
 
     std::shared_ptr<multimedia::MpvWrapper> mpvAudio;

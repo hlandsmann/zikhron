@@ -119,6 +119,7 @@ auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
             auto position = co_await *signalTimePosInternal;
             if (std::abs(command.seekPosition - position) < threshold) {
                 signalTimePosInternal->set(position);
+                signalTimePos->set(timePos);
                 break;
             }
 
@@ -141,6 +142,7 @@ auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
             }
             if (rising || std::abs(command.seekPosition - position) < threshold) {
                 signalTimePosInternal->set(position);
+                signalTimePos->set(timePos);
                 break;
             }
             mpv_set_option_string(mpv.get(), "hr-seek-demuxer-offset", "10");
@@ -154,9 +156,10 @@ auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
             // spdlog::info("   2 pos: {} ", position);
             mpvCommandSeek(command.seekPosition);
 
-            signalTimePosInternal->setTimeOut(100ms);
+            signalTimePosInternal->setTimeOut(1000ms);
             position = co_await *signalTimePosInternal;
             signalTimePosInternal->set(position);
+            signalTimePos->set(timePos);
 
         } break;
         case CommandType::stoppedMediaSeek: {
@@ -182,7 +185,9 @@ void MpvWrapper::handle_mpv_event(mpv_event* event)
         if (prop->reason == mpv_end_file_reason::MPV_END_FILE_REASON_EOF) {
             stopped = true;
             timePos = duration;
-            signalTimePos->set(timePos);
+            if (!isSeeking) {
+                signalTimePos->set(timePos);
+            }
             signalTimePosInternal->set(timePos);
             signalDuration->reset();
         }
@@ -273,6 +278,11 @@ void MpvWrapper::setFragment(double start, double end)
 {
     stopAtPosition = end;
     seek(start);
+}
+
+void MpvWrapper::setStopMark(double end)
+{
+    stopAtPosition = end;
 }
 
 void MpvWrapper::seek(double pos)

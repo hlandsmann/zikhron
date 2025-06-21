@@ -68,7 +68,7 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
     // open Dialog Simple
     if (groupAdd && groupAdd->draw()) {
         fileDialog = std::make_unique<FileDialog>(size,
-                                                  "/home/harmen/Videos/chinesisch",
+                                                  fileDlgDir,
                                                   signalVideoFileOpen);
     }
     for (const auto& groupVideo : groupVideos) {
@@ -100,6 +100,7 @@ auto TabVideo::manageVideosTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWa
         auto videoFile = co_await *signalVideoFileOpen;
         if (!videoFile.empty()) {
             videoDB->addVideoSet({videoFile});
+            fileDlgDir = videoFile.parent_path();
         }
         fileDialog.reset();
     }

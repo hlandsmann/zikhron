@@ -71,6 +71,11 @@ auto DisplayText::draw() -> bool
     return configured;
 }
 
+auto DisplayText::vocableOverlayIsActive() const -> bool
+{
+    return vocableOverlay != nullptr;
+}
+
 auto DisplayText::drawDialogue() -> std::optional<std::shared_ptr<widget::TextToken>>
 {
     std::optional<std::shared_ptr<widget::TextToken>> result;

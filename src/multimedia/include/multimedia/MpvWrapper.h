@@ -30,6 +30,7 @@ public:
 
     void playFrom(double start);
     void setFragment(double start, double end);
+    void setStopMark(double end);
     void seek(double pos);
     void setSubtitle(bool enabled);
     [[nodiscard]] auto getDuration() const -> double;
@@ -55,6 +56,7 @@ private:
         CommandType type{};
         double seekPosition{};
     };
+
     auto handleEventTask() -> kocoro::Task<>;
     auto handleCommandTask() -> kocoro::Task<>;
     void mpvCommandSeek(double pos);
@@ -90,7 +92,6 @@ private:
     double timePos{};
 
     bool stopped{true};
-
 
     // Signals:
     std::shared_ptr<kocoro::VolatileSignal<bool>>

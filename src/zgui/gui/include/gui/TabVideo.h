@@ -57,7 +57,11 @@ private:
     std::unique_ptr<GroupAdd> groupAdd;
     context::WidgetId windowId{};
 
+    std::filesystem::path fileDlgDir = "/home/harmen/Videos/";
+
     sigslot::signal<database::VideoSetPtr> sig_playVideoSet;
+
+
 };
 
 } // namespace gui
