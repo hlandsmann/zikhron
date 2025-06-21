@@ -115,6 +115,7 @@ auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
         switch (command.type) {
         case CommandType::seek: {
             constexpr double threshold = 0.1;
+            signalTimePosInternal->setTimeOut(2500ms);
             auto position = co_await *signalTimePosInternal;
             if (std::abs(command.seekPosition - position) < threshold) {
                 signalTimePosInternal->set(position);
@@ -153,6 +154,7 @@ auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
             // spdlog::info("   2 pos: {} ", position);
             mpvCommandSeek(command.seekPosition);
 
+            signalTimePosInternal->setTimeOut(100ms);
             position = co_await *signalTimePosInternal;
             signalTimePosInternal->set(position);
 
@@ -162,6 +164,7 @@ auto MpvWrapper::handleCommandTask() -> kocoro::Task<>
                 break;
             }
             openFile(mediaFile);
+            signalTimePosInternal->setTimeOut(100ms);
             auto _ = co_await *signalDuration; // use a set duration signal as indicator whether a file is opened
             seek(command.seekPosition);
         } break;

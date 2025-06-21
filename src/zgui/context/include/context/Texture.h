@@ -117,9 +117,9 @@ public:
     // the GlfwImguiContext needs to be initialized before this class is constructed
     Texture(std::shared_ptr<GlfwImguiContext> /* glfwImguiContext */);
     [[nodiscard]] auto get(Image image) const -> const TextureData&;
+    [[nodiscard]] static auto loadTextureFromFile(const std::filesystem::path& imageFile) -> TextureData;
 
 private:
-    static auto loadTextureFromFile(const std::filesystem::path& imageFile) -> TextureData;
     static auto loadTextureMap() -> std::map<Image, TextureData>;
 
     std::map<Image, TextureData> textureMap;

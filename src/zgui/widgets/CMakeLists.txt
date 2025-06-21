@@ -7,13 +7,14 @@ target_sources(zgui_widgets
         include/widgets/Button.h
         include/widgets/Child.h
         include/widgets/Grid.h
+        include/widgets/Image.h
         include/widgets/ImageButton.h
         include/widgets/Label.h
         include/widgets/Layer.h
         include/widgets/MediaSlider.h
         include/widgets/Overlay.h
-        include/widgets/Separator.h
         include/widgets/ScrollArea.h
+        include/widgets/Separator.h
         include/widgets/SteppedSlider.h
         include/widgets/TextToken.h
         include/widgets/TextTokenSeq.h
@@ -26,14 +27,15 @@ target_sources(zgui_widgets
         src/Button.cpp
         src/Child.cpp
         src/Grid.cpp
+        src/Image.cpp
         src/ImageButton.cpp
         src/Label.cpp
         src/Layer.cpp
         src/MediaSlider.cpp
         src/MetaBox.cpp
         src/Overlay.cpp
-        src/Separator.cpp
         src/ScrollArea.cpp
+        src/Separator.cpp
         src/SteppedSlider.cpp
         src/TextToken.cpp
         src/TextTokenSeq.cpp

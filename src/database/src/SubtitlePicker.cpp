@@ -268,7 +268,7 @@ auto SubtitlePicker::createJoinedSubtitle(std::size_t index, const CardPtr& card
     if (newCard == nullptr) {
         auto cardInit = CardInit{
                 .cardId = cardIds.at(index),
-                .packName = videoName,
+                .packName = subtitle->getFileName().filename().string(),
                 .packId = videoId,
                 .indexInPack = index,
                 .wordDB = wordDB,

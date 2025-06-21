@@ -4,12 +4,12 @@
 
 #include <annotation/JieBa.h>
 #include <annotation/Token.h>
-#include <spdlog/sinks/ringbuffer_sink.h>
 #include <annotation/Tokenizer.h>
 #include <annotation/TokenizerChi.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <misc/TokenizationChoice.h>
+#include <spdlog/sinks/ringbuffer_sink.h>
 #include <unicode/unistr.h>
 #include <utils/StringU8.h>
 

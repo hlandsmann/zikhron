@@ -49,12 +49,20 @@ void TabVideo::setLanguage(Language language)
 void TabVideo::displayOnLayer(widget::Layer& layer)
 {
     auto& window = layer.getWidget<widget::Window>(windowId);
-    auto size = layer.getWidgetSize();
+    auto droppedWindow = window.dropWindow();
+
+    if (fileDialog) {
+        fileDialog->draw();
+        return;
+    }
 
     window.start();
     auto& scrollArea = window.next<widget::ScrollArea>();
+    auto rect = scrollArea.getRect();
+    widget::WidgetSize size{.width = rect.width, .height = rect.height};
+    // auto size = layer.getWidgetSize();
+    // spdlog::info("size, width: {}, height: {}", size.width, size.height);
 
-    auto droppedWindow = window.dropWindow();
     auto droppedScrollArea = scrollArea.dropScrollArea();
 
     // open Dialog Simple
@@ -68,9 +76,6 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
             spdlog::info("Clicked: {}", groupVideo->getVideoSet()->getName());
             sig_playVideoSet(groupVideo->getVideoSet());
         }
-    }
-    if (fileDialog) {
-        fileDialog->draw();
     }
 
     scrollArea.start();

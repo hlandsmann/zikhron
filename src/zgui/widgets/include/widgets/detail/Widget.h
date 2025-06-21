@@ -161,6 +161,7 @@ public:
     [[nodiscard]] auto anyParentHasId(unsigned id) const -> bool { return anyParentHasId(static_cast<WidgetId>(id)); }
 
     void scratchDbg();
+    [[nodiscard]] auto getRect() const -> const layout::Rect&;
 
 protected:
     [[nodiscard]] static auto dropWidgetId(WidgetId) -> context::WidgetIdDrop;
@@ -168,7 +169,6 @@ protected:
     [[nodiscard]] virtual auto calculateMinSize() const -> WidgetSize;
     [[nodiscard]] auto getThemePtr() const -> std::shared_ptr<context::Theme>;
     [[nodiscard]] auto getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGenerator>;
-    [[nodiscard]] auto getRect() const -> const layout::Rect&;
     void setRect(const layout::Rect&);
 
 private:

@@ -98,14 +98,12 @@ void TabCard::displayOnLayer(widget::Layer& layer)
 void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
 {
     auto cardDB = dataBase->getCardDB();
-    const auto& videos = videoSet->getVideos();
+    const auto& [_, videoChoice] = videoSet->getChoice();
 
-    track = cardDB->getTrackFromVideo(videos.begin()->second);
+    track = cardDB->getTrackFromVideo(videoChoice);
 
     signalProceed->set(Proceed::nextTrack);
     mode = Mode::story;
-    // mpvVideo->openFile(videoSet->getVideo()->getVideoFile());
-    // mpvVideo->play();
 }
 
 auto TabCard::videoPlaybackTask() -> kocoro::Task<>

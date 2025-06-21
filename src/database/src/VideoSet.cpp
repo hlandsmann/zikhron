@@ -13,6 +13,7 @@
 #include <utils/string_split.h>
 
 #include <algorithm>
+#include <cstddef>
 #include <exception>
 #include <filesystem>
 #include <fstream>
@@ -46,6 +47,8 @@ VideoSet::VideoSet(std::filesystem::path _videoSetFile,
         spdlog::error("Failed to parse {}", videoSetFile.string());
         spdlog::error("{}", e.what());
     }
+
+    setChoice(choice);
 }
 
 VideoSet::VideoSet(std::filesystem::path _videoSetFile,
@@ -67,7 +70,9 @@ VideoSet::VideoSet(std::filesystem::path _videoSetFile,
                                 cardIdGenerator,
                                 tokenizer,
                                 wordDB)}
-{}
+{
+    setChoice(choice);
+}
 
 auto VideoSet::getName() const -> const std::string&
 {
@@ -76,7 +81,24 @@ auto VideoSet::getName() const -> const std::string&
 
 auto VideoSet::getVideos() const -> const std::map<PackId, VideoPtr>&
 {
-  return videos;
+    return videos;
+}
+
+void VideoSet::setChoice(std::size_t _choice)
+{
+    choice = std::min(_choice, videos.size() - 1);
+    const auto& [_, videoPtr] = *std::next(videos.begin(), static_cast<int>(choice));
+    videoChoice = videoPtr;
+}
+
+auto VideoSet::getChoice() const -> std::pair<std::size_t, VideoPtr>
+{
+    return {choice, videoChoice};
+}
+
+auto VideoSet::getCover() const -> std::filesystem::path
+{
+    return cover;
 }
 
 void VideoSet::save()
@@ -106,6 +128,8 @@ void VideoSet::deserialize()
     }
 
     name = getValue(rest, "name");
+    cover = getValue(rest, "cover");
+    choice = std::stoul(std::string{getValue(rest, "choice")});
 
     while (!rest.empty()) {
         auto videoId = packIdGenerator->getNext();
@@ -124,6 +148,9 @@ auto VideoSet::serialize() const -> std::string
     std::string content;
     content += fmt::format("{};version:1.0\n", s_type);
     content += fmt::format("name:{}\n", name);
+    content += fmt::format("cover:{}\n", cover.string());
+    content += fmt::format("choice:{}\n", choice);
+
     for (const auto& [videoId, video] : videos) {
         content += fmt::format("{}\n;\n", video->serialize());
     }

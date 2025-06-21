@@ -53,6 +53,12 @@ void Label::draw()
                               text.c_str(), nullptr, nullptr);
 }
 
+void Label::setText(const std::string& _text)
+{
+    text = _text;
+    resetWidgetSize();
+}
+
 auto Label::calculateSize() const -> WidgetSize
 {
     return sizeFromRect;

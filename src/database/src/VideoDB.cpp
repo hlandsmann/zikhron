@@ -111,10 +111,9 @@ auto VideoDB::getVideo(const std::string& videoName) const -> VideoPtr
 
 void VideoDB::save()
 {
-    // implement saving videoSets if subtitle choice (or the like) changed
-    // for (const auto& videoSet : videoSets) {
-    //     videoSet->save();
-    // }
+    for (const auto& videoSet : videoSets) {
+        videoSet->save();
+    }
     spdlog::info("Saved VideoDB - nothing to save yet");
 }
 
@@ -158,7 +157,7 @@ void VideoDB::addVideosFromVideoSet(const VideoSetPtr& videoSet)
     ranges::transform(videoSet->getVideos(), std::inserter(nameToVideos, nameToVideos.begin()),
                       [](const auto& idVideo) -> std::pair<std::string, VideoPtr> {
                           const auto& [_, video] = idVideo;
-                          return {video->getName(), video};
+                          return {video->getVideoFile().stem(), video};
                       });
 }
 } // namespace database

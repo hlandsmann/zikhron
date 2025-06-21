@@ -24,6 +24,7 @@ public:
     auto operator=(Label&&) -> Label& = delete;
 
     void draw();
+    void setText(const std::string& text);
 
 protected:
     auto calculateSize() const -> WidgetSize override;
