@@ -9,6 +9,7 @@
 #include <spdlog/spdlog.h>
 #include <theme/Sizes.h>
 #include <widgets/Layer.h>
+#include <widgets/ScrollArea.h>
 #include <widgets/Window.h>
 
 #include <filesystem>
@@ -30,9 +31,11 @@ TabVideo::TabVideo(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecu
 void TabVideo::setUp(widget::Layer& layer)
 {
     using namespace widget::layout;
-    auto& cardWindow = *layer.add<widget::Window>(Align::start, width_expand, height_expand, "card_text");
+    auto& cardWindow = *layer.add<widget::Window>(Align::start, width_expand, height_expand, "video_choice_window");
     windowId = cardWindow.getWidgetId();
-    auto grid = cardWindow.add<widget::Grid>(Align::start, gridCfg, 1, widget::Grid::Priorities{1.0F});
+    auto& scrollArea = *cardWindow.add<widget::ScrollArea>(Align::start, "video_scroll_area");
+    scrollArea.setExpandType(width_expand, height_expand);
+    auto grid = scrollArea.add<widget::Grid>(Align::start, gridCfg, 1, widget::Grid::Priorities{1.0F});
     grid->setExpandType(width_expand, height_expand);
     grid->setVerticalPadding(20.F);
     signalGroupGrid->set(grid);
@@ -47,7 +50,12 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
 {
     auto& window = layer.getWidget<widget::Window>(windowId);
     auto size = layer.getWidgetSize();
+
+    window.start();
+    auto& scrollArea = window.next<widget::ScrollArea>();
+
     auto droppedWindow = window.dropWindow();
+    auto droppedScrollArea = scrollArea.dropScrollArea();
 
     // open Dialog Simple
     if (groupAdd && groupAdd->draw()) {
@@ -65,8 +73,8 @@ void TabVideo::displayOnLayer(widget::Layer& layer)
         fileDialog->draw();
     }
 
-    window.start();
-    auto& grid = window.next<widget::Grid>();
+    scrollArea.start();
+    auto& grid = scrollArea.next<widget::Grid>();
     grid.autoSetColumnsPaddingRearrange(Sizes::groupMinPadding, Sizes::groupMaxPadding);
 }
 

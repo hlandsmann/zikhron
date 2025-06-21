@@ -26,17 +26,19 @@ Label::Label(WidgetInit init)
 
 void Label::draw()
 {
+    auto rect = getRect();
     auto fontDrop = getTheme().getFont().dropFont(fontType);
     if (textSize.width <= sizeFromRect.width) {
         auto widgetIdDrop = dropWidgetId();
-        ImGui::SetCursorPos({getRect().x, getRect().y});
+        ImGui::SetCursorPos({rect.x, rect.y});
         ImGui::Text("%s", text.c_str());
         return;
     }
 
+    ImGui::SetCursorPos({0, 0});
+    auto offset = ImGui::GetCursorScreenPos();
+
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    auto offset = getOffsetRect();
-    auto rect = getRect();
     rect.x += offset.x;
     rect.y += offset.y;
     constexpr float ellipsis_max_x_magic = 8;

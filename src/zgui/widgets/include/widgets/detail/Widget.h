@@ -170,9 +170,6 @@ protected:
     [[nodiscard]] auto getWidgetIdGenerator() const -> std::shared_ptr<context::WidgetIdGenerator>;
     [[nodiscard]] auto getRect() const -> const layout::Rect&;
     void setRect(const layout::Rect&);
-    void setLocalOffset(float x, float y);
-    [[nodiscard]] auto getLocalOffset() const -> const layout::Rect&;
-    [[nodiscard]] auto getOffsetRect() const -> layout::Rect;
 
 private:
     auto makeWidgetInit() -> WidgetInit;
@@ -181,7 +178,6 @@ private:
     mutable std::string name;
     mutable std::string widgetIdName;
     std::shared_ptr<layout::Rect> rectPtr;
-    layout::Rect localOffset{};
     layout::Align horizontalAlign;
     layout::Align verticalAlign;
     ExpandType expandTypeWidth{ExpandType::width_fixed};

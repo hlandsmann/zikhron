@@ -6,7 +6,6 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-#include <algorithm>
 #include <memory>
 #include <string>
 #include <utility>
@@ -42,8 +41,7 @@ Child::Child(const WidgetInit& init)
 auto Child::arrange(const layout::Rect& rect) -> bool
 {
     setRect(rect);
-    auto offset = getOffsetRect();
-    setLocalOffset(rect.x+offset.x, rect.y+offset.y);
+
     auto layerRect = rect;
     layerRect.x = 0;
     layerRect.y = 0;
@@ -73,12 +71,14 @@ auto Child::dropChild() -> ChildDrop
     start();
     layout::Rect rect = getRect();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    auto offset = getOffsetRect();
     float thickness = 1;
-    draw_list->AddRect({rect.x + offset.x - thickness,
-                        rect.y + offset.y - thickness},
-                       {rect.x + offset.x + thickness + rect.width,
-                        rect.y + offset.y + thickness + rect.height},
+
+    ImGui::SetCursorPos({rect.x, rect.y});
+    auto screenPos = ImGui::GetCursorScreenPos();
+    draw_list->AddRect({screenPos.x - thickness,
+                        screenPos.y - thickness},
+                       {screenPos.x + thickness + rect.width,
+                        screenPos.y + thickness + rect.height},
                        ImGui::ColorConvertFloat4ToU32(getTheme().ColorBorder()));
     return {getWidgetIdName(), rect, getTheme().dropImGuiStyleColors(context::ColorTheme::Child)};
 }
@@ -87,8 +87,8 @@ ChildDrop::ChildDrop(const std::string& name, const widget::layout::Rect& rect,
                      context::StyleColorsDrop _styleColorsDrop)
     : styleColorsDrop{std::move(_styleColorsDrop)}
 {
-    // ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 10.F);
-    // ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.59F, 0.59F, 0.59F, 1.F));
+    ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 10.F);
+    ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.59F, 0.59F, 0.59F, 1.F));
     ImGui::SetCursorPos({rect.x, rect.y});
     ImGui::BeginChild(name.c_str(), {rect.width, rect.height});
     incPopCount();
@@ -97,7 +97,7 @@ ChildDrop::ChildDrop(const std::string& name, const widget::layout::Rect& rect,
 void ChildDrop::pop()
 {
     ImGui::EndChild();
-    // ImGui::PopStyleColor();
-    // ImGui::PopStyleVar();
+    ImGui::PopStyleColor();
+    ImGui::PopStyleVar();
 }
 } // namespace widget

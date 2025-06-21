@@ -208,30 +208,6 @@ void Widget::setRect(const layout::Rect& rect)
     *rectPtr = rect;
 }
 
-void Widget::setLocalOffset(float x, float y)
-{
-    localOffset.x = x;
-    localOffset.y = y;
-}
-
-auto Widget::getLocalOffset() const -> const layout::Rect&
-{
-    return localOffset;
-}
-
-auto Widget::getOffsetRect() const -> layout::Rect
-{
-    auto widgetParent = getParent();
-    while (widgetParent) {
-        const auto& parentOffset = widgetParent->getLocalOffset();
-        if (parentOffset.x != 0 || parentOffset.y != 0) {
-            return parentOffset;
-        }
-        widgetParent = widgetParent->getParent();
-    }
-    return {};
-}
-
 void Widget::setExpandType(layout::ExpandType width, layout::ExpandType height)
 {
     expandTypeWidth = width;
