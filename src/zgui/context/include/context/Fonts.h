@@ -27,7 +27,7 @@ enum class FontType {
     Gui,
 };
 
-auto getFontType(FontSize fontSize, Language language) -> FontType;
+[[nodiscard]] auto getFontType(FontSize fontSize, Language language) -> FontType;
 
 constexpr auto bToColor(unsigned char r, unsigned char g, unsigned char b) -> ImVec4
 {

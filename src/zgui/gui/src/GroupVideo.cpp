@@ -2,6 +2,7 @@
 
 #include <context/Fonts.h>
 #include <database/VideoSet.h>
+#include <misc/Language.h>
 #include <theme/Sizes.h>
 #include <widgets/Box.h>
 #include <widgets/Child.h>
@@ -15,22 +16,24 @@
 
 namespace gui {
 
-GroupVideo::GroupVideo(std::shared_ptr<widget::Grid> _grid, database::VideoSetPtr _videoSet)
+GroupVideo::GroupVideo(std::shared_ptr<widget::Grid> _grid, database::VideoSetPtr _videoSet, Language language)
     : grid{std::move(_grid)}
     , videoSet{std::move(_videoSet)}
 {
     using namespace widget::layout;
+    auto fontType = context::getFontType(context::FontSize::small, language);
+
     auto& child = *grid->add<widget::Child>(Align::start, 0, "group_video");
     childWidgetId = child.getWidgetId();
     auto& box = *child.add<widget::Box>(Align::start, boxCfg, widget::Orientation::vertical);
-    box.add<widget::Label>(Align::start, videoSet->getName(), context::FontType::chineseSmall);
+    box.add<widget::Label>(Align::start, videoSet->getName(), fontType);
     const auto& cover = videoSet->getCover();
     if (!cover.empty()) {
         box.add<widget::Image>(Align::start, cover);
     }
     auto& boxVideoChoice = *box.add<widget::Box>(Align::start, boxCfgChoice, widget::Orientation::horizontal);
     boxVideoChoice.setExpandType(width_expand, height_fixed);
-    boxVideoChoice.add<widget::Label>(Align::start, "", context::FontType::chineseSmall);
+    boxVideoChoice.add<widget::Label>(Align::start, "", fontType);
     boxVideoChoice.add<widget::ImageButton>(Align::end, context::Image::arrow_left);
     boxVideoChoice.add<widget::ImageButton>(Align::end, context::Image::arrow_right);
     box.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
