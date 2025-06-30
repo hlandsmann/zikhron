@@ -86,7 +86,7 @@ auto main() -> int
 
     fmt::print("\"\"\n\"");
     int count = 0;
-    // kanjis.insert(utl::CharU8{"銀"});
+    kanjis.insert(utl::CharU8{"♪"});
     kanjis.insert(utl::CharU8{"⸺"});
     // 4e00 9f9d
     for (const auto& kanji : kanjis) {

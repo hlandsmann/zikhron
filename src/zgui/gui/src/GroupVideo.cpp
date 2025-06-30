@@ -26,17 +26,18 @@ GroupVideo::GroupVideo(std::shared_ptr<widget::Grid> _grid, database::VideoSetPt
     auto& child = *grid->add<widget::Child>(Align::start, 0, "group_video");
     childWidgetId = child.getWidgetId();
     auto& box = *child.add<widget::Box>(Align::start, boxCfg, widget::Orientation::vertical);
+    box.setExpandType(width_adapt, height_adapt);
     box.add<widget::Label>(Align::start, videoSet->getName(), fontType);
     const auto& cover = videoSet->getCover();
     if (!cover.empty()) {
         box.add<widget::Image>(Align::start, cover);
     }
-    auto& boxVideoChoice = *box.add<widget::Box>(Align::start, boxCfgChoice, widget::Orientation::horizontal);
+    auto& boxVideoChoice = *box.add<widget::Box>(Align::end, boxCfgChoice, widget::Orientation::horizontal);
     boxVideoChoice.setExpandType(width_expand, height_fixed);
     boxVideoChoice.add<widget::Label>(Align::start, "", fontType);
     boxVideoChoice.add<widget::ImageButton>(Align::end, context::Image::arrow_left);
     boxVideoChoice.add<widget::ImageButton>(Align::end, context::Image::arrow_right);
-    box.add<widget::ImageButton>(Align::start, context::Image::media_playback_start);
+    box.add<widget::ImageButton>(Align::end, context::Image::media_playback_start);
 }
 
 auto GroupVideo::draw() -> bool

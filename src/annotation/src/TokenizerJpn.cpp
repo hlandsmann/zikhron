@@ -12,7 +12,12 @@
 #include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
+#include <cassert>
+#include <cstddef>
+#include <iterator>
 #include <memory>
+#include <regex>
 #include <string>
 #include <utility>
 #include <vector>
@@ -25,9 +30,56 @@ TokenizerJpn::TokenizerJpn(std::shared_ptr<database::WordDB> _wordDB)
     , log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
 {}
 
+auto interleave(std::regex filter, std::vector<Token> words, std::string text) -> std::vector<Token>
+{
+    // spdlog::info("`{}`", text);
+    // spdlog::info("{}", fmt::join(words, ", "));
+    std::sregex_iterator it(text.begin(), text.end(), filter);
+    std::sregex_iterator end;
+    size_t lastPos = 0;
+    std::vector<Token> result;
+    auto itWords = words.begin();
+    for (; it != end; ++it) {
+        const std::smatch& match = *it;
+        std::string before = text.substr(lastPos, static_cast<std::size_t>(match.position()) - lastPos);
+        std::size_t lw = 0;
+        while (lw < before.length() && itWords < words.end()) {
+            auto pos = before.find(*itWords, lw);
+            if (pos == std::string::npos) {
+                result.emplace_back(before.substr(lw));
+                break;
+            }
+            if (pos > lw) {
+                // spdlog::info("push, pos: {}, lw: {}, substr: {}", pos, lw, before.substr(lw, pos - lw));
+                result.emplace_back(before.substr(lw, pos - lw));
+                lw = pos;
+
+                continue;
+            }
+            lw += itWords->string().length();
+            // spdlog::warn("{}|{}: `{}` ({})", before.length(), lw, *itWords, before);
+            result.push_back(*itWords);
+            itWords++;
+        }
+        assert(lw <= before.length());
+        itWords++;
+        result.emplace_back(match.str());
+
+        lastPos = static_cast<std::size_t>(match.position() + match.length());
+    }
+    if (itWords < words.end()) {
+        std::copy(itWords, words.end(), std::back_inserter(result));
+    }
+    return result;
+}
+
 auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
 {
-    auto jumanppTokens = mecab->split(text);
+    // std::regex bracketed("\\(.*?\\)");
+    std::regex bracketed("(（.*?）|\\(.*?\\))");
+    std::string filterredText = std::regex_replace(text, bracketed, "|");
+    // spdlog::info("`{}`", filterredText);
+    auto jumanppTokens = mecab->split(filterredText);
     std::vector<Token> result;
     // spdlog::info("{}", text);
 
@@ -59,6 +111,7 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
         // }
     }
     // spdlog::info("full: {}", fmt::join(result, ","));
+    result = interleave(bracketed, result, text);
     return result;
 }
 

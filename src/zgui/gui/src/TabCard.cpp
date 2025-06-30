@@ -107,6 +107,7 @@ void TabCard::slot_playVideoSet(database::VideoSetPtr videoSet)
 
     signalProceed->set(Proceed::nextTrack);
     mode = Mode::story;
+    playMode = PlayMode::play;
 }
 
 auto TabCard::videoPlaybackTask() -> kocoro::Task<>

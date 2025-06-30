@@ -191,6 +191,9 @@ auto SpacedRepetitionData::pauseTimeOver() const -> bool
 
 auto SpacedRepetitionData::recency() const -> double
 {
+    if (state == StudyState::newWord) {
+        return 0;
+    }
     using Days = std::chrono::duration<double, std::ratio<86400>>;
     auto interval = due - reviewed;
     if (std::chrono::duration_cast<std::chrono::days>(interval).count() == 0) {
@@ -210,7 +213,7 @@ auto SpacedRepetitionData::getRepeatRange() const -> RepeatRange
                 .daysNormal = 0,
                 .daysMax = 0};
     }
-    auto duration = utl::setHourOfDay(due,1) - utl::setHourOfDay(std::chrono::system_clock::now(), 0);
+    auto duration = utl::setHourOfDay(due, 1) - utl::setHourOfDay(std::chrono::system_clock::now(), 0);
     int interval = static_cast<int>(std::chrono::duration_cast<std::chrono::days>(duration).count());
     // int daysMinAtleast = std::clamp(interval, 0, 1);
 

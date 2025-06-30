@@ -48,8 +48,7 @@ void TreeWalker::updateFailedVocables()
     for (const auto& [index, vocableMeta] : views::enumerate(vocables)) {
         if (!vocableMeta.CardIds().empty()
             && vocableMeta.SpacedRepetitionData()->enabled
-            && (vocableMeta.SpacedRepetitionData()->state == database::StudyState::learning
-                || vocableMeta.SpacedRepetitionData()->state == database::StudyState::relearning)) {
+            && vocableMeta.SpacedRepetitionData()->state != database::StudyState::review) {
             failedVocables.insert(static_cast<std::size_t>(index));
             numberOfFailedVocables++;
         }
