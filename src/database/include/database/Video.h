@@ -2,7 +2,6 @@
 #include "IdGenerator.h"
 #include "Subtitle.h"
 #include "SubtitlePicker.h"
-#include "Translation.h"
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
@@ -38,7 +37,7 @@ public:
     [[nodiscard]] auto getVideoFile() const -> const std::filesystem::path&;
     [[nodiscard]] auto getActiveSubtitle() -> SubtitlePickerPtr;
     [[nodiscard]] auto getName() const -> std::string;
-    [[nodiscard]] auto getTranslation() -> std::optional<std::shared_ptr<Translation>>;
+    [[nodiscard]] auto getTranslationChoice() const -> std::optional<int>;
     void saveProgress();
 
 private:
@@ -54,11 +53,10 @@ private:
     std::shared_ptr<WordDB> wordDB;
 
     std::shared_ptr<SubtitlePicker> subtitlePicker;
-    std::optional<std::shared_ptr<Translation>> translation;
 
     std::vector<SubtitlePtr> subtitles;
     std::size_t subChoice = 0;
-    std::optional<std::size_t> translationChoice;
+    std::optional<int> translationChoice;
 };
 
 using VideoPtr = std::shared_ptr<Video>;

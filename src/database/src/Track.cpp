@@ -292,12 +292,19 @@ auto Track::getTranslation() const -> std::optional<std::string>
                                           }
                                           return {};
                                       },
-                                      [this](const VideoPtr& video) -> std::optional<std::string> {
-                                          const auto& translation = video->getTranslation();
-                                          if (!translation.has_value()) {
-                                              return {};
-                                          }
-                                          return (*translation)->get(startTimeStamp, endTimeStamp);
+                                      [](const VideoPtr& /* video */) -> std::optional<std::string> {
+                                          return {};
+                                      }},
+                      medium);
+}
+
+auto Track::getTranslationSubtitleId() const -> std::optional<int>
+{
+    return std::visit(utl::overloaded{[](const CardPackPtr& /* cardPack */) -> std::optional<int> {
+                                          return {};
+                                      },
+                                      [](const VideoPtr& video) -> std::optional<int> {
+                                          return video->getTranslationChoice();
                                       }},
                       medium);
 }

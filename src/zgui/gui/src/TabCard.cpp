@@ -323,7 +323,13 @@ void TabCard::loadTrack()
     if (track->getTrackType() == database::TrackType::video) {
         if (mpvVideo->getMediaFile() != track->getMediaFile()) {
             mpvVideo->openFile(track->getMediaFile().value());
-            mpvVideo->setSubtitle(revealTranslation);
+            if (const auto& subtitleId = track->getTranslationSubtitleId(); subtitleId.has_value()) {
+                mpvVideo->setSubtitleTrack(*subtitleId + 1);
+                spdlog::info("SubtitleId: {}", *subtitleId);
+            } else {
+                mpvVideo->setSubtitleTrack(0);
+            }
+            mpvVideo->setSubtitleEnabled(revealTranslation);
         }
         if (mode == Mode::shuffle) {
             double start = track->getStartTimeStamp();
@@ -1115,7 +1121,7 @@ void TabCard::handleTranslation(widget::ImageButton& btnTranslation)
     if (btnTranslation.clicked() || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_T)) {
         revealTranslation = !btnTranslation.isChecked();
         if (track && track->getTrackType() == TrackType::video) {
-            mpvVideo->setSubtitle(revealTranslation);
+            mpvVideo->setSubtitleEnabled(revealTranslation);
             if (!mpvVideo->is_playing()) {
                 mpvVideo->seek(mpvVideo->getTimePos() + 0.1);
                 mpvVideo->seek(mpvVideo->getTimePos());

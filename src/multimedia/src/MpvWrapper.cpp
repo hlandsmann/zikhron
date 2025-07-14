@@ -12,6 +12,7 @@
 #include <mpv/render.h>
 #include <mpv/render_gl.h>
 #include <spdlog/spdlog.h>
+#include <utils/format.h>
 
 #include <bit>
 #include <chrono>
@@ -59,7 +60,6 @@ MpvWrapper::MpvWrapper(std::shared_ptr<kocoro::SynchronousExecutor> executor)
     mpv = decltype(mpv)(mpv_create(), mpv_deleter);
     // mpv_set_option_string(mpv.get(), "terminal", "yes");
     // mpv_set_option_string(mpv.get(), "msg-level", "all=v");
-    mpv_set_option_string(mpv.get(), "sid", "2");
     // mpv_set_option_string(mpv.get(), "sid", "no");
     mpv_set_option_string(mpv.get(), "audio-display", "no");
     mpv_set_option_string(mpv.get(), "hr-seek", "yes");
@@ -317,11 +317,17 @@ void MpvWrapper::setSeekCommandTask(double pos, CommandType commandType)
     isSeeking = true;
 }
 
-void MpvWrapper::setSubtitle(bool enabled)
+void MpvWrapper::setSubtitleEnabled(bool enabled)
 {
-    static std::string enabled_str;
-    enabled_str = enabled ? "yes" : "no";
-    const char* cmd[] = {"set", "sub-visibility", enabled_str.c_str(), nullptr};
+    subtitleEnabled = enabled ? "yes" : "no";
+    const char* cmd[] = {"set", "sub-visibility", subtitleEnabled.c_str(), nullptr};
+    mpv_command(mpv.get(), static_cast<const char**>(cmd));
+}
+
+void MpvWrapper::setSubtitleTrack(int track)
+{
+    subtitleId = fmt::format("{}", track);
+    const char* cmd[] = {"set", "sid", subtitleId.c_str(), nullptr};
     mpv_command(mpv.get(), static_cast<const char**>(cmd));
 }
 

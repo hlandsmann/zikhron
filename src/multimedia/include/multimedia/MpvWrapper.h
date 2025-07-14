@@ -32,7 +32,8 @@ public:
     void setFragment(double start, double end);
     void setStopMark(double end);
     void seek(double pos);
-    void setSubtitle(bool enabled);
+    void setSubtitleEnabled(bool enabled);
+    void setSubtitleTrack(int track);
     [[nodiscard]] auto getDuration() const -> double;
     [[nodiscard]] auto getTimePos() const -> double;
     [[nodiscard]] auto is_playing() const -> bool;
@@ -93,6 +94,9 @@ private:
 
     bool stopped{true};
 
+    // string buffer
+    std::string subtitleEnabled;
+    std::string subtitleId;
     // Signals:
     std::shared_ptr<kocoro::VolatileSignal<bool>>
             signalShouldRender;

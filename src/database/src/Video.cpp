@@ -4,7 +4,6 @@
 #include "ParsingHelpers.h"
 #include "Subtitle.h"
 #include "SubtitlePicker.h"
-#include "Translation.h"
 #include "WordDB.h"
 
 #include <annotation/Tokenizer.h>
@@ -142,12 +141,9 @@ auto Video::getName() const -> std::string
     return name;
 }
 
-auto Video::getTranslation() -> std::optional<std::shared_ptr<Translation>>
+auto Video::getTranslationChoice() const -> std::optional<int>
 {
-    if (!translation && translationChoice) {
-        translation = std::make_shared<Translation>(subtitles.at(*translationChoice));
-    }
-    return translation;
+    return translationChoice;
 }
 
 void Video::saveProgress()

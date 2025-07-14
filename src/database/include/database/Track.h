@@ -65,6 +65,7 @@ public:
     [[nodiscard]] auto isSubtitlePrefix() const -> bool;
 
     [[nodiscard]] auto getTranslation() const -> std::optional<std::string>;
+    [[nodiscard]] auto getTranslationSubtitleId() const -> std::optional<int>;
 
     [[nodiscard]] auto timeAddBack() const -> Track;
     [[nodiscard]] auto timeAddFront() const -> Track;

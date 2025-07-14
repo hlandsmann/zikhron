@@ -191,6 +191,10 @@ void DataBase::addCard(const database::CardPtr& card)
 
 void DataBase::removeCard(CardId cardId)
 {
+    if (!metaCards.contains(cardId)) {
+        spdlog::error("CardID: {} not found", cardId);
+        return;
+    }
     const auto& cardMeta = metaCards.at(cardId);
     auto card = cardMeta.getCard();
     for (const auto& vocableIndex : cardMeta.VocableIndices()) {
