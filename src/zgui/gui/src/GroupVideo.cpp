@@ -62,7 +62,8 @@ auto GroupVideo::draw() -> bool
     auto& buttonNext = boxVideoChoice.next<widget::ImageButton>();
 
     const auto& [choice, video] = videoSet->getChoice();
-    videoChoiceLabel.setText(video->getName());
+    const auto& choiceLabelText = fmt::format("{} ({}/{})", video->getName(), choice + 1, videoSet->getVideos().size());
+    videoChoiceLabel.setText(choiceLabelText);
     videoChoiceLabel.draw();
     buttonPrevious.setSensitive(choice > 0);
     if (buttonPrevious.clicked()) {

@@ -178,6 +178,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
 
         switch (proceed) {
         case Proceed::walkTree: {
+            revealTranslation = false;
             clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = co_await asyncTreeWalker->getNextCardChoice(language);
             spdlog::info("kocoro, walkTree: loaded CardID {}..", cardMeta.getCardId());
@@ -197,6 +198,7 @@ auto TabCard::feedingTask(std::shared_ptr<sr::AsyncTreeWalker> asyncTreeWalker) 
             }
         } break;
         case Proceed::nextTrack: {
+            revealTranslation = false;
             clearStudy(cardLayer, vocableLayer, translationLayer);
             cardMeta = dataBase->getCardMeta(track->getCard());
             spdlog::info("kocoro, nextTrack: loaded CardID {}..", cardMeta.getCardId());
@@ -329,8 +331,8 @@ void TabCard::loadTrack()
             } else {
                 mpvVideo->setSubtitleTrack(0);
             }
-            mpvVideo->setSubtitleEnabled(revealTranslation);
         }
+        mpvVideo->setSubtitleEnabled(revealTranslation);
         if (mode == Mode::shuffle) {
             double start = track->getStartTimeStamp();
             double end = track->getEndTimeStamp();
