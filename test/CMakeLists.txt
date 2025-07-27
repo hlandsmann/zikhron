@@ -1,5 +1,7 @@
 include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
 gen_cfg_json()
+add_subdirectory(scheduler)
+ 
 add_executable(sr_treewalker)
 target_sources(sr_treewalker
     PRIVATE
