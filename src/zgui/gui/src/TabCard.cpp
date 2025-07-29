@@ -13,6 +13,7 @@
 #include <context/imglog.h>
 #include <database/CardDB.h>
 #include <database/CardPackDB.h>
+#include <database/SpacedRepetitionData.h>
 #include <database/TokenizationChoiceDbChi.h>
 #include <database/Track.h>
 #include <database/VideoDB.h>
@@ -43,12 +44,18 @@
 
 #include <algorithm>
 #include <exception>
+#include <functional>
 #include <initializer_list>
 #include <kocoro/kocoro.hpp>
 #include <memory>
 #include <optional>
+#include <ranges>
 #include <string>
 #include <utility>
+#include <vector>
+
+namespace ranges = std::ranges;
+namespace views = std::views;
 
 namespace gui {
 
@@ -306,6 +313,7 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
                                        dataBase->getNumberOfEnabledVocables());
     ttqMetaInformation = metaLayer->add<widget::TextTokenSeq>(Align::start, annotation::tokenVectorFromString(metaInformation),
                                                               ttqConfig);
+    setUpAlternativeCards(activeVocableIds);
 }
 
 void TabCard::loadTrack()
@@ -998,36 +1006,46 @@ void TabCard::handleNextPrevious(widget::ImageButton& btnFirst,
                                  widget::ImageButton& btnPrevious,
                                  widget::ImageButton& btnNext)
 {
-    if (!track
-        || (!track->hasNext()
-            && !track->hasPrevious())) {
+    if (alternativeCards.empty() || alternativeCards.size() == 1) {
         return;
     }
 
-    btnFirst.setSensitive(track->hasPrevious());
-    btnPrevious.setSensitive(track->hasPrevious());
-    btnNext.setSensitive(track->hasNext());
     bool nextPreviousClicked = false;
     if (btnFirst.clicked()) {
+        alternativeCardIndex = originalAlternativeCardIndex;
         nextPreviousClicked = true;
-        track = track->trackAt(0);
     }
     if (btnPrevious.clicked()) {
+        if (alternativeCardIndex == 0) {
+            alternativeCardIndex = static_cast<long>(alternativeCards.size() - 1);
+        } else {
+            alternativeCardIndex--;
+        }
         nextPreviousClicked = true;
-        track = track->previousTrack();
     }
     if (btnNext.clicked()) {
+        alternativeCardIndex++;
+        if (alternativeCardIndex == static_cast<long>(alternativeCards.size())) {
+            alternativeCardIndex = 0;
+        }
         nextPreviousClicked = true;
-        track = track->nextTrack();
     }
-    if (nextPreviousClicked) {
-        revealVocables = false;
-        signalProceed->set(Proceed::nextTrack);
-        const auto& mpvCurrent = track->getTrackType() == database::TrackType::audio
-                                         ? mpvAudio
-                                         : mpvVideo;
-        mpvCurrent->seek(track->getStartTimeStamp());
+    if (!nextPreviousClicked) {
+        return;
+        // revealVocables = false;
+        // signalProceed->set(Proceed::nextTrack);
+        // const auto& mpvCurrent = track->getTrackType() == database::TrackType::audio
+        //                                  ? mpvAudio
+        //                                  : mpvVideo;
+        // mpvCurrent->seek(track->getStartTimeStamp());
     }
+    for (const auto [index, cardId] : views::enumerate(alternativeCards)) {
+        if (index == alternativeCardIndex) {
+            track = dataBase->getCardDB()->getTrackFromCardId(cardId);
+            break;
+        }
+    }
+    signalProceed->set(Proceed::nextTrack);
 }
 
 void TabCard::handleToggleProgress(widget::ImageButton& btnToggleProgress)
@@ -1155,6 +1173,40 @@ void TabCard::handleDataBaseSave(widget::ImageButton& btnSave)
     if (btnSave.clicked()) {
         dataBase->save();
     }
+}
+
+void TabCard::setUpAlternativeCards(const std::vector<VocableId>& activeVocables)
+{
+    if (!track.has_value() || activeVocables.empty()) {
+        alternativeCards.clear();
+    }
+    if (ranges::any_of(activeVocables, [this](const VocableId vocableId) {
+            const auto& [_, vocableMeta] = dataBase->Vocables().at_id(vocableId);
+            const auto& cardIds = vocableMeta.CardIds();
+            return ranges::all_of(cardIds, [this](CardId cardId) { return alternativeCards.contains(cardId); });
+        })) {
+        return;
+    }
+
+    auto recency = [this](VocableId vocableId) -> double {
+        const auto& srd = dataBase->Vocables().at_id(vocableId).second.SpacedRepetitionData();
+        return srd->recency();
+    };
+    VocableId targetVocableId = *ranges::min_element(activeVocables, std::less{}, recency);
+    const auto& [_, vocableMeta] = dataBase->Vocables().at_id(targetVocableId);
+    alternativeCards = vocableMeta.CardIds();
+
+    auto card = track->getCard();
+    auto currentCardId = card->getCardId();
+    originalAlternativeCardIndex = 0;
+    for (const auto [index, cardId] : views::enumerate(alternativeCards)) {
+        if (cardId == currentCardId) {
+            originalAlternativeCardIndex = index;
+            break;
+        }
+    }
+    alternativeCardIndex = originalAlternativeCardIndex;
+
 }
 
 auto TabCard::evaluateTemporaryPlaymode() const -> PlayMode

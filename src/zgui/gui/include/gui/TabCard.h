@@ -40,6 +40,8 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <set>
+#include <vector>
 
 namespace gui {
 
@@ -158,6 +160,7 @@ private:
     void handleTranslation(widget::ImageButton& btnTranslation);
     void handleAnnotate(widget::ImageButton& btnAnnotate);
     void handleDataBaseSave(widget::ImageButton& btnSave);
+    void setUpAlternativeCards(const std::vector<VocableId>& activeVocables);
     [[nodiscard]] auto evaluateTemporaryPlaymode() const -> PlayMode;
 
     void execVideoNext();
@@ -196,5 +199,9 @@ private:
 
     std::shared_ptr<multimedia::MpvWrapper> mpvAudio;
     std::shared_ptr<multimedia::MpvWrapper> mpvVideo;
+
+    std::set<CardId> alternativeCards;
+    long originalAlternativeCardIndex{};
+    long alternativeCardIndex{};
 };
 } // namespace gui
