@@ -51,6 +51,7 @@ target_link_libraries(kocoro_signal
 )
 set_property(TARGET kocoro_signal PROPERTY CXX_STANDARD 23)
 
+find_package(Eigen3 REQUIRED)
 add_executable(schedulerTest)
 target_sources(schedulerTest
     PRIVATE
@@ -63,6 +64,7 @@ target_link_libraries(schedulerTest
         zikhron::utils
         spdlog::spdlog
         Pal::Sigslot
+        Eigen3::Eigen
 )
 set_property(TARGET schedulerTest PROPERTY CXX_STANDARD 23)
 

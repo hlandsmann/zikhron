@@ -1,220 +1,737 @@
+#include <spdlog/spdlog.h>
+
+#include <algorithm>
 #include <cmath>
-#include <ctime>
 #include <iostream>
 #include <random>
+#include <ranges>
 #include <vector>
+namespace ranges = std::ranges;
+namespace views = std::ranges::views;
 
-// Struct to represent a flashcard item
-struct Item
+struct AVG
 {
-    double stability;        // Memory stability (days)
-    double difficulty;       // Item difficulty (0 to 1, higher is harder)
-    double last_review_time; // Time of last review (days since start)
-    int last_rating;         // Last rating given (1=Again, 2=Hard, 3=Good, 4=Easy)
-    int review_count;        // Number of reviews
-};
+    double pass{};
+    double fail{};
+    double deviation{};
+    double rate{};
 
-// FSRS v5.5 Scheduler class with 17 parameters
-class FSRSScheduler
-{
-private:
-    double desired_retention = 0.9; // Target retention at review time
-    std::vector<double> weights;    // 17 parameters
-    double learning_rate = 0.01;    // For training weights
-    std::vector<Item> items;
-
-    // Initialize 17 weights:
-    // w[0-3]: Initial stability for ratings 1-4
-    // w[4-7]: Stability increase factors for ratings 1-4
-    // w[8-11]: Stability decrease factors for ratings 1-4
-    // w[12]: Base decay rate (D)
-    // w[13]: Difficulty scaling factor
-    // w[14-16]: Additional factors (e.g., retrievability, user memory, context)
-    void initialize_weights()
+    auto adapt(bool event) -> double
     {
-        weights = {
-                0.4, 0.6, 1.0, 1.2, // w[0-3]: Initial stabilities
-                0.4, 0.9, 1.5, 2.5, // w[4-7]: Stability increase factors
-                0.3, 0.8, 1.0, 1.0, // w[8-11]: Stability decrease factors
-                1.0,                // w[12]: Decay rate
-                0.5,                // w[13]: Difficulty scaling
-                1.0, 1.0, 1.0       // w[14-16]: Additional factors
-        };
-
-        // weights = {
-        //         0.1873, 0.7846, 6.7259, 28.1730, 
-        //         5.3135, 1.3815, 0.8716, 0.0180, 
-        //         1.4517, 0.1072, 0.8504, 2.1134,
-        //         0.0779, 
-        //         0.3982, 
-        //         1.6768, 0.3682, 2.8755};
-    }
-
-    // Retention function: R(t) = (1 + t / (9 * S * w[14]))^(-w[12])
-    double retention(double stability, double time) const
-    {
-        return std::pow(1.0 + time / (9.0 * stability * weights[14]), -weights[12]);
-    }
-
-    // Calculate next review interval
-    double next_interval(double stability) const
-    {
-        return 9.0 * stability * weights[14] * (std::pow(1.0 / desired_retention, 1.0 / weights[12]) - 1.0);
-    }
-
-    // Update stability based on rating
-    void update_stability(Item& item, int rating)
-    {
-        double factor = (rating > 1) ? weights[4 + rating - 1] : weights[8]; // Increase for success, decrease for failure
-        item.stability *= factor;
-        // Adjust stability based on difficulty and w[13]
-        item.stability *= (1.0 - weights[13] * item.difficulty);
-        // Apply additional factor w[15] (e.g., user memory strength)
-        item.stability *= weights[15];
-        // Ensure stability doesn't go below a minimum
-        item.stability = std::max(item.stability, 0.1);
-        item.last_rating = rating;
-        item.review_count++;
-    }
-
-    // Train weights based on review outcome
-    void train_weights(Item& item, int rating, double time_since_review)
-    {
-        // Infer actual retention: 1 for success (Hard, Good, Easy), 0 for failure (Again)
-        double actual_retention = (rating > 1) ? 1.0 : 0.0;
-        double predicted_retention = retention(item.stability, time_since_review);
-        double error = actual_retention - predicted_retention;
-
-        // Gradient for decay rate (w[12])
-        double t_over_9s = time_since_review / (9.0 * item.stability * weights[14]);
-        weights[12] += learning_rate * error * predicted_retention * std::log(1.0 + t_over_9s);
-        weights[12] = std::max(0.5, std::min(weights[12], 2.0));
-
-        // Gradient for retrievability factor (w[14])
-        weights[14] += learning_rate * error * predicted_retention * (weights[12] * time_since_review) / (9.0 * item.stability * weights[14] * (1.0 + t_over_9s));
-        weights[14] = std::max(0.5, std::min(weights[14], 2.0));
-
-        // Update stability-related weights based on rating
-        if (item.review_count == 1) {
-            // Update initial stability weight for the given rating
-            weights[rating - 1] += learning_rate * error * (1.0 - weights[13] * item.difficulty);
-            weights[rating - 1] = std::max(0.1, weights[rating - 1]);
+        constexpr double prob = 0.9;
+        int outcome = 0;
+        if (event) {
+            pass++;
         } else {
-            // Update increase/decrease factor
-            int weight_index = (rating > 1) ? (4 + rating - 1) : 8;
-            weights[weight_index] += learning_rate * error;
-            weights[weight_index] = std::max(0.1, std::min(weights[weight_index], 3.0));
+            fail++;
         }
-
-        // Update difficulty scaling (w[13])
-        weights[13] += learning_rate * error * item.difficulty;
-        weights[13] = std::max(0.0, std::min(weights[13], 1.0));
-
-        // Update user memory factor (w[15])
-        weights[15] += learning_rate * error;
-        weights[15] = std::max(0.5, std::min(weights[15], 2.0));
-
-        // Placeholder for w[16] (context factor, minimally updated)
-        weights[16] += learning_rate * error * 0.1;
-        weights[16] = std::max(0.5, std::min(weights[16], 2.0));
-    }
-
-public:
-    FSRSScheduler()
-    {
-        initialize_weights();
-    }
-
-    // Add a new item
-    void add_item(double difficulty)
-    {
-        Item item;
-        item.stability = weights[3] * (1.0 - weights[13] * difficulty); // Use w[3] (Easy) as default
-        item.difficulty = difficulty;
-        item.last_review_time = 0.0;
-        item.last_rating = 0;
-        item.review_count = 0;
-        items.push_back(item);
-    }
-
-    // Simulate a review for an item
-    void review_item(int item_index, int rating, double current_time)
-    {
-        Item& item = items[item_index];
-        double time_since_review = current_time - item.last_review_time;
-
-        // Train weights
-        train_weights(item, rating, time_since_review);
-
-        // Update stability and last review time
-        update_stability(item, rating);
-        item.last_review_time = current_time;
-
-        // Output review information
-        std::cout << "Item " << item_index << ": Rating = " << rating
-                  << ", Stability = " << item.stability
-                  << ", Next review in " << next_interval(item.stability) << " days\n";
-    }
-
-    // Get next item to review
-    int get_next_item(double current_time) const
-    {
-        for (size_t i = 0; i < items.size(); ++i) {
-            double time_since_review = current_time - items[i].last_review_time;
-            if (retention(items[i].stability, time_since_review) <= desired_retention) {
-                return i;
+        if (fail + pass > rate) {
+            double sum = fail + pass;
+            double avg = pass / sum;
+            if (std::abs(avg - prob) < deviation) {
+                // spdlog::info("prob: {}", pass / rate);
+            } else if (avg < prob) {
+                outcome = -1;
+            } else {
+                outcome = +1;
             }
+            fail = (1 - avg) * (rate - 1);
+            pass = avg * (rate - 1);
         }
-        return -1; // No item due for review
+        return outcome;
     }
 
-    // Print current weights
-    void print_weights() const
+    void reset()
     {
-        std::cout << "Current Weights:\n";
-        for (size_t i = 0; i < weights.size(); ++i) {
-            std::cout << "w[" << i << "] = " << weights[i] << "\n";
-        }
+        fail = 0;
+        pass = 0;
+    }
+
+    void log(int round) const
+    {
+        spdlog::info("prob: {:.2f}  --- rate:{}, round: {}", pass / (pass + fail), rate, round);
     }
 };
 
-// Main function to simulate FSRS scheduling
+// Function to learn optimal x for target probability p = 0.9
+auto learnX(bool event) -> int
+{
+    static int round = 0;
+    static std::vector<AVG> avgs = {
+            {.pass = 0, .fail = 0, .deviation = 0.3, .rate = 10},
+            {.pass = 0, .fail = 0, .deviation = 0.2, .rate = 20},
+            {.pass = 0, .fail = 0, .deviation = 0.1, .rate = 30},
+            {.pass = 0, .fail = 0, .deviation = 0.02, .rate = 100},
+    };
+    static double x{20};
+    std::vector<double> outcomes;
+
+    for (auto& avg : avgs) {
+        outcomes.push_back(avg.adapt(event));
+    }
+    for (const auto& [outcome, avg] : views::reverse(views::zip(outcomes, avgs))) {
+        if (outcome != 0) {
+            x += outcome;
+            avg.log(round);
+            for (auto& avg_ : avgs) {
+                avg_.reset();
+            }
+            break;
+        }
+    }
+    // static double learningRate = 100;
+    // static double prob = 0.9;
+    //
+    // static double fail = 0;
+    // static double pass = 0;
+    // if (eventOutcome) {
+    //     pass++;
+    // } else {
+    //     fail++;
+    // }
+    // if (fail + pass == learningRate) {
+    //     if (std::abs((pass / learningRate) - prob) < 0.02) {
+    //         spdlog::info("prob: {}", pass / learningRate);
+    //     } else if (pass / learningRate < prob) {
+    //         x--;
+    //     } else {
+    //         x++;
+    //     }
+    //     fail = 0;
+    //     pass = 0;
+    // }
+    round++;
+    return static_cast<int>(x);
+}
+
+// Main function to test learnX
 int main()
 {
-    FSRSScheduler scheduler;
-
-    // Add three items with different difficulties
-    scheduler.add_item(0.0); // Easy item
-    scheduler.add_item(0.5); // Medium item
-    // scheduler.add_item(0.8); // Hard item
-
-    // Simulate 30 days of reviews
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_int_distribution<> rating_dist(1, 4);
+    std::uniform_real_distribution<> dis(0.0, 1.0);
 
-    for (int day = 1; day <= 365; ++day) {
-        int item_index = scheduler.get_next_item(day);
-        bool logged = false;
-        while (item_index != -1) {
-            if (!logged) {
-                std::cout << "\nDay " << day << ":\n";
-                logged = true;
-            }
-            // Simulate user rating (random for demo)
-            int rating = 3; // rating_dist(gen);
-            std::cout << "Reviewing item " << item_index << " with rating " << rating << "\n";
-            scheduler.review_item(item_index, rating, day);
-            item_index = scheduler.get_next_item(day);
+    const int iterations = 1000; // Number of test iterations
+    int trueCount = 0;
+    int totalCount = 0;
+    const int evalWindow = 1000; // Window to evaluate final probability
+
+    // Run learnX for many iterations
+    double x = 0;
+    for (int i = 0; i < iterations; ++i) {
+        double p = 1.0 - (x * 0.02);      // Calculate probability
+        bool eventOutcome = dis(gen) < p; // Generate event
+        if (auto temp = learnX(eventOutcome); temp != x) {
+            std::cout << "Test Progress [Iteration " << i + 1 << "]: x = " << x
+                      << ", Current p = " << p << std::endl;
+            x = temp;
+        }
+
+        // Track outcomes in the final window
+
+        // Print test progress every 100 iterations
+    }
+
+    // Print final estimated probability
+    double finalP = static_cast<double>(trueCount) / totalCount;
+    std::cout << "Final Result: Estimated p = " << finalP << std::endl;
+}
+
+/*
+#include <iostream>
+#include <fstream>
+#include <Eigen/Dense>
+
+class AdamOptimizer {
+private:
+    double alpha;
+    double beta1;
+    double beta2;
+    double epsilon;
+    Eigen::VectorXd m;
+    Eigen::VectorXd v;
+    int t;
+
+public:
+    AdamOptimizer(int dim, double lr = 0.01, double b1 = 0.9, double b2 = 0.999, double eps = 1e-8)
+        : alpha(lr), beta1(b1), beta2(b2), epsilon(eps), t(0) {
+        m = Eigen::VectorXd::Zero(dim);
+        v = Eigen::VectorXd::Zero(dim);
+    }
+
+    Eigen::VectorXd update(const Eigen::VectorXd& x, const Eigen::VectorXd& gradient) {
+        t++;
+        m = beta1 * m + (1 - beta1) * gradient;
+        v = beta2 * v + (1 - beta2) * gradient.array().square().matrix();
+        Eigen::VectorXd m_hat = m / (1 - std::pow(beta1, t));
+        Eigen::VectorXd v_hat = v / (1 - std::pow(beta2, t));
+        return x - alpha * (m_hat.array() / (v_hat.array().sqrt() + epsilon)).matrix();
+    }
+};
+
+// Rosenbrock function: f(x, y) = (a - x)^2 + b(y - x^2)^2
+double objective_function(const Eigen::VectorXd& x, double a = 1.0, double b = 100.0) {
+    return (a - x(0)) * (a - x(0)) + b * (x(1) - x(0) * x(0)) * (x(1) - x(0) * x(0));
+}
+
+// Gradient of Rosenbrock function
+Eigen::VectorXd gradient(const Eigen::VectorXd& x, double a = 1.0, double b = 100.0) {
+    Eigen::VectorXd g(2);
+    g(0) = -2.0 * (a - x(0)) - 4.0 * b * x(0) * (x(1) - x(0) * x(0));
+    g(1) = 2.0 * b * (x(1) - x(0) * x(0));
+    return g;
+}
+
+void run_adam_test() {
+    AdamOptimizer adam(2, 0.01, 0.9, 0.999, 1e-8);
+    Eigen::VectorXd x(2);
+    x << 0.0, 0.0; // Initial guess
+    int max_iterations = 5000; // More iterations due to complexity
+    double tolerance = 1e-6;
+
+    std::ofstream out("adam_rosenbrock_data.csv");
+    out << "iteration,x,y,f_xy\n";
+
+    std::cout << "Starting Adam optimization for Rosenbrock function...\n";
+    std::cout << "Initial x: " << x.transpose() << ", f(x,y): " << objective_function(x) << "\n";
+
+    for (int i = 0; i < max_iterations; ++i) {
+        Eigen::VectorXd grad = gradient(x);
+        Eigen::VectorXd prev_x = x;
+        x = adam.update(x, grad);
+
+        out << i << "," << x(0) << "," << x(1) << "," << objective_function(x) << "\n";
+
+        if ((x - prev_x).norm() < tolerance) {
+            std::cout << "Converged after " << i + 1 << " iterations\n";
+            break;
         }
     }
 
-    // Output final weights
-    scheduler.print_weights();
+    std::cout << "Final x: " << x.transpose() << ", f(x,y): " << objective_function(x) << "\n";
+    std::cout << "Expected minimum at x = [1, 1], f(x,y) = 0\n";
+    out.close();
+}
+
+int main() {
+    run_adam_test();
+    return 0;
+}*/
+
+/*
+#include <vector>
+#include <cmath>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <map>
+
+// Constants
+const double DESIRED_RETENTION = 0.9;
+const int NUM_PARAMETERS = 17;
+const double LEARNING_RATE = 0.01;
+const int MAX_ITERATIONS = 1000;
+const double BETA1 = 0.9; // Adam optimizer parameters
+const double BETA2 = 0.999;
+const double EPSILON = 1e-8;
+
+// Review structure
+struct Review {
+    int card_id;
+    double review_th; // Timestamp (days since epoch)
+    double elapsed_days; // Time since last review (days)
+    double elapsed_seconds; // Time since last review (seconds)
+    int rating; // 1=Again, 2=Hard, 3=Good, 4=Easy
+    std::string state; // Ignored for FSRS-5.5
+    double duration; // Ignored for FSRS-5.5
+};
+
+// Card state
+struct Card {
+    double stability;
+    double difficulty;
+    double last_review_time;
+};
+
+// Adam optimizer state
+struct AdamState {
+    std::vector<double> m; // First moment (mean)
+    std::vector<double> v; // Second moment (variance)
+    double t; // Time step
+    AdamState(size_t size) : m(size, 0.0), v(size, 0.0), t(0.0) {}
+};
+
+// FSRS-5.5 Model
+class FSRS {
+private:
+    std::vector<double> weights; // 17 parameters (w_0 to w_16)
+
+public:
+    FSRS(const std::vector<double>& initial_weights) : weights(initial_weights) {
+        if (weights.size() != NUM_PARAMETERS) {
+            throw std::runtime_error("Invalid number of weights");
+        }
+    }
+
+    // Retrievability formula
+    double retrievability(double t, double s) const {
+        return std::pow(1.0 + (19.0 / 81.0) * (t / s), -0.5);
+    }
+
+    // Initial stability based on rating
+    double initial_stability(int rating) const {
+        if (rating < 1 || rating > 4) return weights[0];
+        return weights[rating - 1]; // w_0, w_1, w_2, w_3
+    }
+
+    // Stability update for non-same-day reviews
+    double update_stability(double s, double d, double r, int rating) const {
+        double w15 = (rating == 2) ? weights[14] : 1.0; // Hard rating adjustment
+        double w16 = (rating == 4) ? weights[15] : 1.0; // Easy rating adjustment
+        if (rating < 3) w16 = 1.0;
+        return s * (std::exp(weights[8]) * (11.0 - d) * std::pow(s, -weights[9]) *
+                    (std::exp(weights[10] * (1.0 - r)) - 1.0) * w15 * w16 + 1.0);
+    }
+
+    // Stability update for same-day reviews
+    double update_same_day_stability(double s, int rating) const {
+        return s * std::exp(weights[12] * (rating - 3 + weights[13])) * std::pow(s, -weights[14]);
+    }
+
+    // Difficulty update
+    double update_difficulty(double d, int rating) const {
+        double new_d = weights[11] * d + (1.0 - weights[11]) * (weights[9] - (rating - 3) * weights[10]);
+        return std::max(1.0, std::min(10.0, new_d));
+    }
+
+    // Binary cross-entropy loss
+    double bce_loss(double r, int rating) const {
+        double y = (rating >= 3) ? 1.0 : 0.0;
+        return -(y * std::log(r + EPSILON) + (1.0 - y) * std::log(1.0 - r + EPSILON));
+    }
+
+    // Compute loss and gradients for a single card's reviews
+    double compute_loss_and_gradients(const std::vector<Review>& reviews, std::vector<double>& gradients) const {
+        double loss = 0.0;
+        Card card = {weights[4], 5.0, 0.0}; // Initial stability (w_4), difficulty 5
+        std::vector<std::vector<double>> intermediate_grads;
+
+        for (const auto& review : reviews) {
+            std::vector<double> review_grads(NUM_PARAMETERS, 0.0);
+            double t = review.elapsed_days; // Use elapsed_days as interval
+            double r = retrievability(t, card.stability);
+
+            // Compute loss
+            loss += bce_loss(r, review.rating);
+
+            // Gradient of BCE loss w.r.t. retrievability
+            double y = (review.rating >= 3) ? 1.0 : 0.0;
+            double dr = (r - y) / (r * (1.0 - r) + EPSILON);
+
+            // Gradient of retrievability w.r.t. stability
+            double k = 19.0 / 81.0 * t;
+            double dr_ds = 0.5 * std::pow(1.0 + k / card.stability, -1.5) * k / (card.stability * card.stability);
+
+            // Backpropagate to previous stability
+            bool is_same_day = review.elapsed_seconds < 86400; // Same-day if < 1 day
+            if (is_same_day) {
+                double factor = std::exp(weights[12] * (review.rating - 3 + weights[13])) * std::pow(card.stability, -weights[14]);
+                review_grads[12] += dr * dr_ds * card.stability * (review.rating - 3 + weights[13]) * factor; // w_12
+                review_grads[13] += dr * dr_ds * card.stability * weights[12] * factor; // w_13
+                review_grads[14] += dr * dr_ds * card.stability * (-weights[14]) * std::log(card.stability) * factor; // w_14
+            } else {
+                double factor = std::exp(weights[8]) * (11.0 - card.difficulty) * std::pow(card.stability, -weights[9]) *
+                                (std::exp(weights[10] * (1.0 - r)) - 1.0);
+                double w15 = (review.rating == 2) ? weights[14] : 1.0;
+                double w16 = (review.rating == 4) ? weights[15] : 1.0;
+                if (review.rating < 3) w16 = 1.0;
+
+                review_grads[8] += dr * dr_ds * card.stability * factor; // w_8
+                review_grads[9] += dr * dr_ds * card.stability * (-weights[9]) * std::log(card.stability) * factor; // w_9
+                review_grads[10] += dr * dr_ds * card.stability * (1.0 - r) * std::exp(weights[10] * (1.0 - r)) * factor; // w_10
+                if (review.rating == 2) review_grads[14] += dr * dr_ds * card.stability * w15; // w_14
+                if (review.rating == 4) review_grads[15] += dr * dr_ds * card.stability * w16; // w_15
+            }
+
+            // Update card state
+            card.difficulty = update_difficulty(card.difficulty, review.rating);
+            if (is_same_day) {
+                card.stability = update_same_day_stability(card.stability, review.rating);
+            } else {
+                card.stability = update_stability(card.stability, card.difficulty, r, review.rating);
+            }
+            card.last_review_time = review.review_th;
+
+            intermediate_grads.push_back(review_grads);
+        }
+
+        // Aggregate gradients
+        for (size_t i = 0; i < reviews.size(); ++i) {
+            for (size_t j = 0; j < NUM_PARAMETERS; ++j) {
+                gradients[j] += intermediate_grads[i][j];
+            }
+        }
+        for (double& g : gradients) g /= reviews.size();
+        return loss / reviews.size();
+    }
+
+    // Adam optimizer step
+    void adam_step(std::vector<double>& gradients, AdamState& state) {
+        state.t += 1;
+        for (size_t i = 0; i < NUM_PARAMETERS; ++i) {
+            state.m[i] = BETA1 * state.m[i] + (1.0 - BETA1) * gradients[i];
+            state.v[i] = BETA2 * state.v[i] + (1.0 - BETA2) * gradients[i] * gradients[i];
+            double m_hat = state.m[i] / (1.0 - std::pow(BETA1, state.t));
+            double v_hat = state.v[i] / (1.0 - std::pow(BETA2, state.t));
+            weights[i] -= LEARNING_RATE * m_hat / (std::sqrt(v_hat) + EPSILON);
+
+            // Clamp weights
+            if (i < 4 || i == 4) {
+                weights[i] = std::max(0.1, weights[i]);
+            } else if (i == 11) {
+                weights[i] = std::max(0.0, std::min(1.0, weights[i]));
+            }
+        }
+    }
+
+    // Train the model
+    void train(const std::map<int, std::vector<Review>>& card_reviews, int max_iterations = MAX_ITERATIONS) {
+        AdamState state(NUM_PARAMETERS);
+        for (int iter = 0; iter < max_iterations; ++iter) {
+            double total_loss = 0.0;
+            std::vector<double> total_gradients(NUM_PARAMETERS, 0.0);
+            size_t total_reviews = 0;
+
+            // Process each card's reviews
+            for (const auto& [card_id, reviews] : card_reviews) {
+                std::vector<double> gradients(NUM_PARAMETERS, 0.0);
+                double loss = compute_loss_and_gradients(reviews, gradients);
+                total_loss += loss * reviews.size();
+                for (size_t i = 0; i < NUM_PARAMETERS; ++i) {
+                    total_gradients[i] += gradients[i] * reviews.size();
+                }
+                total_reviews += reviews.size();
+            }
+
+            // Average gradients and loss
+            total_loss /= total_reviews;
+            for (double& g : total_gradients) g /= total_reviews;
+
+            // Update weights
+            adam_step(total_gradients, state);
+
+            if (iter % 100 == 0) {
+                std::cout << "Iteration " << iter << ", Loss: " << total_loss << std::endl;
+            }
+        }
+    }
+
+    // Get optimized weights
+    std::vector<double> get_weights() const {
+        return weights;
+    }
+};
+
+// Parse review logs from CSV
+std::map<int, std::vector<Review>> load_reviews(const std::string& filename) {
+    std::map<int, std::vector<Review>> card_reviews;
+    std::ifstream file(filename);
+    std::string line;
+
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + filename);
+    }
+
+    std::getline(file, line); // Skip header
+    while (std::getline(file, line)) {
+        std::stringstream ss(line);
+        std::string token;
+        Review review;
+
+        std::getline(ss, token, ','); // card_id
+        review.card_id = std::stoi(token);
+        std::getline(ss, token, ','); // review_th
+        review.review_th = std::stod(token);
+        std::getline(ss, token, ','); // elapsed_days
+        review.elapsed_days = std::stod(token);
+        std::getline(ss, token, ','); // elapsed_seconds
+        review.elapsed_seconds = std::stod(token);
+        std::getline(ss, token, ','); // rating
+        review.rating = std::stoi(token);
+        std::getline(ss, token, ','); // state
+        review.state = token;
+        std::getline(ss, token, ','); // duration
+        review.duration = std::stod(token);
+
+        card_reviews[review.card_id].push_back(review);
+    }
+
+    file.close();
+    return card_reviews;
+}
+
+int main() {
+    // Initial weights (approximate defaults from FSRS-4.5)
+    std::vector<double> initial_weights = {
+        0.4, 0.6, 1.0, 1.3, // w_0 to w_3
+        1.0,                  // w_4
+        0.2, 0.9, 1.0,       // w_5 to w_7
+        0.0, 0.1, 0.2,       // w_8 to w_10
+        0.8, 0.2,             // w_11, w_12
+        0.1, 0.05, 0.9, 1.1  // w_13 to w_16
+    };
+
+    try {
+        // Load reviews grouped by card_id
+        std::map<int, std::vector<Review>> card_reviews = load_reviews("test/8317.csv");
+        FSRS model(initial_weights);
+        model.train(card_reviews);
+
+        // Output optimized weights
+        std::vector<double> optimized_weights = model.get_weights();
+        std::cout << "Optimized weights:" << std::endl;
+        for (size_t i = 0; i < optimized_weights.size(); ++i) {
+            std::cout << "w_" << i << ": " << optimized_weights[i] << std::endl;
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
+    }
 
     return 0;
 }
-
+*/
+// #include <cmath>
+// #include <ctime>
+// #include <iostream>
+// #include <random>
+// #include <vector>
+//
+// // Struct to represent a flashcard item
+// struct Item
+// {
+//     double stability;        // Memory stability (days)
+//     double difficulty;       // Item difficulty (0 to 1, higher is harder)
+//     double last_review_time; // Time of last review (days since start)
+//     int last_rating;         // Last rating given (1=Again, 2=Hard, 3=Good, 4=Easy)
+//     int review_count;        // Number of reviews
+// };
+//
+// // FSRS v5.5 Scheduler class with 17 parameters
+// class FSRSScheduler
+// {
+// private:
+//     double desired_retention = 0.9; // Target retention at review time
+//     std::vector<double> weights;    // 17 parameters
+//     double learning_rate = 0.01;    // For training weights
+//     std::vector<Item> items;
+//
+//     // Initialize 17 weights:
+//     // w[0-3]: Initial stability for ratings 1-4
+//     // w[4-7]: Stability increase factors for ratings 1-4
+//     // w[8-11]: Stability decrease factors for ratings 1-4
+//     // w[12]: Base decay rate (D)
+//     // w[13]: Difficulty scaling factor
+//     // w[14-16]: Additional factors (e.g., retrievability, user memory, context)
+//     void initialize_weights()
+//     {
+//         weights = {
+//                 0.4, 0.6, 1.0, 1.2, // w[0-3]: Initial stabilities
+//                 0.4, 0.9, 1.5, 2.5, // w[4-7]: Stability increase factors
+//                 0.3, 0.8, 1.0, 1.0, // w[8-11]: Stability decrease factors
+//                 1.0,                // w[12]: Decay rate
+//                 0.5,                // w[13]: Difficulty scaling
+//                 1.0, 1.0, 1.0       // w[14-16]: Additional factors
+//         };
+//
+//         // weights = {
+//         //         0.1873, 0.7846, 6.7259, 28.1730,
+//         //         5.3135, 1.3815, 0.8716, 0.0180,
+//         //         1.4517, 0.1072, 0.8504, 2.1134,
+//         //         0.0779,
+//         //         0.3982,
+//         //         1.6768, 0.3682, 2.8755};
+//     }
+//
+//     // Retention function: R(t) = (1 + t / (9 * S * w[14]))^(-w[12])
+//     double retention(double stability, double time) const
+//     {
+//         return std::pow(1.0 + time / (9.0 * stability * weights[14]), -weights[12]);
+//     }
+//
+//     // Calculate next review interval
+//     double next_interval(double stability) const
+//     {
+//         return 9.0 * stability * weights[14] * (std::pow(1.0 / desired_retention, 1.0 / weights[12]) - 1.0);
+//     }
+//
+//     // Update stability based on rating
+//     void update_stability(Item& item, int rating)
+//     {
+//         double factor = (rating > 1) ? weights[4 + rating - 1] : weights[8]; // Increase for success, decrease for failure
+//         item.stability *= factor;
+//         // Adjust stability based on difficulty and w[13]
+//         item.stability *= (1.0 - weights[13] * item.difficulty);
+//         // Apply additional factor w[15] (e.g., user memory strength)
+//         item.stability *= weights[15];
+//         // Ensure stability doesn't go below a minimum
+//         item.stability = std::max(item.stability, 0.1);
+//         item.last_rating = rating;
+//         item.review_count++;
+//     }
+//
+//     // Train weights based on review outcome
+//     void train_weights(Item& item, int rating, double time_since_review)
+//     {
+//         // Infer actual retention: 1 for success (Hard, Good, Easy), 0 for failure (Again)
+//         double actual_retention = (rating > 1) ? 1.0 : 0.0;
+//         double predicted_retention = retention(item.stability, time_since_review);
+//         double error = actual_retention - predicted_retention;
+//
+//         // Gradient for decay rate (w[12])
+//         double t_over_9s = time_since_review / (9.0 * item.stability * weights[14]);
+//         weights[12] += learning_rate * error * predicted_retention * std::log(1.0 + t_over_9s);
+//         weights[12] = std::max(0.5, std::min(weights[12], 2.0));
+//
+//         // Gradient for retrievability factor (w[14])
+//         weights[14] += learning_rate * error * predicted_retention * (weights[12] * time_since_review) / (9.0 * item.stability * weights[14] * (1.0 + t_over_9s));
+//         weights[14] = std::max(0.5, std::min(weights[14], 2.0));
+//
+//         // Update stability-related weights based on rating
+//         if (item.review_count == 1) {
+//             // Update initial stability weight for the given rating
+//             weights[rating - 1] += learning_rate * error * (1.0 - weights[13] * item.difficulty);
+//             weights[rating - 1] = std::max(0.1, weights[rating - 1]);
+//         } else {
+//             // Update increase/decrease factor
+//             int weight_index = (rating > 1) ? (4 + rating - 1) : 8;
+//             weights[weight_index] += learning_rate * error;
+//             weights[weight_index] = std::max(0.1, std::min(weights[weight_index], 3.0));
+//         }
+//
+//         // Update difficulty scaling (w[13])
+//         weights[13] += learning_rate * error * item.difficulty;
+//         weights[13] = std::max(0.0, std::min(weights[13], 1.0));
+//
+//         // Update user memory factor (w[15])
+//         weights[15] += learning_rate * error;
+//         weights[15] = std::max(0.5, std::min(weights[15], 2.0));
+//
+//         // Placeholder for w[16] (context factor, minimally updated)
+//         weights[16] += learning_rate * error * 0.1;
+//         weights[16] = std::max(0.5, std::min(weights[16], 2.0));
+//     }
+//
+// public:
+//     FSRSScheduler()
+//     {
+//         initialize_weights();
+//     }
+//
+//     // Add a new item
+//     void add_item(double difficulty)
+//     {
+//         Item item;
+//         item.stability = weights[3] * (1.0 - weights[13] * difficulty); // Use w[3] (Easy) as default
+//         item.difficulty = difficulty;
+//         item.last_review_time = 0.0;
+//         item.last_rating = 0;
+//         item.review_count = 0;
+//         items.push_back(item);
+//     }
+//
+//     // Simulate a review for an item
+//     void review_item(int item_index, int rating, double current_time)
+//     {
+//         Item& item = items[item_index];
+//         double time_since_review = current_time - item.last_review_time;
+//
+//         // Train weights
+//         train_weights(item, rating, time_since_review);
+//
+//         // Update stability and last review time
+//         update_stability(item, rating);
+//         item.last_review_time = current_time;
+//
+//         // Output review information
+//         std::cout << "Item " << item_index << ": Rating = " << rating
+//                   << ", Stability = " << item.stability
+//                   << ", Next review in " << next_interval(item.stability) << " days\n";
+//     }
+//
+//     // Get next item to review
+//     int get_next_item(double current_time) const
+//     {
+//         for (size_t i = 0; i < items.size(); ++i) {
+//             double time_since_review = current_time - items[i].last_review_time;
+//             if (retention(items[i].stability, time_since_review) <= desired_retention) {
+//                 return i;
+//             }
+//         }
+//         return -1; // No item due for review
+//     }
+//
+//     // Print current weights
+//     void print_weights() const
+//     {
+//         std::cout << "Current Weights:\n";
+//         for (size_t i = 0; i < weights.size(); ++i) {
+//             std::cout << "w[" << i << "] = " << weights[i] << "\n";
+//         }
+//     }
+// };
+//
+// // Main function to simulate FSRS scheduling
+// int main()
+// {
+//     FSRSScheduler scheduler;
+//
+//     // Add three items with different difficulties
+//     scheduler.add_item(0.0); // Easy item
+//     scheduler.add_item(0.5); // Medium item
+//     // scheduler.add_item(0.8); // Hard item
+//
+//     // Simulate 30 days of reviews
+//     std::random_device rd;
+//     std::mt19937 gen(rd());
+//     std::uniform_int_distribution<> rating_dist(1, 4);
+//
+//     for (int day = 1; day <= 365; ++day) {
+//         int item_index = scheduler.get_next_item(day);
+//         bool logged = false;
+//         while (item_index != -1) {
+//             if (!logged) {
+//                 std::cout << "\nDay " << day << ":\n";
+//                 logged = true;
+//             }
+//             // Simulate user rating (random for demo)
+//             int rating = 3; // rating_dist(gen);
+//             std::cout << "Reviewing item " << item_index << " with rating " << rating << "\n";
+//             scheduler.review_item(item_index, rating, day);
+//             item_index = scheduler.get_next_item(day);
+//         }
+//     }
+//
+//     // Output final weights
+//     scheduler.print_weights();
+//
+//     return 0;
+// }
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // #include <iostream>
 // #include <vector>
 // #include <cmath>

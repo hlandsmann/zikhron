@@ -1,4 +1,6 @@
 #include "LSTM.h"
+#include "SRS_data.h"
+#include "scheduler.h"
 #include "user.h"
 
 #include <spdlog/spdlog.h>
@@ -45,65 +47,66 @@ auto exponentialDecay(double high, double low, double delta, double x) -> double
     return high * std::exp(-k * x);
 }
 
-// User model
-class User_
+// // User model
+// class User_
+// {
+// private:
+//     double fail_prob_easy;       // Base fail probability for easy cards
+//     double fail_prob_difficult;  // Base fail probability for difficult cards
+//     double difficulty_reduction; // Reduction in difficulty per review
+// public:
+//     User_()
+//         : fail_prob_easy(0.1), fail_prob_difficult(0.7), difficulty_reduction(0.05) {}
+//
+//     auto review_card(Card& card, double day) const -> bool
+//     {
+//         double interval = day - card.seen;
+//         card.seen = day;
+//         double effective_difficulty = card.true_difficulty * (1.0 - card.review_count * difficulty_reduction);
+//         effective_difficulty = std::clamp(effective_difficulty, 0.0, 1.0); // std::max(0.0, std::min(1.0, effective_difficulty));
+//         // effective_difficulty = 0;
+//
+//         double succ_prob = exponentialDecay(0.9, 0.2,
+//                                             2 + (card.memory * (2. + 1. - effective_difficulty)),
+//                                             interval - card.memory);
+//         succ_prob = std::clamp(succ_prob, 0.0, 0.98);
+//
+//         // double fail_prob = (effective_difficulty < 0.5) ? fail_prob_easy : fail_prob_difficult;
+//         double fail_prob = 1. - succ_prob;
+//         std::bernoulli_distribution dist(fail_prob);
+//         bool pass = !dist(gen); // Pass if not failing
+//         card.review_count++;
+//         if (card.id == 1) {
+//             std::cout << "CardId: " << card.id << " pass: " << pass << " i: " << interval << " m: " << card.memory
+//                       << "\n      prob: " << succ_prob << "\n";
+//         }
+//         if (pass) {
+//             card.memory = std::min(interval * 2, card.memory * 2);
+//         } else {
+//             card.memory = 1;
+//         }
+//         // card.pass_history.push_back(pass);
+//         return pass;
+//     }
+//
+Card create_card(int id, double day)
 {
-private:
-    double fail_prob_easy;       // Base fail probability for easy cards
-    double fail_prob_difficult;  // Base fail probability for difficult cards
-    double difficulty_reduction; // Reduction in difficulty per review
-public:
-    User_()
-        : fail_prob_easy(0.1), fail_prob_difficult(0.7), difficulty_reduction(0.05) {}
+    Card card;
+    card.id = id;
+    std::uniform_real_distribution<> dist(0.0, 1.0);
+    card.true_difficulty = dist(gen); // Random difficulty between 0 and 1
+    card.memory = 0;
+    card.review_count = 0;
+    card.is_new = true;
+    card.srs_difficulty = 0.5; // Initial estimate
+    card.stability = 2.0;      // Initial stability for FSRS
+    card.interval = 1.0;
+    card.next_review = day;
+    card.seen = 0;
+    return card;
+}
 
-    auto review_card(Card& card, double day) const -> bool
-    {
-        double interval = day - card.seen;
-        card.seen = day;
-        double effective_difficulty = card.true_difficulty * (1.0 - card.review_count * difficulty_reduction);
-        effective_difficulty = std::clamp(effective_difficulty, 0.0, 1.0); // std::max(0.0, std::min(1.0, effective_difficulty));
-        // effective_difficulty = 0;
-
-        double succ_prob = exponentialDecay(0.9, 0.2,
-                                            2 + (card.memory * (2. + 1. - effective_difficulty)),
-                                            interval - card.memory);
-        succ_prob = std::clamp(succ_prob, 0.0, 0.98);
-
-        // double fail_prob = (effective_difficulty < 0.5) ? fail_prob_easy : fail_prob_difficult;
-        double fail_prob = 1. - succ_prob;
-        std::bernoulli_distribution dist(fail_prob);
-        bool pass = !dist(gen); // Pass if not failing
-        card.review_count++;
-        if (card.id == 1) {
-            std::cout << "CardId: " << card.id << " pass: " << pass << " i: " << interval << " m: " << card.memory
-                      << "\n      prob: " << succ_prob << "\n";
-        }
-        if (pass) {
-            card.memory = std::min(interval * 2, card.memory * 2);
-        } else {
-            card.memory = 1;
-        }
-        // card.pass_history.push_back(pass);
-        return pass;
-    }
-
-    Card create_card(int id, double day)
-    {
-        Card card;
-        card.id = id;
-        std::uniform_real_distribution<> dist(0.0, 1.0);
-        card.true_difficulty = dist(gen); // Random difficulty between 0 and 1
-        card.memory = 0;
-        card.review_count = 0;
-        card.is_new = true;
-        card.srs_difficulty = 0.5; // Initial estimate
-        card.stability = 2.0;      // Initial stability for FSRS
-        card.interval = 1.0;
-        card.next_review = day;
-        card.seen = 0;
-        return card;
-    }
-};
+// };
 
 // Base SRS class
 class SRS
@@ -235,10 +238,27 @@ public:
     }
 };
 
+class MyScheduler : public SRS
+{
+public:
+    void schedule_card(Card& card, bool pass, double day) override
+    {
+        int nextInterval = scheduler.nextInterval(day, card.id, pass);
+        card.next_review = day + nextInterval;
+    }
+
+    void clearItems() { scheduler.clearItems(); }
+
+    void printWeights() { scheduler.printWeights(); }
+
+private:
+    Scheduler scheduler{};
+};
+
 // Simulation function with daily summary
 void run_simulation(SRS* srs, const std::string& srs_name)
 {
-    User_ user;
+    User user;
     std::vector<Card> cards;
     int card_id = 0;
     double total_reviews = 0;
@@ -247,19 +267,14 @@ void run_simulation(SRS* srs, const std::string& srs_name)
     std::cout << srs_name << " Daily Summaries:\n";
     std::cout << "-----------------------------------\n";
     int day = 0;
-    for (day = 1; day <= 365; ++day) {
-        // Add 20 new cards
-        for (int i = 0; i < 20; ++i) {
-            cards.push_back(user.create_card(card_id++, day));
-        }
-
+    for (day = 1; day <= 365 * 2; ++day) {
         bool cardIsPresent = false;
         // Review due cards
         int daily_reviews = 0;
         int daily_passes = 0;
         for (auto& card : cards) {
             if (card.next_review <= day) {
-                bool pass = user.review_card(card, day);
+                bool pass = user.review(card.id, day);
                 srs->schedule_card(card, pass, day);
                 daily_reviews++;
                 total_reviews++;
@@ -280,6 +295,14 @@ void run_simulation(SRS* srs, const std::string& srs_name)
                       << ", Passes = " << daily_passes
                       << ", Pass Rate = " << daily_pass_rate << "%\n";
         }
+
+        // Add 20 new cards
+        for (int i = 0; i < 20; ++i) {
+            cards.push_back(create_card(card_id++, day));
+            auto& card = cards.back();
+            bool pass = user.review(card.id, day);
+            srs->schedule_card(card, pass, day);
+        }
     }
 
     // Calculate true retention
@@ -292,12 +315,15 @@ void run_simulation(SRS* srs, const std::string& srs_name)
         // true_retention += retention_prob;
         // if (retention_prob > 0.5)
         //     retained_cards++;
-        bool pass = user.review_card(card, day);
+        auto srsData = SRS_data{};
+        srsData.id = card.id;
+        bool pass = user.review(card.id, day, false);
+        // bool pass = user.review_card(card, day);
         if (pass) {
             retained_cards++;
         }
     }
-    true_retention /= cards.size();
+    true_retention = static_cast<double>(retained_cards) / cards.size();
 
     std::cout << "\n"
               << srs_name << " Final Results:\n";
@@ -314,10 +340,16 @@ int main()
     FSRS4 fsrs4;
     FSRS5 fsrs5;
     SuperMemo3 sm3;
+    MyScheduler scheduler;
 
     std::cout << "Running simulations for 365 days...\n\n";
     // run_simulation(&fsrs4, "FSRS4");
     // run_simulation(&fsrs5, "FSRS5");
+    run_simulation(&scheduler, "Scheduler");
+    scheduler.printWeights();
+    scheduler.clearItems();
+    run_simulation(&scheduler, "Scheduler");
+    scheduler.printWeights();
     run_simulation(&sm3, "SuperMemo3");
 
     return 0;

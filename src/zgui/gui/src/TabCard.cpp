@@ -1179,6 +1179,7 @@ void TabCard::setUpAlternativeCards(const std::vector<VocableId>& activeVocables
 {
     if (!track.has_value() || activeVocables.empty()) {
         alternativeCards.clear();
+        return;
     }
     if (ranges::any_of(activeVocables, [this](const VocableId vocableId) {
             const auto& [_, vocableMeta] = dataBase->Vocables().at_id(vocableId);

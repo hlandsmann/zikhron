@@ -56,6 +56,7 @@ void GlfwImguiContext::initOpenglContext()
     if (glfwWindow == nullptr) {
         throw std::runtime_error("Failed to create Window");
     }
+    // glfwSetWindowIcon
     glfwMakeContextCurrent(glfwWindow);
     glfwSwapInterval(1); // Enable vsync
 
