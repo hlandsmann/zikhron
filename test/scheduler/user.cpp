@@ -47,12 +47,49 @@ auto User::review(int id, double day, bool shouldLog) -> bool
 
     } else {
         memory = std::clamp(std::log(memory) * (1.5 - difficulty), 0.5, std::max(1., memory * 0.8));
-        // difficulty = std::max(difficulty - 0.09, 0.);
+        // difficulty = std::max(difficulty - 0.03, 0.);
         reviewData.failCount++;
     }
 
     maxFailCount = std::max(maxFailCount, reviewData.failCount);
     return pass;
+}
+
+auto User::getProb(int id, double day) const -> double
+{
+    if (!userReviewData.contains(id)) {
+        return 0;
+    }
+
+    auto& reviewData = userReviewData.at(id);
+    const double& memory = reviewData.memory;
+    double interval = day - reviewData.dayReviewed;
+
+    double passProbability = exponentialDecay(1., 0.9, memory, interval);
+    return passProbability;
+}
+
+auto User::getOptimalInterval(int id) const -> int
+{
+    if (!userReviewData.contains(id)) {
+        return 0;
+    }
+
+    double probThreshold = 0.9;
+    const auto& reviewData = userReviewData.at(id);
+    const double& memory = reviewData.memory;
+    double interval = 1;
+
+    double passProbability = exponentialDecay(1., probThreshold, memory, interval);
+
+    while (true) {
+        passProbability = exponentialDecay(1., probThreshold, memory, interval + 1);
+        // spdlog::info("passProbability: {}", passProbability);
+        if (passProbability < probThreshold) {
+            return static_cast<int>(interval);
+        }
+        interval++;
+    }
 }
 
 auto User::firstReview(int id, double day) -> bool

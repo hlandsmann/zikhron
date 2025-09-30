@@ -10,6 +10,8 @@ target_sources(scheduler
         scheduler.h
         user.cpp
         user.h
+        weight.cpp
+        weight.h
 )
 target_link_libraries(scheduler
     PRIVATE
@@ -19,6 +21,7 @@ target_link_libraries(scheduler
         spdlog::spdlog
         Eigen3::Eigen
         zikhron::utils
+        fmt::fmt
 )
 set_property(TARGET scheduler PROPERTY CXX_STANDARD 23)
 set_target_properties(scheduler

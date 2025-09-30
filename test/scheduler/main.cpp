@@ -3,7 +3,13 @@
 #include "scheduler.h"
 #include "user.h"
 
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
+
+#include <map>
+#include <set>
+#include <string>
+#include <utility>
 
 auto _main() -> int
 {
@@ -112,9 +118,15 @@ Card create_card(int id, double day)
 class SRS
 {
 public:
-    virtual void schedule_card(Card& card, bool pass, double day) = 0;
+    virtual void schedule_card(Card& card, bool pass, int day) = 0;
 
-    virtual void update_difficulty(Card& card, bool pass)
+    virtual void reschedule_card(Card& /* card */) {}
+
+    virtual auto shouldReschedule() -> bool { return false; }
+
+    virtual void rescheduleInternal() {};
+
+    virtual void update_difficulty(Card& /* card */, bool /* pass */)
     {
         // Simple difficulty update based on pass/fail history
         // double pass_rate = card.pass_history.empty() ? 0.5 : std::accumulate(card.pass_history.begin(), card.pass_history.end(), 0.0) / card.pass_history.size();
@@ -133,7 +145,7 @@ public:
     FSRS4()
         : weights({0.4, 0.6, 2.0, 0.9}) {} // Initial weights
 
-    void schedule_card(Card& card, bool pass, double day) override
+    void schedule_card(Card& card, bool pass, int day) override
     {
         update_difficulty(card, pass);
         double new_stability;
@@ -174,10 +186,10 @@ public:
     FSRS5()
         : weights({0.5, 0.7, 2.1, 0.8, 0.2}) {} // Initial weights
 
-    void schedule_card(Card& card, bool pass, double day) override
+    void schedule_card(Card& card, bool pass, int day) override
     {
         update_difficulty(card, pass);
-        double new_stability;
+        double new_stability{};
         if (card.is_new) {
             new_stability = weights[0] * (1.0 - card.srs_difficulty) + weights[1];
             card.is_new = false;
@@ -212,7 +224,7 @@ public:
 class SuperMemo3 : public SRS
 {
 public:
-    void schedule_card(Card& card, bool pass, double day) override
+    void schedule_card(Card& card, bool pass, int day) override
     {
         update_difficulty(card, pass);
         double easiness = 2.5 - card.srs_difficulty; // Easiness factor
@@ -241,11 +253,18 @@ public:
 class MyScheduler : public SRS
 {
 public:
-    void schedule_card(Card& card, bool pass, double day) override
+    void schedule_card(Card& card, bool pass, int day) override
     {
         int nextInterval = scheduler.nextInterval(day, card.id, pass);
         card.next_review = day + nextInterval;
+        card.seen = day;
     }
+
+    void reschedule_card(Card& card) override { card.next_review = scheduler.getNextReview(card.id); };
+
+    auto shouldReschedule() -> bool override { return scheduler.shouldReschedule(); }
+
+    void rescheduleInternal() override { scheduler.rescheduleInternal(); };
 
     void clearItems() { scheduler.clearItems(); }
 
@@ -256,7 +275,7 @@ private:
 };
 
 // Simulation function with daily summary
-void run_simulation(SRS* srs, const std::string& srs_name)
+auto run_simulation(SRS* srs, const std::string& srs_name) -> std::pair<int, double>
 {
     User user;
     std::vector<Card> cards;
@@ -272,19 +291,36 @@ void run_simulation(SRS* srs, const std::string& srs_name)
         // Review due cards
         int daily_reviews = 0;
         int daily_passes = 0;
-        for (auto& card : cards) {
-            if (card.next_review <= day) {
-                bool pass = user.review(card.id, day);
-                srs->schedule_card(card, pass, day);
-                daily_reviews++;
-                total_reviews++;
-                if (pass) {
-                    daily_passes++;
-                    successful_reviews++;
+        bool shouldReschedule = false;
+        std::set<double> probs;
+        while (true) {
+            for (auto& card : cards) {
+                if (card.next_review <= day) {
+                    probs.insert(user.getProb(card.id, day));
+                    bool pass = user.review(card.id, day);
+                    srs->schedule_card(card, pass, day);
+                    daily_reviews++;
+                    total_reviews++;
+                    if (pass) {
+                        daily_passes++;
+                        successful_reviews++;
+                    }
+                    if (card.id == 1) {
+                        cardIsPresent = true;
+                    }
                 }
-                if (card.id == 1) {
-                    cardIsPresent = true;
-                }
+                shouldReschedule |= srs->shouldReschedule();
+                // if (shouldReschedule) {
+                //     // break;
+                // }
+            }
+            if (!shouldReschedule) {
+                break;
+            }
+            shouldReschedule = false;
+            srs->rescheduleInternal();
+            for (auto& card : cards) {
+                srs->reschedule_card(card);
             }
         }
 
@@ -294,6 +330,19 @@ void run_simulation(SRS* srs, const std::string& srs_name)
             std::cout << "Day " << day << ": Reviews = " << daily_reviews
                       << ", Passes = " << daily_passes
                       << ", Pass Rate = " << daily_pass_rate << "%\n";
+            std::string probstr;
+            // probstr = fmt::format("{}", fmt::join(probs, ", "));
+            // fmt::join(probs, ", ");
+            std::map<int, int> pcount;
+            for (double p : probs) {
+                pcount[static_cast<int>(p * 100)]++;
+                // probstr = fmt::format("{}, {:.2F}", probstr, p);
+            }
+            // for(const auto [p, count]:pcount){
+            //   fmt::print("{:.2F}, {}\n", static_cast<double>(p) / 100., count);
+            //
+            // }
+            // std::cout << probstr << "\n";
         }
 
         // Add 20 new cards
@@ -315,15 +364,15 @@ void run_simulation(SRS* srs, const std::string& srs_name)
         // true_retention += retention_prob;
         // if (retention_prob > 0.5)
         //     retained_cards++;
-        auto srsData = SRS_data{};
-        srsData.id = card.id;
+        // auto srsData = SRS_data{};
+        // srsData.id = card.id;
         bool pass = user.review(card.id, day, false);
         // bool pass = user.review_card(card, day);
         if (pass) {
             retained_cards++;
         }
     }
-    true_retention = static_cast<double>(retained_cards) / cards.size();
+    true_retention = static_cast<double>(retained_cards) / static_cast<double>(cards.size());
 
     std::cout << "\n"
               << srs_name << " Final Results:\n";
@@ -333,27 +382,128 @@ void run_simulation(SRS* srs, const std::string& srs_name)
     std::cout << "Overall Pass Rate: " << (successful_reviews / total_reviews) * 100 << "%\n";
     std::cout << "Average True Retention: " << true_retention * 100 << "%\n";
     std::cout << "Retained Cards (>50% retention): " << retained_cards << "\n\n";
+    return {static_cast<int>(total_reviews), true_retention * 100};
 }
 
-int main()
+auto run_optimalsimulation() -> std::pair<int, double>
 {
+    User user;
+    std::vector<Card> cards;
+    int card_id = 0;
+    double total_reviews = 0;
+    double successful_reviews = 0;
+
+    int day = 0;
+    for (day = 1; day <= 365 * 2; ++day) {
+        bool cardIsPresent = false;
+        // Review due cards
+        int daily_reviews = 0;
+        int daily_passes = 0;
+        std::set<double> probs;
+        for (auto& card : cards) {
+            if (card.next_review <= day) {
+                probs.insert(user.getProb(card.id, day));
+                bool pass = user.review(card.id, day);
+                card.next_review = day + user.getOptimalInterval(card.id);
+                daily_reviews++;
+                total_reviews++;
+                if (pass) {
+                    daily_passes++;
+                    successful_reviews++;
+                }
+                if (card.id == 1) {
+                    cardIsPresent = true;
+                }
+            }
+        }
+
+        if (cardIsPresent) {
+            // Print daily summary
+            double daily_pass_rate = daily_reviews > 0 ? (daily_passes / static_cast<double>(daily_reviews)) * 100 : 0.0;
+            std::cout << "Day " << day << ": Reviews = " << daily_reviews
+                      << ", Passes = " << daily_passes
+                      << ", Pass Rate = " << daily_pass_rate << "%\n";
+            std::map<int, int> pcount;
+            for (double p : probs) {
+                pcount[static_cast<int>(p * 100)]++;
+                // probstr = fmt::format("{}, {:.2F}", probstr, p);
+            }
+            // for (const auto [p, count] : pcount) {
+            //     fmt::print("{:.2F}, {}\n", static_cast<double>(p) / 100., count);
+            // }
+        }
+
+        // Add 20 new cards
+        for (int i = 0; i < 20; ++i) {
+            cards.push_back(create_card(card_id++, day));
+            auto& card = cards.back();
+            bool pass = user.review(card.id, day);
+        }
+    }
+
+    // Calculate true retention
+    double true_retention = 0.0;
+    int retained_cards = 0;
+    for (auto& card : cards) {
+        bool pass = user.review(card.id, day, false);
+        if (pass) {
+            retained_cards++;
+        }
+    }
+    true_retention = static_cast<double>(retained_cards) / static_cast<double>(cards.size());
+
+    std::cout << "Total Cards: " << cards.size() << "\n";
+    std::cout << "Total Reviews: " << total_reviews << "\n";
+    std::cout << "Successful Reviews: " << successful_reviews << "\n";
+    std::cout << "Overall Pass Rate: " << (successful_reviews / total_reviews) * 100 << "%\n";
+    std::cout << "Average True Retention: " << true_retention * 100 << "%\n";
+    std::cout << "Retained Cards (>50% retention): " << retained_cards << "\n\n";
+    return {static_cast<int>(total_reviews), true_retention * 100};
+}
+
+auto main() -> int
+{
+    run_optimalsimulation();
+    // Scheduler scheduler1;
+    // scheduler1.test();
+    // return 0;
     FSRS4 fsrs4;
     FSRS5 fsrs5;
     SuperMemo3 sm3;
-    MyScheduler scheduler;
+    constexpr int maxCount = 1;
+    std::pair<int, double> result1{};
+    std::pair<int, double> result2{};
+    for (int c = 1; c <= maxCount; c++) {
+        MyScheduler scheduler;
 
-    std::cout << "Running simulations for 365 days...\n\n";
-    // run_simulation(&fsrs4, "FSRS4");
-    // run_simulation(&fsrs5, "FSRS5");
-    run_simulation(&scheduler, "Scheduler");
-    scheduler.printWeights();
-    scheduler.clearItems();
-    run_simulation(&scheduler, "Scheduler");
-    scheduler.printWeights();
-    run_simulation(&sm3, "SuperMemo3");
+        // run_simulation(&fsrs4, "FSRS4");
+        // run_simulation(&fsrs5, "FSRS5");
+        auto tmp = run_simulation(&scheduler, "Scheduler");
+        result1.first += tmp.first;
+        result1.second += tmp.second;
+        scheduler.printWeights();
+        scheduler.clearItems();
+
+        tmp = run_simulation(&scheduler, "Scheduler");
+        result2.first += tmp.first;
+        result2.second += tmp.second;
+        scheduler.printWeights();
+
+        // run_simulation(&sm3, "SuperMemo3");
+        spdlog::info("----------------------------------Final result1: {}, ret: {}", result1.first / c, result1.second / c);
+        spdlog::info("----------------------------------Final result2: {}, ret: {}", result2.first / c, result2.second / c);
+    }
 
     return 0;
 }
+
+// [2025-09-10 12:42:30.113] [info] ----------------------------------Final result1: 230846, ret: 95.25890410958905 fail
+// [2025-09-11 10:17:36.618] [info] ----------------------------------Final result1: 231003, ret: 95.30486301369865
+// [2025-09-11 10:09:03.828] [info] ----------------------------------Final result1: 233343, ret: 95.30171232876714 pass
+// [2025-09-11 10:13:42.309] [info] ----------------------------------Final result1: 232901, ret: 95.36602739726024 all
+
+// [2025-09-11 12:11:52.803] [info] ----------------------------------Final result1: 235484, ret: 94.72828767123288 reschedule w1
+// [2025-09-11 12:13:07.728] [info] ----------------------------------Final result1: 235658, ret: 94.69383561643839 w1
 
 //
 //

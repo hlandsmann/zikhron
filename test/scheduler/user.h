@@ -17,6 +17,8 @@ class User
 {
 public:
     auto review(int id, double day, bool shouldLog = true) -> bool;
+    [[nodiscard]] auto getProb(int id, double day) const -> double;
+    [[nodiscard]] auto getOptimalInterval(int id) const -> int;
 
 private:
     auto firstReview(int id, double day) -> bool;

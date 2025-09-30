@@ -2,6 +2,7 @@
 
 #include "SRS_data.h"
 
+#include <fmt/format.h>
 #include <spdlog/spdlog.h>
 
 #include <algorithm>
@@ -11,92 +12,12 @@
 #include <cstdint>
 #include <map>
 #include <ranges>
+#include <string>
 #include <tuple>
 #include <vector>
 namespace ranges = std::ranges;
 namespace views = std::ranges::views;
 
-Weight::Weight(int _skewMin, int _skewMax)
-    : skewMin{_skewMin}
-    , skewMax{_skewMax}
-{}
-
-void Weight::adapt(int skew, bool event, int /* failCount */)
-{
-    if (skew != std::clamp(skew, skewMin, skewMax)) {
-        return;
-    }
-    if (!average.contains(skew)) {
-        average[skew] = {
-                {.pass = 0, .fail = 0, .deviation = 0.3, .rate = 10},
-                {.pass = 0, .fail = 0, .deviation = 0.2, .rate = 20},
-                {.pass = 0, .fail = 0, .deviation = 0.1, .rate = 30},
-                {.pass = 0, .fail = 0, .deviation = 0.02, .rate = 100},
-        };
-    }
-    auto& avgs = average.at(skew);
-    std::vector<double> outcomes;
-
-    for (auto& avg : avgs) {
-        outcomes.push_back(avg.adapt(event));
-    }
-
-    if (skew != active) {
-        return;
-    }
-    for (const auto& [outcome, avg] : views::reverse(views::zip(outcomes, avgs))) {
-        if (outcome != 0) {
-            active += static_cast<int>(outcome);
-            active = std::clamp(active, skewMin, skewMax);
-            // avg.log();
-            avg.reset();
-            // for (auto& avg_ : avgs) {
-            //     avg_.reset();
-            // }
-            break;
-        }
-    }
-}
-
-auto Weight::get(int /* failCount */) const -> int
-{
-    return active;
-}
-
-auto Weight::Average::adapt(bool event) -> double
-{
-    int outcome = 0;
-    if (event) {
-        pass++;
-    } else {
-        fail++;
-    }
-    if (fail + pass > rate) {
-        double sum = fail + pass;
-        double avg = pass / sum;
-        if (std::abs(avg - probability) < deviation) {
-            // spdlog::info("prob: {}", pass / rate);
-        } else if (avg < probability) {
-            outcome = -1;
-        } else {
-            outcome = +1;
-        }
-        fail = (1 - avg) * (rate - 1);
-        pass = avg * (rate - 1);
-    }
-    return outcome;
-}
-
-void Weight::Average::reset()
-{
-    fail = 0;
-    pass = 0;
-}
-
-void Weight::Average::log() const
-{
-    spdlog::info("prob: {:.2f}  --- rate:{}", pass / (pass + fail), rate);
-}
 
 auto Scheduler::nextInterval(int currentDay, int id, bool pass) -> int
 {
@@ -115,18 +36,32 @@ auto Scheduler::nextInterval(int currentDay, int id, bool pass) -> int
         oldSkew = getSkewFromInterval(std::max(std::log(item.interval_0) / 2, 1.), lastInterval);
     }
     oldWeight.adapt(oldSkew, pass, item.failCount);
+    // if (!pass) {
+    //     spdlog::info("fail: i0: {}, li: {}, oskew: {}", item.interval_0, lastInterval, oldSkew);
+    // } else {
+    //     spdlog::info("pass: i0: {}, li: {}, oskew: {}", item.interval_0, lastInterval, oldSkew);
+    // }
     int nextInterval = 0;
     if (pass) {
         auto& weight = getPassWeight(lastInterval);
         int skew = weight.get(item.failCount);
         nextInterval = nextIntervalDays(item.interval_0, lastInterval, skew);
+        // spdlog::info("i0: {}, li: {}, ni: {}", item.interval_0, lastInterval, nextInterval);
+        item.interval_1 = item.interval_0;
         item.interval_0 = lastInterval;
+
+        // auto oskew = getSkewFromInterval(lastInterval, nextInterval);
+        // if (oskew != skew) {
+        //     spdlog::info("lastInterval: {}, nextInterval: {}, oskew: {}, skew: {} --- {}", lastInterval, nextInterval, oskew, skew, weight.getFmt());
+        // }
+        // assert(oskew == skew);
     } else {
-        item.interval_0 = lastInterval; // static_cast<int>(std::max(std::log(lastInterval), 1.));
+        item.failCount++;
+        auto& weight = getFailWeight(lastInterval);
         auto logVal = static_cast<int>(std::max(std::log(lastInterval) / 2, 1.));
-        auto& weight = getFailWeight(item.interval_0);
         int skew = weight.get(item.failCount);
         nextInterval = nextIntervalDays(0, logVal, skew);
+        item.interval_0 = lastInterval; // static_cast<int>(std::max(std::log(lastInterval), 1.));
         // nextInterval =  item.interval_0;
     }
     item.pass = pass;
@@ -135,11 +70,56 @@ auto Scheduler::nextInterval(int currentDay, int id, bool pass) -> int
     return nextInterval;
 }
 
+void Scheduler::rescheduleInternal()
+{
+    for (auto& [_, item] : items) {
+        int nextInterval = 0;
+        int lastInterval = item.interval_0;
+        if (item.pass) {
+            auto& weight = getPassWeight(lastInterval);
+            int skew = weight.get(item.failCount);
+            nextInterval = nextIntervalDays(item.interval_1, lastInterval, skew);
+        } else {
+            auto& weight = getFailWeight(lastInterval);
+            auto logVal = static_cast<int>(std::max(std::log(lastInterval) / 2, 1.));
+            int skew = weight.get(item.failCount);
+            nextInterval = nextIntervalDays(0, logVal, skew);
+        }
+        item.dueDay = item.lastDay + nextInterval;
+    }
+}
+
+auto Scheduler::getNextReview(int id) -> int
+{
+    const auto& item = items.at(id);
+    return item.dueDay;
+}
+
+auto Scheduler::shouldReschedule() -> bool
+{
+    bool result = false;
+    for (auto& [_, weight] : passWeights) {
+        result |= weight.wasChanged();
+    }
+    for (auto& [_, weight] : failWeights) {
+        result |= weight.wasChanged();
+    }
+    return result;
+}
+
 auto Scheduler::getWeight(int lastInterval, std::map<std::size_t, Weight>& weights) -> Weight&
 {
+    std::size_t weightIndex = 0;
+    if (lastInterval == 0) {
+        if (weights.contains(weightIndex)) {
+            return weights.at(weightIndex);
+        }
+        weights[weightIndex] = Weight{0, 0, 0, 2};
+        return weights.at(weightIndex);
+    }
+    weightIndex++;
     int a = 1;
     int b = 2;
-    std::size_t weightIndex = 0;
     while (a < lastInterval) {
         std::tie(a, b) = std::tuple(b, a + b);
         weightIndex++;
@@ -147,10 +127,10 @@ auto Scheduler::getWeight(int lastInterval, std::map<std::size_t, Weight>& weigh
     if (weights.contains(weightIndex)) {
         return weights.at(weightIndex);
     }
-    int maxInterval = b - 1;
-    int newSkewMin = std::max(-maxInterval, skewMin);
-    int newSkewMax = std::min(maxInterval, skewMax);
-    weights[weightIndex] = Weight{newSkewMin, newSkewMax};
+    int minInterval = a;
+    int newSkewMin = std::max(-minInterval, skewMin);
+    int newSkewMax = std::min(minInterval, skewMax);
+    weights[weightIndex] = Weight{minInterval, b - 1, newSkewMin, newSkewMax};
     return weights.at(weightIndex);
 
     // std::size_t weightIndex = getWeightIndex(static_cast<std::uint32_t>(lastInterval));
@@ -186,6 +166,9 @@ auto Scheduler::nextIntervalDays(int lastInterval, int skew) -> int
     if (skew < skewMin || skew > skewMax) {
         return 0;
     }
+    if (lastInterval == 0) {
+        return std::clamp(skew, 1, 3);
+    }
 
     int newInterval = (lastInterval * defaultFactor) + skew;
     double factor = defaultFactor + (easeStep * skew);
@@ -219,16 +202,42 @@ auto Scheduler::nextIntervalDays(int lastStableInterval, int lastInterval, int s
 auto Scheduler::getSkewFromInterval(int lastInterval, int interval) -> int
 {
     if (lastInterval <= 0 || interval < 0) {
-        return 0;
+        return std::clamp(interval, 1, 3);
     }
 
     int skew = interval - (2 * lastInterval);
-    if (std::clamp(skew, skewMin, skewMax) == skew) {
+    if (nextIntervalDays(lastInterval, skew) == interval) {
         return skew;
     }
-
+    // if (std::clamp(skew, skewMin, skewMax) == skew) {
+    //     return skew;
+    // }
     skew = static_cast<int>(
-            std::round(
+            std::floor(
                     10.0 * ((static_cast<double>(interval) / lastInterval) - defaultFactor)));
-    return std::clamp(skew, skewMin, skewMax);
+
+    skew = std::clamp(skew, skewMin, skewMax);
+    if (nextIntervalDays(lastInterval, skew) == interval) {
+        return skew;
+    }
+    return std::clamp(skew + 1, skewMin, skewMax);
+}
+
+void Scheduler::test()
+{
+    spdlog::info("Test");
+
+    for (int skew = -7; skew <= 10; skew++) {
+        int oldInterval = 0;
+        int nextInterval = nextIntervalDays(oldInterval, skew);
+        int oldSkew = getSkewFromInterval(oldInterval, nextInterval);
+        spdlog::info("oi: {}, ni: {}, skew: {}, oskew: {}", oldInterval, nextInterval, skew, oldSkew);
+    }
+    spdlog::info("-----------");
+    for (int skew = -7; skew <= 10; skew++) {
+        int oldInterval = 45;
+        int nextInterval = nextIntervalDays(oldInterval, skew);
+        int oldSkew = getSkewFromInterval(oldInterval, nextInterval);
+        spdlog::info("oi: {}, ni: {}, skew: {}, oskew: {}", oldInterval, nextInterval, skew, oldSkew);
+    }
 }

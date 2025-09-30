@@ -1,5 +1,6 @@
 #pragma once
 #include "SRS_data.h"
+#include "weight.h"
 
 #include <fmt/format.h>
 #include <spdlog/spdlog.h>
@@ -7,57 +8,38 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <string>
 #include <vector>
 
-class Weight
+struct History
 {
-public:
-    Weight() = default;
-    Weight(int skewMin, int skewMax);
-    void adapt(int skew, bool event, int failCount);
-    [[nodiscard]] auto get(int failCount) const -> int;
-
-private:
-    int skewMin{};
-    int skewMax{};
-
-    struct Average
-    {
-        static constexpr double probability = 0.9;
-        double pass{};
-        double fail{};
-        double deviation{};
-        double rate{};
-
-        auto adapt(bool event) -> double;
-        void reset();
-
-        void log() const;
-    };
-
-    int active{};
-
-    std::map<int, std::vector<Average>> average;
 };
 
 class Scheduler
 {
 public:
+    using Weight = Weight2;
     auto nextInterval(int currentDay, int id, bool pass) -> int;
+    auto getNextReview(int id) -> int;
+
+    auto shouldReschedule() -> bool;
+    void rescheduleInternal();
 
     void clearItems() { items.clear(); }
 
     void printWeights()
     {
         for (const auto& [w, s] : passWeights) {
-            spdlog::info("w({}) : {}", w, s.get(0));
+            spdlog::info("w({}) : {}", w, s.getFmt());
         }
         fmt::print("\n");
 
         for (const auto& [w, s] : failWeights) {
-            spdlog::info("w({}) : {}", w, s.get(0));
+            spdlog::info("w({}) : {}", w, s.getFmt());
         }
     }
+
+    void test();
 
 private:
     static auto getWeight(int lastInterval, std::map<std::size_t, Weight>& weights) -> Weight&;
