@@ -61,6 +61,8 @@ auto Node::lowerOrder(size_t order) -> size_t
 
     auto cardsLessVocables = removeInactiveCardIds(subCards);
     sortCardIds(cardsLessVocables);
+
+    int loopLimiter = 0;
     for (CardId index : cardsLessVocables) {
         if ((*nodes)[index].has_value()) {
             continue;
@@ -69,6 +71,10 @@ auto Node::lowerOrder(size_t order) -> size_t
         Path path{};
         path.cardId = index;
         paths.push_back(path);
+        if (loopLimiter++ > 500) {
+            spdlog::warn("Break out of loop / cancel calculation");
+            break;
+        }
     }
     for (Path& path : paths) {
         auto& optionalNode = (*nodes)[path.cardId];
