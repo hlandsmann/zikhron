@@ -12,6 +12,7 @@ target_sources(zikhron_utils
         include/utils/Crc32.h
         include/utils/Memoizer.h
         include/utils/Memory.h
+        include/utils/ProcessPipe.h
         include/utils/StringU8.h
         include/utils/Time.h
         include/utils/Variant.h
@@ -21,6 +22,7 @@ target_sources(zikhron_utils
         include/utils/min_element_val.h
         include/utils/string_split.h
         src/Crc32.cpp
+        src/ProcessPipe.cpp
         src/StringU8.cpp
         src/Time.cpp
         src/string_split.cpp

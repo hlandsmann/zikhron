@@ -6,6 +6,7 @@
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
+#include <utils/ProcessPipe.h>
 
 #include <array>
 #include <cstddef>
@@ -18,7 +19,8 @@ class AsyncTreeWalker
 public:
     using DataBasePtr = std::shared_ptr<DataBase>;
     using TreeWalkerPtr = std::shared_ptr<ITreeWalker>;
-    AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor);
+    AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor,
+                    std::shared_ptr<utl::ProcessPipe> processPipe);
 
     [[nodiscard]] auto getDataBase(Language language) const -> kocoro::Async<DataBasePtr>&;
     [[nodiscard]] auto getTreeWalker(Language language) const -> kocoro::Async<TreeWalkerPtr>&;
@@ -27,20 +29,14 @@ public:
 private:
     static auto taskCreateDataBase() -> kocoro::Task<DataBasePtr>;
     auto taskFullfillPromises() -> kocoro::Task<>;
+    [[nodiscard]] auto getProcessPipe() const -> std::shared_ptr<utl::ProcessPipe>;
 
     constexpr static std::size_t languageCount = static_cast<std::size_t>(Language::languageCount);
     std::array<kocoro::AsyncPtr<DataBasePtr>, languageCount> asyncDataBaseArray;
-    // kocoro::AsyncPtr<DataBasePtr> asyncDataBaseChi;
-    // kocoro::AsyncPtr<DataBasePtr> asyncDataBaseJpn;
     std::array<kocoro::AsyncPtr<TreeWalkerPtr>, languageCount> asyncTreeWalkerArray;
-    // kocoro::AsyncPtr<TreeWalkerPtr> asyncTreewalkerChi;
-    // kocoro::AsyncPtr<TreeWalkerPtr> asyncTreewalkerJpn;
     std::array<kocoro::AsyncPtr<CardMeta>, languageCount> asyncNextCardArray;
-    // kocoro::AsyncPtr<CardMeta> asyncNextCardChi;
-    // kocoro::AsyncPtr<CardMeta> asyncNextCardJpn;
 
     std::array<TreeWalkerPtr, languageCount> treeWalkerArray;
-    // TreeWalkerPtr treeWalkerChi;
-    // TreeWalkerPtr treeWalkerJpn;
+    std::shared_ptr<utl::ProcessPipe> processPipe;
 };
 } // namespace sr

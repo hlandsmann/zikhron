@@ -1,8 +1,9 @@
 #include "TokenizerJpn.h"
 
 #include "Mecab.h"
+#include "Sudachi.h"
 #include "Token.h"
-#include "detail/JumanppWrapper.h"
+// #include "detail/JumanppWrapper.h"
 
 #include <database/Word.h>
 #include <database/WordDB.h>
@@ -23,8 +24,9 @@
 #include <vector>
 
 namespace annotation {
-TokenizerJpn::TokenizerJpn(std::shared_ptr<database::WordDB> _wordDB)
+TokenizerJpn::TokenizerJpn(std::shared_ptr<database::WordDB> _wordDB, std::unique_ptr<Sudachi> _sudachi)
     : mecab{std::make_shared<Mecab>()}
+    , sudachi{std::move(_sudachi)}
     , wordDB{std::dynamic_pointer_cast<database::WordDB_jpn>(_wordDB)}
     , jpnDictionary{std::dynamic_pointer_cast<dictionary::DictionaryJpn>(wordDB->getDictionary())}
     , log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
@@ -77,7 +79,7 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
 {
     // std::regex bracketed("\\(.*?\\)");
     std::regex bracketed("(（.*?）|\\(.*?\\))");
-    std::string filterredText = std::regex_replace(text, bracketed, "|");
+    const std::string filterredText = std::regex_replace(text, bracketed, "|");
     // spdlog::info("`{}`", filterredText);
     auto jumanppTokens = mecab->split(filterredText);
     std::vector<Token> result;
@@ -112,6 +114,7 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
     }
     // spdlog::info("full: {}", fmt::join(result, ","));
     result = interleave(bracketed, result, text);
+    sudachi->split(filterredText);
     return result;
 }
 

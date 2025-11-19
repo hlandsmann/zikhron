@@ -18,6 +18,7 @@
 #include <misc/Identifier.h>
 #include <misc/Language.h>
 #include <spdlog/spdlog.h>
+#include <utils/ProcessPipe.h>
 
 #include <algorithm>
 #include <boost/di.hpp>
@@ -27,7 +28,6 @@
 #include <iostream>
 #include <kocoro/kocoro.hpp>
 #include <memory>
-#include <optional>
 #include <stacktrace>
 #include <utility>
 
@@ -43,54 +43,28 @@ static auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
 }
 
 namespace sr {
-AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor)
-// : asyncDataBaseChi{synchronousExecutor->makeAsync<DataBasePtr>()}
-// , asyncDataBaseJpn{synchronousExecutor->makeAsync<DataBasePtr>()}
-// , asyncTreewalkerChi{synchronousExecutor->makeAsync<TreeWalkerPtr>()}
-// , asyncTreewalkerJpn{synchronousExecutor->makeAsync<TreeWalkerPtr>()}
-// , asyncNextCardChi{synchronousExecutor->makeAsync<CardMeta>()}
-// , asyncNextCardJpn{synchronousExecutor->makeAsync<CardMeta>()}
+AsyncTreeWalker::AsyncTreeWalker(std::shared_ptr<kocoro::SynchronousExecutor> synchronousExecutor,
+                                 std::shared_ptr<utl::ProcessPipe> _processPipe)
+    : processPipe{std::move(_processPipe)}
 {
     ranges::generate(asyncDataBaseArray, [&]() { return synchronousExecutor->makeAsync<DataBasePtr>(); });
     ranges::generate(asyncTreeWalkerArray, [&]() { return synchronousExecutor->makeAsync<TreeWalkerPtr>(); });
     ranges::generate(asyncNextCardArray, [&]() { return synchronousExecutor->makeAsync<CardMeta>(); });
     synchronousExecutor->startCoro(taskFullfillPromises());
+}
 
-    // asyncDataBase->runAsync([]() -> DataBasePtr {
-    // auto injectorChi = boost::di::make_injector(
-    //         boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
-    //         boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerChi>(),
-    //         boost::di::bind<database::TokenizationChoiceDB>.to<database::TokenizationChoiceDbChi>(),
-    //         boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryChi>(),
-    //         boost::di::bind<Language>.to(Language::chinese));
-    // auto injectorJpn = boost::di::make_injector(
-    //         boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
-    //         boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),
-    //         boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
-    //         boost::di::bind<Language>.to(Language::japanese));
-    // auto db = injectorJpn.create<std::shared_ptr<DataBase>>();
-    // asyncDataBase->runAsync([=]() -> DataBasePtr { return db; });
+auto AsyncTreeWalker::getProcessPipe() const -> std::shared_ptr<utl::ProcessPipe>
+{
+    return processPipe;
 }
 
 auto AsyncTreeWalker::getDataBase(Language language) const -> kocoro::Async<DataBasePtr>&
 {
-    // switch (language) {
-    // case Language::chinese:
-    //     return *asyncDataBaseChi;
-    // case Language::japanese:
-    //     return *asyncDataBaseJpn;
-    // }
     return *asyncDataBaseArray.at(static_cast<std::size_t>(language));
 }
 
 auto AsyncTreeWalker::getTreeWalker(Language language) const -> kocoro::Async<TreeWalkerPtr>&
 {
-    // switch (language) {
-    // case Language::chinese:
-    //     return *asyncTreewalkerChi;
-    // case Language::japanese:
-    //     return *asyncTreewalkerJpn;
-    // }
     return *asyncTreeWalkerArray.at(static_cast<std::size_t>(language));
 }
 
@@ -129,9 +103,10 @@ auto AsyncTreeWalker::taskFullfillPromises() -> kocoro::Task<>
             std::terminate();
         }
     });
-    asyncDataBaseJpn->runAsync([]() -> DataBasePtr {
+    asyncDataBaseJpn->runAsync([this]() -> DataBasePtr {
         auto injectorJpn = boost::di::make_injector(
                 boost::di::bind<zikhron::Config>.to(get_zikhron_cfg()),
+                boost::di::bind<utl::ProcessPipe>.to(getProcessPipe()),
                 boost::di::bind<annotation::Tokenizer>.to<annotation::TokenizerJpn>(),
                 boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
                 boost::di::bind<database::WordDB>.to<database::WordDB_jpn>(),

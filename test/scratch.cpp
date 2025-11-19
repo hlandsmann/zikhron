@@ -129,209 +129,34 @@
 // //
 // //     return 0;
 // #pragma once
-#include <array>
-#include <cstring>
-#include <iostream>
+
+#include <boost/di.hpp>
 #include <memory>
-#include <stdexcept>
-#include <string>
-#include <vector>
+#include <iostream>
 
-#include <fcntl.h>
-#include <poll.h>
-#include <sys/wait.h>
-#include <unistd.h>
+namespace di = boost::di;
 
-class ProcessPipe
-{
-public:
-    // Constructor: Start the external process with given command and arguments
-    ProcessPipe(const std::string& command, const std::vector<std::string>& args)
-    {
-        // Create pipes for parent-to-child (write) and child-to-parent (read)
-        if (pipe2(parent_to_child, O_CLOEXEC) == -1 || pipe2(child_to_parent, O_CLOEXEC) == -1) {
-            throw std::runtime_error("Failed to create pipes: " + std::string(std::strerror(errno)));
-        }
+struct EarlyInit1 {
+    EarlyInit1() { std::cout << "EarlyInit1 constructed\n"; }
+};
+struct EarlyInit2 {
+    EarlyInit2() { std::cout << "EarlyInit2 constructed\n"; }
+};
 
-        pid = fork();
-        if (pid == -1) {
-            closePipes();
-            throw std::runtime_error("Failed to fork: " + std::string(std::strerror(errno)));
-        }
-
-        if (pid == 0) { // Child process
-            // Redirect stdin from parent_to_child[0]
-            if (dup2(parent_to_child[0], STDIN_FILENO) == -1) {
-                _exit(EXIT_FAILURE);
-            }
-            // Redirect stdout to child_to_parent[1]
-            if (dup2(child_to_parent[1], STDOUT_FILENO) == -1) {
-                _exit(EXIT_FAILURE);
-            }
-
-            // Close all pipe ends in child
-            close(parent_to_child[0]);
-            close(parent_to_child[1]);
-            close(child_to_parent[0]);
-            close(child_to_parent[1]);
-
-            // Prepare arguments for execvp
-            std::vector<char*> c_args;
-            c_args.reserve(args.size() + 2);
-            c_args.push_back(const_cast<char*>(command.c_str()));
-            for (const auto& arg : args) {
-                c_args.push_back(const_cast<char*>(arg.c_str()));
-            }
-            c_args.push_back(nullptr);
-
-            // Execute the command
-            execvp(command.c_str(), c_args.data());
-            _exit(EXIT_FAILURE); // If execvp fails
-        }
-
-        // Parent process: close unused pipe ends
-        close(parent_to_child[0]);
-        close(child_to_parent[1]);
-    }
-
-    // Destructor: Clean up resources
-    ~ProcessPipe()
-    {
-        closePipes();
-        if (pid > 0) {
-            kill(pid, SIGTERM);
-            waitpid(pid, nullptr, 0);
-        }
-    }
-
-    // Write data to the process's stdin
-    bool write(const std::string& data)
-    {
-        if (parent_to_child[1] == -1) {
-            return false;
-        }
-        ssize_t bytes_written = ::write(parent_to_child[1], data.data(), data.size());
-        return bytes_written == static_cast<ssize_t>(data.size());
-    }
-
-    // Read data from the process's stdout with timeout (milliseconds)
-    std::string read(int timeout_ms = 1000)
-    {
-        if (child_to_parent[0] == -1) {
-            return "";
-        }
-
-        pollfd pfd = {child_to_parent[0], POLLIN, 0};
-        int ret = poll(&pfd, 1, timeout_ms);
-
-        if (ret <= 0) {
-            return ""; // Timeout or error
-        }
-
-        std::string result;
-        char buffer[4096];
-        ssize_t bytes_read = ::read(child_to_parent[0], buffer, sizeof(buffer) - 1);
-        if (bytes_read > 0) {
-            buffer[bytes_read] = '\0';
-            result = buffer;
-        }
-        return result;
-    }
-
-    // Check if the process is still running
-    bool isRunning() const
-    {
-        if (pid <= 0)
-            return false;
-        int status;
-        pid_t result = waitpid(pid, &status, WNOHANG);
-        return result == 0;
-    }
-
-    // Delete copy constructor and assignment operator
-    ProcessPipe(const ProcessPipe&) = delete;
-    ProcessPipe& operator=(const ProcessPipe&) = delete;
-
-    // Move constructor
-    ProcessPipe(ProcessPipe&& other) noexcept
-        : pid(other.pid), parent_to_child{other.parent_to_child[0], other.parent_to_child[1]}, child_to_parent{other.child_to_parent[0], other.child_to_parent[1]}
-    {
-        other.pid = -1;
-        other.parent_to_child[0] = other.parent_to_child[1] = -1;
-        other.child_to_parent[0] = other.child_to_parent[1] = -1;
-    }
-
-    // Move assignment operator
-    ProcessPipe& operator=(ProcessPipe&& other) noexcept
-    {
-        if (this != &other) {
-            closePipes();
-            if (pid > 0) {
-                kill(pid, SIGTERM);
-                waitpid(pid, nullptr, 0);
-            }
-            pid = other.pid;
-            parent_to_child[0] = other.parent_to_child[0];
-            parent_to_child[1] = other.parent_to_child[1];
-            child_to_parent[0] = other.child_to_parent[0];
-            child_to_parent[1] = other.child_to_parent[1];
-            other.pid = -1;
-            other.parent_to_child[0] = other.parent_to_child[1] = -1;
-            other.child_to_parent[0] = other.child_to_parent[1] = -1;
-        }
-        return *this;
-    }
-
-private:
-    pid_t pid = -1;
-    int parent_to_child[2] = {-1, -1}; // Pipe for writing to child
-    int child_to_parent[2] = {-1, -1}; // Pipe for reading from child
-
-    void closePipes()
-    {
-        if (parent_to_child[1] != -1) {
-            close(parent_to_child[1]);
-            parent_to_child[1] = -1;
-        }
-        if (child_to_parent[0] != -1) {
-            close(child_to_parent[0]);
-            child_to_parent[0] = -1;
-        }
+struct App {
+    App(std::shared_ptr<EarlyInit1> e, std::shared_ptr<EarlyInit2> e2) {
+        std::cout << "App constructed\n";
     }
 };
 
-// Example usage:
-int main()
-{
-    try {
-        // Example: Start a process running 'bc' (basic calculator)
-        ProcessPipe proc("bc", {});
+int main() {
+    auto injector = di::make_injector();
 
-        // Write a calculation
-        proc.write("2 + 2\n");
+    // 👇 Force early construction
+    // auto& early = injector.create<EarlyInit1&>();
 
-        // Read the result
-        std::string result = proc.read();
-        std::cout << "Result: " << result << std::endl;
+    // Continue with normal injection
+    auto app = injector.create<std::unique_ptr<App>>();
 
-        proc.write("3 + 2\n");
-        result = proc.read();
-        std::cout << "Result: " << result << std::endl;
-
-    std::string text1 = "投降してほしけりゃてめえをあと百万体呼んで来るんだな\n";
-    // std::string text2 = "あとでジュース おごってあげるね - 暑そうだから";
-//     // return createChild("/usr/bin/mecab", argv_, aEnv,text1.c_str());
-        // Create another instance for a different process
-        // ProcessPipe proc2("grep", {"-i", "test"});
-        ProcessPipe proc2("mecab", {});
-        proc2.write(text1);
-        std::string result2 = proc2.read();
-        std::cout << "Grep result: " << result2 << std::endl;
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        return 1;
-    }
     return 0;
 }
-
-// // }

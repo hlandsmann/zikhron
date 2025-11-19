@@ -15,6 +15,7 @@ target_sources(zikhron_annotation
         include/annotation/JieBa.h
         include/annotation/Mecab.h
         include/annotation/Rules.h
+        include/annotation/Sudachi.h
         include/annotation/Token.h
         include/annotation/TokenText.h
         include/annotation/Tokenizer.h
@@ -29,6 +30,7 @@ target_sources(zikhron_annotation
         src/MecabWrapper.cpp
         src/MecabWrapper.h
         src/Rules.cpp
+        src/Sudachi.cpp
         src/Token.cpp
         src/TokenText.cpp
         src/TokenizerChi.cpp

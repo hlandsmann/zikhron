@@ -1,6 +1,7 @@
 include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)
 gen_cfg_json()
 add_subdirectory(scheduler)
+add_subdirectory(tokenizer)
  
 add_executable(sr_treewalker)
 target_sources(sr_treewalker
@@ -75,6 +76,7 @@ target_sources(scratch
 )
 target_link_libraries(scratch
     PRIVATE
+        Boost.DI
         zikhron::warnings
         zikhron::utils
         spdlog::spdlog
