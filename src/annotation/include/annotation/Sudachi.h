@@ -1,15 +1,18 @@
 #pragma once
-#include <vector>
+#include "Token.h"
+
 #include <utils/ProcessPipe.h>
 
 #include <memory>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace annotation {
 struct SudachiToken
 {
+    std::string surface_merged;
     std::string surface;
     std::string pos1;
     std::string pos2;
@@ -28,9 +31,11 @@ class Sudachi
 {
 public:
     Sudachi(std::shared_ptr<utl::ProcessPipe> processPipe);
-    void split(const std::string& text);
+    [[nodiscard]] auto split(const std::string& text) const -> std::vector<SudachiToken>;
+    [[nodiscard]] static auto mergeConjugation(const std::vector<SudachiToken>& sudachiTokens) -> std::vector<SudachiToken>;
 
 private:
+    [[nodiscard]] static auto shouldMerge(const SudachiToken& prev, const SudachiToken& curr) -> bool;
     [[nodiscard]] static auto parseLine(std::string_view line) -> SudachiToken;
     [[nodiscard]] static auto isCovered(const std::vector<SudachiToken>&, const std::string& text) -> bool;
     std::shared_ptr<utl::ProcessPipe> processPipe;

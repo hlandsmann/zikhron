@@ -81,21 +81,29 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
     std::regex bracketed("(（.*?）|\\(.*?\\))");
     const std::string filterredText = std::regex_replace(text, bracketed, "|");
     // spdlog::info("`{}`", filterredText);
-    auto jumanppTokens = mecab->split(filterredText);
-    std::vector<Token> result;
+    // spdlog::info("full: {}", fmt::join(result, ","));
+    std::vector<Token> tokens = split_sudachi(filterredText);
+    tokens = interleave(bracketed, tokens, text);
+    return tokens;
+}
+
+auto TokenizerJpn::split_mecab(const std::string& text) const -> std::vector<Token>
+{
+    auto mecabTokens = mecab->split(text);
+    std::vector<Token> tokens;
     // spdlog::info("{}", text);
 
-    for (const auto& jumanppToken : jumanppTokens) {
-        log->info("{},{},{},{},{}", jumanppToken.lemmaType, jumanppToken.pos1, jumanppToken.pos2, jumanppToken.pos3, jumanppToken.pos4);
+    for (const auto& mecabToken : mecabTokens) {
+        log->info("{},{},{},{},{}", mecabToken.lemmaType, mecabToken.pos1, mecabToken.pos2, mecabToken.pos3, mecabToken.pos4);
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
-        auto word = wordDB->lookup(jumanppToken.lemma);
+        auto word = wordDB->lookup(mecabToken.lemma);
         if (!word) {
-            word = wordDB->lookup(jumanppToken.surface);
+            word = wordDB->lookup(mecabToken.surface);
         }
         if (word) {
-            result.emplace_back(jumanppToken.surface, word);
+            tokens.emplace_back(mecabToken.surface, word);
         } else {
-            result.emplace_back(jumanppToken.surface);
+            tokens.emplace_back(mecabToken.surface);
         }
 
         // auto entry = jpnDictionary->getEntryByKanji(jumanppToken.baseform);
@@ -112,10 +120,34 @@ auto TokenizerJpn::split(const std::string& text) const -> std::vector<Token>
         //     spdlog::info("    rf: {}", *entry.definition.front().glossary.begin());
         // }
     }
-    // spdlog::info("full: {}", fmt::join(result, ","));
-    result = interleave(bracketed, result, text);
-    sudachi->split(filterredText);
-    return result;
+    return tokens;
+}
+
+auto TokenizerJpn::split_sudachi(const std::string& text) const -> std::vector<Token>
+{
+    auto sudachiTokens = sudachi->split(text);
+    sudachiTokens = sudachi->mergeConjugation(sudachiTokens);
+    std::vector<Token> tokens;
+    // spdlog::info("{}", text);
+
+    for (const auto& mecabToken : sudachiTokens) {
+        log->info("{},{},{},{},{}", mecabToken.surface, mecabToken.normalized_form, mecabToken.dictionary_form, mecabToken.pos1, mecabToken.pos2);
+        // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
+        auto word = wordDB->lookup(mecabToken.dictionary_form);
+        if (!word) {
+            word = wordDB->lookup(mecabToken.surface);
+        }
+        if (!word) {
+            word = wordDB->lookup(mecabToken.normalized_form);
+        }
+        if (word) {
+            tokens.emplace_back(mecabToken.surface_merged, word);
+        } else {
+            tokens.emplace_back(mecabToken.surface_merged);
+        }
+
+    }
+    return tokens;
 }
 
 void TokenizerJpn::setDebugSink(spdlog::sink_ptr sink)

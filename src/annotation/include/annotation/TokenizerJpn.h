@@ -32,6 +32,8 @@ public:
     void setDebugSink(spdlog::sink_ptr sink) override;
 
 private:
+    [[nodiscard]] auto split_mecab(const std::string& text) const -> std::vector<Token>;
+    [[nodiscard]] auto split_sudachi(const std::string& text) const -> std::vector<Token>;
     std::shared_ptr<Mecab> mecab;
     std::unique_ptr<Sudachi> sudachi;
     std::shared_ptr<database::WordDB_jpn> wordDB;
