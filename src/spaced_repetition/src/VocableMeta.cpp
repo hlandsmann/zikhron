@@ -2,7 +2,6 @@
 #include <VocableMeta.h>
 #include <annotation/Ease.h>
 #include <database/SpacedRepetitionData.h>
-#include <database/VocableProgress.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>

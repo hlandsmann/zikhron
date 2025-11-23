@@ -23,7 +23,7 @@ struct SudachiToken
     std::string normalized_form;
     std::string dictionary_form;
     std::string reading;
-    int dictionary_id;
+    int dictionary_id{};
     std::string extra_info;
 };
 

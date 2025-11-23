@@ -9,7 +9,7 @@
 #include <filesystem>
 #include <gsl/util>
 #include <iterator>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <map>
 #include <memory>
 #include <ranges>

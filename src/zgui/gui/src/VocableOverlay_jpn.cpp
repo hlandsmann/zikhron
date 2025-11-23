@@ -1,4 +1,4 @@
-#include "VocableOverlay.h"
+#include "VocableOverlay_jpn.h"
 
 #include "theme/Sizes.h"
 
@@ -7,6 +7,7 @@
 #include <context/Fonts.h>
 #include <database/SpacedRepetitionData.h>
 #include <database/Word.h>
+#include <database/Word_jpn.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
 #include <spaced_repetition/DataBase.h>
@@ -33,12 +34,12 @@ namespace gui {
 using namespace widget::layout;
 namespace views = std::views;
 
-VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay,
-                               std::shared_ptr<widget::TextToken> _token,
-                               std::shared_ptr<sr::DataBase> _database,
-                               Language language)
+VocableOverlay_jpn::VocableOverlay_jpn(std::shared_ptr<widget::Overlay> _overlay,
+                                       std::shared_ptr<widget::TextToken> _token,
+                                       std::shared_ptr<sr::DataBase> _database,
+                                       Language language)
     : overlay{std::move(_overlay)}
-    , word{_token->getToken().getWord()}
+    , word{std::dynamic_pointer_cast<database::Word_jpn>(_token->getToken().getWord())}
     , textToken{std::move(_token)}
     , definitions{word->getDefinitions()}
     , options{optionsFromWord(*word)}
@@ -57,7 +58,7 @@ VocableOverlay::VocableOverlay(std::shared_ptr<widget::Overlay> _overlay,
     setupBox();
 }
 
-auto VocableOverlay::optionsFromWord(const database::Word& word) -> std::vector<Option>
+auto VocableOverlay_jpn::optionsFromWord(const database::Word_jpn& word) -> std::vector<Option>
 {
     std::vector<Option> options;
     for (const auto& entry : word.getDictionaryEntries()) {
@@ -93,7 +94,7 @@ auto VocableOverlay::optionsFromWord(const database::Word& word) -> std::vector<
     return options;
 }
 
-void VocableOverlay::setupBox()
+void VocableOverlay_jpn::setupBox()
 {
     overlay->start();
     auto& box = overlay->next<widget::Box>();
@@ -111,7 +112,7 @@ void VocableOverlay::setupBox()
     setupDefinition(*definitionGrid);
 }
 
-void VocableOverlay::setupHeader(widget::Box& headerBox)
+void VocableOverlay_jpn::setupHeader(widget::Box& headerBox)
 {
     using context::Image;
 
@@ -129,7 +130,7 @@ void VocableOverlay::setupHeader(widget::Box& headerBox)
     headerBox.add<widget::ImageButton>(Align::end, context::Image::configure);
 }
 
-void VocableOverlay::drawHeader(widget::Box& headerBox)
+void VocableOverlay_jpn::drawHeader(widget::Box& headerBox)
 {
     headerBox.start();
     headerBox.next<widget::TextTokenSeq>().draw();
@@ -165,7 +166,7 @@ void VocableOverlay::drawHeader(widget::Box& headerBox)
     }
 }
 
-void VocableOverlay::setupDefinition(widget::Grid& definitionGrid)
+void VocableOverlay_jpn::setupDefinition(widget::Grid& definitionGrid)
 {
     definitionGrid.clear();
     for (const auto& definition : definitions) {
@@ -186,7 +187,7 @@ void VocableOverlay::setupDefinition(widget::Grid& definitionGrid)
     setupPendingDefinition = false;
 }
 
-void VocableOverlay::drawDefinition(widget::Grid& definitionGrid)
+void VocableOverlay_jpn::drawDefinition(widget::Grid& definitionGrid)
 {
     definitionGrid.start();
 
@@ -203,7 +204,7 @@ void VocableOverlay::drawDefinition(widget::Grid& definitionGrid)
     }
 }
 
-void VocableOverlay::setupOptions(widget::Box& optionBox)
+void VocableOverlay_jpn::setupOptions(widget::Box& optionBox)
 {
     using context::Image;
     optionBox.clear();
@@ -232,7 +233,7 @@ void VocableOverlay::setupOptions(widget::Box& optionBox)
     setupPendingOptions = false;
 }
 
-void VocableOverlay::drawOptions(widget::Box& optionBox)
+void VocableOverlay_jpn::drawOptions(widget::Box& optionBox)
 {
     optionBox.start();
     for (auto& option : options) {
@@ -263,14 +264,14 @@ void VocableOverlay::drawOptions(widget::Box& optionBox)
     }
 }
 
-void VocableOverlay::generateDefinitions()
+void VocableOverlay_jpn::generateDefinitions()
 {
     definitions.clear();
     for (const auto& option : options) {
-        if (ranges::none_of(option.checked, [](Checkbox checked) { return checked == Checkbox::Checked; })) {
+        if (ranges::none_of(option.checked, [](Checkbox checked) -> bool { return checked == Checkbox::Checked; })) {
             continue;
         }
-        auto definition = database::Definition();
+        auto definition = database::Definition_jpn();
         definition.pronounciation = option.pronounciation;
         for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
             if (checked == Checkbox::Checked) {
@@ -281,7 +282,7 @@ void VocableOverlay::generateDefinitions()
     }
 }
 
-void VocableOverlay::draw()
+void VocableOverlay_jpn::draw()
 {
     auto ltoken = textToken.lock();
     if (!ltoken) {
@@ -320,12 +321,12 @@ void VocableOverlay::draw()
     }
 }
 
-auto VocableOverlay::shouldClose() const -> bool
+auto VocableOverlay_jpn::shouldClose() const -> bool
 {
     return overlay->shouldClose();
 }
 
-auto VocableOverlay::configured() const -> bool
+auto VocableOverlay_jpn::configured() const -> bool
 {
     return wordWasConfigured;
 }

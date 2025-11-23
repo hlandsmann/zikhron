@@ -10,7 +10,7 @@
 #include <cmath>
 #include <cstddef>
 #include <iterator>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <ratio>
 #include <stdexcept>
 #include <string>
@@ -20,38 +20,6 @@
 namespace ranges = std::ranges;
 
 namespace database {
-// auto SpacedRepetitionData::fromVocableProgress(const VocableProgress& progress) -> SpacedRepetitionData
-// {
-//     // double stability = 0;
-//     using namespace std::numbers;
-//     if (!progress.isEnabled()) {
-//         return {};
-//     }
-//     constexpr auto square = 2.F;
-//     float minFactor = std::pow(Ease::changeFactorHard, square);
-//     float maxFactor = progress.easeFactor * Ease::changeFactorHard;
-//     float daysMinAtleast = std::clamp(progress.intervalDay, 0.F, 1.F);
-//     // auto repRange = RepeatRange{
-//     //         .daysMin = utl::daysFromToday(progress.lastSeen,
-//     //                                       std::max(daysMinAtleast, progress.intervalDay * minFactor)),
-//     //         .daysNormal = progress.dueDays(),
-//     //         .daysMax = utl::daysFromToday(progress.lastSeen, progress.intervalDay * maxFactor)};
-//
-//     auto newShiftBackward = std::max<double>(0, progress.intervalDay - (progress.intervalDay * minFactor));
-//     auto newShiftForward = std::max<double>(0, (progress.intervalDay * maxFactor) - progress.intervalDay);
-//     return {
-//             .reviewed = std::chrono::system_clock::from_time_t(progress.lastSeen),
-//             .due = std::chrono::time_point_cast<std::chrono::days>(std::chrono::system_clock::from_time_t(utl::advanceTimeByDays(progress.lastSeen, progress.intervalDay))),
-//             .shiftBackward = static_cast<int>(newShiftBackward),
-//             .shiftForward = static_cast<int>(newShiftForward),
-//             .ease = 1.,
-//             .stability = progress.intervalDay == 0 ? 0 : std::log(static_cast<double>(progress.intervalDay)) / std::log(2),
-//             .state = StudyState::review,
-//             .enabled = progress.enabled,
-//             .triggerCardIndices = progress.triggerCardIndices,
-//
-//     };
-// }
 
 auto SpacedRepetitionData::serialize() const -> std::string
 {

@@ -27,7 +27,9 @@ struct JpnToken
 class TokenizerJpn : public Tokenizer
 {
 public:
-    TokenizerJpn(std::shared_ptr<database::WordDB> wordDB, std::unique_ptr<Sudachi> sudachi);
+    TokenizerJpn(std::shared_ptr<database::WordDB_jpn> wordDB_jpn,
+                 std::unique_ptr<Sudachi> sudachi,
+                 std::shared_ptr<dictionary::DictionaryJpn> DictionaryJpn);
     [[nodiscard]] auto split(const std::string& text) const -> std::vector<Token> override;
     void setDebugSink(spdlog::sink_ptr sink) override;
 

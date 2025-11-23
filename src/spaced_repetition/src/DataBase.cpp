@@ -8,7 +8,6 @@
 #include <database/CbdFwd.h>
 #include <database/TokenizationChoiceDB.h>
 #include <database/TokenizationChoiceDbChi.h>
-#include <database/VocableProgress.h>
 #include <database/WordDB.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
@@ -105,7 +104,7 @@ auto DataBase::getCardMeta(const database::CardPtr& card) -> CardMeta
         if (vocables->contains(vocId)) {
             continue;
         }
-        const auto& word = wordDB->lookupId(vocId);
+        const auto& word = wordDB->lookupId_baseWord(vocId);
         vocables->emplace(word->getId(), word->getSpacedRepetitionData());
     }
     return cardMeta;
@@ -229,7 +228,7 @@ void DataBase::cleanupCards()
 
 void DataBase::setVocableEnabled(VocableId vocId, bool enabled)
 {
-    const auto& word = wordDB->lookupId(vocId);
+    const auto& word = wordDB->lookupId_baseWord(vocId);
     const auto& srd = word->getSpacedRepetitionData();
     if (!vocables->contains(vocId)) {
         vocables->emplace(word->getId(), srd);
@@ -262,7 +261,7 @@ void DataBase::fillIndexMaps()
         allVocableIds.insert(vocableIds.begin(), vocableIds.end());
     }
     for (VocableId vocId : allVocableIds) {
-        const auto& word = wordDB->lookupId(vocId);
+        const auto& word = wordDB->lookupId_baseWord(vocId);
         vocables->emplace(word->getId(), word->getSpacedRepetitionData());
     }
     for (const auto& [cardId, cardMeta] : metaCards) {
@@ -270,6 +269,16 @@ void DataBase::fillIndexMaps()
             (*vocables)[vocableIndex].insertCardId(cardId);
         }
     }
+
+    // // manipulate vocables by count!
+    // for (auto& vocable : *vocables) {
+    //     if (vocable.CardIds().size() < 3) {
+    //         vocable.setEnabled(false);
+    //     }
+    //     if (vocable.CardIds().size() > 3) {
+    //         vocable.setEnabled(true);
+    //     }
+    // }
     numberOfEnabledVocables = countEnabledVocables();
     spdlog::info("number of vocables: {}, enabled: {}", allVocableIds.size(), numberOfEnabledVocables);
     spdlog::info("number of cards: {}", metaCards.size());
@@ -281,7 +290,7 @@ void DataBase::addVocablesOfCardMeta(const CardMeta& cardMeta)
         if (vocables->contains(vocId)) {
             continue;
         }
-        const auto& word = wordDB->lookupId(vocId);
+        const auto& word = wordDB->lookupId_baseWord(vocId);
         vocables->emplace(word->getId(), word->getSpacedRepetitionData());
     }
 }

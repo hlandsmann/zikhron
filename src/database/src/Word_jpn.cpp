@@ -3,7 +3,6 @@
 #include "SpacedRepetitionData.h"
 #include "Word.h"
 
-#include <VocableProgress.h>
 #include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
@@ -23,8 +22,7 @@ namespace ranges = std::ranges;
 namespace database {
 
 Word_jpn::Word_jpn(std::string_view description, VocableId _vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary)
-    : Word(description, _vocableId, dictionary)
-    , vocableId{_vocableId}
+    : vocableId{_vocableId}
 {
     auto rest = std::string_view{description};
     key = utl::split_front(rest, ';');
@@ -37,31 +35,27 @@ Word_jpn::Word_jpn(std::string_view description, VocableId _vocableId, const std
     if (dictionaryEntries.empty()) {
         spdlog::critical("Empty1: {}", key);
     }
-    // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
 
 Word_jpn::Word_jpn(std::vector<dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
-    : Word(_dictionaryEntries, _vocableId)
-    , vocableId{_vocableId}
+    : vocableId{_vocableId}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {
     key = dictionaryEntries.front().key;
-    auto definition = Definition{};
+    auto definition = Definition_jpn{};
     definition.pronounciation = dictionaryEntries.front().pronounciation;
     definition.meanings.push_back(dictionaryEntries.front().meanings.front());
     definitions.push_back(definition);
-    // vocableProgress = std::make_shared<VocableProgress>(VocableProgress::new_vocable);
     spacedRepetitionData = std::make_shared<SpacedRepetitionData>(); // SpacedRepetitionData::from
     if (dictionaryEntries.empty()) {
         spdlog::critical("Empty2: {}", key);
     }
-    // *spacedRepetitionData = SpacedRepetitionData::fromVocableProgress(*vocableProgress);
 }
 
 auto Word_jpn::serialize() const -> std::string
 {
     std::vector<std::string> serializedDefinitions;
-    ranges::transform(definitions, std::back_inserter(serializedDefinitions), &Definition::serialize);
+    ranges::transform(definitions, std::back_inserter(serializedDefinitions), &Definition_jpn::serialize);
     return fmt::format("{};{};{}\\\n", key,
                        spacedRepetitionData->serialize(),
                        fmt::join(serializedDefinitions, "\\"));
@@ -82,12 +76,12 @@ auto Word_jpn::getSpacedRepetitionData() const -> std::shared_ptr<SpacedRepetiti
     return spacedRepetitionData;
 }
 
-auto Word_jpn::getDefinitions() const -> const std::vector<Definition>&
+auto Word_jpn::getDefinitions() const -> const std::vector<Definition_jpn>&
 {
     return definitions;
 }
 
-void Word_jpn::setDefinitions(const std::vector<Definition>& _definitions)
+void Word_jpn::setDefinitions(const std::vector<Definition_jpn>& _definitions)
 {
     definitions = _definitions;
 }
@@ -127,7 +121,7 @@ void Word_jpn::parseDefinitions(std::string_view description)
     }
 }
 
-Definition::Definition(std::string_view description)
+Definition_jpn::Definition_jpn(std::string_view description)
 {
     auto rest = std::string_view{description};
     pronounciation = utl::split_front(rest, ';');
@@ -140,7 +134,7 @@ Definition::Definition(std::string_view description)
     }
 }
 
-auto Definition::serialize() const -> std::string
+auto Definition_jpn::serialize() const -> std::string
 {
     return fmt::format("{};{}/", pronounciation, fmt::join(meanings, "/"));
 }

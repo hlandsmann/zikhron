@@ -61,7 +61,7 @@ auto main() -> int
             boost::di::bind<Language>.to(Language::japanese));
 
     auto db = injectorJpn.create<std::shared_ptr<sr::DataBase>>();
-    auto dictionary = db->getWordDB()->getDictionary();
+    auto dictionary = injectorJpn.create<std::shared_ptr<dictionary::Dictionary>>();
     auto dictionaryJpn = std::dynamic_pointer_cast<const dictionary::DictionaryJpn>(dictionary);
     spdlog::info("Hello world");
 

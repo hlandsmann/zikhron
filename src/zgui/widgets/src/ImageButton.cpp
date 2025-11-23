@@ -7,7 +7,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <string>
 #include <utility>
 #include <vector>

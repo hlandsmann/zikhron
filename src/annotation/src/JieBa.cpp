@@ -122,15 +122,16 @@ namespace {
 } // namespace
 
 namespace annotation {
-JieBa::JieBa(std::shared_ptr<database::WordDB> _wordDB)
-    : wordDB{std::move(_wordDB)}
+JieBa::JieBa(std::shared_ptr<database::WordDB_chi> _wordDB_chi,
+             std::shared_ptr<Rules> _rules)
+    : wordDB_chi{std::move(_wordDB_chi)}
     , jieba{std::make_shared<cppjieba::Jieba>(
               dict_path,
               hmm_path,
               user_dict_path,
               idf_path,
               stop_word_path)}
-    , rules{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())}
+    , rules{std::move(_rules)}
 {
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "WordDB.h"
+#include "Word.h"
 #include "Word_jpn.h"
 
 #include <dictionary/Dictionary.h>
@@ -27,28 +28,24 @@ public:
                std::shared_ptr<dictionary::DictionaryJpn> _dictionary,
                Language language);
 
-    // void save();
+    void save() override;
 
     auto lookup(const std::string& key) -> std::shared_ptr<Word>;
-    auto lookupId(VocableId vocableId) -> std::shared_ptr<Word>;
+    auto lookupId(VocableId vocableId) -> std::shared_ptr<Word_jpn>;
 
     [[nodiscard]] auto wordIsKnown(const std::string& key) -> bool;
     // [[nodiscard]] auto getDictionary() const -> std::shared_ptr<dictionary::Dictionary>;
     // auto extractCharacters() -> std::set<utl::CharU8>;
 
 private:
-    // void load();
-    // void parse(const std::string& str);
-    // static auto createDictionary(Language language,
-    //                              std::shared_ptr<zikhron::Config> config) -> std::shared_ptr<dictionary::Dictionary>;
-    // std::map<Language, std::filesystem::path> languageToProgressDbFileNames =
-    //         {{Language::chinese, "progressVocablesChi.zdb"},
-    //          {Language::japanese, "progressVocablesJpn.zdb"}};
-    // std::filesystem::path progressDbFilename;
-    // std::shared_ptr<zikhron::Config> config;
+    auto lookupId_baseWord(VocableId vocableId) -> std::shared_ptr<Word> override;
+    void load();
+    void parse(const std::string& str);
+    static constexpr auto progressDbFilename = "progressVocablesJpn.zdb";
+    std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<dictionary::DictionaryJpn> dictionaryJpn;
-    // std::vector<std::shared_ptr<Word>> words;
-    // std::map<std::string, std::shared_ptr<Word>> key_word;
+    std::vector<std::shared_ptr<Word_jpn>> words;
+    std::map<std::string, std::shared_ptr<Word_jpn>> key_word;
 };
 
 } // namespace database

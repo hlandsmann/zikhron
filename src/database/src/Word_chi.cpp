@@ -1,8 +1,8 @@
 #include "Word_chi.h"
 
 #include "SpacedRepetitionData.h"
+#include "Word.h"
 
-#include <VocableProgress.h>
 #include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
@@ -35,30 +35,27 @@ Word_chi::Word_chi(std::string_view description, VocableId _vocableId, const std
     if (dictionaryEntries.empty()) {
         spdlog::critical("Empty1: {}", key);
     }
-    // spdlog::info("{};{};{}", key, dictionaryPos, vocableProgress->serialize());
 }
 
 Word_chi::Word_chi(std::vector<dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
-    : vocableId{_vocableId}
+    :  vocableId{_vocableId}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {
     key = dictionaryEntries.front().key;
-    auto definition = Definition{};
+    auto definition = Definition_chi{};
     definition.pronounciation = dictionaryEntries.front().pronounciation;
     definition.meanings.push_back(dictionaryEntries.front().meanings.front());
     definitions.push_back(definition);
-    // vocableProgress = std::make_shared<VocableProgress>(VocableProgress::new_vocable);
     spacedRepetitionData = std::make_shared<SpacedRepetitionData>(); // SpacedRepetitionData::from
     if (dictionaryEntries.empty()) {
         spdlog::critical("Empty2: {}", key);
     }
-    // *spacedRepetitionData = SpacedRepetitionData::fromVocableProgress(*vocableProgress);
 }
 
 auto Word_chi::serialize() const -> std::string
 {
     std::vector<std::string> serializedDefinitions;
-    ranges::transform(definitions, std::back_inserter(serializedDefinitions), &Definition::serialize);
+    ranges::transform(definitions, std::back_inserter(serializedDefinitions), &Definition_chi::serialize);
     return fmt::format("{};{};{}\\\n", key,
                        spacedRepetitionData->serialize(),
                        fmt::join(serializedDefinitions, "\\"));
@@ -79,12 +76,12 @@ auto Word_chi::getSpacedRepetitionData() const -> std::shared_ptr<SpacedRepetiti
     return spacedRepetitionData;
 }
 
-auto Word_chi::getDefinitions() const -> const std::vector<Definition>&
+auto Word_chi::getDefinitions() const -> const std::vector<Definition_chi>&
 {
     return definitions;
 }
 
-void Word_chi::setDefinitions(const std::vector<Definition>& _definitions)
+void Word_chi::setDefinitions(const std::vector<Definition_chi>& _definitions)
 {
     definitions = _definitions;
 }
@@ -124,7 +121,7 @@ void Word_chi::parseDefinitions(std::string_view description)
     }
 }
 
-Definition::Definition(std::string_view description)
+Definition_chi::Definition_chi(std::string_view description)
 {
     auto rest = std::string_view{description};
     pronounciation = utl::split_front(rest, ';');
@@ -137,7 +134,7 @@ Definition::Definition(std::string_view description)
     }
 }
 
-auto Definition::serialize() const -> std::string
+auto Definition_chi::serialize() const -> std::string
 {
     return fmt::format("{};{}/", pronounciation, fmt::join(meanings, "/"));
 }

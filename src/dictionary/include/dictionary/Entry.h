@@ -1,7 +1,8 @@
 #pragma once
-#include <magic_enum.hpp>
 #include <utils/format.h>
+
 #include <compare>
+#include <magic_enum/magic_enum.hpp>
 #include <string>
 #include <vector>
 

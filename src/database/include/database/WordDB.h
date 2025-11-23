@@ -22,7 +22,6 @@ class WordDB
 {
 public:
     WordDB(std::shared_ptr<zikhron::Config> config,
-           std::shared_ptr<dictionary::Dictionary> dictionary,
            Language language);
     virtual ~WordDB() = default;
 
@@ -31,33 +30,28 @@ public:
     auto operator=(const WordDB&) -> WordDB& = delete;
     auto operator=(WordDB&&) -> WordDB& = delete;
 
-    void save();
+    virtual void save() = 0;
 
     // auto lookup(const std::string& key) -> std::shared_ptr<Word>;
-    auto lookupId(VocableId vocableId) -> std::shared_ptr<Word>;
+    virtual auto lookupId_baseWord(VocableId vocableId) -> std::shared_ptr<Word> = 0;
     //
     // [[nodiscard]] auto wordIsKnown(const std::string& key) const -> bool;
-    [[nodiscard]] auto getDictionary() const -> std::shared_ptr<dictionary::Dictionary>;
+    // [[nodiscard]] auto getDictionary() const -> std::shared_ptr<dictionary::Dictionary>;
     auto extractCharacters() -> std::set<utl::CharU8>;
 
 protected:
-    [[nodiscard]] auto getWords() -> std::vector<std::shared_ptr<Word>>& { return words; };
+    // [[nodiscard]] auto getWords() -> std::vector<std::shared_ptr<Word>>& { return words; };
 
-    [[nodiscard]] auto getKeyWords() -> std::map<std::string, std::shared_ptr<Word>>& { return key_word; };
+    // [[nodiscard]] auto getKeyWords() -> std::map<std::string, std::shared_ptr<Word>>& { return key_word; };
 
 private:
-    void load();
-    void parse(const std::string& str);
-    static auto createDictionary(Language language,
-                                 std::shared_ptr<zikhron::Config> config) -> std::shared_ptr<dictionary::Dictionary>;
     std::map<Language, std::filesystem::path> languageToProgressDbFileNames =
             {{Language::chinese, "progressVocablesChi.zdb"},
              {Language::japanese, "progressVocablesJpn.zdb"}};
     std::filesystem::path progressDbFilename;
     std::shared_ptr<zikhron::Config> config;
-    std::shared_ptr<dictionary::Dictionary> dictionary;
-    std::vector<std::shared_ptr<Word>> words;
-    std::map<std::string, std::shared_ptr<Word>> key_word;
+    // std::shared_ptr<dictionary::Dictionary> dictionary;
+    // std::vector<std::shared_ptr<Word>> words;
 };
 
 } // namespace database

@@ -34,7 +34,7 @@ void Mecab::setDebugSink(spdlog::sink_ptr sink)
 // Type and POS fields in unidic-cwj-202302
 //
 //  type,pos1,pos2,pos3,pos4
-std::map<std::array<std::string, 5>, POS_Japanese> posMap = {
+const std::map<std::array<std::string, 5>, POS_Japanese> posMap = {
         {{"人名", "名詞", "固有名詞", "人名", "一般"}, POS_Japanese::verb},
         {{"他", "感動詞", "フィラー", "", ""}, POS_Japanese::verb},
         {{"他", "感動詞", "一般", "", ""}, POS_Japanese::verb},

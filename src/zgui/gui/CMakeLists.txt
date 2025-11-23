@@ -7,6 +7,8 @@ target_sources(zgui_gui
         include/gui/DisplayText.h
         include/gui/DisplayVideo.h
         include/gui/DisplayVocables.h
+        include/gui/DisplayVocables_chi.h
+        include/gui/DisplayVocables_jpn.h
         include/gui/FileDialog.h
         include/gui/GlWindow.h
         include/gui/GroupAdd.h
@@ -16,11 +18,14 @@ target_sources(zgui_gui
         include/gui/TabVideo.h
         include/gui/TokenizationOverlay.h
         include/gui/VocableOverlay.h
+        include/gui/VocableOverlay_chi.h
+        include/gui/VocableOverlay_jpn.h
         include/gui/theme/Sizes.h
         src/DisplayAnnotation.cpp
         src/DisplayText.cpp
         src/DisplayVideo.cpp
-        src/DisplayVocables.cpp
+        src/DisplayVocables_chi.cpp
+        src/DisplayVocables_jpn.cpp
         src/FileDialog.cpp
         src/GlWindow.cpp
         src/GroupAdd.cpp
@@ -29,7 +34,8 @@ target_sources(zgui_gui
         src/TabCard.cpp
         src/TabVideo.cpp
         src/TokenizationOverlay.cpp
-        src/VocableOverlay.cpp
+        src/VocableOverlay_chi.cpp
+        src/VocableOverlay_jpn.cpp
 )
 
 target_include_directories(zgui_gui

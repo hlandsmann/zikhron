@@ -1,5 +1,5 @@
 // clang-format off
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <epoxy/glx.h>
 #include <epoxy/egl.h>
 #include <epoxy/gl_generated.h>

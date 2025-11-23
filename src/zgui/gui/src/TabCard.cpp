@@ -5,7 +5,8 @@
 #include <DisplayAnnotation.h>
 #include <DisplayText.h>
 #include <DisplayVideo.h>
-#include <DisplayVocables.h>
+#include <DisplayVocables_chi.h>
+#include <DisplayVocables_jpn.h>
 #include <ImGuiFileDialog/ImGuiFileDialog.h>
 #include <VocableOverlay.h>
 #include <annotation/Token.h>
@@ -298,7 +299,16 @@ void TabCard::prepareStudy(sr::CardMeta& cardMeta,
     auto activeVocablesColered = tokenText->setupActiveVocableIds(activeVocableIds);
     displayText = std::make_unique<DisplayText>(cardLayer, overlayForVocable, std::move(tokenText), dataBase, language);
     if (!activeVocableIds.empty()) {
-        displayVocables = std::make_unique<DisplayVocables>(vocableLayer, dataBase, std::move(activeVocablesColered), language);
+        switch (language) {
+        case Language::chinese:
+            displayVocables = std::make_unique<DisplayVocables_chi>(vocableLayer, dataBase, std::move(activeVocablesColered), language);
+            break;
+        case Language::japanese:
+            displayVocables = std::make_unique<DisplayVocables_jpn>(vocableLayer, dataBase, std::move(activeVocablesColered), language);
+            break;
+        case Language::languageCount:
+            break;
+        }
     }
     if (auto optTranslation = track->getTranslation(); optTranslation.has_value() && track->getTrackType() == TrackType::audio) {
         auto translation = *optTranslation;
@@ -1207,7 +1217,6 @@ void TabCard::setUpAlternativeCards(const std::vector<VocableId>& activeVocables
         }
     }
     alternativeCardIndex = originalAlternativeCardIndex;
-
 }
 
 auto TabCard::evaluateTemporaryPlaymode() const -> PlayMode

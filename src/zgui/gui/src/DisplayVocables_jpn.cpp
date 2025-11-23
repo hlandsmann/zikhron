@@ -1,4 +1,4 @@
-#include "DisplayVocables.h"
+#include "DisplayVocables_jpn.h"
 
 #include <annotation/Ease.h>
 #include <annotation/Token.h>
@@ -6,6 +6,7 @@
 #include <context/Fonts.h>
 #include <database/Word.h>
 #include <database/WordDB.h>
+#include <database/WordDB_jpn.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
@@ -30,14 +31,14 @@
 namespace ranges = std::ranges;
 
 namespace gui {
-DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
-                                 std::shared_ptr<sr::DataBase> _dataBase,
-                                 std::vector<ColoredVocable>&& _coloredVocables,
-                                 Language language)
+DisplayVocables_jpn::DisplayVocables_jpn(std::shared_ptr<widget::Layer> _layer,
+                                         std::shared_ptr<sr::DataBase> _dataBase,
+                                         std::vector<ColoredVocable>&& _coloredVocables,
+                                         Language language)
     : layer{std::move(_layer)}
     , database{std::move(_dataBase)}
     , scheduler{database->getScheduler()}
-    , wordDB{database->getWordDB()}
+    , wordDB{std::dynamic_pointer_cast<database::WordDB_jpn>(database->getWordDB())}
     , coloredVocables{std::move(_coloredVocables)}
     , ratings(createInitialRatings(coloredVocables, scheduler, wordDB, database))
     , fontType{context::getFontType(context::FontSize::small, language)}
@@ -45,16 +46,16 @@ DisplayVocables::DisplayVocables(std::shared_ptr<widget::Layer> _layer,
     setup();
 }
 
-auto DisplayVocables::createInitialRatings(const std::vector<ColoredVocable>& coloredVocables,
-                                           const std::shared_ptr<sr::Scheduler>& scheduler,
-                                           const std::shared_ptr<database::WordDB>& wordDB,
-                                           std::shared_ptr<sr::DataBase> database) -> std::vector<Rating>
+auto DisplayVocables_jpn::createInitialRatings(const std::vector<ColoredVocable>& coloredVocables,
+                                               const std::shared_ptr<sr::Scheduler>& scheduler,
+                                               const std::shared_ptr<database::WordDB>& wordDB,
+                                               std::shared_ptr<sr::DataBase> database) -> std::vector<Rating>
 {
     std::vector<Rating> ratings;
     ranges::transform(coloredVocables, std::back_inserter(ratings),
                       [&](const auto& coloredVocable) -> Rating {
                           const auto& [vocId, _] = coloredVocable;
-                          const auto& word = wordDB->lookupId(vocId);
+                          const auto& word = wordDB->lookupId_baseWord(vocId);
                           const auto& srd = *database->Vocables().at_id(vocId).second.SpacedRepetitionData();
 
                           return scheduler->getRatingSuggestion(srd);
@@ -62,7 +63,7 @@ auto DisplayVocables::createInitialRatings(const std::vector<ColoredVocable>& co
     return ratings;
 }
 
-void DisplayVocables::setup()
+void DisplayVocables_jpn::setup()
 {
     using namespace widget::layout;
     auto grid = layer->add<widget::Grid>(Align::start, gridCfg, 7,
@@ -70,21 +71,21 @@ void DisplayVocables::setup()
     setupVocables(*grid);
 }
 
-void DisplayVocables::draw()
+void DisplayVocables_jpn::draw()
 {
     layer->start();
     auto& grid = layer->next<widget::Grid>();
     drawVocables(grid);
 }
 
-void DisplayVocables::reload()
+void DisplayVocables_jpn::reload()
 {
     layer->start();
     auto& grid = layer->next<widget::Grid>();
     setupVocables(grid);
 }
 
-auto DisplayVocables::getRatedVocables() const -> VocableId_Rating
+auto DisplayVocables_jpn::getRatedVocables() const -> VocableId_Rating
 {
     VocableId_Rating vocIdEase;
     ranges::transform(coloredVocables, ratings, std::inserter(vocIdEase, vocIdEase.begin()),
@@ -95,7 +96,7 @@ auto DisplayVocables::getRatedVocables() const -> VocableId_Rating
     return vocIdEase;
 }
 
-void DisplayVocables::setupVocables(widget::Grid& grid)
+void DisplayVocables_jpn::setupVocables(widget::Grid& grid)
 {
     using annotation::tokenVectorFromString;
     using context::Image;
@@ -155,7 +156,7 @@ void DisplayVocables::setupVocables(widget::Grid& grid)
     }
 }
 
-void DisplayVocables::drawVocables(widget::Grid& grid)
+void DisplayVocables_jpn::drawVocables(widget::Grid& grid)
 {
     using annotation::tokenVectorFromString;
     using context::Image;
@@ -218,13 +219,13 @@ void DisplayVocables::drawVocables(widget::Grid& grid)
     }
 }
 
-void DisplayVocables::addRatingButtonGroup(widget::Grid& grid)
+void DisplayVocables_jpn::addRatingButtonGroup(widget::Grid& grid)
 {
     auto tbg = grid.add<widget::ToggleButtonGroup>(Align::start, widget::Orientation::horizontal,
                                                    std::initializer_list<std::string>{"fail", "pass"});
 }
 
-auto DisplayVocables::makeProgressLabel(const SpacedRepetitionData& srd, ColorId colorId) -> std::vector<annotation::Token>
+auto DisplayVocables_jpn::makeProgressLabel(const SpacedRepetitionData& srd, ColorId colorId) -> std::vector<annotation::Token>
 {
     // auto progress = ease.getProgress();
     // const auto& scheduler = database->getScheduler();
@@ -232,7 +233,7 @@ auto DisplayVocables::makeProgressLabel(const SpacedRepetitionData& srd, ColorId
     return annotation::tokenVectorFromString(progressLabel, colorId);
 }
 
-auto DisplayVocables::makeCountLabel(VocableId vocId, ColorId colorId) const -> std::vector<annotation::Token>
+auto DisplayVocables_jpn::makeCountLabel(VocableId vocId, ColorId colorId) const -> std::vector<annotation::Token>
 {
     auto count = database->Vocables().at_id(vocId).second.CardIds().size();
     auto countLabel = fmt::format("count: {}", count);

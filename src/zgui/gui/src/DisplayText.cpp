@@ -1,6 +1,7 @@
 #include "DisplayText.h"
 
-#include <VocableOverlay.h>
+#include <VocableOverlay_chi.h>
+#include <VocableOverlay_jpn.h>
 #include <annotation/TokenText.h>
 #include <context/Fonts.h>
 #include <misc/Language.h>
@@ -66,7 +67,16 @@ auto DisplayText::draw() -> bool
         }
     }
     if (optTextToken.has_value()) {
-        vocableOverlay = std::make_unique<VocableOverlay>(overlay, optTextToken.value(), database, language);
+        switch (language) {
+        case Language::chinese:
+            vocableOverlay = std::make_unique<VocableOverlay_chi>(overlay, optTextToken.value(), database, language);
+            break;
+        case Language::japanese:
+            vocableOverlay = std::make_unique<VocableOverlay_jpn>(overlay, optTextToken.value(), database, language);
+            break;
+        case Language::languageCount:
+            break;
+        }
     }
     return configured;
 }

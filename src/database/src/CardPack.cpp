@@ -13,7 +13,7 @@
 #include <cstddef>
 #include <exception>
 #include <filesystem>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <optional>
 #include <stdexcept>

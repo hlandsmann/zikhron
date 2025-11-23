@@ -6,7 +6,7 @@
 
 #include <cstddef>
 #include <initializer_list>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <string>
 

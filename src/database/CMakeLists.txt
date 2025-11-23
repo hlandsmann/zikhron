@@ -23,7 +23,6 @@ target_sources(zikhron_database
         include/database/Video.h
         include/database/VideoDB.h
         include/database/VideoSet.h
-        include/database/VocableProgress.h
         include/database/Word.h
         include/database/WordDB.h
         include/database/WordDB_chi.h
@@ -44,8 +43,6 @@ target_sources(zikhron_database
         src/Video.cpp
         src/VideoDB.cpp
         src/VideoSet.cpp
-        src/VocableProgress.cpp
-        src/Word.cpp
         src/WordDB.cpp
         src/WordDB_chi.cpp
         src/WordDB_jpn.cpp

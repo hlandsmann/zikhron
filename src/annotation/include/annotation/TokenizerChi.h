@@ -36,7 +36,10 @@ struct Alternative
 class TokenizerChi : public Tokenizer
 {
 public:
-    TokenizerChi(std::shared_ptr<zikhron::Config> config, std::shared_ptr<database::WordDB> wordDB);
+    TokenizerChi(std::shared_ptr<zikhron::Config> config,
+                 std::shared_ptr<database::WordDB_chi> wordDB_chi,
+                 std::shared_ptr<dictionary::DictionaryChi> dictionary_chi,
+                 std::shared_ptr<JieBa> jieba);
     ~TokenizerChi() override = default;
     TokenizerChi(const TokenizerChi&) = default;
     TokenizerChi(TokenizerChi&&) = default;
@@ -88,7 +91,7 @@ private:
     std::shared_ptr<zikhron::Config> config;
     std::shared_ptr<database::WordDB_chi> wordDB_chi;
     std::shared_ptr<const dictionary::DictionaryChi> dictionaryChi;
-    JieBa jieba;
+    std::shared_ptr<JieBa> jieba;
     Rules rules;
     std::shared_ptr<FreqDictionary> freqDictionary;
 };

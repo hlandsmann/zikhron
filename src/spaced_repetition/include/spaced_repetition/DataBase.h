@@ -12,7 +12,6 @@
 #include <database/TokenizationChoiceDB.h>
 #include <database/TokenizationChoiceDbChi.h>
 #include <database/VideoDB.h>
-#include <database/VocableProgress.h>
 #include <database/WordDB.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
@@ -82,7 +81,6 @@ public:
     [[nodiscard]] auto getNumberOfEnabledVocables() const -> std::size_t;
 
 private:
-    // [[nodiscard]] auto generateVocableIdProgressMap() const -> std::map<VocableId, VocableProgress>;
     void fillIndexMaps();
     void addVocablesOfCardMeta(const CardMeta& cardMeta);
     void setTokenizationChoiceForCard(const database::CardPtr& card) const;
@@ -94,7 +92,6 @@ private:
     std::shared_ptr<WordDB> wordDB;
     std::shared_ptr<CardDB> cardDB;
     std::shared_ptr<TokenizationChoiceDB> tokenizationChoiceDB;
-    // std::map<VocableId, VocableProgress> progressVocables;
 
     std::shared_ptr<utl::index_map<VocableId, VocableMeta>> vocables;
     std::map<CardId, CardMeta> metaCards;

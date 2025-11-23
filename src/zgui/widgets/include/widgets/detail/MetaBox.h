@@ -4,7 +4,7 @@
 #include <utils/format.h> // IWYU pragma: export core.h
 
 #include <cstddef>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <map>
 #include <memory>
 #include <stdexcept>

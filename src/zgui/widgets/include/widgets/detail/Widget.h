@@ -6,7 +6,7 @@
 #include <utils/format.h>
 
 #include <format>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <memory>
 #include <optional>
 #include <string>

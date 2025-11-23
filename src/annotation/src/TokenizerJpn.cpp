@@ -24,11 +24,13 @@
 #include <vector>
 
 namespace annotation {
-TokenizerJpn::TokenizerJpn(std::shared_ptr<database::WordDB> _wordDB, std::unique_ptr<Sudachi> _sudachi)
+TokenizerJpn::TokenizerJpn(std::shared_ptr<database::WordDB_jpn> _wordDB_jpn,
+                           std::unique_ptr<Sudachi> _sudachi,
+                           std::shared_ptr<dictionary::DictionaryJpn> _dictionaryJpn)
     : mecab{std::make_shared<Mecab>()}
     , sudachi{std::move(_sudachi)}
-    , wordDB{std::dynamic_pointer_cast<database::WordDB_jpn>(_wordDB)}
-    , jpnDictionary{std::dynamic_pointer_cast<dictionary::DictionaryJpn>(wordDB->getDictionary())}
+    , wordDB{std::move(_wordDB_jpn)}
+    , jpnDictionary{std::move(_dictionaryJpn)}
     , log{std::make_unique<spdlog::logger>("", std::make_shared<spdlog::sinks::null_sink_mt>())}
 {}
 
@@ -145,7 +147,6 @@ auto TokenizerJpn::split_sudachi(const std::string& text) const -> std::vector<T
         } else {
             tokens.emplace_back(mecabToken.surface_merged);
         }
-
     }
     return tokens;
 }

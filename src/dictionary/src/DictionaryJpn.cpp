@@ -16,7 +16,7 @@
 #include <generator>
 #include <iterator>
 #include <limits>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <map>
 #include <memory>
 #include <pugixml.hpp>

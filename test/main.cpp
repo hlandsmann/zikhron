@@ -48,19 +48,6 @@ auto get_zikhron_cfg() -> std::shared_ptr<zikhron::Config>
     return std::make_shared<zikhron::Config>(path_to_exe.parent_path());
 }
 
-void adaptJiebaDictionaries(const std::shared_ptr<database::WordDB>& wordDB)
-{
-    auto adaptDictionary = annotation::AdaptJiebaDict{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())};
-    adaptDictionary.load(annotation::AdaptJiebaDict::dict_in_path);
-    adaptDictionary.merge();
-    adaptDictionary.save(annotation::AdaptJiebaDict::dict_out_path);
-    adaptDictionary.saveUserDict();
-    auto adaptIdf = annotation::AdaptJiebaDict{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB->getDictionary())};
-    adaptIdf.load(annotation::AdaptJiebaDict::idf_in_path);
-    adaptIdf.merge();
-    adaptIdf.save(annotation::AdaptJiebaDict::idf_out_path);
-}
-
 auto main() -> int
 {
     spdlog::sink_ptr sink;
@@ -85,9 +72,9 @@ auto main() -> int
             boost::di::bind<dictionary::Dictionary>.to<dictionary::DictionaryJpn>(),
             boost::di::bind<Language>.to(Language::japanese));
 
-    auto db = injectorJpn.create<std::shared_ptr<sr::DataBase>>();
-    auto dictionary = db->getWordDB()->getDictionary();
+    auto dictionary = injectorJpn.create<std::shared_ptr<dictionary::Dictionary>>();
     auto dictionaryJpn = std::dynamic_pointer_cast<const dictionary::DictionaryJpn>(dictionary);
+    auto db = injectorJpn.create<std::shared_ptr<sr::DataBase>>();
     //
     // // auto list1 = {"人名", "名詞", "固有名詞", "人名", "一般"};
     // // 人名 -

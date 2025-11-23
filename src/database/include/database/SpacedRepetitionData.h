@@ -1,14 +1,12 @@
 #pragma once
-#include <compare>
 #include <misc/Identifier.h>
-#include "VocableProgress.h"
-
 #include <utils/format.h>
 
 #include <chrono>
+#include <compare>
 #include <cstddef>
 #include <ctime>
-#include <magic_enum.hpp>
+#include <magic_enum/magic_enum.hpp>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -32,7 +30,6 @@ struct SpacedRepetitionData
     [[nodiscard]] auto pauseTimeOver() const -> bool;
     [[nodiscard]] auto recency() const -> double;
 
-    // static auto fromVocableProgress(const VocableProgress& progress) -> SpacedRepetitionData;
     using time_point = std::chrono::time_point<std::chrono::system_clock>;
     time_point reviewed;
     time_point due;
@@ -53,6 +50,7 @@ struct SpacedRepetitionData
         void debug() const;
         auto operator<=>(const RepeatRange&) const -> std::weak_ordering;
     };
+
     [[nodiscard]] auto getRepeatRange() const -> RepeatRange;
 };
 } // namespace database

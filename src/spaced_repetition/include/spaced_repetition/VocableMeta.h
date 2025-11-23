@@ -3,7 +3,6 @@
 
 #include <annotation/Ease.h>
 #include <database/SpacedRepetitionData.h>
-#include <database/VocableProgress.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/index_map.h>

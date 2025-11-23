@@ -131,26 +131,43 @@
 // #pragma once
 
 #include <boost/di.hpp>
-#include <memory>
 #include <iostream>
+#include <memory>
 
 namespace di = boost::di;
 
-struct EarlyInit1 {
-    EarlyInit1() { std::cout << "EarlyInit1 constructed\n"; }
-};
-struct EarlyInit2 {
-    EarlyInit2() { std::cout << "EarlyInit2 constructed\n"; }
+struct Base
+{
+    Base() { std::cout << "Base ctor\n"; }
 };
 
-struct App {
-    App(std::shared_ptr<EarlyInit1> e, std::shared_ptr<EarlyInit2> e2) {
+struct Derived : public Base
+{
+    Derived() { std::cout << "Derived ctor\n"; }
+};
+
+struct EarlyInit1
+{
+    EarlyInit1(std::shared_ptr<Base> base) { std::cout << "EarlyInit1 constructed\n"; }
+};
+
+struct EarlyInit2
+{
+    EarlyInit2(std::shared_ptr<Derived> base) { std::cout << "EarlyInit2 constructed\n"; }
+};
+
+struct App
+{
+    App(std::shared_ptr<EarlyInit1> e, std::shared_ptr<EarlyInit2> e2)
+    {
         std::cout << "App constructed\n";
     }
 };
 
-int main() {
-    auto injector = di::make_injector();
+int main()
+{
+    auto injector = di::make_injector(
+            boost::di::bind<Base>.to<Derived>());
 
     // 👇 Force early construction
     // auto& early = injector.create<EarlyInit1&>();

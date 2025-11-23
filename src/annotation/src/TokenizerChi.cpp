@@ -4,7 +4,7 @@
 #include "misc/TokenizationChoice.h"
 
 #include <Token.h>
-#include <database/WordDB.h>
+#include <database/WordDB_chi.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <utils/StringU8.h>
@@ -58,11 +58,14 @@ namespace annotation {
 //     return jTokenCandidates;
 // }
 
-TokenizerChi::TokenizerChi(std::shared_ptr<zikhron::Config> _config, std::shared_ptr<database::WordDB> wordDB)
+TokenizerChi::TokenizerChi(std::shared_ptr<zikhron::Config> _config,
+                           std::shared_ptr<database::WordDB_chi> _wordDB_chi,
+                           std::shared_ptr<dictionary::DictionaryChi> _dictionary_chi,
+                           std::shared_ptr<JieBa> _jieba)
     : config{std::move(_config)}
-    , wordDB_chi{std::dynamic_pointer_cast<database::WordDB_chi>(wordDB)}
-    , dictionaryChi{std::dynamic_pointer_cast<const dictionary::DictionaryChi>(wordDB_chi->getDictionary())}
-    , jieba{wordDB_chi}
+    , wordDB_chi{std::move(_wordDB_chi)}
+    , dictionaryChi{std::move(_dictionary_chi)}
+    , jieba{std::move(_jieba)}
     , rules{dictionaryChi}
     , freqDictionary{std::make_shared<FreqDictionary>()}
 {}
@@ -395,7 +398,7 @@ auto TokenizerChi::joinMissed(const std::vector<Token>& splitVector, const std::
 auto TokenizerChi::split(const std::string& text) const -> std::vector<Token>
 {
     std::vector<Token> result;
-    std::vector<std::string> splitVector = jieba.cut(text);
+    std::vector<std::string> splitVector = jieba->cut(text);
 
     for (const auto& str : splitVector) {
         if (auto word = wordDB_chi->lookup(str)) {
@@ -424,7 +427,7 @@ auto TokenizerChi::split(const std::string& text) const -> std::vector<Token>
 
 auto TokenizerChi::splitFurther(const std::string& text) const -> std::vector<AToken>
 {
-    std::vector<std::string> splitVector = jieba.cutAll(text);
+    std::vector<std::string> splitVector = jieba->cutAll(text);
     if (splitVector.size() == 1) {
         return {};
     }

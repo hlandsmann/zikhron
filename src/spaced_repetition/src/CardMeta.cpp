@@ -6,7 +6,6 @@
 #include <annotation/TokenText.h>
 #include <database/Card.h>
 #include <database/CbdFwd.h>
-#include <database/VocableProgress.h>
 #include <dictionary/DictionaryChi.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
@@ -247,26 +246,4 @@ auto CardMeta::getActiveVocableIds() const -> std::vector<VocableId>
     return activeVocableIds;
 }
 
-// auto CardMeta::easesFromVocableIds(const std::vector<VocableId>& vocableIds) const -> std::vector<Ease>
-// {
-//     std::vector<Ease> eases;
-//     // const auto& dictionary = *card->getTokenizer().Dictionary();
-//     ranges::transform(
-//             vocableIds,
-//             std::back_inserter(eases),
-//             [&, this](VocableId vocId) -> Ease {
-//                 const VocableProgress& vocSR = vocables->at_id(vocId).second.Progress();
-//                 const auto& wordDB = card->getWordDB();
-//                 spdlog::debug("Easefactor of {} is {:.2f}, invervalDay {:.2f}, seen: {}, dueDays: {} - id: {}, --- nCards: {}",
-//                               wordDB->lookupId(vocId)->Key(),
-//                               vocSR.EaseFactor(),
-//                               vocSR.IntervalDay(),
-//                               vocSR.getLastSeenStr(),
-//                               vocSR.dueDays(),
-//                               vocId,
-//                               vocables->at_id(vocId).second.CardIds().size());
-//                 return {vocSR.IntervalDay(), vocSR.dueDays(), vocSR.EaseFactor()};
-//             });
-//     return eases;
-// }
 } // namespace sr
