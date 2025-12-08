@@ -149,8 +149,8 @@ void WordDB_chi::parse(const std::string& str)
 
 void WordDB_chi::save()
 {
-    spdlog::warn("Save ommitted for WordDB");
-    return;
+    // spdlog::warn("Save ommitted for WordDB");
+    // return;
 
     auto out = std::ofstream{config->DatabaseDirectory() / progressDbFilename};
     for (const auto& word : words) {
