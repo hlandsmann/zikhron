@@ -40,7 +40,7 @@ DisplayVocables_jpn::DisplayVocables_jpn(std::shared_ptr<widget::Layer> _layer,
     , scheduler{database->getScheduler()}
     , wordDB{std::dynamic_pointer_cast<database::WordDB_jpn>(database->getWordDB())}
     , coloredVocables{std::move(_coloredVocables)}
-    , ratings(createInitialRatings(coloredVocables, scheduler, wordDB, database))
+    , ratings(createInitialRatings(coloredVocables, scheduler, database))
     , fontType{context::getFontType(context::FontSize::small, language)}
 {
     setup();
@@ -48,14 +48,13 @@ DisplayVocables_jpn::DisplayVocables_jpn(std::shared_ptr<widget::Layer> _layer,
 
 auto DisplayVocables_jpn::createInitialRatings(const std::vector<ColoredVocable>& coloredVocables,
                                                const std::shared_ptr<sr::Scheduler>& scheduler,
-                                               const std::shared_ptr<database::WordDB>& wordDB,
                                                std::shared_ptr<sr::DataBase> database) -> std::vector<Rating>
 {
     std::vector<Rating> ratings;
     ranges::transform(coloredVocables, std::back_inserter(ratings),
                       [&](const auto& coloredVocable) -> Rating {
                           const auto& [vocId, _] = coloredVocable;
-                          const auto& word = wordDB->lookupId_baseWord(vocId);
+                          // const auto& word = wordDB->lookupId_baseWord(vocId);
                           const auto& srd = *database->Vocables().at_id(vocId).second.SpacedRepetitionData();
 
                           return scheduler->getRatingSuggestion(srd);

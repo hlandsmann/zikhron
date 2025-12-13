@@ -48,7 +48,6 @@ public:
 private:
     [[nodiscard]] static auto createInitialRatings(const std::vector<ColoredVocable>& ColoredVocable,
                                                    const std::shared_ptr<sr::Scheduler>& scheduler,
-                                                   const std::shared_ptr<database::WordDB>& wordDB,
                                                    std::shared_ptr<sr::DataBase> database) -> std::vector<Rating>;
     void setup();
     void setupVocables(widget::Grid& grid);
