@@ -95,4 +95,15 @@ void ToggleButtonGroup::setExpandType(layout::ExpandType expandWidth, layout::Ex
     }
 }
 
+void ToggleButtonGroup::setEmphasized(bool emphasized)
+{
+    box->start();
+    for (unsigned index = 0; index < box->numberOfWidgets(); index++) {
+        auto& widget = box->next<Widget>();
+        if (auto* button = dynamic_cast<Button*>(&widget); button != nullptr) {
+            button->setEmphasized(emphasized);
+        }
+    }
+}
+
 } // namespace widget

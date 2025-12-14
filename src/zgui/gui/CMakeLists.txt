@@ -24,6 +24,7 @@ target_sources(zgui_gui
         src/DisplayAnnotation.cpp
         src/DisplayText.cpp
         src/DisplayVideo.cpp
+        src/DisplayVocables.cpp
         src/DisplayVocables_chi.cpp
         src/DisplayVocables_jpn.cpp
         src/FileDialog.cpp

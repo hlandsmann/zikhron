@@ -39,6 +39,7 @@ public:
     auto getActive() -> unsigned;
     auto arrange(const layout::Rect& /* rect */) -> bool override;
     void setExpandType(layout::ExpandType expandWidth, layout::ExpandType expandHeight);
+    void setEmphasized(bool emphasized);
 
 private:
     auto calculateSize() const -> WidgetSize override;

@@ -27,6 +27,7 @@ public:
     auto clicked() const -> bool;
     void setChecked(bool checked);
     void setSensitive(bool sensitive);
+    void setEmphasized(bool emphasized);
 
     auto isChecked() const -> bool;
     auto isSensitive() const -> bool;
@@ -39,6 +40,7 @@ private:
 
     bool sensitive{true};
     bool checked{false};
+    bool emphasized{false};
 
     std::string label;
 };

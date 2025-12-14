@@ -5,6 +5,7 @@
 #include <map>
 
 namespace gui {
+
 class DisplayVocables
 {
 public:
@@ -21,5 +22,15 @@ public:
     virtual void draw() = 0;
     virtual void reload() = 0;
     [[nodiscard]] virtual auto getRatedVocables() const -> VocableId_Rating = 0;
+
+protected:
+    template<typename Self>
+    void ratingByKeyMoveEmphasis(this Self&& self);
+    template<typename Self>
+    auto ratingByKeyToggle(this Self&& self, int currentIndex) -> Rating;
+
+private:
+    bool keyPressed{false};
 };
+
 } // namespace gui

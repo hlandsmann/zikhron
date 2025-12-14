@@ -141,6 +141,26 @@ auto Theme::ColorImageInsensitiveHovered() const -> const ImVec4&
     return colorImageInsensitiveHovered;
 }
 
+auto Theme::ColorToggleButtonEmphasized() const -> const ImVec4&
+{
+    return colorToggleButtonEmphasized;
+}
+
+auto Theme::ColorToggleButtonEmphasizedChecked() const -> const ImVec4&
+{
+    return colorToggleButtonEmphasizedChecked;
+}
+
+auto Theme::ColorToggleButtonEmphasizedCheckedHovered() const -> const ImVec4&
+{
+    return colorToggleButtonEmphasizedCheckedHovered;
+}
+
+auto Theme::ColorToggleButtonEmphasizedHovered() const -> const ImVec4&
+{
+    return colorToggleButtonEmphasizedHovered;
+}
+
 auto Theme::ColorBorder() const -> const ImVec4&
 {
     return colorBorder;
@@ -206,6 +226,17 @@ StyleColorsDrop::StyleColorsDrop(const Theme& theme, ColorTheme colorTheme)
         PushStyleColor(ImGuiCol_Button, theme.ColorToggleButtonChecked());
         PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorToggleButtonCheckedHovered());
         PushStyleColor(ImGuiCol_ButtonActive, theme.ColorButtonActive());
+        break;
+    case ColorTheme::ButtonEmphasizeDefault:
+        PushStyleColor(ImGuiCol_Button, theme.ColorToggleButtonEmphasized());
+        PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorToggleButtonEmphasizedHovered());
+        PushStyleColor(ImGuiCol_ButtonActive, theme.ColorToggleButtonEmphasizedCheckedHovered());
+        break;
+    case ColorTheme::ButtonEmphasizeChecked:
+        PushStyleColor(ImGuiCol_Button, theme.ColorToggleButtonEmphasizedChecked());
+        PushStyleColor(ImGuiCol_ButtonHovered, theme.ColorToggleButtonEmphasizedCheckedHovered());
+        PushStyleColor(ImGuiCol_ButtonActive, theme.ColorToggleButtonEmphasizedCheckedHovered());
+
         break;
     case ColorTheme::Child:
         PushStyleColor(ImGuiCol_ChildBg, theme.ColorChildBackground());

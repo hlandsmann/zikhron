@@ -25,6 +25,7 @@ namespace gui {
 
 class DisplayVocables_chi : public DisplayVocables
 {
+    friend class DisplayVocables;
     using Align = widget::layout::Align;
     using ColoredVocable = annotation::ColoredVocable;
     using Word = database::Word_chi;
@@ -68,6 +69,7 @@ private:
     std::vector<ColoredVocable> coloredVocables;
     std::vector<Rating> ratings;
     context::FontType fontType;
+    int emphasizeIndex = -1;
 };
 
 } // namespace gui

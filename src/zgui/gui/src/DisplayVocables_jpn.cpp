@@ -24,11 +24,13 @@
 #include <initializer_list>
 #include <iterator>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace ranges = std::ranges;
+namespace views = std::ranges::views;
 
 namespace gui {
 DisplayVocables_jpn::DisplayVocables_jpn(std::shared_ptr<widget::Layer> _layer,
@@ -160,9 +162,12 @@ void DisplayVocables_jpn::drawVocables(widget::Grid& grid)
     using annotation::tokenVectorFromString;
     using context::Image;
 
+    ratingByKeyMoveEmphasis();
+
     grid.start();
     auto itEase = ratings.begin();
-    for (const auto& [vocId, colorId] : coloredVocables) {
+    for (const auto& [index, coloredVocable] : views::enumerate(coloredVocables)) {
+        const auto [vocId, colorId] = coloredVocable;
         const auto& word = wordDB->lookupId(vocId);
         auto& rating = *itEase++;
 
@@ -186,8 +191,15 @@ void DisplayVocables_jpn::drawVocables(widget::Grid& grid)
                 }
                 grid.next<widget::TextTokenSeq>().draw();
                 if (renderEase) {
-                    auto updatedRating = grid.next<widget::ToggleButtonGroup>().Active(rating);
-                    auto oldRating = std::exchange(rating, updatedRating);
+                    auto& ratingButtonGroup = grid.next<widget::ToggleButtonGroup>();
+                    ratingButtonGroup.setEmphasized(index == emphasizeIndex);
+                    auto oldRating = std::exchange(rating,
+                                                   ratingButtonGroup.Active(rating));
+
+                    auto updatedRatingByKey = ratingByKeyToggle(static_cast<int>(index));
+                    if (updatedRatingByKey != oldRating) {
+                        rating = updatedRatingByKey;
+                    }
 
                     auto& ttq = grid.next<widget::TextTokenSeq>();
                     ttq.draw();

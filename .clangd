@@ -19,6 +19,7 @@ Diagnostics:
       - cppcoreguidelines-avoid-reference-coroutine-parameters
       - cppcoreguidelines-pro-type-reinterpret-cast
       - cppcoreguidelines-pro-type-vararg
+      - cppcoreguidelines-missing-std-forward
       - misc-non-private-member-variables-in-classes
       - modernize-avoid-c-arrays
       - readability-function-cognitive-complexity

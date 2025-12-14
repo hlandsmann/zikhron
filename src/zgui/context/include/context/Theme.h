@@ -14,6 +14,8 @@ class StyleColorsDrop;
 enum class ColorTheme {
     ButtonDefault,
     ButtonChecked,
+    ButtonEmphasizeDefault,
+    ButtonEmphasizeChecked,
     Child,
     Window,
     Overlay,
@@ -28,6 +30,11 @@ class Theme
     static constexpr ImVec4 s_colorToggleButtonCheckedHovered      = {0.6F, 0.6F, 0.6F, 1.0F};
     static constexpr ImVec4 s_colorToggleButtonInsensitive         = {0.2F, 0.2F, 0.2F, 1.0F};
     static constexpr ImVec4 s_colorToggleButtonInsensitiveHovered  = {0.2F, 0.2F, 0.2F, 1.0F};
+
+    static constexpr ImVec4 s_colorToggleButtonEmphasized                = {0.15F, 0.25F, 0.45F, 1.0F};
+    static constexpr ImVec4 s_colorToggleButtonEmphasizedChecked         = {0.45F, 0.60F, 0.75F, 1.0F};
+    static constexpr ImVec4 s_colorToggleButtonEmphasizedCheckedHovered  = {0.55F, 0.65F, 0.85F, 1.0F};
+    static constexpr ImVec4 s_colorToggleButtonEmphasizedHovered         = {0.25F, 0.35F, 0.55F, 1.0F};
 
     static constexpr ImVec4 s_colorImage                    = {0.8F, 0.8F, 0.8F, 1.0F};
     static constexpr ImVec4 s_colorImageHovered             = {0.8F, 0.9F, 1.0F, 1.0F};
@@ -68,6 +75,10 @@ public:
     [[nodiscard]] auto ColorImageCheckedHovered() const -> const ImVec4&;
     [[nodiscard]] auto ColorImageInsensitive() const -> const ImVec4&;
     [[nodiscard]] auto ColorImageInsensitiveHovered() const -> const ImVec4&;
+    [[nodiscard]] auto ColorToggleButtonEmphasized() const -> const ImVec4&;
+    [[nodiscard]] auto ColorToggleButtonEmphasizedChecked() const -> const ImVec4&;
+    [[nodiscard]] auto ColorToggleButtonEmphasizedCheckedHovered() const -> const ImVec4&;
+    [[nodiscard]] auto ColorToggleButtonEmphasizedHovered() const -> const ImVec4&;
 
     [[nodiscard]] auto ColorBorder() const -> const ImVec4&;
     [[nodiscard]] auto ColorChildBackground() const -> const ImVec4&;
@@ -85,6 +96,10 @@ private:
     ImVec4 colorToggleButtonCheckedHovered{s_colorToggleButtonCheckedHovered};
     ImVec4 colorToggleButtonInsensitive{s_colorToggleButtonInsensitive};
     ImVec4 colorToggleButtonInsensitiveHovered{s_colorToggleButtonInsensitiveHovered};
+    ImVec4 colorToggleButtonEmphasized{s_colorToggleButtonEmphasized};
+    ImVec4 colorToggleButtonEmphasizedChecked{s_colorToggleButtonEmphasizedChecked};
+    ImVec4 colorToggleButtonEmphasizedCheckedHovered{s_colorToggleButtonEmphasizedCheckedHovered};
+    ImVec4 colorToggleButtonEmphasizedHovered{s_colorToggleButtonEmphasizedHovered};
 
     ImVec4 colorImage{s_colorImage};
     ImVec4 colorImageHovered{s_colorImageHovered};
