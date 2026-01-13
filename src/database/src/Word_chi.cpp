@@ -24,9 +24,11 @@ namespace database {
 Word_chi::Word_chi(std::string_view description, VocableId _vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary)
     : vocableId{_vocableId}
 {
+    auto dictionary_chi = std::dynamic_pointer_cast<dictionary::DictionaryChi>(dictionary);
+
     auto rest = std::string_view{description};
     key = utl::split_front(rest, ';');
-    dictionaryEntries = dictionary->entriesFromKey(key);
+    dictionaryEntries = dictionary_chi->entriesFromKey(key);
     spacedRepetitionData = std::make_shared<SpacedRepetitionData>(); // SpacedRepetitionData::from
     *spacedRepetitionData = SpacedRepetitionData::deserialize(utl::split_front(rest, ';'));
 
@@ -37,7 +39,7 @@ Word_chi::Word_chi(std::string_view description, VocableId _vocableId, const std
     }
 }
 
-Word_chi::Word_chi(std::vector<dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
+Word_chi::Word_chi(std::vector<dictionary::EntryChi>&& _dictionaryEntries, VocableId _vocableId)
     :  vocableId{_vocableId}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {
@@ -92,7 +94,7 @@ auto Word_chi::isConfigureable() const -> bool
             && (dictionaryEntries.front().meanings.size() > 1 || dictionaryEntries.size() > 1));
 }
 
-auto Word_chi::getDictionaryEntries() const -> const std::vector<dictionary::Entry>&
+auto Word_chi::getDictionaryEntries() const -> const std::vector<dictionary::EntryChi>&
 {
     return dictionaryEntries;
 }

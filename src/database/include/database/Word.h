@@ -1,7 +1,6 @@
 #pragma once
 #include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
-#include <dictionary/Entry.h>
 #include <misc/Identifier.h>
 
 #include <memory>
@@ -24,7 +23,6 @@ public:
 
     [[nodiscard]] virtual auto serialize() const -> std::string = 0;
     [[nodiscard]] virtual auto getId() const -> VocableId = 0;
-    [[nodiscard]] virtual auto Key() const -> std::string = 0;
     [[nodiscard]] virtual auto getSpacedRepetitionData() const -> std::shared_ptr<SpacedRepetitionData> = 0;
 };
 

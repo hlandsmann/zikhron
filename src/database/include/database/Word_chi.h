@@ -25,15 +25,15 @@ public:
     auto operator=(Word_chi&&) -> Word_chi& = default;
 
     Word_chi(std::string_view description, VocableId vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary);
-    Word_chi(std::vector<dictionary::Entry>&& dictionaryEntries, VocableId vocableId);
+    Word_chi(std::vector<dictionary::EntryChi>&& dictionaryEntries, VocableId vocableId);
     [[nodiscard]] auto serialize() const -> std::string override;
     [[nodiscard]] auto getId() const -> VocableId override;
-    [[nodiscard]] auto Key() const -> std::string override;
+    [[nodiscard]] auto Key() const -> std::string;
     [[nodiscard]] auto getSpacedRepetitionData() const -> std::shared_ptr<SpacedRepetitionData> override;
     [[nodiscard]] auto getDefinitions() const -> const std::vector<Definition_chi>&;
     void setDefinitions(const std::vector<Definition_chi>& definitions);
     [[nodiscard]] auto isConfigureable() const -> bool;
-    [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<dictionary::Entry>&;
+    [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<dictionary::EntryChi>&;
     [[nodiscard]] auto isModified() const -> bool;
 
 private:
@@ -43,7 +43,7 @@ private:
 
     std::string key;
     std::vector<Definition_chi> definitions;
-    std::vector<dictionary::Entry> dictionaryEntries;
+    std::vector<dictionary::EntryChi> dictionaryEntries;
 };
 
 struct Definition_chi

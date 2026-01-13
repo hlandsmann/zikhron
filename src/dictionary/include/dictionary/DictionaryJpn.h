@@ -1,12 +1,14 @@
 #pragma once
 #include "Dictionary.h"
-#include "Entry.h"
 
 #include <misc/Config.h>
 #include <spdlog/common.h>
 #include <spdlog/logger.h>
+#include <utils/format.h>
 
+#include <compare>
 #include <cstddef>
+#include <magic_enum/magic_enum.hpp>
 #include <map>
 #include <memory>
 #include <set>
@@ -14,12 +16,45 @@
 #include <vector>
 
 namespace dictionary {
+enum class PartOfSpeech {
+    undefined,
+    adjective,
+    adverb,
+    conjunction,
+    interjection,
+    noun,
+    pronoun,
+    prefix,
+    particle,
+    suffix,
+    verb,
+};
+
+struct EntryJpn
+{
+    std::string key;
+    std::vector<std::string> pronounciation;
+    std::vector<std::string> meanings;
+
+    auto operator<=>(const EntryJpn& other) const -> std::weak_ordering
+    {
+        if (const auto cmp = key <=> other.key; cmp != nullptr) {
+            return cmp;
+        }
+        if (const auto cmp = pronounciation <=> other.pronounciation; cmp != nullptr) {
+            return cmp;
+        }
+        return meanings <=> other.meanings;
+    }
+
+    auto operator==(const EntryJpn&) const -> bool = default;
+};
 
 class DictionaryJpn : public Dictionary
 {
 public:
     DictionaryJpn(std::shared_ptr<zikhron::Config> config);
-    [[nodiscard]] auto entriesFromKey(const std::string& key) const -> std::vector<Entry> override;
+    [[nodiscard]] auto entriesFromKey(const std::string& key) const -> std::vector<EntryJpn>;
     [[nodiscard]] auto contains(const std::string& key) const -> bool override;
 
     struct Definition
@@ -57,3 +92,20 @@ private:
     std::unique_ptr<spdlog::logger> log;
 };
 } // namespace dictionary
+
+template<>
+struct fmt::formatter<dictionary::PartOfSpeech>
+
+{
+    template<typename ParseContext>
+    constexpr auto parse(ParseContext& ctx) const
+    {
+        return ctx.begin();
+    }
+
+    template<typename FormatContext>
+    auto format(dictionary::PartOfSpeech orientation, FormatContext& ctx) const
+    {
+        return fmt::format_to(ctx.out(), "{}", magic_enum::enum_name(orientation));
+    }
+};

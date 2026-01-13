@@ -1,7 +1,5 @@
 #include "DictionaryChi.h"
 
-#include "Entry.h"
-
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <utils/string_split.h>
@@ -203,7 +201,7 @@ DictionaryChi::DictionaryChi(std::shared_ptr<zikhron::Config> config)
     }
 }
 
-auto DictionaryChi::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry
+auto DictionaryChi::EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> EntryChi
 {
     const auto characterSet = characterSetTypeFromKeySpan(keys);
     const auto& pos_to_characterSet = (characterSet == CharacterSetType::Simplified)
@@ -266,9 +264,9 @@ auto DictionaryChi::characterSetTypeFromKeySpan(const std::span<const Key>& keys
     throw std::invalid_argument("Invalid choice other than traditional / simplified!");
 }
 
-auto DictionaryChi::entriesFromKey(const std::string& key) const -> std::vector<Entry>
+auto DictionaryChi::entriesFromKey(const std::string& key) const -> std::vector<EntryChi>
 {
-    std::vector<Entry> entries;
+    std::vector<EntryChi> entries;
     // ToDo: it should be possible to support both, simplified and traditional at the same time.
     //   no need to only extract the entryVector from simplified/traditional only. No it supports simplified only
     const auto span_lower = DictionaryChi::Lower_bound(key, Simplified());

@@ -33,8 +33,8 @@ auto DisplayVocables::ratingByKeyToggle(this Self&& self, int currentIndex) -> R
         return rating;
     }
 
-    bool pass = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_L);
-    bool fail = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_H);
+    bool fail = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_H) || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_Q);
+    bool pass = ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_L) || ImGui::IsKeyPressed(ImGuiKey::ImGuiKey_E);
 
     if (!(fail || pass)) {
         self.keyPressed = false;

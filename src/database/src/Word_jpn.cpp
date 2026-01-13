@@ -4,7 +4,7 @@
 #include "Word.h"
 
 #include <dictionary/Dictionary.h>
-#include <dictionary/DictionaryChi.h>
+#include <dictionary/DictionaryJpn.h>
 #include <misc/Identifier.h>
 #include <utils/format.h>
 #include <utils/string_split.h>
@@ -24,9 +24,11 @@ namespace database {
 Word_jpn::Word_jpn(std::string_view description, VocableId _vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary)
     : vocableId{_vocableId}
 {
+    auto dictionary_jpn = std::dynamic_pointer_cast<dictionary::DictionaryJpn>(dictionary);
+
     auto rest = std::string_view{description};
     key = utl::split_front(rest, ';');
-    dictionaryEntries = dictionary->entriesFromKey(key);
+    dictionaryEntries = dictionary_jpn->entriesFromKey(key);
     spacedRepetitionData = std::make_shared<SpacedRepetitionData>(); // SpacedRepetitionData::from
     *spacedRepetitionData = SpacedRepetitionData::deserialize(utl::split_front(rest, ';'));
 
@@ -37,7 +39,7 @@ Word_jpn::Word_jpn(std::string_view description, VocableId _vocableId, const std
     }
 }
 
-Word_jpn::Word_jpn(std::vector<dictionary::Entry>&& _dictionaryEntries, VocableId _vocableId)
+Word_jpn::Word_jpn(std::vector<dictionary::EntryJpn>&& _dictionaryEntries, VocableId _vocableId)
     : vocableId{_vocableId}
     , dictionaryEntries{std::move(_dictionaryEntries)}
 {
@@ -92,7 +94,7 @@ auto Word_jpn::isConfigureable() const -> bool
             && (dictionaryEntries.front().meanings.size() > 1 || dictionaryEntries.size() > 1));
 }
 
-auto Word_jpn::getDictionaryEntries() const -> const std::vector<dictionary::Entry>&
+auto Word_jpn::getDictionaryEntries() const -> const std::vector<dictionary::EntryJpn>&
 {
     return dictionaryEntries;
 }
@@ -124,7 +126,8 @@ void Word_jpn::parseDefinitions(std::string_view description)
 Definition_jpn::Definition_jpn(std::string_view description)
 {
     auto rest = std::string_view{description};
-    pronounciation = utl::split_front(rest, ';');
+
+    pronounciation.emplace_back(utl::split_front(rest, ';'));
     while (true) {
         auto meaning = std::string{utl::split_front(rest, '/')};
         if (meaning.empty()) {

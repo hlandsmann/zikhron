@@ -24,17 +24,20 @@ class VocableOverlay_jpn : public VocableOverlay
         Unchecked = 0,
         Checked = 1,
     };
-    enum class Openbtn : unsigned {
+    enum class OpenBtn : unsigned {
         Hide = 0,
         Show = 1,
     };
 
     struct Option
     {
-        std::string pronounciation;
+        OpenBtn openPronounciation{OpenBtn::Hide};
+        std::vector<std::string> pronounciation;
+        std::vector<Checkbox> checkedPronounciation;
+
+        OpenBtn openMeaning{OpenBtn::Hide};
         std::vector<std::string> meanings;
-        std::vector<Checkbox> checked;
-        Openbtn open{0};
+        std::vector<Checkbox> checkedMeaning;
     };
 
 public:
@@ -54,6 +57,7 @@ private:
     void drawHeader(widget::Box& headerBox);
     void setupDefinition(widget::Grid& definitionGrid);
     void drawDefinition(widget::Grid& definitionGrid);
+    [[nodiscard]] static auto pronounciationStrFromOption(const Option& option) -> std::string;
     void setupOptions(widget::Box& optionBox);
     void drawOptions(widget::Box& optionBox);
     void generateDefinitions();

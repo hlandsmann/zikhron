@@ -8,6 +8,7 @@
 #include <database/SpacedRepetitionData.h>
 #include <database/Word.h>
 #include <database/Word_jpn.h>
+#include <dictionary/DictionaryJpn.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
 #include <spaced_repetition/DataBase.h>
@@ -61,32 +62,41 @@ VocableOverlay_jpn::VocableOverlay_jpn(std::shared_ptr<widget::Overlay> _overlay
 auto VocableOverlay_jpn::optionsFromWord(const database::Word_jpn& word) -> std::vector<Option>
 {
     std::vector<Option> options;
-    for (const auto& entry : word.getDictionaryEntries()) {
-        auto optionIt = ranges::find(options, entry.pronounciation, &Option::pronounciation);
-        if (optionIt == options.end()) {
-            options.push_back({.pronounciation = entry.pronounciation,
-                               .meanings = entry.meanings,
-                               .checked = std::vector<Checkbox>(entry.meanings.size())});
-            ranges::sort(options.back().meanings);
-            continue;
-        }
-        optionIt->meanings.insert(optionIt->meanings.end(), entry.meanings.begin(), entry.meanings.end());
-        optionIt->checked.resize(optionIt->meanings.size());
-    }
+    ranges::transform(word.getDictionaryEntries(), std::back_inserter(options),
+                      [](const dictionary::EntryJpn& entry) -> Option {
+                          return {.openPronounciation = OpenBtn::Hide,
+                                  .pronounciation = entry.pronounciation,
+                                  .checkedPronounciation = std::vector<Checkbox>(entry.pronounciation.size()),
+                                  .openMeaning = OpenBtn::Hide,
+                                  .meanings = entry.meanings,
+                                  .checkedMeaning = std::vector<Checkbox>(entry.meanings.size())};
+                      });
 
     const auto& definitions = word.getDefinitions();
     for (const auto& definition : definitions) {
-        auto optionIt = ranges::find(options, definition.pronounciation, &Option::pronounciation);
+        auto optionIt = ranges::find_if(options, [&definition](const Option& option) -> bool {
+            return ranges::includes(option.pronounciation, definition.pronounciation)
+                   && ranges::includes(option.meanings, definition.meanings);
+        });
         if (optionIt == options.end()) {
             continue;
         }
-        optionIt->open = Openbtn::Show;
+        optionIt->openPronounciation = OpenBtn::Hide;
+        for (const auto& pronounciation : definition.pronounciation) {
+            auto pronounciationIt = ranges::find(optionIt->pronounciation, pronounciation);
+            if (pronounciationIt == optionIt->pronounciation.end()) {
+                continue;
+            }
+            auto checkedIt = std::next(optionIt->checkedPronounciation.begin(), std::distance(optionIt->pronounciation.begin(), pronounciationIt));
+            *checkedIt = Checkbox::Checked;
+        }
+        optionIt->openMeaning = OpenBtn::Show;
         for (const auto& meaning : definition.meanings) {
             auto meaningIt = ranges::find(optionIt->meanings, meaning);
             if (meaningIt == optionIt->meanings.end()) {
                 continue;
             }
-            auto checkedIt = std::next(optionIt->checked.begin(), std::distance(optionIt->meanings.begin(), meaningIt));
+            auto checkedIt = std::next(optionIt->checkedMeaning.begin(), std::distance(optionIt->meanings.begin(), meaningIt));
             *checkedIt = Checkbox::Checked;
         }
     }
@@ -170,8 +180,9 @@ void VocableOverlay_jpn::setupDefinition(widget::Grid& definitionGrid)
 {
     definitionGrid.clear();
     for (const auto& definition : definitions) {
+        auto pronounciation = fmt::format("{}", fmt::join(definition.pronounciation, ", "));
         definitionGrid.add<widget::TextTokenSeq>(Align::start,
-                                                 annotation::tokenVectorFromString(definition.pronounciation),
+                                                 annotation::tokenVectorFromString(pronounciation),
                                                  ttqConfig);
         bool first = true;
         for (const auto& meaning : definition.meanings) {
@@ -204,30 +215,57 @@ void VocableOverlay_jpn::drawDefinition(widget::Grid& definitionGrid)
     }
 }
 
+auto VocableOverlay_jpn::pronounciationStrFromOption(const Option& option) -> std::string
+{
+    std::vector<std::string> pronounciations;
+    for (const auto& [pronounciation, checked] : views::zip(option.pronounciation, option.checkedPronounciation)) {
+        if (checked == Checkbox::Checked) {
+            pronounciations.push_back(pronounciation);
+        }
+    }
+    if (pronounciations.empty() && (option.pronounciation.size() == 1 || option.openPronounciation == OpenBtn::Hide)) {
+        pronounciations.push_back(option.pronounciation.front());
+    }
+    return fmt::format("{}", fmt::join(pronounciations, ", "));
+}
+
 void VocableOverlay_jpn::setupOptions(widget::Box& optionBox)
 {
     using context::Image;
     optionBox.clear();
     for (const auto& option : options) {
         // spdlog::info("p: {}, o: {}", option.pronounciation, option.open);
-        auto& prBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
-        prBox.add<widget::ImageButton>(Align::start, widget::Images{Image::arrow_right,
-                                                                    Image::arrow_down});
-        prBox.add<widget::TextTokenSeq>(Align::start,
-                                        annotation::tokenVectorFromString(option.pronounciation),
-                                        ttqConfig);
-        if (option.open == Openbtn::Hide) {
-            continue;
+        auto& subHeaderBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
+        subHeaderBox.add<widget::ImageButton>(Align::start, widget::Images{Image::arrow_right,
+                                                                           Image::arrow_down});
+        subHeaderBox.add<widget::TextTokenSeq>(Align::start,
+                                               annotation::tokenVectorFromString(pronounciationStrFromOption(option)),
+                                               ttqConfig);
+        if (option.pronounciation.size() > 1) {
+            subHeaderBox.add<widget::ImageButton>(Align::end, widget::Images{Image::arrow_right,
+                                                                             Image::arrow_down});
         }
+        if (option.openPronounciation == OpenBtn::Show) {
+            for (const auto& [pronounciation, checked] : views::zip(option.pronounciation, option.checkedPronounciation)) {
+                auto& pronBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
 
-        for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
-            auto& meaningBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
+                pronBox.add<widget::ImageButton>(Align::start, widget::Images{Image::checkbox,
+                                                                              Image::checkbox_checked});
+                pronBox.add<widget::TextTokenSeq>(Align::start,
+                                                  annotation::tokenVectorFromString(pronounciation),
+                                                  ttqConfig);
+            }
+        }
+        if (option.openMeaning == OpenBtn::Show) {
+            for (const auto& [meaning, checked] : views::zip(option.meanings, option.checkedMeaning)) {
+                auto& meaningBox = *optionBox.add<widget::Box>(Align::start, boxCfg, widget::Orientation::horizontal);
 
-            meaningBox.add<widget::ImageButton>(Align::start, widget::Images{Image::checkbox,
-                                                                             Image::checkbox_checked});
-            meaningBox.add<widget::TextTokenSeq>(Align::start,
-                                                 annotation::tokenVectorFromString(meaning),
-                                                 ttqConfig);
+                meaningBox.add<widget::ImageButton>(Align::start, widget::Images{Image::checkbox,
+                                                                                 Image::checkbox_checked});
+                meaningBox.add<widget::TextTokenSeq>(Align::start,
+                                                     annotation::tokenVectorFromString(meaning),
+                                                     ttqConfig);
+            }
         }
     }
     setupPendingOptions = false;
@@ -238,9 +276,9 @@ void VocableOverlay_jpn::drawOptions(widget::Box& optionBox)
     optionBox.start();
     for (auto& option : options) {
         // spdlog::info("p: {}, o: {}", option.pronounciation, option.open);
-        auto& prBox = optionBox.next<widget::Box>();
-        if (option.open == Openbtn::Show) {
-            for (auto& checked : option.checked) {
+        auto& subHeaderBox = optionBox.next<widget::Box>();
+        if (option.openPronounciation == OpenBtn::Show) {
+            for (auto& checked : option.checkedPronounciation) {
                 auto& meaningBox = optionBox.next<widget::Box>();
                 meaningBox.start();
                 // auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().isOpen());
@@ -253,12 +291,31 @@ void VocableOverlay_jpn::drawOptions(widget::Box& optionBox)
                 }
             }
         }
-        prBox.start();
-        auto oldState = option.open;
-        option.open = prBox.next<widget::ImageButton>().toggled(option.open);
-        prBox.next<widget::TextTokenSeq>().draw();
+        if (option.openMeaning == OpenBtn::Show) {
+            for (auto& checked : option.checkedMeaning) {
+                auto& meaningBox = optionBox.next<widget::Box>();
+                meaningBox.start();
+                // auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().isOpen());
+                auto oldState = checked;
+                checked = meaningBox.next<widget::ImageButton>().toggled(checked);
+                meaningBox.next<widget::TextTokenSeq>().draw();
+                if (oldState != checked) {
+                    setupPendingDefinition = true;
+                    generateDefinitions();
+                }
+            }
+        }
+        subHeaderBox.start();
+        auto oldStateOpenMeaning = option.openMeaning;
+        auto oldStateOpenPronounciation = option.openPronounciation;
 
-        if (oldState != option.open) {
+        option.openMeaning = subHeaderBox.next<widget::ImageButton>().toggled(option.openMeaning);
+        subHeaderBox.next<widget::TextTokenSeq>().draw();
+        if (option.pronounciation.size() > 1) {
+            option.openPronounciation = subHeaderBox.next<widget::ImageButton>().toggled(option.openPronounciation);
+        }
+
+        if (oldStateOpenMeaning != option.openMeaning || oldStateOpenPronounciation != option.openPronounciation) {
             setupPendingOptions = true;
         }
     }
@@ -268,12 +325,19 @@ void VocableOverlay_jpn::generateDefinitions()
 {
     definitions.clear();
     for (const auto& option : options) {
-        if (ranges::none_of(option.checked, [](Checkbox checked) -> bool { return checked == Checkbox::Checked; })) {
+        if (ranges::none_of(option.checkedMeaning, [](Checkbox checked) -> bool { return checked == Checkbox::Checked; })) {
             continue;
         }
         auto definition = database::Definition_jpn();
-        definition.pronounciation = option.pronounciation;
-        for (const auto& [meaning, checked] : views::zip(option.meanings, option.checked)) {
+        for (const auto& [pronounciation, checked] : views::zip(option.pronounciation, option.checkedPronounciation)) {
+            if (checked == Checkbox::Checked) {
+                definition.pronounciation.push_back(pronounciation);
+            }
+        }
+        if (definition.pronounciation.empty()) {
+            definition.pronounciation.push_back(option.pronounciation.front());
+        }
+        for (const auto& [meaning, checked] : views::zip(option.meanings, option.checkedMeaning)) {
             if (checked == Checkbox::Checked) {
                 definition.meanings.push_back(meaning);
             }

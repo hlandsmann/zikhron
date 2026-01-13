@@ -2,7 +2,7 @@
 #include "Word.h"
 
 #include <dictionary/Dictionary.h>
-#include <dictionary/DictionaryChi.h>
+#include <dictionary/DictionaryJpn.h>
 #include <misc/Identifier.h>
 
 #include <memory>
@@ -25,15 +25,15 @@ public:
     auto operator=(Word_jpn&&) -> Word_jpn& = default;
 
     Word_jpn(std::string_view description, VocableId vocableId, const std::shared_ptr<dictionary::Dictionary>& dictionary);
-    Word_jpn(std::vector<dictionary::Entry>&& dictionaryEntries, VocableId vocableId);
+    Word_jpn(std::vector<dictionary::EntryJpn>&& dictionaryEntries, VocableId vocableId);
     [[nodiscard]] auto serialize() const -> std::string override;
     [[nodiscard]] auto getId() const -> VocableId override;
-    [[nodiscard]] auto Key() const -> std::string override;
+    [[nodiscard]] auto Key() const -> std::string;
     [[nodiscard]] auto getSpacedRepetitionData() const -> std::shared_ptr<SpacedRepetitionData> override;
     [[nodiscard]] auto getDefinitions() const -> const std::vector<Definition_jpn>&;
     void setDefinitions(const std::vector<Definition_jpn>& definitions);
     [[nodiscard]] auto isConfigureable() const -> bool;
-    [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<dictionary::Entry>&;
+    [[nodiscard]] auto getDictionaryEntries() const -> const std::vector<dictionary::EntryJpn>&;
     [[nodiscard]] auto isModified() const -> bool;
 
 private:
@@ -43,7 +43,7 @@ private:
 
     std::string key;
     std::vector<Definition_jpn> definitions;
-    std::vector<dictionary::Entry> dictionaryEntries;
+    std::vector<dictionary::EntryJpn> dictionaryEntries;
 };
 
 struct Definition_jpn
@@ -53,7 +53,7 @@ struct Definition_jpn
     auto operator==(const Definition_jpn&) const -> bool = default;
     [[nodiscard]] auto serialize() const -> std::string;
 
-    std::string pronounciation;
+    std::vector<std::string> pronounciation;
     std::vector<std::string> meanings;
 };
 

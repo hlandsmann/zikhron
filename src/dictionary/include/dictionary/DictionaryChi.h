@@ -1,10 +1,10 @@
 #pragma once
 #include "Dictionary.h"
-#include "Entry.h"
 
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 
+#include <compare>
 #include <cstddef>
 #include <memory>
 #include <span>
@@ -13,6 +13,26 @@
 #include <vector>
 
 namespace dictionary {
+struct EntryChi
+{
+    std::string key;
+    std::string pronounciation;
+    std::vector<std::string> meanings;
+
+    auto operator<=>(const EntryChi& other) const -> std::weak_ordering
+    {
+        if (const auto cmp = key <=> other.key; cmp != nullptr) {
+            return cmp;
+        }
+        if (const auto cmp = pronounciation <=> other.pronounciation; cmp != nullptr) {
+            return cmp;
+        }
+        return meanings <=> other.meanings;
+    }
+
+    auto operator==(const EntryChi&) const -> bool = default;
+};
+
 class DictionaryChi : public Dictionary
 {
     static constexpr std::string_view s_fn_dictionary = "cedict_1_0_ts_utf-8_mdbg.u8";
@@ -20,7 +40,7 @@ class DictionaryChi : public Dictionary
 public:
     DictionaryChi(std::shared_ptr<zikhron::Config> config);
 
-    [[nodiscard]] auto entriesFromKey(const std::string& key) const -> std::vector<Entry> override;
+    [[nodiscard]] auto entriesFromKey(const std::string& key) const -> std::vector<EntryChi>;
     [[nodiscard]] auto contains(const std::string& key) const -> bool override;
 
     struct Key
@@ -49,7 +69,7 @@ public:
     [[nodiscard]] auto size() const -> unsigned;
 
 private:
-    [[nodiscard]] auto EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> Entry;
+    [[nodiscard]] auto EntryFromPosition(size_t pos, const std::span<const Key>& keys) const -> EntryChi;
     std::vector<Key> traditional;
     std::vector<Key> simplified;
     std::vector<std::string> pronounciation;

@@ -1,6 +1,5 @@
 #include "DictionaryJpn.h"
 
-#include "Entry.h"
 
 #include <misc/Config.h>
 #include <spdlog/common.h>
@@ -541,17 +540,20 @@ DictionaryJpn::DictionaryJpn(std::shared_ptr<zikhron::Config> config)
                  count, entries.size(), kanjiToIndex.size(), readingToIndex.size());
 }
 
-auto DictionaryJpn::entriesFromKey(const std::string& key) const -> std::vector<Entry>
+auto DictionaryJpn::entriesFromKey(const std::string& key) const -> std::vector<EntryJpn>
 {
-    std::vector<Entry> result;
+    std::vector<EntryJpn> result;
     auto internalEntryByKanji = getEntryByKanji(key);
 
     if (!internalEntryByKanji.definition.empty()) {
         for (const auto& definition : internalEntryByKanji.definition) {
             std::vector<std::string> glossary;
             ranges::copy(definition.glossary, std::back_inserter(glossary));
+            if(definition.reading.size() >= 2){
+              spdlog::critical("join {}", fmt::join(definition.reading, ", "));
+            }
             result.push_back({.key = key,
-                              .pronounciation = *definition.reading.begin(),
+                              .pronounciation = ranges::to<std::vector<std::string>>(definition.reading),
                               .meanings = glossary});
         }
 
@@ -561,7 +563,7 @@ auto DictionaryJpn::entriesFromKey(const std::string& key) const -> std::vector<
             std::vector<std::string> glossary;
             ranges::copy(definition.glossary, std::back_inserter(glossary));
             result.push_back({.key = key,
-                              .pronounciation = *definition.reading.begin(),
+                              .pronounciation = ranges::to<std::vector<std::string>>(definition.reading),
                               .meanings = glossary});
         }
     }
