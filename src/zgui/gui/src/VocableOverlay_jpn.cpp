@@ -281,9 +281,7 @@ void VocableOverlay_jpn::drawOptions(widget::Box& optionBox)
             for (auto& checked : option.checkedPronounciation) {
                 auto& meaningBox = optionBox.next<widget::Box>();
                 meaningBox.start();
-                // auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().isOpen());
-                auto oldState = checked;
-                checked = meaningBox.next<widget::ImageButton>().toggled(checked);
+                auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().toggled(checked));
                 meaningBox.next<widget::TextTokenSeq>().draw();
                 if (oldState != checked) {
                     setupPendingDefinition = true;
@@ -295,9 +293,7 @@ void VocableOverlay_jpn::drawOptions(widget::Box& optionBox)
             for (auto& checked : option.checkedMeaning) {
                 auto& meaningBox = optionBox.next<widget::Box>();
                 meaningBox.start();
-                // auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().isOpen());
-                auto oldState = checked;
-                checked = meaningBox.next<widget::ImageButton>().toggled(checked);
+                auto oldState = std::exchange(checked, meaningBox.next<widget::ImageButton>().toggled(checked));
                 meaningBox.next<widget::TextTokenSeq>().draw();
                 if (oldState != checked) {
                     setupPendingDefinition = true;
