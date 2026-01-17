@@ -71,18 +71,18 @@ void WordDB_jpn::load()
     }
 }
 
-auto WordDB_jpn::lookup(const std::string& key) -> std::shared_ptr<Word>
+auto WordDB_jpn::lookup(const dictionary::Key_jpn& key) -> std::shared_ptr<Word>
 {
-    if (key_word.contains(key)) {
-        return key_word.at(key);
+    if (key_word.contains(key.key)) {
+        return key_word.at(key.key);
     }
-    auto entryVectorFromKey = dictionaryJpn->entriesFromKey(key);
+    auto entryVectorFromKey = dictionaryJpn->entriesFromKey(key.key);
     if (entryVectorFromKey.empty()) {
         return nullptr;
     }
     auto word = std::make_shared<Word_jpn>(std::move(entryVectorFromKey), static_cast<VocableId>(words.size()));
     words.push_back(word);
-    key_word.insert({key, word});
+    key_word.insert({key.key, word});
     return word;
 }
 

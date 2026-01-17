@@ -27,7 +27,6 @@ target_sources(zikhron_database
         include/database/WordDB.h
         include/database/WordDB_chi.h
         include/database/WordDB_jpn.h
-        include/database/WordKey_jpn.h
         include/database/Word_chi.h
         include/database/Word_jpn.h
         src/Card.cpp
@@ -47,7 +46,6 @@ target_sources(zikhron_database
         src/WordDB.cpp
         src/WordDB_chi.cpp
         src/WordDB_jpn.cpp
-        src/WordKey_jpn.cpp
         src/Word_chi.cpp
         src/Word_jpn.cpp
 )

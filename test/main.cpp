@@ -568,11 +568,11 @@ auto main() -> int
     auto list = {"別"};
     for (const std::string item : list) {
         auto entry = dictionaryJpn->getEntryByKanji(item);
-        if (!entry.definition.empty()) {
-            fmt::print("{} -\n", fmt::join(entry.kanji, ", "));
-            for (const auto& def : entry.definition) {
-                fmt::print("    {}\n", fmt::join(def.reading, ", "));
-                fmt::print("    i: {}\n", fmt::join(def.info, "\n    i: "));
+        if (!entry.definitions.empty()) {
+            fmt::print("{} -\n", fmt::join(entry.kanjis, ", "));
+            for (const auto& def : entry.definitions) {
+                fmt::print("    {}\n", fmt::join(def.readings, ", "));
+                fmt::print("    i: {}\n", fmt::join(def.infos, "\n    i: "));
                 fmt::print("    g: {}\n", fmt::join(def.glossary, "\n    g: "));
                 for (const auto& pos : def.pos) {
                     fmt::print("    pos: {}\n", pos);
@@ -582,9 +582,9 @@ auto main() -> int
         } else {
             entry = dictionaryJpn->getEntryByReading(item);
             fmt::print("{} -(r)\n", item);
-            for (const auto& def : entry.definition) {
-                fmt::print("    {}\n", fmt::join(def.reading, ", "));
-                fmt::print("    i: {}\n", fmt::join(def.info, "\n    i: "));
+            for (const auto& def : entry.definitions) {
+                fmt::print("    {}\n", fmt::join(def.readings, ", "));
+                fmt::print("    i: {}\n", fmt::join(def.infos, "\n    i: "));
                 fmt::print("    g: {}\n", fmt::join(def.glossary, "\n    g: "));
                 // fmt::print("    pos: {}\n", fmt::join(def.pos, "\n    pos: "));
             }

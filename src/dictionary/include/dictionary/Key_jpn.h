@@ -1,13 +1,13 @@
 #pragma once
 #include <string>
 
-namespace database {
+namespace dictionary {
 
-struct WordKey_jpn
+struct Key_jpn
 {
     std::string key;
     std::string hint;
     std::string normalized;
 };
 
-} // namespace database
+} // namespace dictionary

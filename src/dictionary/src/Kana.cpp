@@ -35,6 +35,9 @@ auto Kana::isHirigana(const std::string& token) -> bool
             "ぱ", "ぴ", "ぷ", "ぺ", "ぽ",
             "ょ", "ゅ"};
 
+    if (token.empty()) {
+        return false;
+    }
     const auto& strU8 = utl::StringU8(token);
     return std::ranges::all_of(strU8.getChars(),
                                [](const utl::CharU8& charU8) -> bool {
@@ -62,6 +65,9 @@ auto Kana::isKatakana(const std::string& token) -> bool
             "バ", "ビ", "ブ", "ベ", "ボ",
             "パ", "ピ", "プ", "ペ", "ポ",
             "ョ", "ュ"};
+    if (token.empty()) {
+        return false;
+    }
     const auto& strU8 = utl::StringU8(token);
     return std::ranges::all_of(strU8.getChars(),
                                [](const utl::CharU8& charU8) -> bool {

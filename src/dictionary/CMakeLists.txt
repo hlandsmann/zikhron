@@ -8,13 +8,15 @@ target_include_directories(zikhron_dictionary
 )
 target_sources(zikhron_dictionary
     PRIVATE
-        include/dictionary/Kana.h
         include/dictionary/Dictionary.h
         include/dictionary/DictionaryChi.h
         include/dictionary/DictionaryJpn.h
-        src/Kana.cpp
+        include/dictionary/Kana.h
+        include/dictionary/Key_jpn.h
         src/DictionaryChi.cpp
         src/DictionaryJpn.cpp
+        src/Kana.cpp
+        src/Key_jpn.cpp
 )
 set_property(TARGET zikhron_dictionary PROPERTY CXX_STANDARD 23)
 target_link_libraries(zikhron_dictionary

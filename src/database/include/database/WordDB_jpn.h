@@ -2,6 +2,7 @@
 #include "WordDB.h"
 #include "Word.h"
 #include "Word_jpn.h"
+#include <dictionary/Key_jpn.h>
 
 #include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryJpn.h>
@@ -30,7 +31,7 @@ public:
 
     void save() override;
 
-    auto lookup(const std::string& key) -> std::shared_ptr<Word>;
+    auto lookup(const dictionary::Key_jpn& key) -> std::shared_ptr<Word>;
     auto lookupId(VocableId vocableId) -> std::shared_ptr<Word_jpn>;
 
     [[nodiscard]] auto wordIsKnown(const std::string& key) -> bool;

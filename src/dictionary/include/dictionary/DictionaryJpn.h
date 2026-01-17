@@ -1,5 +1,6 @@
 #pragma once
 #include "Dictionary.h"
+#include "Key_jpn.h"
 
 #include <misc/Config.h>
 #include <spdlog/common.h>
@@ -59,22 +60,28 @@ public:
 
     struct Definition
     {
-        std::set<std::string> reading;
+        std::set<std::string> readings;
         std::set<std::string> glossary;
-        std::set<std::string> info;
+        std::set<std::string> infos;
         std::set<PartOfSpeech> pos;
         auto operator==(const Definition&) const -> bool = default;
     };
 
     struct InternalEntry
     {
-        std::vector<std::string> kanji;
-        std::vector<Definition> definition;
+        std::vector<std::string> kanjis;
+        std::vector<Definition> definitions;
+
+        operator bool() const { return (!definitions.empty()); }
     };
 
+    [[nodiscard]] auto getEntryByKey(const Key_jpn& key) const -> InternalEntry;
     [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> InternalEntry;
     [[nodiscard]] auto getEntryByReading(const std::string& key) const -> InternalEntry;
-
+    [[nodiscard]] auto getEntryByReading(const std::string& reading, const std::string& hint) const -> std::vector<InternalEntry>;
+    [[nodiscard]] auto getEntryByKanji(const std::string& kanji,
+                                       const std::string& hint,
+                                       const std::string& reading) const -> InternalEntry;
     void setDebugSink(spdlog::sink_ptr sink) override;
     std::map<std::string, std::vector<std::size_t>> kanjiToIndex;
 

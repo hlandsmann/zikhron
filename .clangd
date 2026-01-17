@@ -13,6 +13,7 @@ Diagnostics:
       - readability*
     Remove:
       - bugprone-easily-swappable-parameters
+      - bugprone-empty-catch
       - concurrency-mt-unsafe
       - cppcoreguidelines-avoid-c-arrays
       - cppcoreguidelines-avoid-magic-numbers

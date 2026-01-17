@@ -1,4 +1,5 @@
 #include "TokenizerJpn.h"
+#include <dictionary/Key_jpn.h>
 
 #include "Mecab.h"
 #include "Sudachi.h"
@@ -98,10 +99,14 @@ auto TokenizerJpn::split_mecab(const std::string& text) const -> std::vector<Tok
     for (const auto& mecabToken : mecabTokens) {
         log->info("{},{},{},{},{}", mecabToken.lemmaType, mecabToken.pos1, mecabToken.pos2, mecabToken.pos3, mecabToken.pos4);
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
-        auto word = wordDB->lookup(mecabToken.lemma);
-        if (!word) {
-            word = wordDB->lookup(mecabToken.surface);
-        }
+        auto key = dictionary::Key_jpn{.key = mecabToken.lemma,
+                            .hint = "",
+                            .normalized = ""};
+        auto word = wordDB->lookup(key);
+        // auto word = wordDB->lookup(mecabToken.lemma);
+        // if (!word) {
+        //     word = wordDB->lookup(mecabToken.surface);
+        // }
         if (word) {
             tokens.emplace_back(mecabToken.surface, word);
         } else {
@@ -135,13 +140,17 @@ auto TokenizerJpn::split_sudachi(const std::string& text) const -> std::vector<T
     for (const auto& mecabToken : sudachiTokens) {
         log->info("{},{},{},{},{}", mecabToken.surface, mecabToken.normalized_form, mecabToken.dictionary_form, mecabToken.pos1, mecabToken.pos2);
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
-        auto word = wordDB->lookup(mecabToken.dictionary_form);
-        if (!word) {
-            word = wordDB->lookup(mecabToken.surface);
-        }
-        if (!word) {
-            word = wordDB->lookup(mecabToken.normalized_form);
-        }
+        auto key = dictionary::Key_jpn{.key = mecabToken.dictionary_form,
+                            .hint = "",
+                            .normalized = ""};
+        auto word = wordDB->lookup(key);
+        // auto word = wordDB->lookup(mecabToken.dictionary_form);
+        // if (!word) {
+        //     word = wordDB->lookup(mecabToken.surface);
+        // }
+        // if (!word) {
+        //     word = wordDB->lookup(mecabToken.normalized_form);
+        // }
         if (word) {
             tokens.emplace_back(mecabToken.surface_merged, word);
         } else {
