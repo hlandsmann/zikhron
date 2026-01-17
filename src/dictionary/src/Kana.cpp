@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <iterator>
 #include <map>
 #include <string>
 
@@ -75,7 +76,7 @@ auto Kana::isKatakana(const std::string& token) -> bool
                                });
 }
 
-auto katakanaToHirigana(const std::string& katakana) -> std::string
+auto Kana::katakanaToHirigana(const std::string& katakana) -> std::string
 { // clang-format off
     static std::map<std::string, std::string> kToH = {
       {"ア","あ"},    {"イ","い"},      {"ウ","う"},      {"エ","え"},  {"オ","お"},
@@ -94,22 +95,24 @@ auto katakanaToHirigana(const std::string& katakana) -> std::string
       {"ダ","だ"},    {"ヂ","ぢ"},      {"ヅ","づ"},      {"デ","で"},  {"ド","ど"},
       {"バ","ば"},    {"ビ","び"},      {"ブ","ぶ"},      {"ベ","べ"},  {"ボ","ぼ"},
       {"パ","ぱ"},    {"ピ","ぴ"},      {"プ","ぷ"},      {"ペ","ぺ"},  {"ポ","ぽ"},
-      {"キョ","きょ"},                  {"キュ","きゅ"},                {"キョ","きょ"},
-      {"ショ","しょ"},                  {"シュ","しゅ"},                {"ショ","しょ"},
-      {"チョ","ちょ"},                  {"チュ","ちゅ"},                {"チョ","ちょ"},
-      {"ニョ","にょ"},                  {"ニュ","にゅ"},                {"ニョ","にょ"},
-      {"ヒョ","ひょ"},                  {"ヒュ","ひゅ"},                {"ヒョ","ひょ"},
-      {"ミョ","みょ"},                  {"ミュ","みゅ"},                {"ミョ","みょ"},
-      {"リョ","りょ"},                  {"リュ","りゅ"},                {"リョ","りょ"},
-      {"ギョ","ぎょ"},                  {"ギュ","ぎゅ"},                {"ギョ","ぎょ"},
-      {"ジョ","じょ"},                  {"ジュ","じゅ"},                {"ジョ","じょ"},
-      {"ビョ","びょ"},                  {"ビュ","びゅ"},                {"ビョ","びょ"},
-      {"ピョ","ぴょ"},                  {"ピュ","ぴゅ"},                {"ピョ","ぴょ"},
+      {"ョ","ょ"},    {"ュ","ゅ"},
     }; // clang-format on
-    return kToH.at(katakana);
+    const auto& katakanaU8 = utl::StringU8(katakana);
+    auto hiriganaU8 = utl::StringU8{};
+    std::ranges::transform(katakanaU8.getChars(),
+                           std::back_inserter(hiriganaU8),
+
+                           [](const utl::CharU8& charU8) -> utl::CharU8 {
+                               try {
+                                   return kToH.at(charU8);
+                               } catch (...) {
+                                   return charU8;
+                               }
+                           });
+    return hiriganaU8;
 }
 
-auto hiriganaToKatakana(const std::string& hirigana) -> std::string
+auto Kana::hiriganaToKatakana(const std::string& hirigana) -> std::string
 { // clang-format off
     static std::map<std::string, std::string> hToK = {
       {"あ","ア"},    {"い","イ"},      {"う","ウ"},      {"え","エ"},  {"お","オ"},
@@ -128,19 +131,21 @@ auto hiriganaToKatakana(const std::string& hirigana) -> std::string
       {"だ","ダ"},    {"ぢ","ヂ"},       {"づ","ヅ"},      {"で","デ"}, {"ど","ド"},
       {"ば","バ"},    {"び","ビ"},       {"ぶ","ブ"},      {"べ","ベ"}, {"ぼ","ボ"},
       {"ぱ","パ"},    {"ぴ","ピ"},       {"ぷ","プ"},      {"ぺ","ペ"}, {"ぽ","ポ"},
-      {"きゃ","キャ"},                   {"きゅ","キュ"},               {"きょ","キョ"},
-      {"しゃ","シャ"},                   {"しゅ","シュ"},               {"しょ","ショ"},
-      {"ちゃ","チャ"},                   {"ちゅ","チュ"},               {"ちょ","チョ"},
-      {"にゃ","ニャ"},                   {"にゅ","ニュ"},               {"にょ","ニョ"},
-      {"ひゃ","ヒャ"},                   {"ひゅ","ヒュ"},               {"ひょ","ヒョ"},
-      {"みゃ","ミャ"},                   {"みゅ","ミュ"},               {"みょ","ミョ"},
-      {"りゃ","リャ"},                   {"りゅ","リュ"},               {"りょ","リョ"},
-      {"ぎゃ","ギャ"},                   {"ぎゅ","ギュ"},               {"ぎょ","ギョ"},
-      {"じゃ","ジャ"},                   {"じゅ","ジュ"},               {"じょ","ジョ"},
-      {"びゃ","ビャ"},                   {"びゅ","ビュ"},               {"びょ","ビョ"},
-      {"ぴゃ","ピャ"},                   {"ぴゅ","ピュ"},               {"ぴょ","ピョ"},
+      {"ゃ","ャ"},    {"ゅ","ュ"},
     }; // clang-format on
-    return hToK.at(hirigana);
+    const auto& hiriganaU8 = utl::StringU8(hirigana);
+    auto katakanaU8 = utl::StringU8{};
+    std::ranges::transform(hiriganaU8.getChars(),
+                           std::back_inserter(katakanaU8),
+
+                           [](const utl::CharU8& charU8) -> utl::CharU8 {
+                               try {
+                                   return hToK.at(charU8);
+                               } catch (...) {
+                                   return charU8;
+                               }
+                           });
+    return katakanaU8;
 }
 
 auto katakanaToRomanji(const std::string& katakana) -> std::string

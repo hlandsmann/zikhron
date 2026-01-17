@@ -1,9 +1,11 @@
 #include "TokenizerJpn.h"
-#include <dictionary/Key_jpn.h>
 
 #include "Mecab.h"
 #include "Sudachi.h"
 #include "Token.h"
+
+#include <dictionary/Kana.h>
+#include <dictionary/Key_jpn.h>
 // #include "detail/JumanppWrapper.h"
 
 #include <database/Word.h>
@@ -100,8 +102,8 @@ auto TokenizerJpn::split_mecab(const std::string& text) const -> std::vector<Tok
         log->info("{},{},{},{},{}", mecabToken.lemmaType, mecabToken.pos1, mecabToken.pos2, mecabToken.pos3, mecabToken.pos4);
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
         auto key = dictionary::Key_jpn{.key = mecabToken.lemma,
-                            .hint = "",
-                            .normalized = ""};
+                                       .hint = "",
+                                       .reading = ""};
         auto word = wordDB->lookup(key);
         // auto word = wordDB->lookup(mecabToken.lemma);
         // if (!word) {
@@ -137,13 +139,17 @@ auto TokenizerJpn::split_sudachi(const std::string& text) const -> std::vector<T
     std::vector<Token> tokens;
     // spdlog::info("{}", text);
 
-    for (const auto& mecabToken : sudachiTokens) {
-        log->info("{},{},{},{},{}", mecabToken.surface, mecabToken.normalized_form, mecabToken.dictionary_form, mecabToken.pos1, mecabToken.pos2);
+    for (const auto& sudachiToken : sudachiTokens) {
+        log->info("surface: {}, normalized: {}, dictionary: {}, reading: {} | {} ,{},{}",
+                  sudachiToken.surface, sudachiToken.normalized_form, sudachiToken.dictionary_form,
+                  sudachiToken.reading, dictionary::Kana::katakanaToHirigana(sudachiToken.reading),
+                  sudachiToken.pos1, sudachiToken.pos2);
         // spdlog::info("{}, - {}, --- {}", jumanppToken.surface, jumanppToken.baseform, jumanppToken.canonicForm, jumanppToken.reading);
-        auto key = dictionary::Key_jpn{.key = mecabToken.dictionary_form,
-                            .hint = "",
-                            .normalized = ""};
+        auto key = dictionary::Key_jpn{.key = sudachiToken.dictionary_form,
+                                       .hint = sudachiToken.normalized_form,
+                                       .reading = dictionary::Kana::katakanaToHirigana(sudachiToken.reading)};
         auto word = wordDB->lookup(key);
+        auto wordJpn = std::dynamic_pointer_cast<database::Word_jpn>(word);
         // auto word = wordDB->lookup(mecabToken.dictionary_form);
         // if (!word) {
         //     word = wordDB->lookup(mecabToken.surface);
@@ -152,9 +158,10 @@ auto TokenizerJpn::split_sudachi(const std::string& text) const -> std::vector<T
         //     word = wordDB->lookup(mecabToken.normalized_form);
         // }
         if (word) {
-            tokens.emplace_back(mecabToken.surface_merged, word);
+            tokens.emplace_back(sudachiToken.surface_merged, word);
+            log->info("W: {}, def: {}", wordJpn->Key(), wordJpn->getDefinitions().front().pronounciation.front());
         } else {
-            tokens.emplace_back(mecabToken.surface_merged);
+            tokens.emplace_back(sudachiToken.surface_merged);
         }
     }
     return tokens;

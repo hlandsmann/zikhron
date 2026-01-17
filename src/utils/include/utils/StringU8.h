@@ -57,6 +57,7 @@ class StringU8
     std::vector<CharU8> chars;
 
 public:
+    using value_type = CharU8;
     StringU8() = default;
     ~StringU8() = default;
     StringU8(const std::string&);

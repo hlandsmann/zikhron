@@ -574,16 +574,123 @@ auto DictionaryJpn::contains(const std::string& key) const -> bool
     return kanjiToIndex.contains(key) || readingToIndex.contains(key);
 }
 
-auto DictionaryJpn::getEntryByKey(const Key_jpn& key) const -> InternalEntry
+auto DictionaryJpn::getEntryByKey(const Key_jpn& key) const -> DicEntry_jpn
 {
+    if (key.key.empty()) {
+        return {};
+    }
     if (Kana::isKana(key.key)) {
-        const auto& workEntries = getEntryByReading(key.key, key.hint);
-        if (workEntries.empty()) {
-            return {};
+        return getEntryByReading(key.key, key.hint);
+    }
+    return {getEntryByKanji(key.key, key.hint, key.reading)};
+}
+
+auto DictionaryJpn::getEntryByReading(const std::string& reading, const std::string& hint) const -> DicEntry_jpn
+{
+    if (!readingToIndex.contains(reading)) {
+        return {};
+    }
+    DicEntry_jpn entry;
+
+    const std::vector<ReadingPosition>& positions = readingToIndex.at(reading);
+
+    bool hintIsValidKana = false;
+    if (Kana::isKana(hint)) {
+        hintIsValidKana = ranges::any_of(positions,
+                                         [this](const ReadingPosition& position) -> bool {
+                                             const auto& [indexEntry, indexDefinition] = position;
+                                             return entries.at(indexEntry).kanjis.empty();
+                                         });
+    }
+    bool hintIsValidKanji = false;
+    if (!hint.empty() && !Kana::isKana(hint)) {
+        hintIsValidKanji = ranges::any_of(positions,
+                                          [this, &hint](const ReadingPosition& position) -> bool {
+                                              const auto& [indexEntry, indexDefinition] = position;
+                                              return ranges::contains(entries.at(indexEntry).kanjis, hint);
+                                          });
+    }
+    if (hintIsValidKanji) {
+        entry.key.kanji = hint;
+    }
+    entry.key.reading = reading;
+
+    InternalEntry dicEntry;
+    for (const auto& [indexEntry, indexDefinition] : positions) {
+        const auto& currentEntry = entries.at(indexEntry);
+        if (hintIsValidKanji && !ranges::contains(currentEntry.kanjis, hint)) {
+            continue;
         }
+        if (hintIsValidKana && !currentEntry.kanjis.empty()) {
+            continue;
+        }
+        const auto& definition = currentEntry.definitions.at(indexDefinition);
+        entry.definitions.push_back(DicDef_jpn{
+                .kanjis = hintIsValidKanji
+                                  ? std::vector<std::string>{hint}
+                                  : std::vector<std::string>(currentEntry.kanjis.begin(), currentEntry.kanjis.end()),
+                .readings = {reading},
+                .meanings = std::vector<std::string>(definition.glossary.begin(), definition.glossary.end()),
+        });
     }
 
-    return {};
+    return entry;
+}
+
+auto DictionaryJpn::getEntryByKanji(const std::string& kanji, const std::string& hint, const std::string& reading) const
+        -> DicEntry_jpn
+{
+    DicEntry_jpn entry;
+    const std::vector<std::size_t>& indices = [this, &kanji, &hint]() -> const std::vector<std::size_t>& {
+        static std::vector<std::size_t> empty = {};
+        try {
+            return kanjiToIndex.at(kanji);
+        } catch (...) {
+        }
+        if (!hint.empty() && !Kana::isKana(hint)) {
+            try {
+                return kanjiToIndex.at(hint);
+            } catch (...) {
+            }
+        }
+        return empty;
+    }();
+    if (indices.empty()) {
+        return {};
+    }
+
+    bool readingIsValid = false;
+    if (!reading.empty() && Kana::isKana(reading)) {
+        readingIsValid = ranges::any_of(indices, [this, &reading](std::size_t index) -> bool {
+            const auto& definitions = entries[index].definitions;
+            return ranges::contains(definitions | views::transform(&Definition::readings) | views::join, reading);
+        });
+    }
+    entry.key.kanji = kanji;
+    if (!hint.empty() && !Kana::isKana(hint)) {
+        entry.key.kanjiNorm = hint;
+    }
+    entry.key.reading = reading;
+    for (const auto index : indices) {
+        const auto& dicEntry = entries[index];
+        ranges::transform(dicEntry.definitions
+                                  | views::filter([readingIsValid, &reading](const Definition& definition) -> bool {
+                                        return !readingIsValid || ranges::contains(definition.readings, reading);
+                                    }),
+                          std::back_inserter(entry.definitions),
+                          [&dicEntry](const Definition& definition) -> DicDef_jpn {
+                              return {
+                                      .kanjis = std::vector<std::string>(dicEntry.kanjis.begin(),
+                                                                         dicEntry.kanjis.end()),
+                                      .readings = std::vector<std::string>(definition.readings.begin(),
+                                                                           definition.readings.end()),
+                                      .meanings = std::vector<std::string>(definition.glossary.begin(),
+                                                                           definition.glossary.end()),
+                              };
+                          });
+    }
+
+    return entry;
 }
 
 auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> InternalEntry
@@ -602,113 +709,6 @@ auto DictionaryJpn::getEntryByKanji(const std::string& key) const -> InternalEnt
         // spdlog::error("Failed to get dictionary entry for kanji: {}", key);
         return {};
     }
-}
-
-auto DictionaryJpn::getEntryByKanji(const std::string& kanji, const std::string& hint, const std::string& reading) const
-        -> InternalEntry
-{
-    InternalEntry entry;
-    const std::vector<std::size_t>& indices = [this, &kanji, &hint]() -> const std::vector<std::size_t>& {
-        static std::vector<std::size_t> empty = {};
-        try {
-            return kanjiToIndex.at(kanji);
-        } catch (...) {
-        }
-        if (!hint.empty() && !Kana::isKana(hint)) {
-            try {
-                return kanjiToIndex.at(hint);
-            } catch (...) {
-            }
-        }
-        return empty;
-    }();
-
-    bool readingIsValid = false;
-    if (!reading.empty() && Kana::isKana(reading)) {
-        readingIsValid = ranges::any_of(indices, [this, &reading](std::size_t index) -> bool {
-            const auto& definitions = entries[index].definitions;
-            return ranges::contains(definitions | views::transform(&Definition::readings) | views::join, reading);
-        });
-    }
-    for (const auto index : indices) {
-        const auto& definitions = entries[index].definitions;
-        ranges::copy_if(definitions, std::back_inserter(entry.definitions),
-                        [readingIsValid, &reading](const Definition& definition) -> bool {
-                            return !readingIsValid || ranges::contains(definition.readings, reading);
-                        });
-    }
-
-    return entry;
-}
-
-();
-
-return {};
-}
-
-auto DictionaryJpn::getEntryByReading(const std::string& reading, const std::string& hint) const -> std::vector<InternalEntry>
-{
-    if (!readingToIndex.contains(reading)) {
-        return {};
-    }
-
-    const std::vector<ReadingPosition>& positions = readingToIndex.at(reading);
-    std::vector<InternalEntry> resultEntries;
-
-    std::size_t indexEntryCount = 0;
-    std::size_t indexEntryLast = std::numeric_limits<std::size_t>::max();
-    bool hintIsValidKana = false;
-    if (Kana::isKana(hint)) {
-        hintIsValidKana = ranges::any_of(positions,
-                                         [this](const ReadingPosition& position) -> bool {
-                                             const auto& [indexEntry, indexDefinition] = position;
-                                             return entries.at(indexEntry).kanjis.empty();
-                                         });
-    }
-    bool hintIsValidKanji = false;
-    if (!hint.empty() && !Kana::isKana(hint)) {
-        hintIsValidKanji = ranges::any_of(positions,
-                                          [this, &hint](const ReadingPosition& position) -> bool {
-                                              const auto& [indexEntry, indexDefinition] = position;
-                                              return ranges::contains(entries.at(indexEntry).kanjis, hint);
-                                          });
-    }
-
-    InternalEntry entry;
-    for (const auto& [indexEntry, indexDefinition] : positions) {
-        const auto& currentEntry = entries.at(indexEntry);
-        if (hintIsValidKanji && !ranges::contains(currentEntry.kanjis, hint)) {
-            continue;
-        }
-        if (hintIsValidKana && !currentEntry.kanjis.empty()) {
-            continue;
-        }
-
-        if (indexEntry != indexEntryLast && entry) {
-            resultEntries.push_back(entry);
-            entry = {};
-        }
-        indexEntryLast = indexEntry;
-        indexEntryCount++;
-
-        entry.definitions.push_back(currentEntry.definitions.at(indexDefinition));
-        if (!entry.kanjis.empty()) {
-            continue;
-        }
-        if (hintIsValidKanji) {
-            entry.kanjis = {hint};
-            continue;
-        }
-        entry.kanjis = currentEntry.kanjis;
-    }
-    if (entry) {
-        resultEntries.push_back(entry);
-    }
-    if (indexEntryCount != 1) {
-        log->info("indexEntryCount: {}", indexEntryCount);
-    }
-
-    return resultEntries;
 }
 
 auto DictionaryJpn::getEntryByReading(const std::string& key) const -> InternalEntry

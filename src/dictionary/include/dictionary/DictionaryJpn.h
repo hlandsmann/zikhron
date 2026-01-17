@@ -51,6 +51,26 @@ struct EntryJpn
     auto operator==(const EntryJpn&) const -> bool = default;
 };
 
+struct DicKey_jpn
+{
+    std::string kanji;
+    std::string kanjiNorm;
+    std::string reading;
+};
+
+struct DicDef_jpn
+{
+    std::vector<std::string> kanjis;
+    std::vector<std::string> readings;
+    std::vector<std::string> meanings;
+};
+
+struct DicEntry_jpn
+{
+    DicKey_jpn key;
+    std::vector<DicDef_jpn> definitions;
+};
+
 class DictionaryJpn : public Dictionary
 {
 public:
@@ -75,15 +95,17 @@ public:
         operator bool() const { return (!definitions.empty()); }
     };
 
-    [[nodiscard]] auto getEntryByKey(const Key_jpn& key) const -> InternalEntry;
-    [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> InternalEntry;
-    [[nodiscard]] auto getEntryByReading(const std::string& key) const -> InternalEntry;
-    [[nodiscard]] auto getEntryByReading(const std::string& reading, const std::string& hint) const -> std::vector<InternalEntry>;
+    [[nodiscard]] auto getEntryByKey(const Key_jpn& key) const -> DicEntry_jpn;
+    [[nodiscard]] auto getEntryByReading(const std::string& reading, const std::string& hint) const -> DicEntry_jpn;
     [[nodiscard]] auto getEntryByKanji(const std::string& kanji,
                                        const std::string& hint,
-                                       const std::string& reading) const -> InternalEntry;
+                                       const std::string& reading) const -> DicEntry_jpn;
+
+    [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> InternalEntry;
+    [[nodiscard]] auto getEntryByReading(const std::string& key) const -> InternalEntry;
+
     void setDebugSink(spdlog::sink_ptr sink) override;
-    std::map<std::string, std::vector<std::size_t>> kanjiToIndex;
+    std::map<std::string, std::vector<std::size_t>> kanjiToIndex; // implement a function to export all Kanjis, then make this private
 
 private:
     std::vector<InternalEntry> entries;
