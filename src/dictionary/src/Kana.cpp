@@ -12,7 +12,65 @@ namespace dictionary {
 
 auto Kana::isKana(const std::string& token) -> bool
 {
-    return isHirigana(token) || isKatakana(token);
+    static const auto kana = std::to_array<std::string>(
+            // clang-format off
+            {"あ", "い", "う", "え", "お",
+             "か", "き", "く", "け", "こ",
+             "さ", "し", "す", "せ", "そ",
+             "た", "ち", "つ", "て", "と",
+             "な", "に", "ぬ", "ね", "の",
+             "は", "ひ", "ふ", "へ", "ほ",
+             "ま", "み", "む", "め", "も",
+             "や", "ゆ", "よ",
+             "ら", "り", "る", "れ", "ろ",
+             "わ", "を",
+             "ん",
+             "が", "ぎ", "ぐ", "げ", "ご",
+             "ざ", "じ", "ず", "ぜ", "ぞ",
+             "だ", "ぢ", "づ", "で", "ど",
+             "ば", "び", "ぶ", "べ", "ぼ",
+             "ぱ", "ぴ", "ぷ", "ぺ", "ぽ",
+             "ょ", "ゅ",
+             // small hirigana
+             "ぁ", "ぃ", "ぅ", "ぇ", "ぉ",
+             "ゃ", "ゅ", "ょ",
+             "っ",
+             "ゎ",
+             "ア", "イ", "ウ", "エ", "オ",
+             "カ", "キ", "ク", "ケ", "コ",
+             "サ", "シ", "ス", "セ", "ソ",
+             "タ", "チ", "ツ", "テ", "ト",
+             "ナ", "ニ", "ヌ", "ネ", "ノ",
+             "ハ", "ヒ", "フ", "ヘ", "ホ",
+             "マ", "ミ", "ム", "メ", "モ",
+             "ヤ", "ユ", "ヨ",
+             "ラ", "リ", "ル", "レ", "ロ",
+             "ワ", "ヲ",
+             "ン",
+             "ガ", "ギ", "グ", "ゲ", "ゴ",
+             "ザ", "ジ", "ズ", "ゼ", "ゾ",
+             "ダ", "ヂ", "ヅ", "デ", "ド",
+             "バ", "ビ", "ブ", "ベ", "ボ",
+             "パ", "ピ", "プ", "ペ", "ポ",
+             "ョ",
+             "ュ",
+             // small katakana
+             "ァ",
+             "ィ", "ゥ", "ェ", "ォ",
+             "ャ", "ュ", "ョ",
+             "ッ",
+             "ヮ",
+             "ー",
+            // clang-format on
+            });
+    if (token.empty()) {
+        return false;
+    }
+    const auto& strU8 = utl::StringU8(token);
+    return std::ranges::all_of(strU8.getChars(),
+                               [](const utl::CharU8& charU8) -> bool {
+                                   return std::ranges::contains(kana, charU8.string());
+                               });
 }
 
 auto Kana::isHirigana(const std::string& token) -> bool
