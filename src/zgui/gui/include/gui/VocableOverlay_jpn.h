@@ -31,13 +31,14 @@ class VocableOverlay_jpn : public VocableOverlay
 
     struct Option
     {
+        std::vector<std::string> kanjis;
         OpenBtn openPronounciation{OpenBtn::Hide};
-        std::vector<std::string> pronounciation;
-        std::vector<Checkbox> checkedPronounciation;
+        std::vector<std::string> readings;
+        std::vector<Checkbox> checkedReadings;
 
         OpenBtn openMeaning{OpenBtn::Hide};
         std::vector<std::string> meanings;
-        std::vector<Checkbox> checkedMeaning;
+        std::vector<Checkbox> checkedMeanings;
     };
 
 public:

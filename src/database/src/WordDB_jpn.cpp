@@ -8,6 +8,7 @@
 #include <dictionary/Dictionary.h>
 #include <dictionary/DictionaryChi.h>
 #include <dictionary/DictionaryJpn.h>
+#include <dictionary/Key_jpn.h>
 #include <misc/Config.h>
 #include <misc/Identifier.h>
 #include <misc/Language.h>
@@ -23,6 +24,7 @@
 #include <magic_enum/magic_enum.hpp>
 #include <map>
 #include <memory>
+#include <ranges>
 #include <set>
 #include <string>
 #include <string_view>
@@ -54,10 +56,10 @@ WordDB_jpn::WordDB_jpn(std::shared_ptr<zikhron::Config> _config,
     // spdlog::info("Character size: {}", characters.size());
 }
 
-void WordDB_jpn::load()
+void WordDB_jpn::loadOld()
 {
     try {
-        auto fileContent = utl::load_string_file(config->DatabaseDirectory() / progressDbFilename);
+        auto fileContent = utl::load_string_file(config->DatabaseDirectory() / progressDbFilenameOld);
         auto numberOfVocables = ranges::count(fileContent, '\n');
         words.reserve(static_cast<size_t>(numberOfVocables));
         parse(fileContent);
@@ -67,22 +69,108 @@ void WordDB_jpn::load()
                               return {word->Key(), word};
                           });
     } catch (...) {
+        spdlog::error("Failed to load WordDB: {}", progressDbFilenameOld);
+    }
+}
+
+void WordDB_jpn::load()
+{
+    try {
+        auto fileContent = utl::load_string_file(config->DatabaseDirectory() / progressDbFilename);
+        auto numberOfVocables = ranges::count(fileContent, '\n');
+        words.reserve(static_cast<size_t>(numberOfVocables));
+        parse(fileContent);
+        spdlog::info("WordDB size: {}", numberOfVocables);
+        ranges::transform(words, std::inserter(dicKey_word, dicKey_word.begin()),
+                          [](const std::shared_ptr<Word_jpn>& word) -> std::pair<DicKey, std::shared_ptr<Word_jpn>> {
+                              return {word->getKey(), word};
+                          });
+    } catch (...) {
         spdlog::error("Failed to load WordDB: {}", progressDbFilename);
     }
 }
 
+auto wordFits(const database::WordPtr_jpn& wordOld, const dictionary::DicEntry_jpn& entryNew) -> bool
+// auto wordFits(const database::WordPtr_jpn& wordOld, const database::WordPtr_jpn& wordNew) -> bool
+{
+    const auto& defsOld = wordOld->getDefinitions();
+    // const auto& defsNew = wordNew->getDefinitions();
+    const auto& defsNew = entryNew.definitions;
+    const auto& dicKey = entryNew.key;
+    // const auto& defNew = defsNew.front();
+    auto pronounciation = defsNew | std::views::transform(&dictionary::DicDef_jpn::readings) | std::views::join;
+    auto meanings = defsNew | std::views::transform(&dictionary::DicDef_jpn::meanings) | std::views::join;
+    for (const auto defOld : defsOld) {
+        for (const auto& pron : defOld.readings) {
+            if (!ranges::contains(pronounciation, pron)) {
+                return false;
+            }
+        }
+        for (const auto& meaning : defOld.meanings) {
+            if (!ranges::contains(meanings, meaning)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+// auto WordDB_jpn::lookup(const dictionary::Key_jpn& key) -> std::shared_ptr<Word>
+// {
+//     auto entryByKey = dictionaryJpn->getEntryByKey(key);
+//     if (!entryByKey) {
+//         return nullptr;
+//     }
+//
+//     auto dicKey = entryByKey.key;
+//     if (dicKey_word.contains(dicKey)) {
+//         return dicKey_word.at(dicKey);
+//     }
+//
+//     auto word = WordPtr();
+//     if (key_word.contains(key.key)) {
+//         word = key_word.at(key.key);
+//     }
+//     if (word && wordFits(word, entryByKey)) {
+//         word->setDicEntry_toDelete(entryByKey);
+//     } else {
+//         word = std::make_shared<Word_jpn>(entryByKey, static_cast<VocableId>(words.size()));
+//         word->setDicEntry_toDelete(entryByKey);
+//         words.push_back(word);
+//     }
+//     dicKey_word.insert({dicKey, word});
+//     return word;
+// }
 auto WordDB_jpn::lookup(const dictionary::Key_jpn& key) -> std::shared_ptr<Word>
 {
-    if (key_word.contains(key.key)) {
-        return key_word.at(key.key);
-    }
-    auto entryVectorFromKey = dictionaryJpn->entriesFromKey(key.key);
-    if (entryVectorFromKey.empty()) {
+    auto entryByKey = dictionaryJpn->getEntryByKey(key);
+    if (!entryByKey) {
         return nullptr;
     }
-    auto word = std::make_shared<Word_jpn>(std::move(entryVectorFromKey), static_cast<VocableId>(words.size()));
+    // static int dicCount = 0;
+    // static int wordCount = 0;
+    auto dicKey = entryByKey.key;
+    if (dicKey.kanji == "挑む") {
+        spdlog::critical("{}", dicKey.serialize());
+    }
+    if (dicKey_word.contains(dicKey)) {
+        auto word = dicKey_word.at(dicKey);
+        if (word->getDictionaryEntries().empty()) {
+            word->setDicEntry_toDelete(entryByKey);
+            // dicCount++;
+            // spdlog::info("DicCount {}", dicCount);
+        }
+        return word;
+    }
+
+    auto word = std::make_shared<Word_jpn>(entryByKey, static_cast<VocableId>(words.size()));
+    word->setDicEntry_toDelete(entryByKey);
     words.push_back(word);
-    key_word.insert({key.key, word});
+
+    // wordCount++;
+    // spdlog::info("DicCount {}, wordCount: {}", dicCount, wordCount);
+
+    dicKey_word.insert({dicKey, word});
     return word;
 }
 
@@ -110,7 +198,7 @@ void WordDB_jpn::parse(const std::string& str)
             break;
         }
         auto vocableId = static_cast<VocableId>(words.size());
-        words.push_back(std::make_shared<Word_jpn>(wordDescription, vocableId, dictionaryJpn));
+        words.push_back(std::make_shared<Word_jpn>(wordDescription, vocableId));
     }
 }
 
@@ -150,11 +238,11 @@ void WordDB_jpn::parse(const std::string& str)
 
 void WordDB_jpn::save()
 {
-    spdlog::warn("Save ommitted for WordDB");
-    return;
+    // spdlog::warn("Save ommitted for WordDB");
+    // return;
 
     auto out = std::ofstream{config->DatabaseDirectory() / progressDbFilename};
-    for (const auto& word : words) {
+    for (const auto& [_, word] : dicKey_word) {
         if ((word->getSpacedRepetitionData()->state != database::StudyState::newWord)
             || word->isModified()
             || word->getSpacedRepetitionData()->enabled) {

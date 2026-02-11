@@ -137,7 +137,7 @@ auto TokenizerJpn::split_sudachi(const std::string& text) const -> std::vector<T
     auto sudachiTokens = sudachi->split(text);
     sudachiTokens = sudachi->mergeConjugation(sudachiTokens);
     std::vector<Token> tokens;
-    // spdlog::info("{}", text);
+    log->info("{}", text);
 
     for (const auto& sudachiToken : sudachiTokens) {
         log->info("surface: {}, normalized: {}, dictionary: {}, reading: {} | {} ,{},{}",
@@ -159,7 +159,7 @@ auto TokenizerJpn::split_sudachi(const std::string& text) const -> std::vector<T
         // }
         if (word) {
             tokens.emplace_back(sudachiToken.surface_merged, word);
-            log->info("W: {}, def: {}", wordJpn->Key(), wordJpn->getDefinitions().front().pronounciation.front());
+            log->info("W: {}, def: {}", wordJpn->getKey().serialize(), wordJpn->getDefinitions().front().readings.front());
         } else {
             tokens.emplace_back(sudachiToken.surface_merged);
         }
@@ -171,6 +171,7 @@ void TokenizerJpn::setDebugSink(spdlog::sink_ptr sink)
 {
     log = std::make_unique<spdlog::logger>("", sink);
     mecab->setDebugSink(sink);
+    sudachi->setDebugSink(sink);
     jpnDictionary->setDebugSink(sink);
 }
 

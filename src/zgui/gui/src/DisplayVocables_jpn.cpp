@@ -122,13 +122,13 @@ void DisplayVocables_jpn::setupVocables(widget::Grid& grid)
             bool renderPronounciation = true;
             for (const auto& meaning : def.meanings) {
                 if (renderKey) {
-                    grid.add<widget::TextTokenSeq>(Align::start, tokenVectorFromString(word->Key(), colorId), ttqConfig);
+                    grid.add<widget::TextTokenSeq>(Align::start, tokenVectorFromString(word->ShortKey(), colorId), ttqConfig);
                     renderKey = false;
                 } else {
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);
                 }
                 if (renderPronounciation) {
-                    grid.add<widget::TextTokenSeq>(Align::start, tokenVectorFromString(def.pronounciation.front(), colorId), ttqConfig);
+                    grid.add<widget::TextTokenSeq>(Align::start, tokenVectorFromString(def.readings.front(), colorId), ttqConfig);
                     renderPronounciation = false;
                 } else {
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);

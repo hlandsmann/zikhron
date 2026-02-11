@@ -14,6 +14,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace dictionary {
@@ -56,6 +57,12 @@ struct DicKey_jpn
     std::string kanji;
     std::string kanjiNorm;
     std::string reading;
+    auto operator<=>(const DicKey_jpn& other) const = default;
+
+    operator bool() const { return !(kanji.empty() && kanjiNorm.empty() && reading.empty()); }
+
+    [[nodiscard]] auto serialize() const -> std::string;
+    [[nodiscard]] static auto deserialize(std::string_view rest) -> DicKey_jpn;
 };
 
 struct DicDef_jpn
@@ -69,6 +76,8 @@ struct DicEntry_jpn
 {
     DicKey_jpn key;
     std::vector<DicDef_jpn> definitions;
+
+    operator bool() const { return (!definitions.empty()); }
 };
 
 class DictionaryJpn : public Dictionary
@@ -95,11 +104,11 @@ public:
         operator bool() const { return (!definitions.empty()); }
     };
 
-    [[nodiscard]] auto getEntryByKey(const Key_jpn& key) const -> DicEntry_jpn;
-    [[nodiscard]] auto getEntryByReading(const std::string& reading, const std::string& hint) const -> DicEntry_jpn;
+    [[nodiscard]] auto getEntryByKey(const Key_jpn& key, bool flag = false) const -> DicEntry_jpn;
+    [[nodiscard]] auto getEntryByReading(const std::string& reading, const std::string& hint, bool flag) const -> DicEntry_jpn;
     [[nodiscard]] auto getEntryByKanji(const std::string& kanji,
                                        const std::string& hint,
-                                       const std::string& reading) const -> DicEntry_jpn;
+                                       const std::string& reading, bool flag) const -> DicEntry_jpn;
 
     [[nodiscard]] auto getEntryByKanji(const std::string& key) const -> InternalEntry;
     [[nodiscard]] auto getEntryByReading(const std::string& key) const -> InternalEntry;

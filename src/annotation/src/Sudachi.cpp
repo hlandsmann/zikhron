@@ -2,6 +2,7 @@
 
 #include "Token.h"
 
+#include <spdlog/logger.h>
 #include <spdlog/spdlog.h>
 #include <utils/ProcessPipe.h>
 #include <utils/format.h>
@@ -32,6 +33,7 @@ auto Sudachi::split(const std::string& text) const -> std::vector<SudachiToken>
     auto cutText = std::string_view{text};
     while (true) {
         const auto& chunk = processPipe->getChunk();
+        log->info("{}", chunk);
         if (chunk.empty()) {
             break;
         }
@@ -98,6 +100,11 @@ auto Sudachi::mergeConjugation(const std::vector<SudachiToken>& sudachiTokens) -
         finalTokens.push_back(bufferToken);
     }
     return finalTokens;
+}
+
+void Sudachi::setDebugSink(spdlog::sink_ptr sink)
+{
+    log = std::make_unique<spdlog::logger>("", sink);
 }
 
 auto Sudachi::shouldMerge(const SudachiToken& prev, const SudachiToken& curr) -> bool

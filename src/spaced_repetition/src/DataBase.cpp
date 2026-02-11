@@ -270,15 +270,15 @@ void DataBase::fillIndexMaps()
         }
     }
 
-    // // manipulate vocables by count!
-    // for (auto& vocable : *vocables) {
-    //     if (vocable.CardIds().size() < 3) {
-    //         vocable.setEnabled(false);
-    //     }
-    //     if (vocable.CardIds().size() > 3) {
-    //         vocable.setEnabled(true);
-    //     }
-    // }
+    // manipulate vocables by count!
+    for (auto& vocable : *vocables) {
+        if (vocable.CardIds().size() < 3) {
+            vocable.setEnabled(false);
+        }
+        // if (vocable.CardIds().size() > 3) {
+        //     vocable.setEnabled(true);
+        // }
+    }
     numberOfEnabledVocables = countEnabledVocables();
     spdlog::info("number of vocables: {}, enabled: {}", allVocableIds.size(), numberOfEnabledVocables);
     spdlog::info("number of cards: {}", metaCards.size());

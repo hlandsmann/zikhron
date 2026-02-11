@@ -8,6 +8,7 @@
 #include <spdlog/sinks/null_sink.h>
 #include <spdlog/spdlog.h>
 #include <utils/format.h>
+#include <utils/string_split.h>
 
 #include <algorithm>
 #include <cassert>
@@ -30,6 +31,18 @@ namespace views = std::views;
 
 namespace dictionary {
 constexpr std::string dot = "・";
+
+auto DicKey_jpn::serialize() const -> std::string
+{
+    return fmt::format("{}/{}/{}/", kanji, kanjiNorm, reading);
+}
+
+auto DicKey_jpn::deserialize(std::string_view rest) -> DicKey_jpn
+{
+    return {.kanji = std::string{utl::split_front(rest, '/')},
+            .kanjiNorm = std::string{utl::split_front(rest, '/')},
+            .reading = std::string{utl::split_front(rest, '/')}};
+}
 
 struct POS
 {
@@ -574,18 +587,41 @@ auto DictionaryJpn::contains(const std::string& key) const -> bool
     return kanjiToIndex.contains(key) || readingToIndex.contains(key);
 }
 
-auto DictionaryJpn::getEntryByKey(const Key_jpn& key) const -> DicEntry_jpn
+template<typename... Args>
+void log_if(bool flag, fmt::format_string<Args...> fmt, Args&&... args)
+{
+    if (flag) {
+        spdlog::debug(fmt, std::forward<Args>(args)...);
+    }
+}
+
+auto DictionaryJpn::getEntryByKey(const Key_jpn& key, bool flag) const -> DicEntry_jpn
 {
     if (key.key.empty()) {
         return {};
     }
-    if (Kana::isKana(key.key)) {
-        return getEntryByReading(key.key, key.hint);
-    }
-    return {getEntryByKanji(key.key, key.hint, key.reading)};
+    // if (Kana::isKana(key.key)) {
+    //     return getEntryByReading(key.key, key.hint, flag);
+    // }
+    // return getEntryByKanji(key.key, key.hint, key.reading, flag);
+
+    auto dicEntry = Kana::isKana(key.key)
+                            ? getEntryByReading(key.key, key.hint, flag)
+                            : getEntryByKanji(key.key, key.hint, key.reading, flag);
+
+    // if (dicEntry.definitions.size() > 1 && std::ranges::any_of(dicEntry.definitions | std::views::adjacent<2>, [](const auto& pair) {
+    //     const auto& [a, b] = pair;
+    //     return a.kanjis != b.kanjis; })) {
+    //     spdlog::info("{}, {}, {} -------------------------", dicEntry.key.kanji, dicEntry.key.kanjiNorm, dicEntry.key.reading);
+    //     for (const auto& def : dicEntry.definitions) {
+    //         spdlog::debug("{}", def.kanjis);
+    //     }
+    // }
+
+    return dicEntry;
 }
 
-auto DictionaryJpn::getEntryByReading(const std::string& reading, const std::string& hint) const -> DicEntry_jpn
+auto DictionaryJpn::getEntryByReading(const std::string& reading, const std::string& hint, bool flag) const -> DicEntry_jpn
 {
     if (!readingToIndex.contains(reading)) {
         return {};
@@ -637,7 +673,7 @@ auto DictionaryJpn::getEntryByReading(const std::string& reading, const std::str
     return entry;
 }
 
-auto DictionaryJpn::getEntryByKanji(const std::string& kanji, const std::string& hint, const std::string& reading) const
+auto DictionaryJpn::getEntryByKanji(const std::string& kanji, const std::string& hint, const std::string& reading, bool flag) const
         -> DicEntry_jpn
 {
     DicEntry_jpn entry;
@@ -666,11 +702,6 @@ auto DictionaryJpn::getEntryByKanji(const std::string& kanji, const std::string&
             return ranges::contains(definitions | views::transform(&Definition::readings) | views::join, reading);
         });
     }
-    entry.key.kanji = kanji;
-    if (!hint.empty() && !Kana::isKana(hint)) {
-        entry.key.kanjiNorm = hint;
-    }
-    entry.key.reading = reading;
     for (const auto index : indices) {
         const auto& dicEntry = entries[index];
         ranges::transform(dicEntry.definitions
@@ -690,6 +721,18 @@ auto DictionaryJpn::getEntryByKanji(const std::string& kanji, const std::string&
                           });
     }
 
+    entry.key.kanji = kanji;
+    if (!hint.empty() && !Kana::isKana(hint)) {
+        entry.key.kanjiNorm = hint;
+    }
+    if (readingIsValid) {
+        entry.key.reading = reading;
+    } else {
+        auto readingsView = entry.definitions | views::transform(&DicDef_jpn::readings) | views::join;
+        if (std::ranges::distance(readingsView) == 1) {
+            entry.key.reading = readingsView.front();
+        }
+    }
     return entry;
 }
 

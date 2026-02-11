@@ -1,6 +1,8 @@
 #pragma once
 #include "Token.h"
 
+#include <spdlog/common.h>
+#include <spdlog/logger.h>
 #include <utils/ProcessPipe.h>
 
 #include <memory>
@@ -33,12 +35,14 @@ public:
     Sudachi(std::shared_ptr<utl::ProcessPipe> processPipe);
     [[nodiscard]] auto split(const std::string& text) const -> std::vector<SudachiToken>;
     [[nodiscard]] static auto mergeConjugation(const std::vector<SudachiToken>& sudachiTokens) -> std::vector<SudachiToken>;
+    void setDebugSink(spdlog::sink_ptr sink);
 
 private:
     [[nodiscard]] static auto shouldMerge(const SudachiToken& prev, const SudachiToken& curr) -> bool;
     [[nodiscard]] static auto parseLine(std::string_view line) -> SudachiToken;
     [[nodiscard]] static auto isCovered(const std::vector<SudachiToken>&, const std::string& text) -> bool;
     std::shared_ptr<utl::ProcessPipe> processPipe;
+    std::unique_ptr<spdlog::logger> log;
 };
 } // namespace annotation
 
