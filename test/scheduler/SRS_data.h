@@ -4,6 +4,7 @@ struct SRS_data
 {
     int id{};
     int failCount{};
+    int reviewCount{};
     int interval_0{};
     int interval_1{};
     int interval_2{};

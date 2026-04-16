@@ -12,16 +12,21 @@ target_sources(scheduler
         user.h
         weight.cpp
         weight.h
+        ThompsonWeight.cpp
+        ThompsonWeight.h
+        ThompsonScheduler.cpp
+        ThompsonScheduler.h
 )
 target_link_libraries(scheduler
     PRIVATE
-        zikhron::spaced_repetition
-        zikhron::warnings
-        zikhron::utils
-        spdlog::spdlog
+        Boost::math
         Eigen3::Eigen
-        zikhron::utils
         fmt::fmt
+        spdlog::spdlog
+        zikhron::spaced_repetition
+        zikhron::utils
+        zikhron::utils
+        zikhron::warnings
 )
 set_property(TARGET scheduler PROPERTY CXX_STANDARD 23)
 set_target_properties(scheduler

@@ -85,6 +85,11 @@ private:
                                               .paddingHorizontal = 0.F,
                                               .paddingVertical = 0.F,
                                               .border = s_border};
+    constexpr static widget::BoxCfg optionBoxCfg = {.padding = 0.F,
+                                                    .paddingHorizontal = 0.F,
+                                                    .paddingVertical = 0.F,
+                                                    .border = s_border};
+
     constexpr static widget::BoxCfg definitionGridCfg = {.padding = 0.F,
                                                          .paddingHorizontal = s_horizontalPadding,
                                                          .paddingVertical = 16.F,

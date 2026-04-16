@@ -77,6 +77,7 @@ target_sources(scratch
 target_link_libraries(scratch
     PRIVATE
         Boost.DI
+        Boost::math
         zikhron::warnings
         zikhron::utils
         spdlog::spdlog

@@ -147,18 +147,11 @@ auto WordDB_jpn::lookup(const dictionary::Key_jpn& key) -> std::shared_ptr<Word>
     if (!entryByKey) {
         return nullptr;
     }
-    // static int dicCount = 0;
-    // static int wordCount = 0;
     auto dicKey = entryByKey.key;
-    if (dicKey.kanji == "挑む") {
-        spdlog::critical("{}", dicKey.serialize());
-    }
     if (dicKey_word.contains(dicKey)) {
         auto word = dicKey_word.at(dicKey);
         if (word->getDictionaryEntries().empty()) {
             word->setDicEntry_toDelete(entryByKey);
-            // dicCount++;
-            // spdlog::info("DicCount {}", dicCount);
         }
         return word;
     }
@@ -166,9 +159,6 @@ auto WordDB_jpn::lookup(const dictionary::Key_jpn& key) -> std::shared_ptr<Word>
     auto word = std::make_shared<Word_jpn>(entryByKey, static_cast<VocableId>(words.size()));
     word->setDicEntry_toDelete(entryByKey);
     words.push_back(word);
-
-    // wordCount++;
-    // spdlog::info("DicCount {}, wordCount: {}", dicCount, wordCount);
 
     dicKey_word.insert({dicKey, word});
     return word;

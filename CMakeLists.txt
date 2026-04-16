@@ -17,6 +17,12 @@ CPMAddPackage("gh:glfw/glfw#3.3.8")
 CPMAddPackage("gh:Neargye/magic_enum@0.9.7")
 CPMAddPackage("gh:palacaze/sigslot@1.2.2")
 CPMAddPackage("gh:zeux/pugixml@1.14")
+CPMAddPackage(
+    NAME BoostMath
+    GITHUB_REPOSITORY boostorg/math
+    GIT_TAG boost-1.84.0
+    GIT_SUBMODULES_RECURSE TRUE
+)
 include(FindPkgConfig)
 
 include(${CMAKE_SOURCE_DIR}/cmake/gen_cfg_json.cmake)

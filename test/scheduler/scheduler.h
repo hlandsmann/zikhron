@@ -11,10 +11,6 @@
 #include <string>
 #include <vector>
 
-struct History
-{
-};
-
 class Scheduler
 {
 public:

@@ -128,7 +128,9 @@ void DisplayVocables_jpn::setupVocables(widget::Grid& grid)
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);
                 }
                 if (renderPronounciation) {
-                    grid.add<widget::TextTokenSeq>(Align::start, tokenVectorFromString(def.readings.front(), colorId), ttqConfig);
+                    grid.add<widget::TextTokenSeq>(Align::start,
+                                                   tokenVectorFromString(fmt::format("{}", fmt::join(def.readings, ", ")), colorId),
+                                                   ttqConfig);
                     renderPronounciation = false;
                 } else {
                     grid.add<widget::Separator>(Align::start, 0.F, 0.F);

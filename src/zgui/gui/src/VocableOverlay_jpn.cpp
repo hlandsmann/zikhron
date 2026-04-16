@@ -65,9 +65,9 @@ auto VocableOverlay_jpn::optionsFromWord(const database::Word_jpn& word) -> std:
     const auto& entries = word.getDictionaryEntries();
     ranges::transform(entries, std::back_inserter(options),
                       [](const dictionary::DicDef_jpn& entry) -> Option {
-                      spdlog::info("k: {}", entry.kanjis);
-                      spdlog::info("r: {}", entry.readings);
-                      spdlog::info("m: {}", entry.meanings);
+                          spdlog::info("k: {}", entry.kanjis);
+                          spdlog::info("r: {}", entry.readings);
+                          spdlog::info("m: {}", entry.meanings);
                           return {.kanjis = entry.kanjis,
                                   .openPronounciation = OpenBtn::Hide,
                                   .readings = entry.readings,
@@ -117,7 +117,7 @@ void VocableOverlay_jpn::setupBox()
     const auto& headerBox = box.add<widget::Box>(Align::start, headerBoxCfg, widget::Orientation::horizontal);
     const auto& definitionGrid = box.add<widget::Grid>(Align::start, definitionGridCfg, 2, widget::Grid::Priorities{0.2F, 0.8F});
     auto& optionScrollArea = *box.add<widget::ScrollArea>(Align::start, "vocableScrollArea");
-    const auto& optionBox = optionScrollArea.add<widget::Box>(Align::start, widget::Orientation::vertical);
+    const auto& optionBox = optionScrollArea.add<widget::Box>(Align::start, optionBoxCfg, widget::Orientation::vertical);
 
     headerBox->setName("headerBox");
     headerBox->setExpandType(width_adapt, height_fixed);
